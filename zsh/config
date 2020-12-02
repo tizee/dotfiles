@@ -59,7 +59,7 @@ fi
 # zsh functions
 ######################
 #{{{
-autoload -Uz compinit && compinit
+# autoload -Uz compinit && compinit
 #}}}
 
 ######################
@@ -67,12 +67,13 @@ autoload -Uz compinit && compinit
 ######################
 # {{{
 source ~/.config/zsh/vi-mode.zsh
-source ~/.config/zsh/dirs.zsh
+#source ~/.config/zsh/dirs.zsh
 source ~/.config/zsh/git.zsh
 source ~/.config/zsh/autojump.zsh
 source ~/.config/zsh/extract.zsh
 source ~/.config/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 source ~/.config/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
+source ~/.config/zsh/enhanced.zsh
 # }}}
 
 # vim:ft=zsh ts=2 sw=2 sts=2 et fenc=utf-8
