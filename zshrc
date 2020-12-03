@@ -97,7 +97,8 @@ FZF_DEFAULT_OPTS="--reverse --ansi --preview-window 'right:60%' --preview 'bat -
 
 # my zsh config
 PATH="$HOME/.config/bin:$PATH"
-source $HOME/.config/zsh/kiriline.zsh-theme
+# source $HOME/.config/zsh/kiriline.zsh-theme
+source /usr/local/opt/gitstatus/gitstatus.prompt.zsh
 source $HOME/.config/zsh/config
 
 # >>> conda initialize >>>
