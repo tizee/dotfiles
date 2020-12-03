@@ -74,6 +74,7 @@ source ~/.config/zsh/extract.zsh
 source ~/.config/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 source ~/.config/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
 source ~/.config/zsh/enhanced.zsh
+eval "$(lua ~/.config/zsh/z.lua --init zsh enhanced)"
 # }}}
 
 # vim:ft=zsh ts=2 sw=2 sts=2 et fenc=utf-8
