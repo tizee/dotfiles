@@ -33,6 +33,8 @@ PATH="/usr/local/go/bin:$PATH"
 PATH="$HOME/dev/go_proj/bin:$PATH"
 # llvm
 PATH="/usr/local/opt/llvm/bin:$PATH"
+export LDFLAGS="-L/usr/local/opt/llvm/lib"
+export CPPFLAGS="-I/usr/local/opt/llvm/include"
 # openssl
 PATH="/usr/local/opt/openssl@1.1/bin:$PATH"
 
@@ -94,6 +96,10 @@ DENO_INSTALL=$HOME/.deno
 FZF_COMPLETION_TRIGGER=**
 FZF_DEFAULT_COMMAND="fd --exclude={.git,.idea,.vscode,.sass-cache,node_modules,build} --type f"
 FZF_DEFAULT_OPTS="--reverse --ansi --preview-window 'right:60%' --preview 'bat --color=always --style=header,grid --line-range :300 {} 2> /dev/null'"
+
+# bison
+export PATH="/usr/local/opt/bison/bin:$PATH"
+LDFLAGS="-L/usr/local/opt/bison/lib"
 
 # my zsh config
 PATH="$HOME/.config/bin:$PATH"

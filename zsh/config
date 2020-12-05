@@ -67,9 +67,8 @@ fi
 ######################
 # {{{
 source ~/.config/zsh/vi-mode.zsh
-#source ~/.config/zsh/dirs.zsh
+source ~/.config/zsh/dirs.zsh
 source ~/.config/zsh/git.zsh
-source ~/.config/zsh/autojump.zsh
 source ~/.config/zsh/extract.zsh
 source ~/.config/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 source ~/.config/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh

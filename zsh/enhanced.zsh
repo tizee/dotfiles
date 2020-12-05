@@ -308,7 +308,7 @@ vcfg() {
         $tmp_editor "$HOME/.config/alacritty/alacritty.yml"
         ;;
       ass)
-        $tmp_editor "$HOME/.config/zsh/ehanced.zsh"
+        $tmp_editor "$HOME/.config/zsh/enhanced.zsh"
         ;;
       *)
         echo "$1 NOT AVAILABLE"
