@@ -19,6 +19,11 @@ if [ "$PLATFORM" = Darwin ];then
   fi
   # man preview
   function preman() { man -t "$@" | open -f -a "Preview" ;}
+  # check SIP
+  function sipcheck() {
+   csrutil status; 
+   csrutil authenticated-root status;
+  }
 fi
 
 # }}} 
