@@ -47,7 +47,7 @@ bindkey '^e' end-of-line
 
 # if mode indicator wasn't setup by theme, define default
 if [[ "$MODE_INDICATOR" == "" ]]; then
-  MODE_INDICATOR="%{$fg_bold[lightgreen]%}<%{$fg[red]%}<<%{$reset_color%}"
+  MODE_INDICATOR="%{%F{210}%}<<<%{$reset_color%}"
 fi
 
 function vi_mode_prompt_info() {

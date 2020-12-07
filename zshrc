@@ -9,6 +9,7 @@ PATH="/usr/local/bin:$HOME/.local/bin:$PATH"
 PATH="/usr/local/sbin:$PATH"
 # gnu
 PATH="/usr/local/opt/make/libexec/gnubin:$PATH"
+PATH="/usr/local/opt/coreutils/libexec/gnubin:$PATH"
 # curl
 PATH="/usr/local/opt/curl/bin:$PATH"
 # rust cargo
@@ -37,6 +38,10 @@ export LDFLAGS="-L/usr/local/opt/llvm/lib"
 export CPPFLAGS="-I/usr/local/opt/llvm/include"
 # openssl
 PATH="/usr/local/opt/openssl@1.1/bin:$PATH"
+# ncurses
+export PATH="/usr/local/opt/ncurses/bin:$PATH"
+# sqlite
+export PATH="/usr/local/opt/sqlite/bin:$PATH"
 
 # Android
 # https://stackoverflow.com/questions/52524112/how-do-i-install-java-on-mac-osx-allowing-version-switching
