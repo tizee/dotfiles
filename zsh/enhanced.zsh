@@ -57,9 +57,9 @@ alias nvi="nvim"
 # }}}
 
 # ========== exa ========= {{{
-alias ls="exa"
+alias ls="exa --oneline"
 alias ll='exa -lG'
-alias la='exa -al'
+alias la='exa -alG'
 alias qps='ps aux | fd'
 alias qcd='cd $(exa -lG | fzf)'
 # ls
