@@ -175,9 +175,6 @@ fi
 
 # }}}
 
-# File search
-
-# find
 # ========== find ehancement ========== {{{
 alias fdsl="fd . -t l -d 1 -H"
 fdfzf(){
@@ -234,8 +231,6 @@ rgvi(){
 # ========== awk ========== {{{
 
 # }}}
-
-# Sever
 
 # ========== ngnix ========== {{{
 alias ngistart="nginx"
@@ -335,13 +330,16 @@ vcfg() {
 repo() {
   if [[ -z $1 ]];then
     cd $HOME/dev/$(fd -t d -d 1 'grepo_.*' $HOME/dev --exec basename | fzf);
-    local repo_name=$(fd -t d -d 1 . | fzf --preview "tree -L 1 {+1}")
+    local repo_name="$(fd -t d -d 1 . | fzf --preview "tree -L 1 {+1}")"
     if [[ -n $repo_name ]];then
       cd "$repo_name"
     fi
   else
     cd "$HOME/dev/grepo_$1";
-    cd $(fd -t d -d 1 . | fzf --preview "tree -L 1 {+1}")
+    local repo_name="$(fd -t d -d 1 . | fzf --preview "tree -L 1 {+1}")"
+    if [[ -n $repo_name ]];then
+      cd "$repo_name"
+    fi
   fi
 }
 
@@ -379,3 +377,9 @@ fzfbrew() {
 
 
 # }}}
+
+# ========== golang ========== {{{
+alias httpgodoc="godoc -http=:6060"
+# }}}
+
+# vim:ft=zsh:

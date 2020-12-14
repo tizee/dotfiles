@@ -59,7 +59,7 @@ fi
 # zsh functions
 ######################
 #{{{
-# autoload -Uz compinit && compinit
+autoload -Uz compinit && compinit
 #}}}
 
 ######################
@@ -73,6 +73,10 @@ source ~/.config/zsh/extract.zsh
 source ~/.config/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 source ~/.config/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
 source ~/.config/zsh/enhanced.zsh
+source ~/dev/grepo_shell/fzf-tab/fzf-tab.plugin.zsh
+source ~/.config/zsh/fzf-tab-config.zsh
+
+
 eval "$(lua ~/.config/zsh/z.lua --init zsh enhanced)"
 # }}}
 
