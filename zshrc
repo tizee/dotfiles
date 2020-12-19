@@ -1,3 +1,8 @@
+# ========== 
+# ENV
+# ========== 
+# {{{
+
 # system
 PATH="/usr/bin:$PATH"
 PATH="/bin:$PATH"
@@ -14,7 +19,9 @@ PATH="/usr/local/opt/coreutils/libexec/gnubin:$PATH"
 PATH="/usr/local/opt/curl/bin:$PATH"
 # rust cargo
 PATH="$HOME/.cargo/bin:$PATH"
-RUSTUP_DIST_SERVER=https://mirrors.tuna.tsinghua.edu.cn/rustup
+export CARGO_HOME="$HOME/.cargo"
+export RUSTUP_DIST_SERVER="https://mirrors.tuna.tsinghua.edu.cn/rustup"
+export RUSTC_WRAPPER=$(which sccache)
 # ruby
 PATH="/usr/local/opt/ruby/bin:$PATH"
 PATH="$HOME/.rvm/bin:$PATH"
@@ -24,20 +31,21 @@ PATH="$HOME/.config/yarn/global/node_modules/.bin:$PATH"
 # flutter dart
 PATH="$HOME/dev/grepo_dart/flutter/bin:$PATH"
 PATH="$HOME/flutter/bin:$PATH"
-PUB_HOSTED_URL=https://mirrors.tuna.tsinghua.edu.cn/dart-pub
-Flutter_INSTALL=$HOME/dev/grepo_dart/flutter
-FLUTTER_STORAGE_BASE_URL=https://mirrors.tuna.tsinghua.edu.cn/flutter
+export PUB_HOSTED_URL=https://mirrors.tuna.tsinghua.edu.cn/dart-pub
+export FLUTTER_INSTALL=$HOME/dev/grepo_dart/flutter
+export FLUTTER_STORAGE_BASE_URL=https://mirrors.tuna.tsinghua.edu.cn/flutter
 # deno
 PATH="$HOME/.deno/bin:$PATH"
-# go
+export DENO_INSTALL=$HOME/.deno
+# golang
 PATH="/usr/local/go/bin:$PATH"
 PATH="$HOME/dev/go_proj/bin:$PATH"
+export GOPATH="$HOME/dev/go_proj"
+
 # llvm
 PATH="/usr/local/opt/llvm/bin:$PATH"
-export LDFLAGS="-L/usr/local/opt/llvm/lib"
-export CPPFLAGS="-I/usr/local/opt/llvm/include"
-# openssl
-PATH="/usr/local/opt/openssl@1.1/bin:$PATH"
+#export LDFLAGS="-L/usr/local/opt/llvm/lib"
+#export CPPFLAGS="-I/usr/local/opt/llvm/include"
 # ncurses
 export PATH="/usr/local/opt/ncurses/bin:$PATH"
 # sqlite
@@ -83,34 +91,59 @@ PATH="/Applications/Wireshark.app/Contents/MacOS:$PATH"
 PATH="$HOME/anaconda3/bin:$PATH"
 PATH="$HOME/anaconda3/condabin:$PATH"
 
-# sdkman
-SDKMAN_CANDIDATES_API=https://api.sdkman.io/2
-SDKMAN_CANDIDATES_DIR=/Users/tizee/.sdkman/candidates
-SDKMAN_DIR=$HOME/.sdkman
+# openssl
+export PATH="/usr/local/opt/openssl@1.1/bin:$PATH"
+export LDFLAGS="-L/usr/local/opt/openssl@1.1/lib"
+export CPPFLAGS="-I/usr/local/opt/openssl@1.1/include"
+export PKG_CONFIG_PATH="/usr/local/opt/openssl@1.1/lib/pkgconfig"
 
-# terminal
-TERM=xterm-256color
-COLORTERM=truecolor
-LANG=en_US.UTF-8
-LC_CTYPE=en_US.UTF-8
 
-MANPAGER="sh -c 'col -bx | bat -l man -p'"
-DENO_INSTALL=$HOME/.deno
-
-# fzf
-FZF_COMPLETION_TRIGGER=**
-FZF_DEFAULT_COMMAND="fd --exclude={.git,.idea,.vscode,.sass-cache,node_modules,build} --type f"
-FZF_DEFAULT_OPTS="--reverse --ansi --preview-window 'right:60%' --preview 'bat --color=always --style=header,grid --line-range :300 {} 2> /dev/null'"
+# ncurses
+export PATH="/usr/local/opt/ncurses/bin:$PATH"
 
 # bison
 export PATH="/usr/local/opt/bison/bin:$PATH"
-LDFLAGS="-L/usr/local/opt/bison/lib"
+#export LDFLAGS="-L/usr/local/opt/bison/lib"
+
+# libxml2
+export PATH="/usr/local/opt/libxml2/bin:$PATH"
+# export LDFLAGS="-L/usr/local/opt/libxml2/lib"
+# export CPPFLAGS="-I/usr/local/opt/libxml2/include"
+# export PKG_CONFIG_PATH="/usr/local/opt/libxml2/lib/pkgconfig"
 
 # my zsh config
-PATH="$HOME/.config/bin:$PATH"
+export PATH="$HOME/.config/bin:$PATH"
+export PATH="$HOME/.config/work_bin:$PATH" # work related scripts
+
+# sdkman
+export SDKMAN_CANDIDATES_API=https://api.sdkman.io/2
+export SDKMAN_CANDIDATES_DIR=/Users/tizee/.sdkman/candidates
+export SDKMAN_DIR=$HOME/.sdkman
+
+# terminal
+export TERM=xterm-256color
+export COLORTERM=truecolor
+export LANG=en_US.UTF-8
+export LC_CTYPE=en_US.UTF-8
+
+export MANPAGER="sh -c 'col -bx | bat -l man -p'"
+
+# fzf
+export FZF_COMPLETION_TRIGGER="**"
+export FZF_DEFAULT_COMMAND="fd --exclude={.git,.idea,.vscode,.sass-cache,node_modules,build} --type f"
+export FZF_DEFAULT_OPTS="--reverse --ansi --preview-window 'right:60%' --preview 'bat --color=always --style=header,grid --line-range :300 {} 2> /dev/null' --bind ctrl-c:select-all"
+
+# }}}
+
+# ========== 
+# THEME
+# ========== 
 source $HOME/.config/zsh/kiriline.zsh-theme
 source $HOME/.config/zsh/config
 
+# ========== 
+# Anaconda
+# ========== 
 # >>> conda initialize >>>
 # !! Contents within this block are managed by 'conda init' !!
 __conda_setup="$('/Users/tizee/anaconda3/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
@@ -126,3 +159,6 @@ fi
 unset __conda_setup
 # <<< conda initialize <<<
 
+eval $(thefuck --alias)
+
+# vim:ft=zsh:fdm=marker
