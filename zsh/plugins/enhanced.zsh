@@ -3,11 +3,41 @@
 # set -xeuo pipefall
 PLATFORM=$(uname -s)
 
-# ========== TITLE ========== {{{
+# ========== TITLE EXAMPLE ========== {{{
+# }}} 
+
+# ========== zsh only Alias suffix ========== {{{
+if [[ -e '/usr/bin/zsh' ]];then
+  alias -s tgz="tar zxvf"
+  alias -s {yml,yaml}="nvim"
+  # alias -g G='| rg -i'
+fi
 # }}} 
 
 alias socks5="http_proxy=socks5://127.0.0.1:1080 https_proxy=socks5://127.0.0.1:1080 all_proxy=socks5://127.0.0.1:1080 "
 alias clanginclude="clang++ -E -x c++ - -v < /dev/null"
+
+# ========== tar ========== {{{
+alias -g tarsee="tar tvf " # list files
+# }}} 
+
+# ========== Linux ========== {{{
+if [ "$PLATFORM" = Linux ];then
+  # Archlinux
+  # TODO: extract to another script file
+  if [ -e "/usr/bin/pacman" ];then
+    alias pacrm="pacman -Rns $(pacman -Qdtq)"
+    alias pacconf="$EDITOR $HOME/.config/"
+    # show keymap
+  fi
+  if [ -e "/usr/bin/apt" ];then
+    alias aup="apt update"
+    alias asource="source /etc/apt/sources.list"
+  fi
+  # check available file descriptors
+  alias filedescnum="ulimit -n"
+fi
+# }}} 
 
 # ========== macOS ========== {{{
 
@@ -24,10 +54,21 @@ if [ "$PLATFORM" = Darwin ];then
    csrutil status; 
    csrutil authenticated-root status;
   }
+  function sipdisable(){
+    sudo spctl --master-disable 
+  }
+  alias lcpunum="sysctl -n hw.ncpu"
+  alias pcpunum="sysctl -n hw.physicalcpu"
+  # print file descripts number 
+  # https://stackoverflow.com/questions/795236/in-mac-os-x-how-can-i-get-an-accurate-count-of-file-descriptor-usage
+  alias printfd="lsof -d '^txt' -p nnn | wc -l"
+  alias printmaxfd="launchctl limit maxfiles"
 fi
 
 # }}} 
 
+# youtube-dl
+alias ydl="youtube-dl"
 
 # quick source .aliases
 sozsh() {
@@ -38,17 +79,6 @@ alias 'taro1.3'='/usr/local/lib/node_modules/@tarojs_1.3/cli/bin/taro'
 
 # show key code
 alias showhex="xxd -psd"
-
-# ========== directory shortcuts ========== {{{
-# could use autojump
-alias dev="cd ~/dev/"
-alias work="cd ~/dev/work/"
-alias play="cd ~/dev/playground/"
-alias blog="cd ~/dev/SideProject/BlogPosts/"
-alias side="cd ~/dev/SideProject/"
-alias ohmyzsh="cd ~/.oh-my-zsh"
-
-# }}}
 
 # ========== neovim  ========= {{{
 alias vi="nvim"
@@ -158,22 +188,6 @@ alias gco="git branch | fzf | git checkout"
 
 # }}}
 
-# Unix {{{
-if [ "$PLATFORM" = Linux ];then
-  # Archlinux
-  # TODO: extract to another script file
-  if [ -e "/usr/bin/pacman" ];then
-    alias pacrm="pacman -Rns $(pacman -Qdtq)"
-    alias pacconf="$EDITOR $HOME/.config/"
-    # show keymap
-  fi
-  if [ -e "/usr/bin/apt" ];then
-    alias aup="apt update"
-    alias asource="source /etc/apt/sources.list"
-  fi
-fi
-
-# }}}
 
 # ========== find ehancement ========== {{{
 alias fdsl="fd . -t l -d 1 -H"

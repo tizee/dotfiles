@@ -1,3 +1,5 @@
+#!/usr/bin/env zsh
+
 ######################
 # Options
 ######################
@@ -50,11 +52,16 @@ setopt hist_ignore_space      # ignore commands that start with space
 setopt hist_verify            # show command with history expansion to user before running it
 setopt share_history          # share command history data
 
+# use CTRL-R to search command history reversely 
+bindkey -v
+bindkey '^R' history-incremental-search-backward
+
 # enable diff color if possible.
 if command diff --color . . &>/dev/null; then
   alias diff='diff --color'
 fi
 # }}}
+
 ######################
 # zsh functions
 ######################
@@ -66,18 +73,17 @@ autoload -Uz compinit && compinit
 # plugins 
 ######################
 # {{{
-source ~/.config/zsh/vi-mode.zsh
-source ~/.config/zsh/dirs.zsh
-source ~/.config/zsh/git.zsh
-source ~/.config/zsh/extract.zsh
-source ~/.config/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
-source ~/.config/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
-source ~/.config/zsh/enhanced.zsh
+source ~/.config/zsh/vendor/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+source ~/.config/zsh/vendor/zsh-autosuggestions/zsh-autosuggestions.zsh
+source ~/.config/zsh/plugins/vi-mode.zsh
+source ~/.config/zsh/plugins/dirs.zsh
+source ~/.config/zsh/plugins/git.zsh
+source ~/.config/zsh/plugins/extract.zsh
+source ~/.config/zsh/plugins/enhanced.zsh
 source ~/dev/grepo_shell/fzf-tab/fzf-tab.plugin.zsh
 source ~/.config/zsh/fzf-tab-config.zsh
 
-
-eval "$(lua ~/.config/zsh/z.lua --init zsh enhanced)"
+eval "$(lua ~/.config/zsh/vendor/z.lua --init zsh enhanced)"
 # }}}
 
 # vim:ft=zsh ts=2 sw=2 sts=2 et fenc=utf-8
