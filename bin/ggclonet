@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+# Need setup ssh tunneling first
+gitclone(){
+  # setup ssh tunneling
+  local port=$GITSSH_PORT
+  local url=$1
+  local all_parameters=($@)
+  local rest_parameters=${all_parameters[@]:1}
+  if [ -z url ];then
+    echo "need a url"
+  else
+    if [[ $(uname -s) = Darwin ]];then
+      local tunneling_url=$(echo $url | sed -E "s/(git@|http:\/\/|https:\/\/)/ssh:\/\/git@/" | sed -E "s/(github.com:|github.com\/)/localhost:${port}\//")
+    elif [[ $(uname -s) = Linux ]];then
+      local tunneling_url=$(echo $url | sed -r "s/(git@|http:\/\/|https:\/\/)/ssh:\/\/git@/" | sed -E "s/(github.com:|github.com\/)/localhost:${port}\//") 
+    fi
+    echo "Cloning using $tunneling_url"
+    git clone $tunneling_url $rest_parameters
+  fi
+}
+
+gitclone $@

@@ -1,0 +1,14 @@
+#!/usr/bin/env zsh
+
+# resign xcode for xvim2
+if [[ $(uname -s) = 'Darwin' ]];then
+local name="XCodeSignTizee"
+local xcode_path="/Applications/Xcode.app"
+resignxvim(){
+  sudo codesign -f -s ${name} ${xcode_path}
+}
+resignxvim
+unset resignxvim
+fi
+
+# vim:ft=zsh

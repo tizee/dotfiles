@@ -1,0 +1,10 @@
+#!/usr/bin/env zsh
+
+__sshtunnel(){
+  local lc_port=$GITSSH_PORT
+  local url_port="github.com:22"
+  echo "localhost:$lc_port <-> $url_port"
+  ssh -NL $lc_port:$url_port root@vps_vultr
+}
+
+__sshtunnel
