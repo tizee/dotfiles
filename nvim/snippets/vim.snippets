@@ -1,0 +1,198 @@
+snippet gvar "Global / configuration variable" b
+if !exists("g:${1:MyUltraImportantVar}")
+	let g:$1 = ${2:"${3:<tab>}"}
+endif
+endsnippet
+
+snippet guard "script reload guard" b
+if exists('${1:loaded_`!p snip.rv = snip.fn.replace('.','_')`}') || &cp${2: || v:version < 700}
+	finish
+endif
+let g:$1 = 1$3
+endsnippet
+
+# Without the exclamation mark it would be an error to re-define a function,
+# with the exclamation mark the new definition can replace the old one. Since
+# Vim script files can be reloaded several times over the course of a session
+# it is best to use the exclamation mark unless you really know what you are
+# doing.
+
+# Unscoped function names have to start with a capital letter
+# Scoped function names may start with a lower-case letter
+
+# Function definitions can have special qualifiers following the argument list.
+# Range functions define two implicit arguments, which will be set to the range
+# of the ex-command
+# Aborting functions, abort once error occurs (|:func-abort|)
+# 
+snippet funcb "current buffer scope function" b
+function! b:${1:function_name}($2)
+	${3:" body}
+endfunction
+endsnippet
+
+snippet funcw "current window scope function" b
+function! w:${1:function_name}($2)
+	${3:" body}
+endfunction
+endsnippet
+
+snippet funct "current tab scope function" b
+function! t:${1:function_name}($2)
+	${3:" body}
+endfunction
+endsnippet
+
+snippet funcl "closure local to current function" b
+function! l:${1:function_name}($2)
+	${3:" body}
+endfunction
+endsnippet
+
+snippet funcs "current script scope function" b
+function! s:${1:function_name}($2)
+	${3:" body}
+endfunction
+endsnippet
+
+snippet funcg "global scope function" b
+function! g:${1:function_name}($2)
+	${3:" body}
+endfunction
+endsnippet
+
+snippet vscope "built in vim scope variables" b
+v:${1:version}
+endsnippet
+
+snippet letvreg "vim register" b
+let @${1:"}=${2:""}
+endsnippet
+
+snippet letenv "vim environment variable" b
+let $${1:TERM}=${2:""}
+endsnippet
+
+snippet letopt "vim option" b
+let &${1:sw}=${2:2}
+endsnippet
+
+snippet printenv "print env in scope" b
+echo ${1:b}:
+endsnippet
+
+snippet const "constant var" b
+const ${1:x} = ${2:0}
+endsnippet
+
+snippet gref "global function reference" b
+let ${1:IsNum} = ${2:\\{ x -> type(x) == type(0) \\} } 
+endsnippet
+
+snippet lets "current sciprt scope variable" b
+let s:${1:var}=${2:value}
+endsnippet
+
+snippet unpack "list unpack"
+let [${1:a,b};${2:others}] = ${3:list} 
+endsnippet
+
+snippet ifelif "if-elseif" b
+if ${1:condition1}
+	${2:" code}
+elseif ${3: condition2}
+	${4:" code}
+else
+	${5:" code}
+endif
+endsnippet
+
+snippet if "if-endif" b
+if $1
+	$2
+endf 
+endsnippet
+
+snippet for "for in" b
+for ${1:i} in ${2:list}
+	${5:" code}
+endfor
+endsnippet
+
+snippet forr "for in ranger" b
+for ${1:i} in range(${2:start}, ${3:end}, ${4:step})
+	${5:" code}
+endfor
+endsnippet
+
+snippet fork "for in keys" b
+for ${1:symbol} in keys(${2:dictionary})
+	${3:" code}
+endfor
+endsnippet
+
+snippet forval "for in values" b
+for ${1:value} in values(${2:dictionary})
+	${3:" code}
+endfor
+endsnippet
+
+snippet foritem "for in items" b
+for ${1:[symbol, value]} in items(${2:dictionary})
+	${3:" code}
+endfor
+endsnippet
+
+snippet while "while-loop" b
+while ${1:condition}
+	${2:" code}
+endwhile
+endsnippet
+
+snippet trycatch "try-catch-finally" b
+try
+	${1:" code}
+catch /${2:ErrRegex}/
+	${3:" code}
+catch /.*/
+	${4:" code}
+finally
+	${5:" code}
+endtry
+endsnippet
+
+# Dictionary functions, poor man's OOP methods (|Dictionary-function|)
+
+# Calling functions (|:call|)
+
+# Function namespaces (|write-library-script|, |autoload|)
+
+# Must be defined in autoload/foo/bar.vim
+# Namspaced function names do not have to start with a capital letter
+# function! foo#bar#log(value)
+#     echomsg value
+# endfunction
+# 
+# call foo#bar#log('Hello')
+
+snippet aug "automation group" b
+augroup ${1:NAME}
+	" auto remove when reloading
+	autocmd! 
+	$2
+augroup END
+endsnippet
+
+snippet sruntime "source first match in runtime paths" b
+runtime ${1:plugin/my-plugin.vim}
+endsnippet
+
+# echo  type(my_var) == v:t_number      | " Number
+# echo  type(my_var) == v:t_string      | " String
+# echo  type(my_var) == v:t_func        | " Funcref
+# echo  type(my_var) == v:t_list        | " List
+# echo  type(my_var) == v:t_dict        | " Dictionary
+# echo  type(my_var) == v:t_float       | " Float
+# echo  type(my_var) == v:t_bool        | " Explicit Boolean
+
+# vim:ft=snippets:

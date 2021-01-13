@@ -1,0 +1,27 @@
+# vim: ft=snippets
+
+snippet cmakeproject "CMake boilerplate" b
+cmake_minimum_required(VERSION 3.10)
+
+project ($1)
+
+set(SOURCES
+	$2
+)
+
+add_executable($1 \$\{SOURCES\})
+
+target_include_directories($1
+	PRIVATE 
+		\$\{PROJECT_SOURCE_DIR\}/include
+		$3
+)
+endsnippet
+
+snippet fore "foreach" b
+foreach($1 in ${2:List} )
+$0
+endforeach()
+endsnippet
+
+

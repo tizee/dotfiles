@@ -1,1 +1,2 @@
 inoremap ;; <ESC> 
+nnoremap ; :

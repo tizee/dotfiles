@@ -1,0 +1,70 @@
+{
+  "tsserver.npm": "/usr/local/bin/npm",
+  "languageserver": {
+    "golang": {
+      "command": "gopls",
+      "rootPatterns": ["go.mod"],
+      "disableWorkspaceFolders": true,
+      "filetypes": ["go"]
+    },
+    "rust": {
+      "command": "rust-analyzer",
+      "filetypes": ["rust"],
+      "rootPatterns": ["Cargo.toml"]
+    },
+    "cmake":{
+      "command": "cmake-language-server",
+      "filetypes": ["cmake"],
+      "rootPatterns": ["build/"],
+      "initializationOptions": {
+        "buildDirectory": "build"
+      }
+    },
+    // "clangd": {
+    //   "command": "clangd",
+    //   "rootPatterns": ["compile_flags.txt", "compile_commands.json"],
+    //   "filetypes": ["c", "cc", "cpp", "c++", "objc", "objcpp"]
+    // }
+  },
+  "clangd.enabled": true,
+  "coc.source.emoji.filetypes": ["markdown", "tmux", "vim"],
+  "coc.source.emoji.enable": true,
+  "coc.source.emoji.triggerCharacters": [":"],
+  "git.addGBlameToVirtualText": true,
+  "git.addGBlameToBufferVar": true,
+  "coc.preferences.formatOnSaveFiletypes": [
+    "css",
+    "markdown",
+    "javascript",
+    "typescript",
+    "typescrip.tsx",
+    "json",
+    "rust",
+    "golang"
+  ],
+  "coc.preferences.jumpCommand": "vsplit",
+  "emmet.includeLanguages": {
+    "vue-html": "html",
+    "javascript": "javascriptreact"
+  },
+  "sh.enable": true,
+  "python.jediPath": "/usr/local/lib/python3.8/site-packages",
+  "python.linting.pylintPath": "/Users/tizee/anaconda3/bin/pylint",
+  "python.pythonPath": "python3",
+  "eslint.autoFixOnSave": true,
+  "suggest.snippetIndicator": "ﰴ",
+  "snippets.extends": {
+    "cpp": ["cpp"],
+    "javascriptreact": ["javascript"],
+    "typescript": ["javascript"],
+    "typescriptreact":  ["javascript"]
+  },
+  "snippets.ultisnips.directories":["$HOME/.config/nvim/snippets"],
+  "go.goplsOptions": {
+    "completeUnimported": true
+  },
+  // vue
+  "vetur.format.enable": true,
+  "vetur.format.defaultFormatter.pug": "prettier",
+  "vetur.format.defaultFormatter.less": "prettier",
+}

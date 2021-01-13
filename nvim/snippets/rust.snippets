@@ -1,3 +1,24 @@
+snippet let "let variable " b
+let ${1:var} = $0;
+endsnippet
+
+snippet letm "let variable " b
+let mut ${1:var} = $0;
+endsnippet
+
+snippet matchr "match Result" b
+match ${1:result} {
+	Ok(${2:data}) => { $3 } 
+	Err(${3:error}) => { $4 }
+} 
+endsnippet
+
+snippet struct "struct name" b
+struct $1 {
+$0
+}
+endsnippet
+
 snippet fn "fn name(?) -> ? {}"
 fn ${1:function_name}($2)${3/..*/ -> /}$3 {
 	${VISUAL}$0
@@ -42,6 +63,12 @@ snippet impl "Struct/Trait implementation" b
 impl$4 ${1:Type/Trait}${2: for ${3:Type}}${4:<${5:T}>} {
 	${0}
 }
+endsnippet
+
+snippet forin "for in loop" b
+for ${1:i} in $2 {
+	$0
+} 
 endsnippet
 
 # vim:ft=snippets:
