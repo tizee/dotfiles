@@ -1,3 +1,23 @@
+# vscode
+.vscode
+
+# IntelliJ
+.idea
+
+# temporary
 *~
 .*.swap
+*.so
+
+# project
+TODO
+
+# yarn/npm
+node_modules/
+
+# cmake
+CMakeCache.txt
+.cache/
+
+# macos
 .DS_Store
