@@ -2,5 +2,10 @@ coc
 gatsby
 tmux/plugins
 yarn
-figlet
-bin
+work_bin
+git
+!git/common.gitconfig
+!git/global.gitignore
+nvim/tmp
+zsh/vendor
+karabiner/automatic_backups
