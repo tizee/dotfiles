@@ -3,7 +3,7 @@
 # ====================
 # debug
 # ====================
-yabai -m config debug_output on
+yabai -m config debug_output off 
 
 # ====================
 # space setting
@@ -107,9 +107,11 @@ yabai -m config status_bar_clock_icon        
 # ====================
 # rules {{{
 yabai -m rule --add app="^Chrome$" space=2
+yabai -m rule --add app="^Alacritty$" space=2
 yabai -m rule --add app="^Mail$"   space=2
 yabai -m rule --add app= "^System Preferences$"  manage=off
 yabai -m rule --add app= "^DingTalk Lite$"  manage=off
+yabai -m rule --add app= "^Android Studio$"  manage=off
 yabai -m rule --add app="^Finder$" manage=off
 yabai -m rule --add app="^Stickies$" manage=off
 # }}}
