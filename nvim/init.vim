@@ -5,7 +5,11 @@ let g:dracula_bold = 1
 let g:dracula_italic = 1
 let g:dracula_underline = 1
 
+set cursorcolumn
+set cursorline
+
 " workaround for italics
+" https://rsapkf.xyz/blog/enabling-italics-vim-tmux
 set t_ZH=[3m
 set t_ZR=[23m
 
@@ -17,6 +21,10 @@ scriptencoding utf-8
 set fileencodings=utf-8,cp936
 set fileencoding=utf-8
 set encoding=utf8
+" spell check
+
+" whether to use Python 2 or 3
+set pyx=3
 
 " true color
 "For Neovim > 0.1.5 and Vim > patch 7.4.1799 < https://github.com/vim/vim/commit/61be73bb0f965a895bfb064ea3e55476ac175162 >
@@ -68,6 +76,9 @@ else
   set signcolumn=yes
 endif
 
+" grepprg
+set grepprg=rg\ --vimgrep
+set grepformat=%f:%l:%c:%m
 
 " Backup and swap
 " Some servers have issues with backup files, see coc.vim/#649.
@@ -187,7 +198,7 @@ endif
 " enable python3 support for neovim
 " :echo has('python3')
 " 1: enable, 0: disable
-let g:python3_host_prog="/usr/local/bin/python3"
+let g:python3_host_prog="~/anaconda3/bin/python"
 
 "}}}
 
@@ -280,10 +291,23 @@ highlight Comment cterm=italic gui=italic
 
 " AUTOCMD GROUP {{{
 " VimScript  {{{
+
+function! s:VimAbbrev()
+iabbr nnp nnoremap
+iabbr vnp vnoremap
+iabbr cnp cnoremap
+iabbr xnp xnoremap
+iabbr onp onoremap
+iabbr tnp tnoremap
+endfunction
+
 augroup filetype_vim
   autocmd!          | " Deletes all auto-commands in the current group
   autocmd FileType vim setlocal foldmethod=marker
+  autocmd FileType vim call s:VimAbbrev()
   autocmd BufWritePost $MYVIMRC source $MYVIMRC
+  " force equalizing window
+  autocmd VimResized * tabdo wincmd =
 augroup END
 " }}}
 
@@ -292,8 +316,17 @@ augroup filetype_shell
   autocmd!
   autocmd FileType sh setlocal foldmethod=marker
   autocmd FileType zsh setlocal foldmethod=marker
+  autocmd BufWritePost *.zsh set filetype=zsh
+  autocmd BufWritePost *.sh set filetype=bash
 augroup END
 " }}}
+
+" git {{{
+augroup filetype_gitconf
+  autocmd!
+  autocmd  BufNewFile,BufRead *.gitignore set filetype=conf
+augroup END "filetype_gitconf
+"}}}
 
 " tmux {{{
 augroup filetype_tmux
@@ -314,25 +347,39 @@ augroup end
 aug ft_python
   autocmd!          | " Deletes all auto-commands in the current group
   " ftype/python.vim overwrites this
-  autocmd FileType python setlocal ts=8 sts=4 sw=8 noexpandtab
+  autocmd FileType python 
+        \ setlocal expandtab smarttab nosmartindent
+        \ | setlocal tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80
+
 aug end
 " }}}
 
 " golang {{{
 aug ft_golang
   autocmd!         | " Deletes all auto-commands in the current group
-  autocmd FileType go setlocal ts=8 sts=4 sw=8 noexpandtab
+  autocmd FileType go setlocal ts=4 sts=4 sw=4 noexpandtab
   autocmd BufNewFile,BufRead *.go setlocal foldmethod=syntax
 aug end
 " }}}
+" markdown
+augroup ft_md
+  autocmd FileType markdown setlocal spell spelllang=en_us
+augroup END "ft_md
 
 " The following autocommand will cause the quickfix window to open after any grep invocation:
 autocmd QuickFixCmdPost *grep* cwindow
 " }}}
 
 " ABBREVIATION {{{
+" gloabal common abbreviations
 iabbrev adn and
 iabbrev waht what
 iabbrev tehn then
+iabbrev ture true
+" }}}
 
-"production}}}
+" COMMANDS {{{
+" execute current buffer as zsh script
+command! -nargs=0 ZshExec set splitright | vnew | set filetype=zsh | read !zsh #
+command! -nargs=0 BashExec set splitright | vnew | set filetype=bash | read !bash #
+" }}}
