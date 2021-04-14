@@ -538,4 +538,27 @@ endsnippet
 
 # }}}
 
+# Neovim Popup {{{
+snippet nvimpopup "create temporary popup window in neovim" b
+funciton s:create_popup(hl,opts) abort
+	" listed: sets 'buflisted'
+	" scractch: creates a "throwaway" scratch-buffer for temporary work 
+	let l:buf = nvim_create_buf(v:false,v:true)
+	let l:config = extend({'relative': 'editor',\
+													'style': 'minimal'}, a:opts)
+	" remove border from opts and return it
+	let border = has_key(opts,'border')? remove(opts, 'border'): []
+	let l:win = nvim_open_win(buf, v:true, config)
+	" set floating window normal text highlight
+	call setwinvar(l:win, '&winhiglight', 'NormalFloat:'..a:hl )
+	" disable screen columns highlighting for quick redrawing
+	call setwinvar(l:win,'&colorcolumn','')
+	if !empty(border)
+		call nvim_buf_set_lines(buf,0,-1,v:true,border)
+	endif
+	return buf
+endfunction
+endsnippet
+# }}}
+
 # vim: ft=snippets foldmethod=marker
