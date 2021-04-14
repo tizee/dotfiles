@@ -507,4 +507,10 @@ function grename() {
   fi
 }
 
+# --sparse initializes the sparse-checkout file so the working directory starts only with the files in the root directory
+# --filter=blob:none will exclude files so we could fetch them when needed
+# --depth=1 truncate commit history to leave only the latest commit(may cause problems)
+alias gpickclone="git clone --sparse --filter=blob:none --depth=1"
+# use git sparse-checkout add [file]
+
 unset git_version

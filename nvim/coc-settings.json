@@ -48,7 +48,7 @@
     "javascript": "javascriptreact"
   },
   "sh.enable": true,
-  "python.jediPath": "/usr/local/lib/python3.8/site-packages",
+  "python.jediPath": "/Users/tizee/anaconda3/lib/python3.7/site-packages ",
   "python.linting.pylintPath": "/Users/tizee/anaconda3/bin/pylint",
   "python.pythonPath": "python3",
   "eslint.autoFixOnSave": true,
