@@ -1,5 +1,5 @@
 {
-  "title": "Arrow key with H",
+  "title": "left option jkhl",
   "rules": [
     {
       "description": "Change left_option + H/J/K/L to Arrow Keys",
