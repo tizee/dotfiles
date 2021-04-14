@@ -72,18 +72,21 @@ autoload -Uz compinit && compinit
 ######################
 # plugins 
 ######################
+# TODO: lazy loading
+# could get some ideas from famous Zsh frameworks
 # {{{
 source ~/.config/zsh/vendor/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 source ~/.config/zsh/vendor/zsh-autosuggestions/zsh-autosuggestions.zsh
 source ~/.config/zsh/plugins/vi-mode.zsh
 source ~/.config/zsh/plugins/dirs.zsh
-source ~/.config/zsh/plugins/git.zsh
 source ~/.config/zsh/plugins/extract.zsh
 source ~/.config/zsh/plugins/enhanced.zsh
-source ~/dev/grepo_shell/fzf-tab/fzf-tab.plugin.zsh
-source ~/.config/zsh/fzf-tab-config.zsh
+#source ~/dev/grepo_shell/fzf-tab/fzf-tab.plugin.zsh
+#source ~/dev/grepo_shell/forgit/forgit.plugin.zsh
+#source ~/.config/zsh/fzf-tab-config.zsh
+source ~/.config/zsh/plugins/git.plugin.zsh
 
-eval "$(lua ~/.config/zsh/vendor/z.lua --init zsh enhanced)"
+#eval "$(lua ~/.config/zsh/vendor/z.lua --init zsh enhanced)"
 # }}}
 
 # vim:ft=zsh ts=2 sw=2 sts=2 et fenc=utf-8

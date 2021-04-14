@@ -10,11 +10,22 @@ PLATFORM=$(uname -s)
 if [[ -e '/usr/bin/zsh' ]];then
   alias -s tgz="tar zxvf"
   alias -s {yml,yaml}="nvim"
+  alias -s zip="unzip"
+  alias -s 7z="7z"
   # alias -g G='| rg -i'
 fi
 # }}} 
 
+# ========== coreutils =========={{{
+alias mkdir='mkdir -v'
+alias mv='mv -v'
+alias cp='cp -v'
+alias rm='rm -v'
+alias ln='ln -v'
+# }}}
+
 alias socks5="http_proxy=socks5://127.0.0.1:1080 https_proxy=socks5://127.0.0.1:1080 all_proxy=socks5://127.0.0.1:1080 "
+# print clang included header paths
 alias clanginclude="clang++ -E -x c++ - -v < /dev/null"
 
 # ========== tar ========== {{{
@@ -47,16 +58,18 @@ if [ "$PLATFORM" = Darwin ];then
     # disable homebrew auto update
     export HOMEBREW_NO_AUTO_UPDATE=1
   fi
-  # man preview
+  # open man in Preview.app
   function preman() { man -t "$@" | open -f -a "Preview" ;}
   # check SIP
   function sipcheck() {
    csrutil status; 
    csrutil authenticated-root status;
   }
+  # disable SIP
   function sipdisable(){
     sudo spctl --master-disable 
-  }
+  } 
+  # print CPU number
   alias lcpunum="sysctl -n hw.ncpu"
   alias pcpunum="sysctl -n hw.physicalcpu"
   # print file descripts number 
@@ -68,17 +81,60 @@ fi
 # }}} 
 
 # youtube-dl
+# ========== youtube-dl========== {{{
 alias ydl="youtube-dl"
+# }}} 
 
 # quick source .aliases
 sozsh() {
   source $(fd --glob '*.sh' "$HOME/.config/zsh" | fzf);
 }
 
-alias 'taro1.3'='/usr/local/lib/node_modules/@tarojs_1.3/cli/bin/taro'
+# alias 'taro1.3'='/usr/local/lib/node_modules/@tarojs_1.3/cli/bin/taro'
 
 # show key code
 alias showhex="xxd -psd"
+
+# ========== headless Chrome ========== {{{
+# requires chrome >= 59
+alias chrome="/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome" 
+# alias chrome="/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome"
+# alias chrome-canary="/Applications/Google\ Chrome\ Canary.app/Contents/MacOS/Google\ Chrome\ Canary"
+# alias chromium="/Applications/Chromium.app/Contents/MacOS/Chromium"
+# }}} 
+
+# ========== cmake ========== {{{
+if [[ -e /usr/local/bin/cmake ]]; then
+  # emit compile_commands.json for clangd
+  # see https://clang.llvm.org/docs/JSONCompilationDatabase.html
+  # and https://clangd.llvm.org/installation.html#project-setup
+ alias cmake="cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 " 
+ cmake::cldjson(){
+   local directory="build"
+   if [[ -n $1 ]]; then
+     echo "dir:" $1
+     directory=$1
+   fi
+   local path="$(pwd)/${directory}"
+   echo "path:" $path
+   if [[ -d $path ]]; then
+     # search in build
+     if [[ -e $path/compile_commands.json ]]; then
+       /usr/local/bin/gln -s $path/compile_commands.json compile_commands.json
+       echo "find in $path and link!"
+     else
+       echo "Not found!"
+     fi
+   elif [[ -e compile_commands.json ]];then
+     # link to parent directory
+     /usr/local/bin/gln -s $(pwd)/compile_commands.json $(pwd)/../compile_commands.json
+     echo "found in current dir and link!"
+  else
+     echo "Not found!"
+   fi
+ }
+fi
+# }}} 
 
 # ========== neovim  ========= {{{
 alias vi="nvim"
@@ -87,11 +143,16 @@ alias nvi="nvim"
 # }}}
 
 # ========== exa ========= {{{
-alias ls="exa --oneline"
-alias ll='exa -lG'
-alias la='exa -alG'
-alias qps='ps aux | fd'
-alias qcd='cd $(exa -lG | fzf)'
+if [[ "$(command -v exa)" ]]; then
+  unalias -m 'ls'
+  unalias -m 'la'
+  unalias -m 'll'
+  alias ls="exa -G --color auto --icons -a -s type"
+  alias ll='exa -lG --color always --icons -s type'
+  alias la='exa -alG --color always --icons -s type'
+  alias qps='ps aux | fd'
+  alias qcd='cd $(exa -lG | fzf)'
+fi
 # ls
 #alias ll="ls -lG"
 #alias la="ls -A"
@@ -129,70 +190,10 @@ alias tm="tmux attach || tmux new"
 
 # }}}
 
-# ========== git ========= {{{
-# test github
-alias gittest="ssh -T git@github.com"
-
-# git checkout
-alias gcob="git checkout -b"
-
-# list remote branch
-alias gbr="git branch -r"
-alias gurl="git remote -v"
-
-fzfgb(){
-  git branch | sed -E 's/\*//'| fzf | sed -E 's/ //g'
-}
-
-fzfgshow(){
-  if [[ -n $1 ]];then
-    git log $1 --pretty="%h %cn %s" | fzf --multi --preview 'git show {+1}' | awk '{print $1}' | sed  | 2>/dev/null
-  else
-    # Use current branch ?
-    branch=$(fzfgb)
-    if [[ -n $branch ]]; then
-      git log $branch --pretty="%h %cn %s" | fzf --multi --preview 'git show {+1}' | awk '{print $1}' 2>/dev/null
-    fi
-  fi
-}
-
-# git cherry-pick with fzf
-fzfgcp(){
-  if [ -n $1 ];then
-    git cherry-pick -e $(fzfgshow $1)
-  else
-    git cherry-pick -e $(fzfgshow)
-  fi
-}
-
-# list unstaged files
-alias gdn="git diff --name-only"
-# list only staged files
-alias gdns="git diff --name-only --staged"
-# list both unstaged and staged files
-alias gst="git status --porcelain | sed 's/^...//'"
-# only diff modifled files
-alias gstdiffm="gdn | xargs git diff"
-# diff all files that git status given
-alias gstdiff="gst | xargs git diff"
-# list only untracked files
-alias gls="git ls-files --others --exclude-standard"
-
-# git diff with fzf
-gdfzf() {
-  preview="git diff $@ --color=always -- {-1}"
-  git diff $@ --name-only | fzf -m --ansi --preview $preview
-}
-# checkout with fzf
-alias gco="git branch | fzf | git checkout"
-
-# }}}
-
-
 # ========== find ehancement ========== {{{
 alias fdsl="fd . -t l -d 1 -H"
 fdfzf(){
-  fd $1 | fzf
+  fd $1 | fzf -m
 }
 
 # fd quick edit
@@ -234,7 +235,7 @@ rgfzf() {
 
 # rg quick edit
 rgvi(){
-  vi $(rgfzf $1)    
+  vi "$(rgfzf $1)"
 }
 # }}}
 
@@ -268,8 +269,12 @@ alias ppsh="pipes.sh"
 # sl
 # cowsay
 # cowthink
-# figlet
 # toilet
+
+# figlet
+alias -g fgfonts="ls ~/.config/figlet"
+# Nice 
+#
 
 # }}}
 
