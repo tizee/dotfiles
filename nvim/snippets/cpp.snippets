@@ -10,8 +10,8 @@ endsnippet
 
 snippet hackit "not sync with stdio"
 auto hackit = [](){
-   std::ios::sync_with_stdio(false); 
-   std::cin.tie(0);
+	std::ios::sync_with_stdio(false); 
+	std::cin.tie(0);
 }();
 endsnippet
 
@@ -20,11 +20,37 @@ WIP
 endsnippet
 
 snippet BSearch "binary search" b
-WIP
+int BSearch(${1:vector<int> &sorted_list},${2:int key}){
+	int left = 0, right = sorted_list.size()-1;
+	while(left <= right){
+		int mid = left + (right - left)/2;
+		int val = sorted_list[mid];
+		if( val == key ){
+			return mid;
+		} else if (val < key){
+			left = mid + 1;
+		}else{
+			right = mid - 1;
+		}
+	}
+	return left - 1;
+}
 endsnippet
 
 snippet KMP "KMP algorithm" b
 WIP
+endsnippet
+
+# should be compiled to a CLI tool
+snippet BIGEDIAN "Verify Machine big edian" b
+#define IS_BIG_ENDIAN (!*(unsigned char*)&(uint16_t){1})
+endsnippet
+
+# leap year validator
+snippet LeapYear "Verify given year whether a leap year" b
+bool isLeapYear(int year){
+	return (year %4 ==0 && year % 100 !=0) || (year % 400 == 0);
+}
 endsnippet
 
 # vim:ft=snippets:

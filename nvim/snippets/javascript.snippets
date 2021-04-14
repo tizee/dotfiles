@@ -3,4 +3,35 @@ console.log("$1")
 $0
 endsnippet
 
+snippet arrowf "arrow function" b
+const ${1:name} =  (${2:args}) => {
+${3:// body}
+}
+endsnippet
+
+snippet epf "export function" b
+export function ${1:fcname}() {
+${2:// noop}
+}
+endsnippet
+
+snippet epd "export default " b
+export default ${0}
+endsnippet
+
+snippet epc "export const" b
+export const ${0}
+endsnippet
+
+snippet epi "export interface" b
+export interface ${1} {
+${0}
+}
+endsnippet
+
+snippet ept "export type" b
+export type ${1} = ${0}
+endsnippet
+
+
 # vim:ft=snippets:

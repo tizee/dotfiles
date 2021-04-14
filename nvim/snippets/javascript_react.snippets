@@ -4,13 +4,11 @@ import React, {useState} from "react"
 
 function ${1:`!p snip.rv = snip.basename`}(${2}){
 	return(
-		<div>
-			${3:<p>Body</p>}
-		</div>
+			${3: <div></div>}
 		)
 }
 
-export default $4`!p snip.rv = snip.basename`
+export default ${1:`!p snip.rv = snip.basename`}
 endsnippet
 
 # React Hooks
@@ -33,7 +31,7 @@ const [${3:state}, ${4:dispatch}] = useReducer(${5:reducer}, ${2:initial_value})
 endsnippet
 
 snippet useCB "useCallback(fn, inputs)" b
-const ${1:callback} = useCallback((${2})) => ${3:{
+const ${1:callback} = useCallback((${2}) => {${3:
 	${4}
 }}, [${5}])
 endsnippet

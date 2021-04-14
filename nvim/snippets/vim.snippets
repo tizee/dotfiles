@@ -1,3 +1,45 @@
+# ========= Useful Utils ========== {{{
+
+snippet redir "redirect messages" b
+let ${1:command_output}= ''
+redir => ${1:command_output}
+silent ${2:command}
+redir END
+endsnippet
+
+snippet checkpython "verify whether supports Python" b
+let s:python = has('python') || has('python3')
+endsnippet
+
+snippet ruby "verify whether supports Ruby" b
+let s:ruby = has('ruby') && (v:version >= 703 || v:version == 702 && has('patch374')) 
+endsnippet
+
+snippet winshell "vim verify support for running shell commands on Windows platform" b
+if !has('nvim')
+\ && (has('win32') || has('win32unix'))
+\ && !has('multi_byte')
+return s:err('Vim needs +multi_byte feature on Windows to run shell commands. Enable +iconv for best results.')
+endsnippet
+
+snippet is_win "test if windows platform" b
+let s:is_win = has('win32')
+endsnippet
+
+snippet is_nvim "test if nvim" b
+let s:is_nvim = has('nvim')
+endsnippet
+
+snippet continuation "Save cpo options for vim plugin" b
+let s:saved_cpo = $cpo
+set cpo&vim
+
+${1:" Plugin body}
+
+let &cpo=s:saved_cpo
+unlet s:saved_cpo
+endsnippet
+
 snippet gvar "Global / configuration variable" b
 if !exists("g:${1:MyUltraImportantVar}")
 	let g:$1 = ${2:"${3:<tab>}"}
@@ -10,6 +52,10 @@ if exists('${1:loaded_`!p snip.rv = snip.fn.replace('.','_')`}') || &cp${2: || v
 endif
 let g:$1 = 1$3
 endsnippet
+
+# }}}
+
+# ========= Functions ==========  {{{ 
 
 # Without the exclamation mark it would be an error to re-define a function,
 # with the exclamation mark the new definition can replace the old one. Since
@@ -61,6 +107,15 @@ function! g:${1:function_name}($2)
 endfunction
 endsnippet
 
+snippet funcp "plugin scope function in defined in autoload/foo/bar.vim" b
+function! ${1:foo}#${2:bar}#${3:function_name}($4) ${5:abort}
+	${3:" body}
+endfunction
+endsnippet
+
+# }}}
+
+# ========= Variables ========== {{{ 
 snippet vscope "built in vim scope variables" b
 v:${1:version}
 endsnippet
@@ -89,6 +144,10 @@ snippet gref "global function reference" b
 let ${1:IsNum} = ${2:\\{ x -> type(x) == type(0) \\} } 
 endsnippet
 
+snippet letl "local variable inside a function" b
+let l:${1:var}=${2:value}
+endsnippet
+
 snippet lets "current sciprt scope variable" b
 let s:${1:var}=${2:value}
 endsnippet
@@ -96,6 +155,18 @@ endsnippet
 snippet unpack "list unpack"
 let [${1:a,b};${2:others}] = ${3:list} 
 endsnippet
+
+snippet letg "let g:var" b
+let g:${1:varname}=${2:value}
+endsnippet
+
+snippet lets "let s:var" b
+let s:${1:varname}=${2:value}
+endsnippet
+
+# }}}
+
+# ========= Control-flow ========== {{{ 
 
 snippet ifelif "if-elseif" b
 if ${1:condition1}
@@ -110,7 +181,7 @@ endsnippet
 snippet if "if-endif" b
 if $1
 	$2
-endf 
+endif 
 endsnippet
 
 snippet for "for in" b
@@ -161,6 +232,8 @@ finally
 endtry
 endsnippet
 
+# }}}
+
 # Dictionary functions, poor man's OOP methods (|Dictionary-function|)
 
 # Calling functions (|:call|)
@@ -175,24 +248,294 @@ endsnippet
 # 
 # call foo#bar#log('Hello')
 
-snippet aug "automation group" b
-augroup ${1:NAME}
-	" auto remove when reloading
-	autocmd! 
-	$2
-augroup END
+# ========= Autocommand ========== {{{ 
+# list all autocommands use :autocmd
+# :help autocmd-events for a complete list of events
+snippet autocmd "autocommand" b
+autocmd ${1:[group]} ${2:events} ${3:file_pattern} ${4:[++nested]} ${5:command}
 endsnippet
 
+# Generally, commands executed as the result of an autocommand event will not
+# trigger any new events.  If you read a file in response to a FileChangedShell
+# event, it will not trigger the autocommands that would set the syntax, for
+# example.  To make the events triggered, add the "++nested" flag: >
+# 
+# 	:autocmd FileChangedShell * ++nested  edit
+
+# 	*		Match any character any number of times
+#	?		Match any character once
+#	[abc]		Match the character a, b or c
+#	.		Matches a dot
+#	a{b,c}		Matches "ab" and "ac"
+
+snippet augroup "group of autocmds" b
+augroup ${1:name}
+	autocmd ${2:events} ${3:commands}
+augroup END "${1:name}
+endsnippet
+# }}}
+
+# Command {{{
+# see usr_40.txt
+
+# use ! to redefine command with the same name
+
+# zero arguments is the default, you do not need to add
+# "-nargs=0".  The other values of -nargs are as follows:
+# 
+# 	-nargs=0	No arguments
+# 	-nargs=1	One argument
+# 	-nargs=*	Any number of arguments
+# 	-nargs=?	Zero or one argument
+# 	-nargs=+	One or more arguments
+# inside the command definition, the arguments are represented by the <args> keyword
+
+snippet command0 "command with zero arguments" b
+command! -nargs=${1:0} ${2:CommandName} ${3:<space>}
+endsnippet
+
+snippet command1 "command with one argument" b
+command! -nargs=${1:1} ${2:CommandName} ${3::echo "<args>"}
+endsnippet
+
+snippet command "command with any number of arguments" b
+command! -nargs=${1:*} ${2:CommandName} ${3:actions}
+endsnippet
+snippet command? "command with zero or more arguments" b
+command! -nargs=${1:?} ${2:CommandName} ${3:actions}
+endsnippet
+
+snippet command+ "command with one or more arguments" b
+command! -nargs=${1:+} ${2:CommandName} ${3:actions}
+endsnippet
+
+snippet command+ "command arguments with special characters escaped" b
+command! -nargs=${1:+} ${2:CommandName} ${3::echo <q-args>}
+endsnippet
+# Some commands take a range as their argument.  To tell Vim that you are
+# defining such a command, you need to specify a -range option.  The values for
+# this option are as follows:
+# 
+# 	-range		Range is allowed; default is the current line.
+# 	-range=%	Range is allowed; default is the whole file.
+# 	-range={count}	Range is allowed; the last number in it is used as a
+# 			single number whose default is {count}.
+# 
+# When a range is specified, the keywords <line1> and <line2> get the values of
+# the first and last line in the range.  For example, the following command
+# defines the SaveIt command, which writes out the specified range to the file
+# "save_file": >
+# 
+# 	:command -range=% SaveIt :<line1>,<line2>write! save_file
+snippet commandrange "command with a range as its argument" b
+command! -range=${1:count} ${2:CommandName} :<line1>,<line2>${3:actions}
+endsnippet
+
+# Some of the other options and keywords are as follows:
+# 
+# 	-count={number}		The command can take a count whose default is
+# 				{number}.  The resulting count can be used
+# 				through the <count> keyword.
+# 	-bang			You can use a !.  If present, using <bang> will
+# 				result in a !.
+# 	-register		You can specify a register.  (The default is
+# 				the unnamed register.)
+# 				The register specification is available as
+# 				<reg> (a.k.a. <register>).
+# 	-complete={type}	Type of command-line completion used.  See
+# 				|:command-completion| for the list of possible
+# 				values.
+# 	-bar			The command can be followed by | and another
+# 				command, or " and a comment.
+# 	-buffer			The command is only available for the current
+# 				buffer.
+
+# Finally, you have the <lt> keyword.  It stands for the character <.  Use this
+# to escape the special meaning of the <> items mentioned.
+
+snippet delcom "Delete a user command" b
+delcommand ${1:CommandName}
+endsnippet
+
+snippet comcl "Delete all the user commands" b
+comclear
+endsnippet
+# }}}
+
+# Built-in funcs {{{
 snippet sruntime "source first match in runtime paths" b
 runtime ${1:plugin/my-plugin.vim}
 endsnippet
 
-# echo  type(my_var) == v:t_number      | " Number
-# echo  type(my_var) == v:t_string      | " String
-# echo  type(my_var) == v:t_func        | " Funcref
-# echo  type(my_var) == v:t_list        | " List
-# echo  type(my_var) == v:t_dict        | " Dictionary
-# echo  type(my_var) == v:t_float       | " Float
-# echo  type(my_var) == v:t_bool        | " Explicit Boolean
+snippet get "get dict/list item with key/index" b
+get(${1:dict_or_list},${2:key_or_index},${3:default})
+endsnippet
 
-# vim:ft=snippets:
+snippet getfunc "get item from Funcref. Item could be function name, function, dict, args" b
+get(${1:func},${2:item})
+endsnippet
+
+#		If {list} is given and it is |TRUE|, a List will be returned.
+#		Otherwise the result is a String and when there are several
+#		matches, they are separated by <NL> characters.
+#
+#		If the expansion fails, the result is an empty string.  A name
+#		for a non-existing file is not included, unless {expr} does
+#		not start with '%', '#' or '<', see below.
+snippet expand "expand wildcards or keywords in expression" b
+expand(${1:expr},${2:nosuf},${3:list})
+endsnippet
+
+snippet extend "append if list/ add entries if dict" b
+extend(${1:exp1},${2:expr2},${3:expr3})
+endsnippet
+
+snippet colcursor "column of cursor" b
+col(".")
+endsnippet
+
+snippet coleol "column of cursor line plus one" b
+col("$")
+endsnippet
+
+snippet colmark "column of given mark" b
+col("'". "${1:mark_name}")
+endsnippet
+
+# .	    the cursor position
+# $	    the last line in the current buffer
+# 'x	    position of mark x (if the mark is not set, 0 is
+#   returned)
+# w0	    first line visible in current window (one if the
+#   display isn't updated, e.g. in silent Ex mode)
+# w$	    last line visible in current window (this is one
+#   less than "w0" if no lines are visible)
+# v	    In Visual mode: the start of the Visual area (the
+#   cursor is the end).  When not in Visual mode
+#   returns the cursor position.  Differs from |'<| in
+#   that it's updated right away.
+snippet line "line number of the file position given with expr" b
+line(${1:expr})
+endsnippet
+
+snippet linemark "line number of the file position given with expr" b
+line("'" . ${1:marker})
+endsnippet
+
+
+snippet runtime "read Ex commands from file in each directory given by runtimepath or packpath" b
+runtime${1:!} ${2:where} ${3:files...}
+endsnippet
+
+snippet packadd "Search for an optional plugin directory in 'packpath' and source any plugin files found." b
+packadd${1:!} ${2:name}
+endsnippet
+
+#		The result is the String returned by the function.  If the
+#		function returns NULL, this will appear as an empty string ""
+#		to Vim.
+#		If the function returns a number, use libcallnr()!
+#		If {argument} is a number, it is passed to the function as an
+#		int; if {argument} is a string, it is passed as a
+#		null-terminated string.
+#		This function will fail in |restricted-mode|.
+snippet libcall "return string - call function in run-time library with single argument" b
+libcall(${1:libname},${2:funcname},${3:argument})
+endsnippet
+
+snippet libcall "return an int - call function in run-time library with single argument" b
+libcallnr(${1:libname},${2:funcname},${3:argument})
+endsnippet
+
+snippet getline "return a line list - get text lines from buffer" b
+getline(${1:start},${2:end})
+endsnippet
+
+snippet inputlist "prompt from string list" b
+inputlist(${1:textlist})
+endsnippet
+# }}}
+
+# List functions {{{
+snippet calllist "call a funciton with an argument list" b
+call(${1:funciton},${2:list})
+endsnippet
+
+snippet len "get number of items in list" b
+len(${1:list})
+endsnippet
+
+snippet max "get max value in list" b
+max(${1:list})
+endsnippet
+
+snippet min "get min value in list" b
+min(${1:list})
+endsnippet
+
+snippet count "return an int - count times of char appears in list" b
+count(${1:list},${2:value})
+endsnippet
+
+snippet index "return an int - get idnex of first value in list" b
+index(${1:list},${2:value})
+endsnippet
+
+snippet join "return string - create string from list items" b
+join(${1:list},'${2:sperator}')
+endsnippet
+
+snippet map "return list - apply to each item in list" b
+map(${1:list},${2:expr})
+endsnippet
+
+snippet sumlist "add up all list item" b
+join(${1:list},'+')
+endsnippet
+
+snippet reltime "get a time value" b
+reltime(${1:[start]},${2:[end]})
+endsnippet
+
+snippet reltimefloat "return a float - pass in the time value, unit in second" b
+reltimefloat(${1:time})
+endsnippet
+# }}}
+
+
+# Type inference {{{
+# echo  type(my_var) == v:t_bool        | " Explicit Boolean
+snippet type "type" b
+type(${1:var})
+endsnippet
+
+snippet vnumber "v:t_number Number" b
+v:t_number
+endsnippet
+
+snippet vstring "v:t_string String" b
+v:t_string
+endsnippet
+snippet vfunc "v:t_func Funcref" b
+v:t_func
+endsnippet
+
+snippet vlist "v:t_list List" b
+v:t_number
+endsnippet
+
+snippet vdict "v:t_dict Dict" b
+v:t_dict
+endsnippet
+
+snippet vfloat "v:t_float Float" b
+v:t_float
+endsnippet
+
+snippet vbool "v:t_bool Explicit Boolean" b
+v:t_bool
+endsnippet
+
+# }}}
+
+# vim: ft=snippets foldmethod=marker
