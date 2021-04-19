@@ -62,7 +62,7 @@ alias "${_yogit_basic_prefix}c!"='git commit --amend'
 alias "${_yogit_basic_prefix}push"='git push origin "$(yogit::current_branch)"'
 
 # pull
-alias "${_yogit_basic_prefix}pull"='git pull origin "$(yogit::curren_branch)"'
+alias "${_yogit_basic_prefix}pull"='git pull origin "$(yogit::current_branch)"'
 
 function yogit::staged_and_unstaged(){
   git status --porcelain | sed 's/^...//'
