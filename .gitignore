@@ -9,3 +9,4 @@ git
 nvim/tmp
 zsh/vendor
 karabiner/automatic_backups
+.DS_Store
