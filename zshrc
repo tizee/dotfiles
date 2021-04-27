@@ -42,6 +42,8 @@ export FLUTTER_STORAGE_BASE_URL=https://mirrors.tuna.tsinghua.edu.cn/flutter
 PATH="$HOME/.deno/bin:$PATH"
 export DENO_INSTALL=$HOME/.deno
 # golang
+# go modules
+export GO111MODULE="on"
 PATH="/usr/local/go/bin:$PATH"
 PATH="$HOME/dev/go_proj/bin:$PATH"
 export GOPATH="$HOME/dev/go_proj"
@@ -211,6 +213,13 @@ if [[ $(uname -s) = 'Darwin' ]];then
   export HOMEBREW_NO_AUTO_UPDATE=1
   # LuaJIT 2.1
 fi
+
+# homebrew
+# if [[ "$(uname -s)" == "Linux" ]]; then BREW_TYPE="linuxbrew"; else BREW_TYPE="homebrew"; fi
+# export HOMEBREW_BREW_GIT_REMOTE="https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/brew.git"
+# export HOMEBREW_CORE_GIT_REMOTE="https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/${BREW_TYPE}-core.git"
+# export HOMEBREW_BOTTLE_DOMAIN="https://mirrors.tuna.tsinghua.edu.cn/${BREW_TYPE}-bottles"
+
 
 # Proxy for fucking GFW
 # gitclonet/sshtunnel
