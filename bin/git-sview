@@ -1,0 +1,2 @@
+#!/usr/bin/env zsh
+zx ~/.config/zx_scripts/git-sview.mjs

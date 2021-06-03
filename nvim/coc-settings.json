@@ -7,11 +7,11 @@
       "disableWorkspaceFolders": true,
       "filetypes": ["go"]
     },
-    "rust": {
-      "command": "rust-analyzer",
-      "filetypes": ["rust"],
-      "rootPatterns": ["Cargo.toml"]
-    },
+    // "rust": {
+    //   "command": "rust-analyzer",
+    //   "filetypes": ["rust"],
+    //   "rootPatterns": ["Cargo.toml"]
+    // },
     "cmake":{
       "command": "cmake-language-server",
       "filetypes": ["cmake"],
@@ -26,6 +26,13 @@
     //   "filetypes": ["c", "cc", "cpp", "c++", "objc", "objcpp"]
     // }
   },
+  // rust
+  "rust-analyzer.enable": true,
+  "rust-analyzer.server.path": "~/.cargo/bin/rust-analyzer",
+  "rust-analyzer.updates.channel": "stable",
+  "rust-analyzer.inlayHints.enable": true,
+  
+  // c++/c
   "clangd.enabled": true,
   "coc.source.emoji.filetypes": ["markdown", "tmux", "vim"],
   "coc.source.emoji.enable": true,

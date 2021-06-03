@@ -1,0 +1,15 @@
+#!/usr/bin/env zsh
+
+RED='\033[0;31m'
+RESET='\033[0m'
+DEFAULT_DATA_PATH=${ASCIINEMA_DATAPATH:-"${HOME}/Movies/asciinema/"}
+[ ! -d $DEFAULT_DATA_PATH ] && mkdir -vp $DEFAULT_DATA_PATH;
+
+__asciinema_enhanced(){
+  if ! command -v asciinema &> /dev/null; then
+    echo -e "[ascii]: please install ${RED}asciinema${RESET} first."
+  fi
+  asciinema $@
+}
+
+__asciinema_enhanced $@

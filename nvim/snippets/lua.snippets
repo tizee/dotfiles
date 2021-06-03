@@ -95,4 +95,8 @@ snippet print "print log"
 print($0)
 endsnippet
 
+# OS detection
+snippet win "is os Windows" b
+local windows = package.confg:sub(1, 1) ~= '/' and true or false
+endsnippet
 # vim:ft=snippets:

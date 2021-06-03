@@ -215,6 +215,4 @@ PROMPT+=$'\n'                                          # new line
 PROMPT+='%{$execute_color%}%{$error_code%}%(!.#.➜)%f '                         # %/# (normal/root); green/red (ok/error)
 RPROMPT=""
 
-
-
 # vim:ft=zsh ts=2 sw=2 sts=2 et fenc=utf-8

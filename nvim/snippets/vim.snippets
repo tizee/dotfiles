@@ -1,5 +1,13 @@
 # ========= Useful Utils ========== {{{
 
+snippet docs "copyright etc for vimscript file" b
+	" File: ${1:`g:UtilFilename('$1.vim', 'foo.vim')`}
+	" Author: `g:MetaUserName()`
+	" Email: `g:MetaUserEmail()`
+	" Github: `g:MetaGitRepo()`
+	" Description: ${0}
+endsnippet
+
 snippet redir "redirect messages" b
 let ${1:command_output}= ''
 redir => ${1:command_output}
@@ -23,7 +31,7 @@ return s:err('Vim needs +multi_byte feature on Windows to run shell commands. En
 endsnippet
 
 snippet is_win "test if windows platform" b
-let s:is_win = has('win32')
+let s:is_win = has('win32') || has('win64')
 endsnippet
 
 snippet is_nvim "test if nvim" b
@@ -500,6 +508,11 @@ endsnippet
 snippet reltimefloat "return a float - pass in the time value, unit in second" b
 reltimefloat(${1:time})
 endsnippet
+
+snippet isd "is directory"
+isdirectory(${0})
+endsnippet
+
 # }}}
 
 
@@ -516,12 +529,13 @@ endsnippet
 snippet vstring "v:t_string String" b
 v:t_string
 endsnippet
+
 snippet vfunc "v:t_func Funcref" b
 v:t_func
 endsnippet
 
 snippet vlist "v:t_list List" b
-v:t_number
+v:t_list
 endsnippet
 
 snippet vdict "v:t_dict Dict" b

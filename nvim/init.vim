@@ -84,7 +84,7 @@ set grepformat=%f:%l:%c:%m
 " Some servers have issues with backup files, see coc.vim/#649.
 set nobackup
 set nowritebackup
-" set noswapfile
+set noswapfile " not createing swap file for new buffers
 silent !mkdir -p ~/.config/nvim/tmp/backup
 silent !mkdir -p ~/.config/nvim/tmp/undo
 "silent !mkdir -p ~/.config/nvim/tmp/sessions
@@ -174,6 +174,10 @@ set ic
 
 " auto-reload working directory
 " autocmd BufEnter * lcd %:p:h
+
+" mouse support
+" normal, visual mode
+set mouse=nv
 " }}}
 
 " ========== neovim options ========= {{{
@@ -316,8 +320,8 @@ augroup filetype_shell
   autocmd!
   autocmd FileType sh setlocal foldmethod=marker
   autocmd FileType zsh setlocal foldmethod=marker
-  autocmd BufWritePost *.zsh set filetype=zsh
-  autocmd BufWritePost *.sh set filetype=bash
+  autocmd BufWritePost *.zsh set filetype=sh
+  autocmd BufWritePost *.sh set filetype=sh
 augroup END
 " }}}
 

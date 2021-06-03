@@ -7,8 +7,8 @@ gitclone(){
   local url=$1
   local all_parameters=($@)
   local rest_parameters=${all_parameters[@]:1}
-  if [ -z url ];then
-    echo "need a url"
+  if [ -z $url ];then
+    echo "[ggclonet]: need a url"
   else
     if [[ $(uname -s) = Darwin ]];then
       local tunneling_url=$(echo $url | sed -E "s/(git@|http:\/\/|https:\/\/)/ssh:\/\/git@/" | sed -E "s/(github.com:|github.com\/)/localhost:${port}\//")

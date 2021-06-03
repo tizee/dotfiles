@@ -26,7 +26,9 @@ alias ln='ln -v'
 
 alias socks5="http_proxy=socks5://127.0.0.1:1080 https_proxy=socks5://127.0.0.1:1080 all_proxy=socks5://127.0.0.1:1080 "
 # print clang included header paths
-alias clanginclude="clang++ -E -x c++ - -v < /dev/null"
+alias printclang="clang++ -E -x c++ - -v < /dev/null"
+alias printgcc="gcc -x c -v -E /dev/null"
+alias printgccplus="gcc -x c++ -v -E /dev/null"
 
 # ========== tar ========== {{{
 alias -g tarsee="tar tvf " # list files
@@ -138,7 +140,6 @@ fi
 
 # ========== neovim  ========= {{{
 alias vi="nvim"
-alias vim="nvim"
 alias nvi="nvim"
 # }}}
 

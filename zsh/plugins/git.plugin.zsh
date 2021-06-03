@@ -23,6 +23,31 @@ if [[ -z $YOGIT_INTERACTIVE_PREFIX ]]; then
 _yogit_interactive_prefix='ygi'
 fi
 
+
+function yogit::help() {
+  print "${yogit_checkout:-${_yogit_interactive_prefix}co}: checkout with fzf"
+  print "${yogit_cherry_pick:-${_yogit_interactive_prefix}cp}: cherry pick with fzf"
+  print "${yogit_show:-${_yogit_interactive_prefix}sc}: select commit with fzf"
+  print "${yogit_branch:-${_yogit_interactive_prefix}br}: select branch with fzf"
+  print "${yogit_diff:-${_yogit_interactive_prefix}diff}: diff with fzf"
+  print ""
+  # basic
+  print "${_yogit_basic_prefix}htest: ssh -T git@github.com"
+  print "${_yogit_basic_prefix}st: git status"
+  print "${_yogit_basic_prefix}cob: git checkout -b"
+  print "${_yogit_basic_prefix}a: git add"
+  print "${_yogit_basic_prefix}c: git commit -v"
+  print "${_yogit_basic_prefix}c!: git commit --amend"
+  print "${_yogit_basic_prefix}push: git push origin current_branch"
+  print "${_yogit_basic_prefix}pull: git pull origin current_branch"
+  print "${_yogit_basic_prefix}sst: list staged and unstaged file names only"
+  print "${_yogit_basic_prefix}ls: git ls-files --others --exclude-standard"
+  print "${_yogit_basic_prefix}pickclone: git clone --sparse --filter=blob:none --depth=1"
+}
+
+alias "${yogit_help:-${_yogit_interactive_prefix}help}"='yogit::help'
+alias "${yogit_help:-${_yogit_basic_prefix}help}"='yogit::help'
+
 # Utilities {{{
 # To speed up, use gitstatus :D
 # fallback to git if not found
@@ -38,7 +63,6 @@ function yogit::current_branch() {
   echo ${ref#refs/heads/}
 }
 # }}}
-
 
 # basic aliases start with prefix gg {{{
 # test github
@@ -79,7 +103,6 @@ alias "${_yogit_basic_prefix}ls"='git ls-files --others --exclude-standard'
 # --filter=blob:none will exclude files so we could fetch them when needed
 # --depth=1 truncate commit history to leave only the latest commit(may cause problems)
 alias "${_yogit_basic_prefix}pickclone"='git clone --sparse --filter=blob:none --depth=1'
-
 # use git sparse-checkout add [file]
 
 # restore

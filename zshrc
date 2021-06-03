@@ -11,6 +11,12 @@ PATH="/bin:$PATH"
 PATH="/usr/sbin:$PATH"
 PATH="/sbin:$PATH"
 PATH="/usr/local/sbin:$PATH"
+# C/C++ libs
+export C_INCLUDE_PATH=/usr/local/include
+export CPLUS_INCLUDE_PATH=/usr/local/include
+# static libs e.g. sdl2
+export LIBRARY_PATH="$LIBRARY_PATH:/usr/local/lib"
+
 # PATH enhanced
 PATH="/usr/local/bin:$HOME/.local/bin:$PATH"
 PATH="/usr/local/sbin:$PATH"
@@ -23,6 +29,7 @@ PATH="/usr/local/opt/curl/bin:$PATH"
 export PATH="$HOME/.cargo/bin:$PATH"
 export CARGO_HOME="$HOME/.cargo"
 export RUSTUP_DIST_SERVER="https://mirrors.tuna.tsinghua.edu.cn/rustup"
+export CARGO_NET_GIT_FETCH_WITH_CLI=true
 # export RUSTC_WRAPPER=$(which sccache)
 # ruby
 PATH="/usr/local/opt/ruby/bin:$PATH"
@@ -103,11 +110,11 @@ PATH="$HOME/anaconda3/condabin:$PATH"
 
 # openssl
 export PATH="/usr/local/opt/openssl@1.1/bin:$PATH"
-export OPENSSL_CFLAGS="-I/usr/local/opt/openssl@1.1/include";
+export OPENSSL_CFLAGS="-I/usr/local/opt/openssl@1.1/include"
 export OPENSSL_LIBS="-L/usr/local/opt/openssl@1.1/lib"
 #export LDFLAGS="-L/usr/local/opt/openssl@1.1/lib"
 #export CPPFLAGS="-I/usr/local/opt/openssl@1.1/include"
-# export PKG_CONFIG_PATH="/usr/local/opt/openssl@1.1/lib/pkgconfig"
+#export PKG_CONFIG_PATH="/usr/local/opt/openssl@1.1/lib/pkgconfig"
 
 # gnutls
 export GUILE_TLS_CERTIFICATE_DIRECTORY="/usr/local/etc/gnutls/"
@@ -163,10 +170,7 @@ export CPPFLAGS="-I/usr/local/include"
 export LIBEXPAT_LIBS="-L/usr/local/opt/expat/lib"
 export LIBEXPAT_CFLAGS="-I/usr/local/opt/expat/include"
 
-# sdl2
-# export LIBRARY_PATH="$LIBRARY_PATH:/usr/local/lib"
-
-# my zsh config
+# my shellscripts
 export PATH="$HOME/.config/bin:$PATH"
 export PATH="$HOME/.config/work_bin:$PATH" # work related scripts
 
@@ -200,6 +204,8 @@ export PATH="/usr/local/opt/krb5/sbin:$PATH"
 
 # }}}
 
+# cleanup: remove duplicate PATH entries 
+export -U PATH
 # }}}
 
 # MACOS

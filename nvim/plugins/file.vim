@@ -23,8 +23,13 @@ function! s:handle_largefile(file)
   endif
 endfunction
 
+function! s:handle_Chinese_file()
+  setl formatoptions+=m
+endfunction
+
 augroup file_vim
   autocmd BufReadPre * call <SID>handle_largefile(expand("<afile>"))
+  autocmd BufReadPre zh-* call <SID>handle_Chinese_file()
 augroup END "file_vim
 
 " TODO
