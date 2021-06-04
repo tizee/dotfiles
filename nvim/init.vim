@@ -199,10 +199,6 @@ if has('nvim')
   set termguicolors  " true color
 endif
 
-" enable python3 support for neovim
-" :echo has('python3')
-" 1: enable, 0: disable
-let g:python3_host_prog="~/anaconda3/bin/python"
 
 "}}}
 
@@ -219,9 +215,17 @@ endif
 if has("gui_running")
   if g:os == "Darwin"
     set guifont=JetBrainsMono\ Nerd\ Font\ Mono\ 16
+    " enable python3 support for neovim
+    " :echo has('python3')
+    " 1: enable, 0: disable
+    let g:python3_host_prog="~/anaconda3/bin/python"
     " set guifont=Fira\ Mono:h12
   elseif g:os == "Linux"
     set guifont=JetBrainsMono\ Nerd\ Font\ Mono\ 16
+    " enable python3 support for neovim
+    " :echo has('python3')
+    " 1: enable, 0: disable
+    let g:python3_host_prog=system("which python")
   elseif g:os == "Windows"
     set guifont=JetBrainsMono\ Nerd\ Font\ Mono\ 16
   endif

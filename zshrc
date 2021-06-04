@@ -82,8 +82,6 @@ export PATH="/usr/local/opt/krb5/sbin:$PATH"
 
 # }}}
 
-# cleanup: remove duplicate PATH entries 
-export -U PATH
 # }}}
 
 # Preferred editor for local and remote sessions
@@ -95,6 +93,8 @@ fi
 
 # MACOS
 if [[ $(uname -s) = 'Darwin' ]];then
+        # riscv
+        export PATH=$PATH:/usr/local/opt/riscv-gnu-toolchain/bin
         # sdkman
         export SDKMAN_CANDIDATES_API=https://api.sdkman.io/2
         export SDKMAN_CANDIDATES_DIR=/Users/tizee/.sdkman/candidates
@@ -281,3 +281,6 @@ source $HOME/.config/work_bin/work_config
 eval $(thefuck --alias)
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+# cleanup: remove duplicate PATH entries 
+export -U PATH
