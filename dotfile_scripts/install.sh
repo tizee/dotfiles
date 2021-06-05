@@ -43,8 +43,6 @@ echo -e "${reset_color}"
 # ====================
 # {{{
 
-# Names maybe different between Linux and MacOS.
-# So I add prefix to distinguish specific libs or apps
 # MacOS: brew
 # Arch Linux: pacman
 if [[ $(uname -s) == 'Darwin' ]]; then
@@ -56,7 +54,10 @@ else
 fi
 
 # packages
-declare -a pkgs=(curl clang gdb vim neovim tmux python3 rust)
+# clang for compiling backend
+# rust for writing good program
+# gtk for developing gui
+declare -a pkgs=(curl clang gdb vim neovim tmux python3 rust gtk)
 brew_cask_apps=()
 linux_pkgs=()
 
