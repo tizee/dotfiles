@@ -80,9 +80,8 @@ source ~/.config/zsh/vendor/zsh-autosuggestions/zsh-autosuggestions.zsh
 source ~/.config/zsh/plugins/vi-mode.zsh
 source ~/.config/zsh/plugins/dirs.zsh
 source ~/.config/zsh/plugins/extract.zsh
-source ~/.config/zsh/plugins/enhanced.zsh
+source ~/.config/zsh/plugins/aliases.zsh
 #source ~/dev/grepo_shell/fzf-tab/fzf-tab.plugin.zsh
-#source ~/dev/grepo_shell/forgit/forgit.plugin.zsh
 #source ~/.config/zsh/fzf-tab-config.zsh
 source ~/.config/zsh/plugins/git.plugin.zsh
 
