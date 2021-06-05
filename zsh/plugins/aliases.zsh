@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 # more info
 # set -xeuo pipefall
-PLATFORM=$(uname -s)
+__PLATFORM=$(uname -s)
 
 # ========== TITLE EXAMPLE ========== {{{
 # }}} 
@@ -37,7 +37,7 @@ alias -g tarsee="tar tvf " # list files
 # }}} 
 
 # ========== Linux ========== {{{
-if [ "$PLATFORM" = Linux ];then
+if [ "$__PLATFORM" = Linux ];then
   # Archlinux
   # TODO: extract to another script file
   if [ -e "/usr/bin/pacman" ];then
@@ -56,7 +56,7 @@ fi
 
 # ========== macOS ========== {{{
 
-if [ "$PLATFORM" = Darwin ];then
+if [ "$__PLATFORM" = Darwin ];then
   if [ -e "/usr/local/bin/brew" ];then
     alias brewup="brew upgrade"
     # disable homebrew auto update
@@ -80,6 +80,21 @@ if [ "$PLATFORM" = Darwin ];then
   # https://stackoverflow.com/questions/795236/in-mac-os-x-how-can-i-get-an-accurate-count-of-file-descriptor-usage
   alias printfd="lsof -d '^txt' -p nnn | wc -l"
   alias printmaxfd="launchctl limit maxfiles"
+  repo() {
+    if [[ -z $1 ]];then
+      cd $HOME/dev/$(fd -t d -d 1 'grepo_.*' $HOME/dev --exec basename | fzf)
+      local repo_name="$(fd -t d -d 1 . | fzf --preview "tree -L 1 {+1}")"
+      if [[ -n $repo_name ]];then
+        cd "$repo_name"
+      fi
+    else
+      cd "$HOME/dev/grepo_$1";
+      local repo_name="$(fd -t d -d 1 . | fzf --preview "tree -L 1 {+1}")"
+      if [[ -n $repo_name ]];then
+        cd "$repo_name"
+      fi
+    fi
+}
 fi
 
 # }}} 
@@ -93,8 +108,6 @@ alias ydl="youtube-dl"
 sozsh() {
   source $(fd --glob '*.sh' "$HOME/.config/zsh" | fzf);
 }
-
-# alias 'taro1.3'='/usr/local/lib/node_modules/@tarojs_1.3/cli/bin/taro'
 
 # show key code
 alias showhex="xxd -psd"
@@ -349,21 +362,6 @@ vcfg() {
 # ========== quick cd ========== {{{
 # function for quick cd
 #alias repo="cd_wrapper() {cd "~/dev/grepo_$1;unset -f cd_wrapper;}; cd_wrapper"
-repo() {
-  if [[ -z $1 ]];then
-    cd $HOME/dev/$(fd -t d -d 1 'grepo_.*' $HOME/dev --exec basename | fzf);
-    local repo_name="$(fd -t d -d 1 . | fzf --preview "tree -L 1 {+1}")"
-    if [[ -n $repo_name ]];then
-      cd "$repo_name"
-    fi
-  else
-    cd "$HOME/dev/grepo_$1";
-    local repo_name="$(fd -t d -d 1 . | fzf --preview "tree -L 1 {+1}")"
-    if [[ -n $repo_name ]];then
-      cd "$repo_name"
-    fi
-  fi
-}
 
 # cd up multiple times
 cdk() {

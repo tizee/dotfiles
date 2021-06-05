@@ -38,9 +38,11 @@ alias ll='ls -lh'
 alias la='ls -lAh'
 
 # shortcut
-alias dev="cd ~/dev/"
-alias work="cd ~/dev/work/"
-alias play="cd ~/dev/playground/"
-alias blog="cd ~/dev/SideProject/BlogPosts/"
-alias side="cd ~/dev/SideProject/"
-alias ohmyzsh="cd ~/.oh-my-zsh"
+if [ $(uname -s) = Darwin ];then 
+  alias dev="cd ~/dev/"
+  alias work="cd ~/dev/work/"
+  alias play="cd ~/dev/playground/"
+  alias blog="cd ~/dev/SideProject/BlogPosts/"
+  alias side="cd ~/dev/SideProject/"
+  alias dotconf="cd ~/.config"
+fi
