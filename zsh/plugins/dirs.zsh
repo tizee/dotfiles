@@ -44,5 +44,5 @@ if [ $(uname -s) = Darwin ];then
   alias play="cd ~/dev/playground/"
   alias blog="cd ~/dev/SideProject/BlogPosts/"
   alias side="cd ~/dev/SideProject/"
-  alias dotconf="cd ~/.config"
 fi
+alias dotconf="cd ~/.config"

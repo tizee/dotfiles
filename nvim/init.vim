@@ -99,9 +99,14 @@ endif
 
 set laststatus=2
 if !has('gui_running')
+
   set t_Co=256
   " https://github.com/dracula/vim/issues/96
   let g:dracula_colorterm = 0
+else
+  if has('nvim')
+    autocmd UIEnter * let g:gui = filter(nvim_list_uis(),{k,v-> v.chan==v:event.chan})[0].rgb
+  endif
 endif
 set noshowmode
 
@@ -208,13 +213,18 @@ if !exists("g:os")
   if has("win64") || has("win32") || has("win16")
     let g:os = "Windows"
   else
-    let g:os = substitute(system('uname'), '\n', '', '')
+    let g:os = substitute(system('uname -s'), '\n', '', '')
   endif
 endif
 
-if has("gui_running")
+if !has("gui_running")
+  " Spaces after a comma are ignored.  To include a comma in a font name
+	" precede it with a backslash.  Setting an option requires an extra
+	" backslash before a space and a backslash.  See also
+	" |option-backslash|.  For example: >
+	"     :set guifont=Screen15,\ 7x13,font\\,with\\,commas
   if g:os == "Darwin"
-    set guifont=JetBrainsMono\ Nerd\ Font\ Mono\ 16
+    set guifont=JetBrainsMono\ Nerd\ Font\ Mono\:h16
     " enable python3 support for neovim
     " :echo has('python3')
     " 1: enable, 0: disable
