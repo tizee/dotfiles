@@ -57,7 +57,7 @@ fi
 # clang for compiling backend
 # rust for writing good program
 # gtk for developing gui
-declare -a pkgs=(curl clang gdb vim neovim tmux python3 rust gtk)
+declare -a pkgs=(curl clang gdb vim neovim tmux python3 rust gtk hg)
 brew_cask_apps=()
 linux_pkgs=()
 
@@ -71,10 +71,10 @@ linux_pkgs=()
 function cli_has_installed() {
  command -v $@ > /dev/null 2>&1 && return 
 }
+
 function pacman_package_has_installed() {
  cli_has_installed 'pacman' && pacman -Qi $@ > /dev/null 2>&1 && return
 }
-# }}}
 
 function helper::install_pkgs() {
   # count time eclipsed
@@ -95,6 +95,8 @@ function helper::install_pkgs() {
     echo -e " ${lightgreen}${#pkgs[@]}${reset_color} packages installed in ${lightgreen}$[$end_time - $start_time]${reset_color} seconds"
   fi
 }
+# }}}
+
 # ====================
 # Arch Linux
 # ====================
