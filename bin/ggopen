@@ -1,3 +1,0 @@
-#!/usr/bin/env zsh
-open $(git config --get remote.origin.url | sed -E 's/^[^@]*@([^:\/]*)[:\/]/https:\/\/\1\//' | sed 's/\.git//')
-
