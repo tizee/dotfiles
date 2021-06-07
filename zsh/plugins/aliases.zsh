@@ -61,6 +61,8 @@ if [ "$__PLATFORM" = Darwin ];then
     alias brewup="brew upgrade"
     # disable homebrew auto update
     export HOMEBREW_NO_AUTO_UPDATE=1
+    # no more default ctags
+    alias ctags="`brew --prefix`/bin/ctags``"
   fi
   # open man in Preview.app
   function preman() { man -t "$@" | open -f -a "Preview" ;}

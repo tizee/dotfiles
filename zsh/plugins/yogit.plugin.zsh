@@ -23,6 +23,13 @@ if [[ -z $YOGIT_INTERACTIVE_PREFIX ]]; then
 _yogit_interactive_prefix='ygi'
 fi
 
+function yogit::open() {
+  if [ $(uname -s) = Darwin ]; then
+    open $(git config --get remote.origin.url | sed -E 's/^[^@]*@([^:\/]*)[:\/]/https:\/\/\1\//' | sed 's/\.git//')
+  elif [ $(uname -s) = Linux ]; then 
+    xdg-open $(git config --get remote.origin.url | sed -E 's/^[^@]*@([^:\/]*)[:\/]/https:\/\/\1\//' | sed 's/\.git//')
+  fi
+}
 
 function yogit::help() {
   print "${yogit_checkout:-${_yogit_interactive_prefix}co}: checkout with fzf"
@@ -32,6 +39,7 @@ function yogit::help() {
   print "${yogit_diff:-${_yogit_interactive_prefix}diff}: diff with fzf"
   print ""
   # basic
+  print "${_yogit_basic_prefix}open: open/xdg-open repo url in browser"
   print "${_yogit_basic_prefix}htest: ssh -T git@github.com"
   print "${_yogit_basic_prefix}st: git status"
   print "${_yogit_basic_prefix}cob: git checkout -b"
@@ -65,6 +73,9 @@ function yogit::current_branch() {
 # }}}
 
 # basic aliases start with prefix gg {{{
+# test github
+alias "${_yogit_basic_prefix}open"='yogit::open'
+
 # test github
 alias "${_yogit_basic_prefix}htest"='ssh -T git@github.com'
 

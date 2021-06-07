@@ -83,7 +83,7 @@ source ~/.config/zsh/plugins/extract.zsh
 source ~/.config/zsh/plugins/aliases.zsh
 #source ~/dev/grepo_shell/fzf-tab/fzf-tab.plugin.zsh
 #source ~/.config/zsh/fzf-tab-config.zsh
-source ~/.config/zsh/plugins/git.plugin.zsh
+source ~/.config/zsh/plugins/yogit.plugin.zsh
 
 # debug
 #export _ZL_ECHO=1
