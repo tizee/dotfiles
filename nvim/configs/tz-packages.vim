@@ -62,8 +62,6 @@ source ~/.config/nvim/plugins/file.vim
 " plugin prototype
 set rtp+=~/dev/grepo_vim/tz-vim-packages/nodemodules.vim
 
-
-
 " vim-plug autocmd {{{
 
 " open plugin help docs
@@ -107,7 +105,6 @@ autocmd FileType go nmap gtx :CocCommand go.tags.clear<cr>
 
 " PLUGIN CONFIGURATIONS {{{
 " shit code
-let s: config_prefix = '~/.config/nvim/configs'
 source ~/.config/nvim/configs/tz-coc-config.vim
 source ~/.config/nvim/configs/tz-nerdtree.vim
 source ~/.config/nvim/configs/tz-vim-autoformat.vim
