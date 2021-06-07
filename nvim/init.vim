@@ -274,7 +274,7 @@ endif
 " review changes from last update
 " :PlugClean
 
-source ~/.config/nvim/my-config/tz-packages.vim
+source ~/.config/nvim/configs/tz-packages.vim
 
 " vim-plug cheatsheet
 function! Cheatsheet_vim_plug()

@@ -437,9 +437,9 @@ command! BD call fzf#run(fzf#wrap({
 " list config files
 function! s:list_my_configs()
   let res=[]
-  let files = split(globpath('~/.config/nvim/my-config', '*.vim'), '\n')
+  let files = split(globpath('~/.config/nvim/configs', '*.vim'), '\n')
   for file in files
-    let match=matchstr(get(split(file,'my-config/'),1,''),'\v(.*)\ze\.vim')
+    let match=matchstr(get(split(file,'configs/'),1,''),'\v(.*)\ze\.vim')
     if len(match)
       call add(res,match)
     endif

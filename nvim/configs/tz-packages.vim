@@ -106,19 +106,21 @@ autocmd FileType go nmap gtx :CocCommand go.tags.clear<cr>
 " }}}
 
 " PLUGIN CONFIGURATIONS {{{
-source ~/.config/nvim/my-config/tz-coc-config.vim
-source ~/.config/nvim/my-config/tz-nerdtree.vim
-source ~/.config/nvim/my-config/tz-vim-autoformat.vim
-source ~/.config/nvim/my-config/tz-lightline.vim
-source ~/.config/nvim/my-config/tz-utils.vim
-source ~/.config/nvim/my-config/tz-fzf.vim
-source ~/.config/nvim/my-config/tz-tabular.vim
-source ~/.config/nvim/my-config/tz-startify.vim
-" source ~/.config/nvim/my-config/tz-ultisnips.vim
-source ~/.config/nvim/my-config/tz-which-key.vim
-source ~/.config/nvim/my-config/tz-rainbow.vim
-source ~/.config/nvim/my-config/tz-keyboard.vim
-source ~/.config/nvim/my-config/tz-mappings.vim
-source ~/.config/nvim/my-config/tz-goyo.vim
+" shit code
+let s: config_prefix = '~/.config/nvim/configs'
+source ~/.config/nvim/configs/tz-coc-config.vim
+source ~/.config/nvim/configs/tz-nerdtree.vim
+source ~/.config/nvim/configs/tz-vim-autoformat.vim
+source ~/.config/nvim/configs/tz-lightline.vim
+source ~/.config/nvim/configs/tz-utils.vim
+source ~/.config/nvim/configs/tz-fzf.vim
+source ~/.config/nvim/configs/tz-tabular.vim
+source ~/.config/nvim/configs/tz-startify.vim
+" source ~/.config/nvim/configs/tz-ultisnips.vim
+source ~/.config/nvim/configs/tz-which-key.vim
+source ~/.config/nvim/configs/tz-rainbow.vim
+source ~/.config/nvim/configs/tz-keyboard.vim
+source ~/.config/nvim/configs/tz-mappings.vim
+source ~/.config/nvim/configs/tz-goyo.vim
 " }}}
 
