@@ -1,7 +1,7 @@
 " File: file.vim
 " Author: tizee
 " Email: 33030965+tizee@users.noreply.github.com
-" Description: file timestamps plugin
+" Description: file related plugin
 
 if exists('loaded_file_vim')
   finish

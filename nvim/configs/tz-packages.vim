@@ -59,7 +59,7 @@ source ~/.config/nvim/plugins/meta.vim
 source ~/.config/nvim/plugins/split.vim
 source ~/.config/nvim/plugins/zcd.vim
 source ~/.config/nvim/plugins/file.vim
-source ~/.config/nvim/plugins/astyle.vim
+source ~/.config/nvim/plugins/formatter.vim
 " plugin prototype
 set rtp+=~/dev/grepo_vim/tz-vim-packages/nodemodules.vim
 set rtp+=~/dev/grepo_vim/tz-vim-packages/find-root.vim
