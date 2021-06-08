@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+# usage: findr $(pwd) pattern
+set -e
+path="$1"
+shift 1
+while [[ $path != / ]]; do
+   command -v fd 2>&1 1>/dev/null && fd "$@" --max-depth 1 --min-depth 1 "$path" 
+   command -v fd 2>&1 1>/dev/null || find "$path" -maxdepth 1 -mindepth 1 -iname "$@"
+   path="$(readlink -f "$path"/..)"
+done
