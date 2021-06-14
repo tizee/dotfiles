@@ -227,6 +227,7 @@ if [[ $(uname -s) = 'Darwin' ]];then
 
         # default include path for gcc/clang 
         export CPLUS_INCLUDE_PATH="$CPLUS_INCLUDE_PATH:Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include"
+        export DYLD_LIBRARY_PATH="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk/usr/lib"
         export LDFLAGS="-L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib"
         # export LDFLAGS="-L/usr/local/lib"
         # export CPPFLAGS="-I/usr/local/include"

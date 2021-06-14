@@ -29,6 +29,7 @@ alias socks5="http_proxy=socks5://127.0.0.1:1080 https_proxy=socks5://127.0.0.1:
 alias printclang="clang++ -E -x c++ - -v < /dev/null"
 alias printcc="cc -E -x c++ - -v < /dev/null"
 alias printgcc="gcc -x c -v -E /dev/null"
+alias printgccld="gcc -Xlinker -v"
 alias printgccplus="gcc -x c++ -v -E /dev/null"
 alias printld="ld -x -v /dev/null"
 
