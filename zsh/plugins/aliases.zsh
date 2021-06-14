@@ -96,7 +96,13 @@ if [ "$__PLATFORM" = Darwin ];then
         cd "$repo_name"
       fi
     fi
-}
+  }
+  printsdk(){
+    xcrun --show-sdk-path
+  }
+  printosx(){
+    xcrun  --sdk macosx --show-sdk-path
+  }
 fi
 
 # }}} 

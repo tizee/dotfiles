@@ -15,9 +15,9 @@ function! s:handle_c_cpp_file(path)
     let config_path = g:FindRootWindow(".astylerc")
     let project_root = substitute(config_path,".astylerc","","")
     let cmd = "cd " . '"'. project_root .'"' . " && astyle --project=.astylerc" . " " . a:path
-    echo "Format: " . a:path
     call system(cmd)
     execute ":e"
+    echo "Format: " . a:path
   endif 
 endfunction
 

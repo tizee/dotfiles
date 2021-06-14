@@ -12,8 +12,8 @@ PATH="/usr/sbin:$PATH"
 PATH="/sbin:$PATH"
 PATH="/usr/local/sbin:$PATH"
 # C/C++ libs
-export C_INCLUDE_PATH=/usr/local/include
-export CPLUS_INCLUDE_PATH=/usr/local/include
+export C_INCLUDE_PATH="/usr/local/include"
+export CPLUS_INCLUDE_PATH="/usr/local/include"
 # static libs e.g. sdl2
 export LIBRARY_PATH="$LIBRARY_PATH:/usr/local/lib"
 
@@ -225,13 +225,15 @@ if [[ $(uname -s) = 'Darwin' ]];then
         export LIBMP3LAME_CFLAGS="-I/usr/local/opt/lame/include"
         export LIBMP3LAME_LIBS="-L/usr/local/lib"
 
-        export LDFLAGS="-L/usr/local/lib"
-        export CPPFLAGS="-I/usr/local/include"
+        # default include path for gcc/clang 
+        export CPLUS_INCLUDE_PATH="$CPLUS_INCLUDE_PATH:Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include"
+        export LDFLAGS="-L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib"
+        # export LDFLAGS="-L/usr/local/lib"
+        # export CPPFLAGS="-I/usr/local/include"
         #
         # expat
         export LIBEXPAT_LIBS="-L/usr/local/opt/expat/lib"
         export LIBEXPAT_CFLAGS="-I/usr/local/opt/expat/include"
-
     # keyboard setting for vim
     if test $(kbaware) = 'Colemak'; then
       export COLEMAK_KEYBOARD=1
