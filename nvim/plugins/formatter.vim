@@ -21,7 +21,7 @@ function! s:handle_c_cpp_file(path)
       let project_root = substitute(astyle_config_path,".clang-format","","")
       let clang_format_py_path = g:clang_format_path . "/clang-format.py"
       pyf clang_format_py_path
-    else !empty(astyle_config_path)
+    elseif !empty(astyle_config_path)
       let project_root = substitute(astyle_config_path,".clang-format","","")
       let cmd = "cd " . '"'. project_root .'"' . " && astyle --project=.astylerc" . " " . a:path
       call system(cmd)
