@@ -382,6 +382,7 @@ aug end
 " markdown
 augroup ft_md
   autocmd FileType markdown setlocal spell spelllang=en_us
+  autocmd FileType markdown setlocal dictionary=/usr/share/dict/words
 augroup END "ft_md
 
 " The following autocommand will cause the quickfix window to open after any grep invocation:
