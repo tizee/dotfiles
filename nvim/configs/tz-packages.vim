@@ -49,6 +49,9 @@ Plug '~/dev/grepo_vim/tz-vim-packages/md-table.vim'
 "Plug '~/dev/grepo_vim/tz-vim-packages/keyboard.vim'
 Plug '~/dev/grepo_vim/tz-vim-packages/boilerplate.vim'
 Plug '~/dev/grepo_vim/indentLine'
+" language checker
+Plug '~/dev/grepo_vim/vim-LanguageTool'
+
 " }}}
 call plug#end()
 
@@ -107,6 +110,7 @@ autocmd FileType go nmap gtx :CocCommand go.tags.clear<cr>
 
 " PLUGIN CONFIGURATIONS {{{
 " shit code
+source ~/.config/nvim/configs/tz-languagetool.vim
 source ~/.config/nvim/configs/tz-coc-config.vim
 source ~/.config/nvim/configs/tz-nerdtree.vim
 source ~/.config/nvim/configs/tz-vim-autoformat.vim
