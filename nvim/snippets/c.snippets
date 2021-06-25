@@ -131,4 +131,9 @@ snippet linuxmacro "predefined macros for Linux"
 $1
 #endif /* LINUX */
 endsnippet
+
+snippet divide_255_fast "divide 255"
+#define div_255_fast(x) (((x) + (((x) + 257) >> 8)) >> 8)
+endsnippet
+
 # vim:ft=snippets:
