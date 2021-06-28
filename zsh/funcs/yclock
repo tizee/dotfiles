@@ -1,0 +1,13 @@
+#!/usr/bin/env zsh
+echo "Initiialize clock"
+
+function yclock(){
+  while [ true ];do
+    date +%r
+    sleep 1
+    tput cuu1
+    tput el
+  done
+}
+
+yclock

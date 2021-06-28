@@ -72,20 +72,27 @@ autoload -Uz compinit && compinit
 ######################
 # plugins 
 ######################
-# TODO: lazy loading
 # could get some ideas from famous Zsh frameworks
 # {{{
 source ~/.config/zsh/vendor/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 source ~/.config/zsh/vendor/zsh-autosuggestions/zsh-autosuggestions.zsh
-source ~/.config/zsh/plugins/vi-mode.zsh
-source ~/.config/zsh/plugins/dirs.zsh
-source ~/.config/zsh/plugins/extract.zsh
-source ~/.config/zsh/plugins/aliases.zsh
+
+# lazy load
+# insert at head
+fpath=(~/.config/zsh/funcs "${fpath[@]}") 
+autoload -Uz $fpath[1]/*(.:t)
+for file in ~/.config/zsh/plugins/*.zsh; do
+  source "$file"
+done
+
+#source ~/.config/zsh/plugins/vi-mode.zsh
+#source ~/.config/zsh/plugins/dirs.zsh
+#source ~/.config/zsh/plugins/extract.zsh
+#source ~/.config/zsh/plugins/aliases.zsh
 #source ~/dev/grepo_shell/fzf-tab/fzf-tab.plugin.zsh
 #source ~/.config/zsh/fzf-tab-config.zsh
-source ~/.config/zsh/plugins/yogit.plugin.zsh
-
-source ~/.config/zsh/plugins/utils.plugin.zsh
+#source ~/.config/zsh/plugins/yogit.plugin.zsh
+#source ~/.config/zsh/plugins/utils.plugin.zsh
 
 # debug
 #export _ZL_ECHO=1
