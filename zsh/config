@@ -85,6 +85,8 @@ source ~/.config/zsh/plugins/aliases.zsh
 #source ~/.config/zsh/fzf-tab-config.zsh
 source ~/.config/zsh/plugins/yogit.plugin.zsh
 
+source ~/.config/zsh/plugins/utils.plugin.zsh
+
 # debug
 #export _ZL_ECHO=1
 #export _ZL_LOG_NAME=true
