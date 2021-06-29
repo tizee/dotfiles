@@ -1,5 +1,14 @@
 #!/usr/bin/env zsh
 
+function mload(){
+ if [[ -e /tmp/mcopy.items ]]; then
+   export MULTIPLE_COPY_ITEMS=($(cat /tmp/mcopy.items))
+ fi 
+ if [[ -e /tmp/mmove.items ]]; then
+   export MULTIPLE_COPY_ITEMS=($(cat /tmp/mmove.items))
+ fi 
+}
+
 function mreset(){
   export MULTIPLE_MOVE_ITEMS=()
   export MULTIPLE_COPY_ITEMS=()
@@ -16,12 +25,16 @@ function mprint() {
 function mcopy(){
   unset MULTIPLE_COPY_ITEMS
   export MULTIPLE_COPY_ITEMS=($(realpath -e $@) ${MULTIPLE_COPY_ITEMS[@]})
+  # cross session
+  echo $MULTIPLE_COPY_ITEMS > /tmp/mcopy.items
   echo "Copied $@" 
 }
 
 function mmove(){
   unset MULTIPLE_MOVE_ITEMS
-  export MULTIPLE_COPY_ITEMS=($(realpath -e $@) ${MULTIPLE_COPY_ITEMS[@]})
+  export MULTIPLE_MOVE_ITEMS=($(realpath -e $@) ${MULTIPLE_COPY_ITEMS[@]})
+  # cross session
+  echo $MULTIPLE_MOVE_ITEMS > /tmp/mmove.items
   echo "Moved $@"
 }
 
