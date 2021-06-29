@@ -205,7 +205,7 @@ setopt no_prompt_bang prompt_percent prompt_subst
 #
 # The current directory gets truncated from the left if the whole prompt doesn't fit on the line.
 local execute_color="%(?.${limegreen}.${red})"
-local error_code="%(?..✘ %? )"
+local error_code="%(?..×%? )"
 local default_path='<…<%6~%<<'
 local OS_NAME="$(uname -s)"
 # source "${${(%):-%x}:h}/fish_like_collapsed.zsh"
