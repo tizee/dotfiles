@@ -1,10 +1,17 @@
-# vim:ft=zsh:fdm=marker
+# vim:fmr=<-,->:ft=zsh:fdm=marker
+
+local is_macOS=false
+local is_Linux=false
+case "$(uname -s)" in
+  Darwin) is_macOS=true;;
+  Darwin) is_Linux=true;;
+esac
 
 # ========== 
 # ENV
 # ========== 
-# {{{
 
+# Common <-
 # system
 PATH="/usr/bin:$PATH"
 PATH="/bin:$PATH"
@@ -78,21 +85,10 @@ export FZF_DEFAULT_OPTS="--reverse --ansi --preview-window 'right:60%' --preview
 # krb5
 export PATH="/usr/local/opt/krb5/bin:$PATH"
 export PATH="/usr/local/opt/krb5/sbin:$PATH"
+# ->
 
-
-# }}}
-
-# }}}
-
-# Preferred editor for local and remote sessions
-if [[ -n $SSH_CONNECTION ]]; then
-  export EDITOR='nvim'
-else
-  export EDITOR='nvim'
-fi
-
-# MACOS
-if [[ $(uname -s) = 'Darwin' ]];then
+# macOS <-
+if $is_macOS; then
         # riscv
         export PATH=$PATH:/usr/local/opt/riscv-gnu-toolchain/bin
         # sdkman
@@ -259,15 +255,21 @@ if [[ $(uname -s) = 'Darwin' ]];then
     unset __conda_setup
     # <<< conda initialize <<<
 fi
+# ->
 
-if [[ "$(uname -s)" == "Linux"  ]]; then
-  # homebrew
-  if [[ "$(uname -s)" == "Linux" ]]; then BREW_TYPE="linuxbrew"; else BREW_TYPE="homebrew"; fi
-   export HOMEBREW_BREW_GIT_REMOTE="https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/brew.git"
-   export HOMEBREW_CORE_GIT_REMOTE="https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/${BREW_TYPE}-core.git"
-   export HOMEBREW_BOTTLE_DOMAIN="https://mirrors.tuna.tsinghua.edu.cn/${BREW_TYPE}-bottles"
+# homebrew
+if $is_Linux; then BREW_TYPE="linuxbrew"; else BREW_TYPE="homebrew"; fi
+ export HOMEBREW_BREW_GIT_REMOTE="https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/brew.git"
+ export HOMEBREW_CORE_GIT_REMOTE="https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/${BREW_TYPE}-core.git"
+ export HOMEBREW_BOTTLE_DOMAIN="https://mirrors.tuna.tsinghua.edu.cn/${BREW_TYPE}-bottles"
+
+
+# Preferred editor for local and remote sessions
+if [[ -n $SSH_CONNECTION ]]; then
+  export EDITOR='nvim'
+else
+  export EDITOR='nvim'
 fi
-
 
 # Proxy for fucking GFW
 # gitclonet/sshtunnel
