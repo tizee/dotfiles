@@ -35,7 +35,8 @@ return {
     {
       family="JetBrainsMono Nerd Font",
       weight="Bold"
-    }
+    },
+    "SimHei"
     }),
   -- ->
   -- hotkeys <-
@@ -54,6 +55,9 @@ return {
     -- zoom
     {key="z", mods="LEADER", action="TogglePaneZoomState"},
   },
+  -- ->
+  -- IME <-
+  use_ime = false, -- conflict with leader mode, could submit a PR for this
   -- ->
   color_scheme = "Dracula",
 }
