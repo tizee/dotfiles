@@ -171,8 +171,8 @@ function gitstatus_prompt_update() {
   # ~42 if have merge conflicts.
   (( VCS_STATUS_NUM_CONFLICTED )) && p+=" ${conflicted}~${VCS_STATUS_NUM_CONFLICTED}"
   # +42 if have staged changes. 
-  # use ✔ 
-  (( VCS_STATUS_NUM_STAGED     )) && p+=" ${add}✔${VCS_STATUS_NUM_STAGED}"
+  # use ✓
+  (( VCS_STATUS_NUM_STAGED     )) && p+=" ${add}✓${VCS_STATUS_NUM_STAGED}"
   # !42 if have unstaged changes.
   (( VCS_STATUS_NUM_UNSTAGED   )) && p+=" ${modified}!${VCS_STATUS_NUM_UNSTAGED}"
   # ?42 if have untracked files. It's really a question mark, your font isn't broken.
@@ -214,7 +214,7 @@ PROMPT+='%{$cyan%}% [${OS_NAME}]%f '
 PROMPT+='%{$cyan%}%$((-GITSTATUS_PROMPT_LEN-1))${default_path}%f'  # blue current working directory
 PROMPT+='%B${GITSTATUS_PROMPT:+ $GITSTATUS_PROMPT}%b'      # git status
 PROMPT+=$'\n'                                          # new line
-PROMPT+='%{$execute_color%}%{$error_code%}%(!.#.➜)%f '                         # %/# (normal/root); green/red (ok/error)
+PROMPT+='%{$execute_color%}%{$error_code%}%(!.#.ᐅ)%f '                         # %/# (normal/root); green/red (ok/error)
 RPROMPT=""
 
 # vim:ft=zsh ts=2 sw=2 sts=2 et fenc=utf-8

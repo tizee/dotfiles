@@ -176,7 +176,7 @@ if [[ $(uname -s) = 'Darwin' ]];then
         export OPENSSL_LIBS="-L/usr/local/opt/openssl@1.1/lib"
         #export LDFLAGS="-L/usr/local/opt/openssl@1.1/lib"
         #export CPPFLAGS="-I/usr/local/opt/openssl@1.1/include"
-        #export PKG_CONFIG_PATH="/usr/local/opt/openssl@1.1/lib/pkgconfig"
+        export PKG_CONFIG_PATH="/usr/local/opt/openssl@1.1/lib/pkgconfig"
 
         # gnutls
         export GUILE_TLS_CERTIFICATE_DIRECTORY="/usr/local/etc/gnutls/"
