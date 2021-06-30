@@ -1,0 +1,140 @@
+[init]
+  defaultBranch=master # Yes, the old-school
+[commit]
+  gpgsign=true
+  template = ~/.config/git/commit.template
+[gpg]
+  program = /usr/local/gnupg-2.2/bin/gpg
+[core]
+  editor=nvim
+  excludesfile = ~/.config/git/global.gitignore
+	# pager="bat -l diff -p | less --tabs=4 "
+	# pager="diff-so-fancy | less --tabs=4 -RFX"
+  pager=delta  # git-delta
+  quotePath=false # utf-8 characters
+  autocrlf=input
+  # Ensure that unicode filenames aren't mangled by HFS
+  precomposeUnicode=true
+
+[includeIf "gitdir:~/**"]
+  path= ~/.config/git/gh.gitconfig
+# for work
+[includeIf "gitdir:~/dev/work/**"]
+  path= ~/.config/git/work.gitconfig
+
+# hint message for rare actions
+[advice]
+  addIngoredFile = false
+
+[filter "lfs"]
+  required = true
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+
+  
+[alias]
+  ce = config --edit
+  cge = config --global --edit
+  st = status
+  cm = commit -m
+  br = branch
+  co = checkout
+  addp =  add -p
+  cop = checkout -p
+  df = diff
+	ci = commit
+  ls=ls-tree --full-tree --name-only -r HEAD
+  rv= remote -v
+	cp = cherry-pick
+	fc = fetch
+  last = log -1 HEAD
+  logr = log --reverse
+  logrh = log --reverse --pretty=%H
+  logs= log -S
+  logg = log -G
+  logauthor= log --author
+  logsince= log --since
+  loguntil= log --until
+  logh = log --pretty=%H
+  hhh=!$(echo hello)
+  forcesafe=push --force-with-lease
+  fzff = !git ls-files --modified --others --exclude-standard | fzf -m --prompt 'ls-files> '
+  fzfvi = !nvim $(git ls-files --modified --others --exclude-standard | fzf -m --prompt 'nvim> ')
+  fzft = !git tag --list | fzf -m --prompt 'tag > '
+  fzfa = !git ls-files --modified --others --exclude-standard | fzf -m | xargs -I {} git add "{}"
+  # select unstaged file to restore
+  fzfr = !git restore $(git ls-files --modified --others --exclude-standard | fzf -m)
+  fzfstagedr = !git diff --name-only --cached | fzf -m --prompt 'path> ' --print0 | xargs -0 -I {} git restore --staged {}
+  fzfd = !git diff $(git ls-files --modified --others --exclude-standard | fzf -m)
+  # select unstaged file to diff
+  fzfdiff=!git difftool -t vimdiff -y $(git ls-files --modified | fzf -m)
+  fzfs = !git show $(git log --pretty=oneline | cut -c1-7 | fzf -m)
+  fzfco = !git checkout $(git branch | fzf )
+  fzfm = !git merge $(git branch | fzf )
+  visual = !gitk
+  lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative
+  lg-ascii = log --graph --pretty=format:'%h -%d %s (%cr) <%an>' --abbrev-commit
+  logp= log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative --stat
+  adog = log --all --decorate --oneline --graph --date=relative --stat 
+  adogs = log --all --decorate --oneline --graph --date=relative --stat --show-signature
+  adogr= log --all --decorate --oneline --reverse --date=relative --stat
+  adogrs = log --all --decorate --oneline --graph --date=relative --stat --show-signature
+
+[pull]
+  rebase = true
+[submodule]
+  recurse= true
+
+[delta]
+  syntax-theme = Github
+  side-by-side = false 
+  diff-so-fancy = true # emulate diff-so-fancy
+  navigate = true # n for next and N for previous
+  # line-numbers = true
+  features = side-by-side #line-nubmers # side-by-side
+  whitespace-error-style = 22 reverse
+
+[interactive]
+  diffFilter = delta #--color-only # git-delta
+
+[url "git@github.com:"]
+  insteadOf = https://github.com/
+[url "ssh://git@gist.github.com/"]
+    # only works for my gists
+    pushInsteadOf = https://gist.github.com/tizee/
+    # For gists cloned with official no-username URL:
+    pushInsteadOf = https://gist.github.com/
+#[https]
+#  proxy = socks5://127.0.0.1:1080
+#[http]
+#	proxy = socks5://127.0.0.1:1080
+
+[merge]
+  tool = vimdiff
+  conflictstyle = diff3
+
+[mergetool]
+  prompt = false
+	keepBackup = false
+
+[mergetool "vimdiff"]
+  cmd = nvim -d $LOCAL $REMOTE $MERGED -c '$wincmd w' -c 'wincmd J'
+
+[difftool]
+  prompt = false
+
+[diff]
+  tool = vimdiff
+
+[difftool "sourcetree"]
+	cmd = opendiff \"$LOCAL\" \"$REMOTE\"
+	path = 
+	# path =
+[mergetool "sourcetree"]
+	cmd = /Applications/Sourcetree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"
+	trustExitCode = true
+[diff-so-fancy]
+  stripLeadingSymbols = false
+
+# vim:ft=gitconfig

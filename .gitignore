@@ -1,5 +1,3 @@
-!git/common.gitconfig
-!git/global.gitignore
 *.pyo
 .DS_Store
 asciinema/install-id
@@ -10,7 +8,8 @@ configstore
 figma/api_tokens
 gatsby
 gatsby
-git
+git/gh.gitconfig
+git/work.gitignore
 karabiner/automatic_backups
 nvim/tmp
 others_pbkey/

@@ -1,0 +1,9 @@
+#!/bin/sh
+
+first() {
+  # TODO: try main for newer github repo 
+  branch=refs/heads/master
+git log --reverse --pretty=%H $branch | head -1 | xargs git checkout
+}
+
+first
