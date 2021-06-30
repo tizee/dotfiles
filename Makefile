@@ -1,4 +1,4 @@
-
+# Why use stow when you could use makefile to do the same thing?
 all: install
 
 install:
