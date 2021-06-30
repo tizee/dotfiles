@@ -91,6 +91,8 @@ export PATH="/usr/local/opt/krb5/sbin:$PATH"
 if $is_macOS; then
         # riscv
         export PATH=$PATH:/usr/local/opt/riscv-gnu-toolchain/bin
+        # git-bin
+        export PATH=$PATH:/Users/tizee/.config/git/bin
         # sdkman
         export SDKMAN_CANDIDATES_API=https://api.sdkman.io/2
         export SDKMAN_CANDIDATES_DIR=/Users/tizee/.sdkman/candidates
