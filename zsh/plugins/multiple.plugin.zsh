@@ -2,10 +2,10 @@
 
 function mload(){
  if [[ -e /tmp/mcopy.items ]]; then
-   export MULTIPLE_COPY_ITEMS=($(cat /tmp/mcopy.items))
+   export MULTIPLE_COPY_ITEMS=($(</tmp/mcopy.items))
  fi 
  if [[ -e /tmp/mmove.items ]]; then
-   export MULTIPLE_COPY_ITEMS=($(cat /tmp/mmove.items))
+   export MULTIPLE_COPY_ITEMS=($(</tmp/mmove.items))
  fi 
 }
 
@@ -43,6 +43,10 @@ function mpaste(){
     if [[ ! -z $MULTIPLE_MOVE_ITEMS ]] && [[ -d $1 ]]; then
       mv -v ${MULTIPLE_MOVE_ITEMS[@]} $1
       unset MULTIPLE_MOVE_ITEMS
+      # rm if presents
+      if [[ -e /tmp/mmove.items ]]; then
+        rm -v /tmp/mmove.items
+      fi
     elif [[ ! -z $MULTIPLE_COPY_ITEMS ]] && [[ -d $1 ]]; then
       cp -vr ${MULTIPLE_COPY_ITEMS[@]} $1
     elif [[ ! -d $1 ]]; then
