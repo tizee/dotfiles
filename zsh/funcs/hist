@@ -1,0 +1,10 @@
+#!/usr/bin/env zsh
+
+function hist(){
+  echo "zsh History info:"
+  echo " \$histchars : " $histchars
+  echo " \$HISTSIZE  : " $HISTSIZE
+  echo " \$SAVEHIST  : " $SAVEHIST
+}
+
+hist

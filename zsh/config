@@ -1,15 +1,18 @@
 #!/usr/bin/env zsh
 
+export ZSHDIR=$HOME/.config/zsh
 # man 1 zmodules
 
 ######################
 # Options
 ######################
+# zsh default options
+# emulate -lLR zsh
 # {{{
 
 setopt CORRECT
 #setopt CORRECT_ALL
-setopt auto_cd
+setopt auto_cd # automatic cd to a directory without leading cd
 setopt multios
 setopt prompt_subst
 zstyle ':completion:*' rehash true # refresh autocompletion
@@ -41,22 +44,27 @@ case ${HIST_STAMPS-} in
   *) alias history="slim_zsh_history -t '$HIST_STAMPS'" ;;
 esac
 
-## History file configuration
+## History file configuration {{{
 [ -z "$HISTFILE" ] && HISTFILE="$HOME/.zsh_history"
 [ "$HISTSIZE" -lt 50000 ] && HISTSIZE=50000
 [ "$SAVEHIST" -lt 10000 ] && SAVEHIST=10000
 
 ## History command configuration
-setopt extended_history       # record timestamp of command in HISTFILE
+setopt extended_history       # record timestamp and elapsed time of command in HISTFILE
 setopt hist_expire_dups_first # delete duplicates first when HISTFILE size exceeds HISTSIZE
 setopt hist_ignore_dups       # ignore duplicated commands history list
 setopt hist_ignore_space      # ignore commands that start with space
+setopt hist_reduce_blanks     # remove blank lines from history list
+setopt hist_find_no_dups      # ignore duplicates when searching
 setopt hist_verify            # show command with history expansion to user before running it
-setopt share_history          # share command history data
+setopt share_history          # share command history data across zsh sessions
+setopt append_history         # append to history rather than overwrite
+# setopt inc_append_history # adds commands while typing commands instead of at shell exit.
 
 # use CTRL-R to search command history reversely 
 bindkey -v
 bindkey '^R' history-incremental-search-backward
+# }}}
 
 # enable diff color if possible.
 if command diff --color . . &>/dev/null; then
@@ -79,10 +87,12 @@ autoload -Uz compinit && compinit
 source ~/.config/zsh/vendor/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 source ~/.config/zsh/vendor/zsh-autosuggestions/zsh-autosuggestions.zsh
 
-# lazy load
+# lazy load functions
 # insert at head
 fpath=(~/.config/zsh/funcs "${fpath[@]}") 
 autoload -Uz $fpath[1]/*(.:t)
+
+## plugins
 for file in ~/.config/zsh/plugins/*.zsh; do
   source "$file"
 done
