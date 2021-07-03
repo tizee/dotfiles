@@ -316,61 +316,6 @@ alias -g fgfonts="ls ~/.config/figlet"
 # shorcut map
 
 # helper
-vcfg() {
-  if [ -z $1 ]; then
-    echo "empty target"
-  else
-    if [ -e '/usr/bin/vi' ]; then
-      local tmp_editor=vi
-    fi
-
-    if [ -e '/usr/local/bin/nvim' ]; then
-      local tmp_editor=nvim
-    elif [ -e '/usr/local/bin/vim' ]; then
-      local tmp_editor=vim
-    fi
-
-    if [[ -n $tmp_editor ]] && [[ -n $1 ]]; then
-      case $1 in
-      z|zs|zsh)
-        $tmp_editor "$HOME/.zshrc"
-        ;;
-      vi|vim)
-        $tmp_editor "$HOME/.config/nvim/init.vim"
-        ;;
-      nginx)
-        $tmp_editor "/usr/local/etc/nginx/nginx.conf"
-        # auto reload
-        ngireload
-        ;;
-      hosts)
-        sudo $tmp_editor "/etc/hosts"
-        ;;
-      ssh)
-        $tmp_editor "$HOME/.ssh/config"
-        ;;
-      sshd)
-        sudo $tmp_editor "etc/ssh/sshd_config"
-        ;;
-      tmcfg)
-        $tmp_editor "$HOME/.tmux.conf"
-        ;;
-      alacritty)
-        $tmp_editor "$HOME/.config/alacritty/alacritty.yml"
-        ;;
-      ass)
-        $tmp_editor "$HOME/.config/zsh/enhanced.zsh"
-        ;;
-      *)
-        echo "$1 NOT AVAILABLE"
-        ;;
-      esac
-    elif [[ -n $1 ]]; then
-      echo "EDITOR NOT AVAILABLE"
-    fi
-
-  fi
-}
 
 # }}}
 
