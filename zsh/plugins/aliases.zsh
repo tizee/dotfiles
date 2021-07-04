@@ -1,10 +1,10 @@
 #!/usr/bin/env zsh
 # more info
 # set -xeuo pipefall
-__PLATFORM=$(uname -s)
+
 local is_macOS=false
 local is_Linux=false
-case $__PLATFORM in 
+case $SYSTEM in 
    Darwin) is_macOS=true ;;
    Linux) is_Linux=true  ;;
 esac

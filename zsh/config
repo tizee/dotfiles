@@ -76,7 +76,23 @@ fi
 # zsh functions
 ######################
 #{{{
-autoload -Uz compinit && compinit
+# zsh built-in completion system
+
+autoload -Uz compinit
+case $SYSTEM in 
+  Darwin)
+    # use macOS stat
+    if [[ $(date +'%j') != $(/usr/bin/stat -f '%Sm' -t '%j' $HOME/.zcompdump) ]]; then
+      # update
+      compinit;
+    else
+      compinit -C;
+    fi
+    ;;
+  Linux)
+      compinit;
+    ;;
+esac
 #}}}
 
 ######################
@@ -84,27 +100,20 @@ autoload -Uz compinit && compinit
 ######################
 # could get some ideas from famous Zsh frameworks
 # {{{
-source ~/.config/zsh/vendor/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
-source ~/.config/zsh/vendor/zsh-autosuggestions/zsh-autosuggestions.zsh
+source "$ZSHDIR/vendor/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+source "$ZSHDIR/vendor/zsh-autosuggestions/zsh-autosuggestions.zsh"
 
 # lazy load functions
 # insert at head
-fpath=(~/.config/zsh/funcs "${fpath[@]}") 
+fpath=($ZSHDIR/autoloaded "${fpath[@]}") 
 autoload -Uz $fpath[1]/*(.:t)
 
 ## plugins
-for file in ~/.config/zsh/plugins/*.zsh; do
+for file in $HOME/.config/zsh/plugins/*.zsh; do
   source "$file"
 done
 
-#source ~/.config/zsh/plugins/vi-mode.zsh
-#source ~/.config/zsh/plugins/dirs.zsh
-#source ~/.config/zsh/plugins/extract.zsh
-#source ~/.config/zsh/plugins/aliases.zsh
 #source ~/dev/grepo_shell/fzf-tab/fzf-tab.plugin.zsh
-#source ~/.config/zsh/fzf-tab-config.zsh
-#source ~/.config/zsh/plugins/yogit.plugin.zsh
-#source ~/.config/zsh/plugins/utils.plugin.zsh
 
 # debug
 #export _ZL_ECHO=1

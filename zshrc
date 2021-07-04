@@ -1,12 +1,16 @@
 # vim:fmr=<-,->:ft=zsh:fdm=marker
 
+# only run in zsh
+[ ! -n "$ZSH_VERSION" ] && return
+
 # profiling zsh
 # zmodload zsh/zprof
 local is_macOS=false
 local is_Linux=false
-case "$(uname -s)" in
+export SYSTEM=$(uname -s)
+case $SYSTEM in
   Darwin) is_macOS=true;;
-  Darwin) is_Linux=true;;
+  Linux) is_Linux=true;;
 esac
 
 # ========== 
@@ -15,20 +19,18 @@ esac
 
 # Common <-
 # system
-PATH="/usr/bin:$PATH"
-PATH="/bin:$PATH"
-PATH="/usr/sbin:$PATH"
-PATH="/sbin:$PATH"
-PATH="/usr/local/sbin:$PATH"
+path=(
+  /usr/local/{bin,sbin}  
+  /usr/{bin,sbin}
+  /{bin,sbin}
+  $HOME/.local/bin
+  $path
+)
 # C/C++ libs
 export C_INCLUDE_PATH="/usr/local/include"
 export CPLUS_INCLUDE_PATH="/usr/local/include"
 # static libs e.g. sdl2
 export LIBRARY_PATH="$LIBRARY_PATH:/usr/local/lib"
-
-# PATH enhanced
-PATH="/usr/local/bin:$HOME/.local/bin:$PATH"
-PATH="/usr/local/sbin:$PATH"
 
 # yarn
 PATH="$HOME/.yarn/bin:$PATH"
@@ -69,8 +71,20 @@ export PATH="$HOME/.config/work_bin:$PATH" # work related scripts
 # terminal
 export TERM=xterm-256color
 export COLORTERM=truecolor
-export LANG=en_US.UTF-8
+
+# language
+if [[ -z "$LANG" ]]; then
+  export LANG=en_US.UTF-8
+  export LANGUAGE=en_US.UTF-8
+fi
+export LC_COLLATE=en_US.UTF-8
 export LC_CTYPE=en_US.UTF-8
+export LC_MESSAGES=en_US.UTF-8
+export LC_MONETARY=en_US.UTF-8
+export LC_NUMERIC=en_US.UTF-8
+export LC_TIME=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
+export LESSCHARSET=utf-8
 
 # replace cat with bat
 if [ "$(command -v bat)" ]; then
@@ -118,22 +132,24 @@ if $is_macOS; then
 
 
         alias java8='export JAVA_HOME=$JAVA_8_HOME'
-        alias java9='export JAVA_HOME=$JAVA_9_HOME'
-        alias java10='export JAVA_HOME=$JAVA_10_HOME'
-        alias java11='export JAVA_HOME=$JAVA_11_HOME'
-        alias java12='export JAVA_HOME=$JAVA_12_HOME'
-        alias java13='export JAVA_HOME=$JAVA_13_HOME'
-        alias java14='export JAVA_HOME=$JAVA_14_HOME'
-        alias java15='export JAVA_HOME=$JAVA_15_HOME'
-        export SDKROOT=$(xcrun --sdk macosx --show-sdk-path)
-        export JAVA_8_HOME=$(/usr/libexec/java_home -v1.8)
-        export JAVA_9_HOME=$(/usr/libexec/java_home -v9)
-        export JAVA_10_HOME=$(/usr/libexec/java_home -v10)
-        export JAVA_11_HOME=$(/usr/libexec/java_home -v11)
-        export JAVA_12_HOME=$(/usr/libexec/java_home -v12)
-        export JAVA_13_HOME=$(/usr/libexec/java_home -v13)
-        export JAVA_14_HOME=$(/usr/libexec/java_home -v14)
-        export JAVA_15_HOME=$(/usr/libexec/java_home -v15)
+        # alias java9='export JAVA_HOME=$JAVA_9_HOME'
+        # alias java10='export JAVA_HOME=$JAVA_10_HOME'
+        # alias java11='export JAVA_HOME=$JAVA_11_HOME'
+        # alias java12='export JAVA_HOME=$JAVA_12_HOME'
+        # alias java13='export JAVA_HOME=$JAVA_13_HOME'
+        # alias java14='export JAVA_HOME=$JAVA_14_HOME'
+        # alias java15='export JAVA_HOME=$JAVA_15_HOME'
+        export SDKROOT="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk"
+        # export SDKROOT=$(xcrun --sdk macosx --show-sdk-path)
+        # export JAVA_8_HOME=$(/usr/libexec/java_home -v1.8)
+        export JAVA_8_HOME="/Library/Java/JavaVirtualMachines/jdk1.8.0_261.jdk/Contents/Home"
+        # export JAVA_9_HOME=$(/usr/libexec/java_home -v9)
+        # export JAVA_10_HOME=$(/usr/libexec/java_home -v10)
+        # export JAVA_11_HOME=$(/usr/libexec/java_home -v11)
+        # export JAVA_12_HOME=$(/usr/libexec/java_home -v12)
+        # export JAVA_13_HOME=$(/usr/libexec/java_home -v13)
+        # export JAVA_14_HOME=$(/usr/libexec/java_home -v14)
+        # export JAVA_15_HOME=$(/usr/libexec/java_home -v15)
         export JAVA_HOME=$JAVA_8_HOME
         # export TOOLCHAINS=swift
         # export PATH=/Library/Developer/Toolchains/swift-latest.xctoolchain/usr/bin:"${PATH}"
@@ -158,7 +174,7 @@ if $is_macOS; then
 
 
         # google 
-        PATH="$HOME/dev/grepo_cxx/chromium_depot_tools:$PATH"
+        # PATH="$HOME/dev/grepo_cxx/chromium_depot_tools:$PATH"
         # vmware
         PATH="/Applications/VMware Fusion.app/Contents/Public:$PATH"
         # tex
@@ -238,19 +254,19 @@ if $is_macOS; then
     # anaconda3
     # source $HOME/.config/conda_active.zsh
     # keyboard setting for vim
-    if test $(kbaware) = 'Colemak'; then
-      export COLEMAK_KEYBOARD=1
-    else
-      export COLEMAK_KEYBOARD=0
-    fi
+    # if test $(kbaware) = 'Colemak'; then
+    #   export COLEMAK_KEYBOARD=1
+    # else
+    #   export COLEMAK_KEYBOARD=0
+    # fi
 fi
 # ->
 
 # homebrew
 if $is_Linux; then BREW_TYPE="linuxbrew"; else BREW_TYPE="homebrew"; fi
- export HOMEBREW_BREW_GIT_REMOTE="https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/brew.git"
- export HOMEBREW_CORE_GIT_REMOTE="https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/${BREW_TYPE}-core.git"
- export HOMEBREW_BOTTLE_DOMAIN="https://mirrors.tuna.tsinghua.edu.cn/${BREW_TYPE}-bottles"
+export HOMEBREW_BREW_GIT_REMOTE="https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/brew.git"
+export HOMEBREW_CORE_GIT_REMOTE="https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/${BREW_TYPE}-core.git"
+export HOMEBREW_BOTTLE_DOMAIN="https://mirrors.tuna.tsinghua.edu.cn/${BREW_TYPE}-bottles"
 
 
 # Preferred editor for local and remote sessions
@@ -270,14 +286,16 @@ export GPG_TTY=$(tty)
 # ========== 
 source $HOME/.config/zsh/kiriline.zsh-theme
 source $HOME/.config/zsh/config
-source $HOME/.config/work_bin/work_config
+# source $HOME/.config/work_bin/work_config
 
-eval $(thefuck --alias)
+# eval $(thefuck --alias)
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
 # cleanup: remove duplicate PATH entries 
 export -U PATH
+# eliminate duplicates
+typeset -gU cdpath fpath
 
 # profiling
 # zprof
