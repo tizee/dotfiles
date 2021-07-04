@@ -199,9 +199,6 @@ alias pyarn="yarn --registry http://npm.piaoniu.com"
 
 # ========== gun pacakge ========== {{{
 alias awk="gawk"
-alias gpgsk="gpg -k --keyid-format SHORT"
-alias gpgexp="gpg --armor --export"
-
 # }}}
 
 # ========== ps ========== {{{
