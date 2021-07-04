@@ -87,7 +87,9 @@ fpath=($ZSHDIR/autoloaded "${fpath[@]}")
 autoload -Uz $fpath[1]/*(.:t)
 
 ## plugins
-for file in $HOME/.config/zsh/plugins/*.plugin.zsh; do
+# cost about 60ms
+local plugins=($HOME/.config/zsh/plugins/*.plugin.zsh)
+for file in $plugins; do
  source "$file"
 done
 

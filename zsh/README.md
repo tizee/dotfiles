@@ -1,6 +1,6 @@
 # tz-zshconfig
 
-**WIP**
+Almost done. Startup costs 0.18s.
 
 ## Why not use `oh-my-zsh`?
 

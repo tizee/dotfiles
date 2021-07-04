@@ -122,7 +122,7 @@ ZSH_HIGHLIGHT_STYLES[path]='fg=cyan,underline'
 # ZSH_HIGHLIGHT_STYLES[globbing]='none'
 
 function gitstatus_prompt_update() {
-  emulate -L zsh
+  # emulate -L zsh
   typeset -g  GITSTATUS_PROMPT=''
   typeset -gi GITSTATUS_PROMPT_LEN=0
 
@@ -207,10 +207,9 @@ setopt no_prompt_bang prompt_percent prompt_subst
 local execute_color="%(?.${limegreen}.${red})"
 local error_code="%(?..×%? )"
 local default_path='<…<%6~%<<'
-local OS_NAME="$(uname -s)"
 # source "${${(%):-%x}:h}/fish_like_collapsed.zsh"
 PROMPT=' %(!,ROOT,)'
-PROMPT+='%{$cyan%}% [${OS_NAME}]%f '
+PROMPT+='%{$cyan%}% [${SYSTEM}]%f '
 PROMPT+='%{$cyan%}%$((-GITSTATUS_PROMPT_LEN-1))${default_path}%f'  # blue current working directory
 PROMPT+='%B${GITSTATUS_PROMPT:+ $GITSTATUS_PROMPT}%b'      # git status
 PROMPT+=$'\n'                                          # new line

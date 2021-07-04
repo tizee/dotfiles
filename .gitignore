@@ -18,3 +18,4 @@ work_bin
 yarn
 zsh/vendor
 thefuck/
+*.zwc
