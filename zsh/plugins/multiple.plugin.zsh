@@ -5,20 +5,31 @@ function mload(){
    export MULTIPLE_COPY_ITEMS=($(</tmp/mcopy.items))
  fi 
  if [[ -e /tmp/mmove.items ]]; then
-   export MULTIPLE_COPY_ITEMS=($(</tmp/mmove.items))
+   export MULTIPLE_MOVE_ITEMS=($(</tmp/mmove.items))
  fi 
 }
 
 function mreset(){
   export MULTIPLE_MOVE_ITEMS=()
+  if [[ -e /tmp/mmove.items ]]; then
+    rm -v /tmp/mmove.items
+  fi
   export MULTIPLE_COPY_ITEMS=()
+  if [[ -e /tmp/mcopy.items ]]; then
+    rm -v /tmp/mcopy.items
+  fi
 }
 
+function mclear(){
+  mreset
+}
+
+
 function mprint() {
-  echo -n "copy items: "
-  echo $MULTIPLE_COPY_ITEMS  
-  echo -n "move items: "
-  echo $MULTIPLE_MOVE_ITEMS  
+  echo "to copy: "
+  echo ${(@F)MULTIPLE_COPY_ITEMS}
+  echo "to move: "
+  echo ${(@F)MULTIPLE_MOVE_ITEMS}
 }
 
 # append to copy items
@@ -27,7 +38,8 @@ function mcopy(){
   export MULTIPLE_COPY_ITEMS=($(realpath -e $@) ${MULTIPLE_COPY_ITEMS[@]})
   # cross session
   echo $MULTIPLE_COPY_ITEMS > /tmp/mcopy.items
-  echo "Copied $@" 
+  echo "Copied: " 
+  echo "${(@F)@}"
 }
 
 function mmove(){
@@ -35,7 +47,8 @@ function mmove(){
   export MULTIPLE_MOVE_ITEMS=($(realpath -e $@) ${MULTIPLE_COPY_ITEMS[@]})
   # cross session
   echo $MULTIPLE_MOVE_ITEMS > /tmp/mmove.items
-  echo "Moved $@"
+  echo "Moved: "
+  echo "${(@F)@}"
 }
 
 function mpaste(){
@@ -43,7 +56,7 @@ function mpaste(){
     if [[ ! -z $MULTIPLE_MOVE_ITEMS ]] && [[ -d $1 ]]; then
       mv -v ${MULTIPLE_MOVE_ITEMS[@]} $1
       unset MULTIPLE_MOVE_ITEMS
-      # rm if presents
+      # remove temp file if presents
       if [[ -e /tmp/mmove.items ]]; then
         rm -v /tmp/mmove.items
       fi
@@ -58,5 +71,3 @@ function mpaste(){
     >&2 echo "mpaste [dist]\n"
   fi
 }
-
-
