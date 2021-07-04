@@ -90,7 +90,12 @@ case $SYSTEM in
     fi
     ;;
   Linux)
+    if [[ $(date +'%j') != $(date -r $HOME/.zcompdump +'%j') ]]; then
+      # update
       compinit;
+    else
+      compinit -C;
+    fi
     ;;
 esac
 #}}}

@@ -38,7 +38,7 @@ alias ll='ls -lh'
 alias la='ls -lAh'
 
 # shortcut
-if [ $(uname -s) = Darwin ];then 
+if [ $SYSTEM = Darwin ];then 
   alias dev="cd ~/dev/"
   alias work="cd ~/dev/work/"
   alias play="cd ~/dev/playground/"

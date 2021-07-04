@@ -24,9 +24,9 @@ _yogit_interactive_prefix='ygi'
 fi
 
 function yogit::open() {
-  if [ $(uname -s) = Darwin ]; then
+  if [ $SYSTEM = Darwin ]; then
     open $(git config --get remote.origin.url | sed -E 's/^[^@]*@([^:\/]*)[:\/]/https:\/\/\1\//' | sed 's/\.git//')
-  elif [ $(uname -s) = Linux ]; then 
+  elif [ $SYSTEM = Linux ]; then 
     xdg-open $(git config --get remote.origin.url | sed -E 's/^[^@]*@([^:\/]*)[:\/]/https:\/\/\1\//' | sed 's/\.git//')
   fi
 }
