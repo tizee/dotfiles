@@ -64,4 +64,4 @@ function vcfg() {
 
 }
 
-# vim:fmr={,}:foldmethod=marker
+vcfg

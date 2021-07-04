@@ -17,33 +17,6 @@ setopt multios
 setopt prompt_subst
 zstyle ':completion:*' rehash true # refresh autocompletion
 
-## History wrapper
-function slim_zsh_history {
-  local clear list
-  zparseopts -E c=clear l=list
-
-  if [[ -n "$clear" ]]; then
-    # if -c provided, clobber the history file
-    echo -n >| "$HISTFILE"
-    echo >&2 History file deleted. Reload the session to see its effects.
-  elif [[ -n "$list" ]]; then
-    # if -l provided, run as if calling `fc' directly
-    builtin fc "$@"
-  else
-    # unless a number is provided, show all history events (starting from 1)
-    [[ ${@[-1]-} = *[0-9]* ]] && builtin fc -l "$@" || builtin fc -l "$@" 1
-  fi
-}
-
-# Timestamp format
-case ${HIST_STAMPS-} in
-  "mm/dd/yyyy") alias history='slim_zsh_history -f' ;;
-  "dd.mm.yyyy") alias history='slim_zsh_history -E' ;;
-  "yyyy-mm-dd") alias history='slim_zsh_history -i' ;;
-  "") alias history='slim_zsh_history' ;;
-  *) alias history="slim_zsh_history -t '$HIST_STAMPS'" ;;
-esac
-
 ## History file configuration {{{
 [ -z "$HISTFILE" ] && HISTFILE="$HOME/.zsh_history"
 [ "$HISTSIZE" -lt 50000 ] && HISTSIZE=50000
@@ -114,8 +87,8 @@ fpath=($ZSHDIR/autoloaded "${fpath[@]}")
 autoload -Uz $fpath[1]/*(.:t)
 
 ## plugins
-for file in $HOME/.config/zsh/plugins/*.zsh; do
-  source "$file"
+for file in $HOME/.config/zsh/plugins/*.plugin.zsh; do
+ source "$file"
 done
 
 #source ~/dev/grepo_shell/fzf-tab/fzf-tab.plugin.zsh

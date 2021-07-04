@@ -1,0 +1,13 @@
+#!/usr/bin/env zsh
+# open man in Preview.app
+function preman() { 
+  if [ $SYSTEM = Darwin ]; then
+    man -t "$@" | open -f -a "Preview";
+  else
+    echo "Only works in macOS"
+  fi
+}
+
+preman
+
+#vim:ft=zsh

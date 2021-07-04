@@ -1,3 +1,4 @@
+#!/usr/bin/env zsh
 # Updates editor information when the keymap changes.
 function zle-keymap-select() {
   # update keymap variable for the prompt

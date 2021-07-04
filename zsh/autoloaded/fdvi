@@ -1,0 +1,7 @@
+#!/usr/bin/env zsh
+
+fdvi(){
+ nvim $(fd $1 | fzf -m);
+}
+
+fdvi

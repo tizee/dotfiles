@@ -1,0 +1,12 @@
+#!/usr/bin/env zsh
+
+# disable SIP
+function sipdisable(){
+  if [ $SYSTEM = Darwin ]; then
+    sudo spctl --master-disable 
+  else
+    echo "Only works in macOS"
+  fi
+} 
+
+sipdisable

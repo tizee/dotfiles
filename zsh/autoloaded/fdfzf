@@ -1,0 +1,7 @@
+#!/usr/bin/env zsh
+
+fdfzf(){
+  fd $1 | fzf -m
+}
+
+fdfzf

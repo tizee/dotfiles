@@ -1,5 +1,4 @@
-alias x=extract
-
+#!/usr/bin/env zsh
 extract() {
 	local remove_archive
 	local success

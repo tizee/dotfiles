@@ -1,0 +1,8 @@
+#!/usr/bin/env zsh
+
+# rg quick edit
+rgvi(){
+  nvim "$(rg $1 -l | fzf -m)"
+}
+
+rgvi

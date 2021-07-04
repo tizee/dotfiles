@@ -71,17 +71,6 @@ if [ $is_macOS ];then
     # no more default ctags
     alias ctags="`brew --prefix`/bin/ctags``"
   fi
-  # open man in Preview.app
-  function preman() { man -t "$@" | open -f -a "Preview" ;}
-  # check SIP
-  function sipcheck() {
-   csrutil status; 
-   csrutil authenticated-root status;
-  }
-  # disable SIP
-  function sipdisable(){
-    sudo spctl --master-disable 
-  } 
   # print CPU number
   alias lcpunum="sysctl -n hw.ncpu"
   alias pcpunum="sysctl -n hw.physicalcpu"
@@ -89,27 +78,8 @@ if [ $is_macOS ];then
   # https://stackoverflow.com/questions/795236/in-mac-os-x-how-can-i-get-an-accurate-count-of-file-descriptor-usage
   alias printfd="lsof -d '^txt' -p nnn | wc -l"
   alias printmaxfd="launchctl limit maxfiles"
-  repo() {
-    if [[ -z $1 ]];then
-      cd $HOME/dev/$(fd -t d -d 1 'grepo_.*' $HOME/dev --exec basename | fzf)
-      local repo_name="$(fd -t d -d 1 . | fzf --preview "tree -L 1 {+1}")"
-      if [[ -n $repo_name ]];then
-        cd "$repo_name"
-      fi
-    else
-      cd "$HOME/dev/grepo_$1";
-      local repo_name="$(fd -t d -d 1 . | fzf --preview "tree -L 1 {+1}")"
-      if [[ -n $repo_name ]];then
-        cd "$repo_name"
-      fi
-    fi
-  }
-  printsdk(){
-    xcrun --show-sdk-path
-  }
-  printosx(){
-    xcrun  --sdk macosx --show-sdk-path
-  }
+  alias printsdk="xcrun --show-sdk-path"
+  alias printosx="xcrun  --sdk macosx --show-sdk-path"
 fi
 
 # }}} 
@@ -118,11 +88,6 @@ fi
 # ========== youtube-dl========== {{{
 alias ydl="youtube-dl"
 # }}} 
-
-# quick source .aliases
-sozsh() {
-  source $(fd --glob '*.sh' "$HOME/.config/zsh" | fzf);
-}
 
 # show key code
 alias showhex="xxd -psd"
@@ -141,30 +106,6 @@ if [[ -e /usr/local/bin/cmake ]]; then
   # see https://clang.llvm.org/docs/JSONCompilationDatabase.html
   # and https://clangd.llvm.org/installation.html#project-setup
  alias cmake="cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 " 
- cmake::cldjson(){
-   local directory="build"
-   if [[ -n $1 ]]; then
-     echo "dir:" $1
-     directory=$1
-   fi
-   local path="$(pwd)/${directory}"
-   echo "path:" $path
-   if [[ -d $path ]]; then
-     # search in build
-     if [[ -e $path/compile_commands.json ]]; then
-       /usr/local/bin/gln -s $path/compile_commands.json compile_commands.json
-       echo "find in $path and link!"
-     else
-       echo "Not found!"
-     fi
-   elif [[ -e compile_commands.json ]];then
-     # link to parent directory
-     /usr/local/bin/gln -s $(pwd)/compile_commands.json $(pwd)/../compile_commands.json
-     echo "found in current dir and link!"
-  else
-     echo "Not found!"
-   fi
- }
 fi
 # }}} 
 
@@ -220,51 +161,14 @@ alias tm="tmux attach || tmux new"
 
 # ========== find ehancement ========== {{{
 alias fdsl="fd . -t l -d 1 -H"
-fdfzf(){
-  fd $1 | fzf -m
-}
-
-# fd quick edit
-fdvi(){
-  nvim $(fdfzf $1) 
-}
 
 # }}}
 
 # ========== fzf ehancement ========== {{{
-# search man with fzf
-# usgae: fzfman number
-fzfman(){
-  let number=${1+$@}
-  if [ -n $number ];then
-    if [ -e /usr/local/bin/fd ];then
-      man $number $(fd --glob "*.$number" "/usr/local/share/man/man$number" | sed -E "s/.*\/(.*)\.$number/\1/" | fzf );
-    fi
-  fi 
-}
-
-# fzf history
-# fzf preview template zero-based index
-# show history context
-fzfh(){
-  fzf --preview 'tail +$(( {n} - 2 )) ~/.zsh_history | head -100 | sed -E "s/.*;(.*)/\1/"' < ~/.zsh_history
-}
 
 # open file in new tmux pane
 alias fzftm="fzf-tmux" # fzf
 
-# }}}
-
-# ========== ripgrep ========== {{{
-# ripgrep with fzf
-rgfzf() {
-  rg $1 -l | fzf --multi
-}
-
-# rg quick edit
-rgvi(){
-  vi "$(rgfzf $1)"
-}
 # }}}
 
 # ========== sed ========== {{{
@@ -303,55 +207,6 @@ alias ppsh="pipes.sh"
 alias -g fgfonts="ls ~/.config/figlet"
 # Nice 
 #
-
-# }}}
-
-# ========== shell script ========== {{{
-
-# ========== quick editing config file ========= {{{
-
-# shorcut map
-
-# helper
-
-# }}}
-
-# ========== quick cd ========== {{{
-# function for quick cd
-#alias repo="cd_wrapper() {cd "~/dev/grepo_$1;unset -f cd_wrapper;}; cd_wrapper"
-
-# cd up multiple times
-cdk() {
-  cd $(printf "%.s../" $(seq $1));
-}
-
-# }}}
-
-# }}}
-
-# ========== homebrew ========== {{{
-_fzfbrew(){
-# print package info in fzf preview 
-if [[ -e /usr/local/bin/brew && -e /usr/local/bin/fzf ]];then
-  brew list --formula | fzf --multi --preview 'brew info {+1}' | sed -e 's/[% ]//g'
-fi
-}
-fzfbrew() {
-  if [[ $# -eq 0 ]]; then
-    _fzfbrew
-  elif [[ -n $1 ]];then
-    if [[ $1 = 'relink' ]];then
-      _fzfbrew | xargs -0 -I {} sh -c 'brew unlink "{}"; brew link "{}";' # 'brew unlink {}; brew link {};'
-    fi
-  fi
-}
-
-# fzfbrew relink
-
-# select packages under /usr/local/Cellar/ relink to /usr/local/bin 
-
-# fzfbrew reinstall
-
 
 # }}}
 

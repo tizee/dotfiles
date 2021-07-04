@@ -1,0 +1,27 @@
+#!/usr/bin/env zsh
+
+_fzfbrew(){
+# print package info in fzf preview 
+if [[ -e /usr/local/bin/brew && -e /usr/local/bin/fzf ]];then
+  brew list --formula | fzf --multi --preview 'brew info {+1}' | sed -e 's/[% ]//g'
+fi
+}
+
+fzfbrew() {
+  if [[ $# -eq 0 ]]; then
+    _fzfbrew
+  elif [[ -n $1 ]];then
+    if [[ $1 = 'relink' ]];then
+      _fzfbrew | xargs -0 -I {} sh -c 'brew unlink "{}"; brew link "{}";' # 'brew unlink {}; brew link {};'
+    fi
+  fi
+}
+# fzfbrew relink
+
+# select packages under /usr/local/Cellar/ relink to /usr/local/bin 
+
+# TODO: fzfbrew reinstall
+
+
+
+fzfbrew

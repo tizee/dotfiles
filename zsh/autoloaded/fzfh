@@ -1,0 +1,11 @@
+#!/usr/bin/env zsh
+
+# fzf history
+# fzf preview template zero-based index
+# show history context
+fzfh(){
+  fzf --preview 'tail +$(( {n} - 2 )) ~/.zsh_history | head -100 | sed -E "s/.*;(.*)/\1/"' < ~/.zsh_history
+}
+
+
+fzfh

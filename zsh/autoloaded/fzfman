@@ -1,0 +1,14 @@
+#!/usr/bin/env zsh
+
+# search man with fzf
+# usgae: fzfman number
+fzfman(){
+  let number=${1+$@}
+  if [ -n $number ];then
+    if [ -e /usr/local/bin/fd ];then
+      man $number $(fd --glob "*.$number" "/usr/local/share/man/man$number" | sed -E "s/.*\/(.*)\.$number/\1/" | fzf );
+    fi
+  fi 
+}
+
+fzfman

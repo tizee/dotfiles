@@ -1,0 +1,12 @@
+#!/usr/bin/env zsh
+# check SIP
+function sipcheck() {
+  if [ $SYSTEM = Darwin ]; then
+   csrutil status; 
+   csrutil authenticated-root status;
+  else
+    echo "Only works in macOS"
+  fi
+}
+
+sipcheck

@@ -1,0 +1,7 @@
+#!/usr/bin/env zsh
+# cd up multiple times
+cdk() {
+  cd $(printf "%.s../" $(seq $1));
+}
+
+cdk
