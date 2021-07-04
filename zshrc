@@ -1,5 +1,7 @@
 # vim:fmr=<-,->:ft=zsh:fdm=marker
 
+# profiling zsh
+# zmodload zsh/zprof
 local is_macOS=false
 local is_Linux=false
 case "$(uname -s)" in
@@ -233,29 +235,14 @@ if $is_macOS; then
         # expat
         export LIBEXPAT_LIBS="-L/usr/local/opt/expat/lib"
         export LIBEXPAT_CFLAGS="-I/usr/local/opt/expat/include"
+    # anaconda3
+    # source $HOME/.config/conda_active.zsh
     # keyboard setting for vim
     if test $(kbaware) = 'Colemak'; then
       export COLEMAK_KEYBOARD=1
     else
       export COLEMAK_KEYBOARD=0
     fi
-    # ========== 
-    # Anaconda
-    # ========== 
-    # >>> conda initialize >>>
-    # !! Contents within this block are managed by 'conda init' !!
-    __conda_setup="$('/Users/tizee/anaconda3/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
-    if [ $? -eq 0 ]; then
-        eval "$__conda_setup"
-    else
-        if [ -f "/Users/tizee/anaconda3/etc/profile.d/conda.sh" ]; then
-            . "/Users/tizee/anaconda3/etc/profile.d/conda.sh"
-        else
-            export PATH="/Users/tizee/anaconda3/bin:$PATH"
-        fi
-    fi
-    unset __conda_setup
-    # <<< conda initialize <<<
 fi
 # ->
 
@@ -291,3 +278,6 @@ eval $(thefuck --alias)
 
 # cleanup: remove duplicate PATH entries 
 export -U PATH
+
+# profiling
+# zprof
