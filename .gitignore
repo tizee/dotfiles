@@ -19,3 +19,4 @@ yarn
 zsh/vendor
 thefuck/
 *.zwc
+*.old

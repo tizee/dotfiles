@@ -4,4 +4,4 @@ rgfzf() {
   rg $1 -l | fzf --multi
 }
 
-rgfzf
+rgfzf $@

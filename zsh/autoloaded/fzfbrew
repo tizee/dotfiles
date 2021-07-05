@@ -24,4 +24,4 @@ fzfbrew() {
 
 
 
-fzfbrew
+fzfbrew $@

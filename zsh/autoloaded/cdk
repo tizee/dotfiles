@@ -4,4 +4,4 @@ cdk() {
   cd $(printf "%.s../" $(seq $1));
 }
 
-cdk
+cdk $@

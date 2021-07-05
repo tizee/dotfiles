@@ -79,3 +79,5 @@ extract() {
 		shift
 	done
 }
+
+extract $@

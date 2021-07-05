@@ -5,4 +5,4 @@ rgvi(){
   nvim "$(rg $1 -l | fzf -m)"
 }
 
-rgvi
+rgvi $@

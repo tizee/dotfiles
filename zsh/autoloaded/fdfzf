@@ -4,4 +4,4 @@ fdfzf(){
   fd $1 | fzf -m
 }
 
-fdfzf
+fdfzf $@

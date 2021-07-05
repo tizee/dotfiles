@@ -20,4 +20,4 @@ repo() {
   fi
 }
 
-repo
+repo $@
