@@ -334,7 +334,7 @@ augroup filetype_shell
   autocmd!
   autocmd FileType sh setlocal foldmethod=marker
   autocmd FileType zsh setlocal foldmethod=marker
-  autocmd BufWritePost *.zsh set filetype=sh
+  autocmd BufWritePost *.zsh set filetype=zsh
   autocmd BufWritePost *.sh set filetype=sh
 augroup END
 " }}}

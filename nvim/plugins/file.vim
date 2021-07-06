@@ -32,9 +32,18 @@ augroup file_vim
   autocmd BufReadPre zh-* call <SID>handle_Chinese_file()
 augroup END "file_vim
 
-" TODO
-function! s:get_file_time()
-  " created time
-  " modfied time
+" created time
+let s:stat_cmd="stat"
+function! s:get_file_time(path)
+  " %w created time
+  " %x accessed time
+  " %y modified time
+  " %z status changed time
+  let cmd = s:stat_cmd . " --printf='created time':%w\\\\n'accesed time':%x\\\\n'modified time':%y\\\\n'status changed time':%z " . a:path
+  let command_output= system(cmd)
+  " insert below
+  execute ":put =command_output"
 endfunction
+
+command! -nargs=0 CurrentFileTime call <SID>get_file_time(expand("%"))
 
