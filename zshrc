@@ -9,6 +9,8 @@
 local is_macOS=false
 local is_Linux=false
 export SYSTEM=$(uname -s)
+# TODO use $OSTYPE insteal of uname -s
+# export SYSTEM=$OSTYPE 
 case $SYSTEM in
   Darwin) is_macOS=true;;
   Linux) is_Linux=true;;
