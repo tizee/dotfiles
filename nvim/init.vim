@@ -64,6 +64,40 @@ set timeoutlen=500
 " key code timeout
 set ttimeoutlen=256 
 
+" regex magic
+set magic
+" modeline
+set modeline
+
+" shada
+if has('nvim') && ! has('win32') && ! has('win64')
+  set shada=!,'100,<50,s10,h
+else
+  set viminfo='100,<10,@50,h,n$DATA_PATH/viminfo
+endif 
+
+" Secure sensitive information, disable backup files in temp directories
+if exists('&backupskip')
+	set backupskip+=/tmp/*,$TMPDIR/*,$TMP/*,$TEMP/*,*/shm/*,/private/var/*
+	set backupskip+=.vault.vim
+endif
+
+" If sudo, disable vim swap/backup/undo/shada/viminfo writing
+if $SUDO_USER !=# '' && $USER !=# $SUDO_USER
+		\ && $HOME !=# expand('~'.$USER, 1)
+		\ && $HOME ==# expand('~'.$SUDO_USER, 1)
+
+	set noswapfile
+	set nobackup
+	set nowritebackup
+	set noundofile
+	if has('nvim')
+		set shada="NONE"
+	else
+		set viminfo="NONE"
+	endif
+endif
+
 " Don't pass messages to |ins-completion-menu|.
 " set shortmess+=c
 
@@ -85,11 +119,17 @@ set grepformat=%f:%l:%c:%m
 set nobackup
 set nowritebackup
 set noswapfile " not createing swap file for new buffers
+" create backup
 silent !mkdir -p ~/.config/nvim/tmp/backup
+" create undo
 silent !mkdir -p ~/.config/nvim/tmp/undo
 "silent !mkdir -p ~/.config/nvim/tmp/sessions
 set backupdir=~/.config/nvim/tmp/backup,.
 set directory=~/.config/nvim/tmp/backup,.
+
+" tags
+set tags=./tags;,.tags,tags;,./.tags;
+
 " Undo settings
 if has('persistent_undo')
   set undofile
