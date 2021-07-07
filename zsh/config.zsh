@@ -71,6 +71,29 @@ case $SYSTEM in
     fi
     ;;
 esac
+
+# bash completion compatibility
+autoload -U +X bashcompinit && bashcompinit
+function haskell_completion_init(){
+# eval "$(stack --bash-completion-script stack)"
+_stack()
+{
+    local CMDLINE
+    local IFS=$'\n'
+    CMDLINE=(--bash-completion-index $COMP_CWORD)
+
+    for arg in ${COMP_WORDS[@]}; do
+        CMDLINE=(${CMDLINE[@]} --bash-completion-word $arg)
+    done
+
+    COMPREPLY=( $(stack "${CMDLINE[@]}") )
+}
+
+complete -o filenames -F _stack stack
+}
+# haskell completion
+haskell_completion_init
+
 #}}}
 
 ######################
