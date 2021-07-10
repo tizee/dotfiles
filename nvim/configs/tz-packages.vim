@@ -51,6 +51,8 @@ Plug '~/dev/grepo_vim/tz-vim-packages/boilerplate.vim'
 Plug '~/dev/grepo_vim/indentLine'
 " language checker
 Plug '~/dev/grepo_vim/vim-LanguageTool'
+" golang
+Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
 
 " }}}
 call plug#end()
