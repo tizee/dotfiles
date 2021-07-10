@@ -2,7 +2,7 @@
 
 # rg quick edit
 rgvi(){
-  nvim "$(rg $1 -l | fzf -m)"
+  nvim "$(rg $1 -i -l | fzf -m)"
 }
 
 rgvi $@
