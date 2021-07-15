@@ -40,6 +40,7 @@ function! s:ToUnicode(code, ...) abort range
     echo code_str
     " replace the unicode vlaue to the corresponding charactere
     " based on help i_CTRL-V or i_CTRL-Q
+    " TODO: insert on current curosr position or insert before selected text
     call feedkeys("iU" . code_str . "\<esc>")
   endif
 endfunction

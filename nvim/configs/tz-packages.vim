@@ -27,6 +27,7 @@ Plug '~/dev/grepo_vim/nerdtree-git-plugin'
 " Plug 'HerringtonDarkholme/yats.vim'
 " Plug 'yuezk/vim-js'
 " Plug 'maxmellon/vim-jsx-pretty'
+Plug 'tikhomirov/vim-glsl' " OpenGL shader language
 " }}}
 " formater
 Plug 'Chiel92/vim-autoformat'
@@ -44,7 +45,8 @@ Plug 'wakatime/vim-wakatime'
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
 " keyboard layout
 Plug 'tizee/keyboard.vim'
-
+" golang
+Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
 " local vim plugin
 Plug '~/dev/grepo_vim/goyo.vim'
 Plug '~/dev/grepo_vim/vim-gh-line'
@@ -58,11 +60,6 @@ Plug '~/dev/grepo_vim/indentLine'
 Plug '~/dev/grepo_vim/vim-LanguageTool'
 " beancount
 Plug '~/dev/grepo_vim/vim-beancount'
-" golang
-Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
-" OpenGL shader language
-Plug 'tikhomirov/vim-glsl'
-
 " }}}
 call plug#end()
 
