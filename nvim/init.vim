@@ -313,8 +313,11 @@ endif
 " :PlugDiff
 " review changes from last update
 " :PlugClean
-
-source ~/.config/nvim/configs/tz-packages.vim
+let s:config_dir=expand('<sfile>:p:h') . "/.config/nvim/"
+let s:packages=s:config_dir . "configs/tz-packages.vim"
+let s:ui_config =s:config_dir . "ui.vim"
+execute "source " . s:packages
+execute "source " . s:ui_config
 
 " vim-plug cheatsheet
 function! Cheatsheet_vim_plug()
