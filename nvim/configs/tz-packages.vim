@@ -11,7 +11,7 @@ Plug 'luochen1990/rainbow'
 " start screen
 Plug 'mhinz/vim-startify'
 " eye candy
-Plug 'itchyny/lightline.vim'
+" Plug 'itchyny/lightline.vim'
 Plug 'ryanoasis/vim-devicons' " icons
 Plug 'airblade/vim-gitgutter' " git
 " key mapping helper
@@ -46,26 +46,31 @@ Plug '~/dev/grepo_vim/goyo.vim'
 Plug '~/dev/grepo_vim/vim-gh-line'
 " my local plugin prototypes
 Plug '~/dev/grepo_vim/tz-vim-packages/md-table.vim'
+Plug '~/dev/grepo_vim/tz-vim-packages/moline.vim'
 "Plug '~/dev/grepo_vim/tz-vim-packages/keyboard.vim'
 Plug '~/dev/grepo_vim/tz-vim-packages/boilerplate.vim'
 Plug '~/dev/grepo_vim/indentLine'
 " language checker
 Plug '~/dev/grepo_vim/vim-LanguageTool'
+" beancount
+Plug '~/dev/grepo_vim/vim-beancount'
 " golang
 Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
+" OpenGL shader language
+Plug 'tikhomirov/vim-glsl'
 
 " }}}
 call plug#end()
 
 " simple plugins
-source ~/.config/nvim/plugins/utils.vim
-source ~/.config/nvim/plugins/repo.vim
-source ~/.config/nvim/plugins/meta.vim
-source ~/.config/nvim/plugins/split.vim
-source ~/.config/nvim/plugins/zcd.vim
-source ~/.config/nvim/plugins/file.vim
-source ~/.config/nvim/plugins/formatter.vim
-source ~/.config/nvim/plugins/diff.vim
+" configs/../plugins
+let s:plugin_prefix=get(g:,'vim_config_dir') . "/plugins/"
+let s:plugins=readdir(s:plugin_prefix)
+for plugin_filename in s:plugins
+  let plugin = s:plugin_prefix . plugin_filename
+  execute "source " . plugin
+endfor
+
 " plugin prototype
 set rtp+=~/dev/grepo_vim/tz-vim-packages/nodemodules.vim
 set rtp+=~/dev/grepo_vim/tz-vim-packages/find-root.vim

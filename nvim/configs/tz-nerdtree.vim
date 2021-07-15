@@ -7,16 +7,16 @@ let g:webdevicons_conceal_nerdtree_brackets = 0
 
 let g:NERDTreeGitStatusUseNerdFonts = 1 " you should install nerdfonts by yourself. default: 0
 let g:NERDTreeGitStatusIndicatorMapCustom = {
-                \ 'Modified'  :'✹',
-                \ 'Staged'    :'✚',
-                \ 'Untracked' :'✭',
+                \ 'Modified'  :'!',
+                \ 'Staged'    :'+',
+                \ 'Untracked' :'?',
                 \ 'Renamed'   :'➜',
                 \ 'Unmerged'  :'═',
                 \ 'Deleted'   :'✖',
                 \ 'Dirty'     :'✗',
                 \ 'Ignored'   :'☒',
                 \ 'Clean'     :'✔︎',
-                \ 'Unknown'   :'?',
+                \ 'Unknown'   :'??',
                 \ }
 " }}}
 

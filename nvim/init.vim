@@ -313,9 +313,13 @@ endif
 " :PlugDiff
 " review changes from last update
 " :PlugClean
-let s:config_dir=expand('<sfile>:p:h') . "/.config/nvim/"
-let s:packages=s:config_dir . "configs/tz-packages.vim"
-let s:ui_config =s:config_dir . "ui.vim"
+
+" nvim: ~/.config/nvim/init.vim -> git repo
+" vim: ~/.vimrc -> ~/.config/nvim/init.vim
+" expand and resolve symbolic links
+let g:vim_config_dir=fnamemodify(resolve(expand('<sfile>:p')),":h") . "/"
+let s:packages=g:vim_config_dir . "configs/tz-packages.vim"
+let s:ui_config =g:vim_config_dir . "ui.vim"
 execute "source " . s:packages
 execute "source " . s:ui_config
 
@@ -346,7 +350,7 @@ endif
 
 " UI {{{ 
 colorscheme dracula
-highlight Comment cterm=italic gui=italic
+" highlight Comment cterm=italic gui=italic
 " set background=dark
 " }}}
 

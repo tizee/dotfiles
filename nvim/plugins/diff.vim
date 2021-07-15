@@ -55,5 +55,5 @@ command! DiffToggleWhiteSpace call DiffToggleWhiteSpace()
 command! -nargs=1 DiffContext call DiffUpdateContext(<f-args>)
 
 if has('nvim')
-  set &diffopt+=internal,algorithm:patience
+  set diffopt+=internal,algorithm:patience
 endif
