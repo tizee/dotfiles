@@ -24,11 +24,12 @@ esac
 
 
 # homebrew
-if $is_Linux; then BREW_TYPE="linuxbrew"; else BREW_TYPE="homebrew"; fi
-export HOMEBREW_BREW_GIT_REMOTE="https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/brew.git"
-export HOMEBREW_CORE_GIT_REMOTE="https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/${BREW_TYPE}-core.git"
-export HOMEBREW_BOTTLE_DOMAIN="https://mirrors.tuna.tsinghua.edu.cn/${BREW_TYPE}-bottles"
-
+if [[ -n "$HOMEBREW_MIRROR_CN" ]]; then
+  if $is_Linux; then BREW_TYPE="linuxbrew"; else BREW_TYPE="homebrew"; fi
+  export HOMEBREW_BREW_GIT_REMOTE="https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/brew.git"
+  export HOMEBREW_CORE_GIT_REMOTE="https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/${BREW_TYPE}-core.git"
+  export HOMEBREW_BOTTLE_DOMAIN="https://mirrors.tuna.tsinghua.edu.cn/${BREW_TYPE}-bottles"
+fi
 
 # Preferred editor for local and remote sessions
 if [[ -n $SSH_CONNECTION ]]; then
@@ -180,7 +181,7 @@ if $is_macOS; then
   # prevent auto-update whenever run a brew command
   export HOMEBREW_NO_AUTO_UPDATE=1
   # LuaJIT 2.1
-  
+  PATH="/usr/local/opt/luajit-openresty/bin:$PATH"
   # llvm
   PATH="/usr/local/opt/llvm/bin:$PATH"
   #export LDFLAGS="-L/usr/local/opt/llvm/lib"
