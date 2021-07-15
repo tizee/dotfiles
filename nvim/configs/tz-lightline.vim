@@ -6,15 +6,17 @@
 " b:coc_git_status including changed lines of current buffer.
 " b:coc_git_blame including blame info of current line.
 
+finish " debug
+
 function! CocCurrentFunction()
   return get(b:, 'coc_current_function', '')
 endfunction
 
 " Get remote git repo platform icon
 " Gitlab/Github/Gitbuckit/Bare/
-" 
-" 
-" TODO
+"  github
+"  gitlab
+"  other
 function! GitRepoPlatform()
   return ''
 endfunction

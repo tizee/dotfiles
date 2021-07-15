@@ -241,7 +241,6 @@ if has('nvim')
   " echo $TERM
   " echo $COLORTERM => truecolor
   " curl -sSL https://raw.githubusercontent.com/robertknight/konsole/master/tests/color-spaces.pl | perl
-  set termguicolors  " true color
 endif
 
 

@@ -11,6 +11,9 @@ Plug 'luochen1990/rainbow'
 " start screen
 Plug 'mhinz/vim-startify'
 " eye candy
+if has('nvim')
+Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}  " We recommend updating the parsers on update
+endif
 " Plug 'itchyny/lightline.vim'
 Plug 'ryanoasis/vim-devicons' " icons
 Plug 'airblade/vim-gitgutter' " git
@@ -20,10 +23,11 @@ Plug 'kevinoid/vim-jsonc'
 " file manager
 Plug 'preservim/nerdtree'
 Plug '~/dev/grepo_vim/nerdtree-git-plugin'
-" highlighting
-Plug 'HerringtonDarkholme/yats.vim'
-Plug 'yuezk/vim-js'
-Plug 'maxmellon/vim-jsx-pretty'
+" highlighting {{{
+" Plug 'HerringtonDarkholme/yats.vim'
+" Plug 'yuezk/vim-js'
+" Plug 'maxmellon/vim-jsx-pretty'
+" }}}
 " formater
 Plug 'Chiel92/vim-autoformat'
 " Editing
