@@ -213,7 +213,6 @@ function gitstatus_prompt_update() {
   (( VCS_STATUS_NUM_UNSTAGED   )) && p+=" ${modified}!${VCS_STATUS_NUM_UNSTAGED}"
   # ?42 if have untracked files. It's really a question mark, your font isn't broken.
   (( VCS_STATUS_NUM_UNTRACKED  )) && p+=" ${untracked}?${VCS_STATUS_NUM_UNTRACKED}"
-
   # Execution time
   [[ -n $prompt_cmd_exec_time ]] && p+=" %F{229}${prompt_cmd_exec_time}"
 

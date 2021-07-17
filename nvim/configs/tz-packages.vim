@@ -53,6 +53,7 @@ Plug '~/dev/grepo_vim/vim-gh-line'
 " my local plugin prototypes
 Plug '~/dev/grepo_vim/tz-vim-packages/md-table.vim'
 Plug '~/dev/grepo_vim/tz-vim-packages/moline.vim'
+Plug '~/dev/grepo_vim/tz-vim-packages/unicode.vim'
 "Plug '~/dev/grepo_vim/tz-vim-packages/keyboard.vim'
 Plug '~/dev/grepo_vim/tz-vim-packages/boilerplate.vim'
 Plug '~/dev/grepo_vim/indentLine'
