@@ -4,8 +4,8 @@ I'd like to keep the configure minimal, but, mind changed since NeoVim used.
 
 ## Roadmap
 
-- [ ] Nvim Lua configuration which makes code reading easier
-- [ ] Isolate Nvim only configuration
+- [ x ] Nvim Lua configuration which makes code reading easier
+- [ x ] Isolate Nvim only configuration
 
 ## Vim Compatibility
 

@@ -1,3 +1,0 @@
-# pacakges
-
-Some plugin configs.

@@ -63,20 +63,6 @@ Plug '~/dev/grepo_vim/vim-LanguageTool'
 Plug '~/dev/grepo_vim/vim-beancount'
 " }}}
 call plug#end()
-
-" simple plugins
-" configs/../plugins
-let s:plugin_prefix=get(g:,'vim_config_dir') . "/plugins/"
-let s:plugins=readdir(s:plugin_prefix)
-for plugin_filename in s:plugins
-  let plugin = s:plugin_prefix . plugin_filename
-  execute "source " . plugin
-endfor
-
-" plugin prototype
-set rtp+=~/dev/grepo_vim/tz-vim-packages/nodemodules.vim
-set rtp+=~/dev/grepo_vim/tz-vim-packages/find-root.vim
-
 " vim-plug autocmd {{{
 
 " open plugin help docs
@@ -118,22 +104,25 @@ autocmd FileType go nmap gty :CocCommand go.tags.add yaml<cr>
 autocmd FileType go nmap gtx :CocCommand go.tags.clear<cr>
 " }}}
 
-" PLUGIN CONFIGURATIONS {{{
-" shit code
-source ~/.config/nvim/configs/tz-languagetool.vim
-source ~/.config/nvim/configs/tz-coc-config.vim
-source ~/.config/nvim/configs/tz-nerdtree.vim
-source ~/.config/nvim/configs/tz-vim-autoformat.vim
-source ~/.config/nvim/configs/tz-lightline.vim
-source ~/.config/nvim/configs/tz-utils.vim
-source ~/.config/nvim/configs/tz-fzf.vim
-source ~/.config/nvim/configs/tz-tabular.vim
-source ~/.config/nvim/configs/tz-startify.vim
-" source ~/.config/nvim/configs/tz-ultisnips.vim
-source ~/.config/nvim/configs/tz-which-key.vim
-source ~/.config/nvim/configs/tz-rainbow.vim
-source ~/.config/nvim/configs/tz-keyboard.vim
-source ~/.config/nvim/configs/tz-mappings.vim
-source ~/.config/nvim/configs/tz-goyo.vim
-" }}}
+if exists('loaded_tz_packages_vim') || &cp || v:version < 700
+  finish
+endif
+let g:loaded_tz_packages_vim = 1
+function! s:source_helper(name)
+  let plugin_prefix=get(g:,'vim_config_dir') . "/".a:name."/"
+  let plugins=readdir(plugin_prefix)
+  for plugin_filename in plugins
+    let plugin = plugin_prefix . plugin_filename
+    if  plugin_filename ==# 'tz_packages' || isdirectory(plugin)
+      continue
+    endif
+    execute "source " . plugin
+  endfor
+endfunction
 
+" plugin prototype
+set rtp+=~/dev/grepo_vim/tz-vim-packages/nodemodules.vim
+set rtp+=~/dev/grepo_vim/tz-vim-packages/find-root.vim
+
+call s:source_helper('plugins')
+call s:source_helper('configs')

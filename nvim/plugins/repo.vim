@@ -1,8 +1,8 @@
+scriptencoding utf-8
 if exists('loaded_repo_vim')
   finish
 endif
 let g:loaded_repo_vim = 1
-let g:repo_debug=0
 
 " open commands
 if has('win16') || has('win32') || has('win64')
@@ -32,26 +32,13 @@ function! s:ssh_to_https(path)
   endif
   " use \/ to escape / in shell script, use \\ to escape \ in vim
   let l:sed_cmd = "sed -E 's\/^[^@]*@([^:\\\/]*)[:\\\/]\/https:\\\/\\\/\\1\\\/\/'"
-  if g:repo_debug == 1
-    echom a:path
-    echom l:sed_cmd
-  endif 
   let l:url = system("echo " . a:path . " | " . l:sed_cmd)
-  if g:repo_debug == 1
-    echom l:url
-  endif 
   return l:url
 endfunction
 
-function! s:GitHubRepo(url)
+function! s:GitRemoteRepo(url)
   let l:repo = s:stripSuffix(a:url,'.git')
-  if g:repo_debug == 1
-    echom l:repo
-  endif 
   let l:repo = s:ssh_to_https(l:repo)
-  if g:repo_debug == 1
-    echom l:repo
-  endif 
   return l:repo
 endfunction
 
@@ -61,7 +48,7 @@ function! s:remote_repo()
   let l:cd_command = "cd '" . l:current_dir . "'; "
   let l:remote_url= system(l:cd_command . "git config --get remote.origin.url")
   let l:remote_url = s:stripNL(l:remote_url)
-  let l:url = s:GitHubRepo(remote_url)
+  let l:url = s:GitRemoteRepo(remote_url)
   return l:url
 endfunction
 
@@ -75,8 +62,12 @@ endfunction
 " open remote repo
 function! s:copy_remote_repo()
   let l:url = s:remote_repo()
-  let l:cmd = "echo " . "\"". l:url ."\"" . " | " . s:repo_copy_command
-  call system(l:cmd)
+  if len(s:repo_copy_command)
+    let l:cmd = "echo " . "\"". l:url ."\"" . " | " . s:repo_copy_command
+    call system(l:cmd)
+  else
+    call setreg('*', l:url)
+  endif
 endfunction
 
 function! s:echo_remote_repo()
@@ -84,7 +75,12 @@ function! s:echo_remote_repo()
   echom l:url
 endfunction
 
+nnoremap <silent> <Plug>(open-repo-url) :call <SID>open_remote_repo()<CR>
+nnoremap <silent> <Plug>(open-repo-url) :call <SID>copy_remote_repo()<CR>
+" could map with <leader>
+nnoremap <silent> <leader>go <Plug>(open-repo-url)
+nnoremap <silent> <leader>gp <Plug>(open-repo-url)
+
 command! -nargs=0 RepoOpen call <SID>open_remote_repo()
 command! -nargs=0 RepoCopy call <SID>copy_remote_repo()
 command! -nargs=0 RepoEcho call <SID>echo_remote_repo()
-" could map with <leader>

@@ -318,9 +318,7 @@ endif
 " expand and resolve symbolic links
 let g:vim_config_dir=fnamemodify(resolve(expand('<sfile>:p')),":h") . "/"
 let s:packages=g:vim_config_dir . "configs/tz-packages.vim"
-let s:ui_config =g:vim_config_dir . "ui.vim"
 execute "source " . s:packages
-execute "source " . s:ui_config
 
 " vim-plug cheatsheet
 function! Cheatsheet_vim_plug()
