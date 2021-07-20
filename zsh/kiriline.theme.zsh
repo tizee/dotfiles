@@ -1,9 +1,18 @@
 #!/usr/bin/env zsh
 
+#     __ __    _            _    __   _                
+#    / //_/   (_)  _____   (_)  / /  (_)  ____     ___ 
+#   / ,<     / /  / ___/  / /  / /  / /  / __ \   / _ \
+#  / /| |   / /  / /     / /  / /  / /  / / / /  /  __/
+# /_/ |_|  /_/  /_/     /_/  /_/  /_/  /_/ /_/   \___/ 
+#                                                      
+# modified from gitstaus
+# TODO tidy code up
+
 zmodload zsh/datetime
 # Source gitstatus.plugin.zsh from $GITSTATUS_DIR or from the same directory
 # in which the current script resides if the variable isn't set.
-GITSTATUS_DIR="/usr/local/opt/gitstatus"
+export GITSTATUS_DIR=${GITSTATUS_DIR:-"/usr/local/opt/gitstatus"}
 source "${GITSTATUS_DIR:-${${(%):-%x}:h}}/gitstatus.plugin.zsh" || return
 
 # Sets GITSTATUS_PROMPT to reflect the state of the current git repository. Empty if not
