@@ -50,12 +50,13 @@ Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
 " local vim plugin
 Plug '~/dev/grepo_vim/goyo.vim'
 Plug '~/dev/grepo_vim/vim-gh-line'
+" copy text to the system clipboard from anywhere using the ANSI OSC52 sequence
+Plug '~/dev/grepo_vim/vim-oscyank'
 " my local plugin prototypes
 Plug '~/dev/grepo_vim/tz-vim-packages/md-table.vim'
 Plug '~/dev/grepo_vim/tz-vim-packages/moline.vim'
 Plug '~/dev/grepo_vim/tz-vim-packages/unicode.vim'
-"Plug '~/dev/grepo_vim/tz-vim-packages/keyboard.vim'
-Plug '~/dev/grepo_vim/tz-vim-packages/boilerplate.vim'
+Plug '~/dev/grepo_vim/tz-vim-packages/codecount.vim'
 Plug '~/dev/grepo_vim/indentLine'
 " language checker
 Plug '~/dev/grepo_vim/vim-LanguageTool'

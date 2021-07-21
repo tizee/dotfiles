@@ -65,7 +65,7 @@ nnoremap <silent> <script> <Plug>ChangePWD2CurrentWindow :<c-u>lcd %:h<CR>
 
 nnoremap <silent> tt :NERDTreeToggle<CR>
 " nnoremap <leader>r :NERDTreeFind<cr>
-nnoremap <silent> <leader>cd :<c-u>execute "normal \<Plug>ChangePWD2CurrentWindow"<CR>:<c-u>NERDTreeCWD<CR>
+nnoremap <silent> <leader>n :<c-u>execute "normal \<Plug>ChangePWD2CurrentWindow"<CR>:<c-u>NERDTreeCWD<CR>
  
 " show available key bindings for <leader>
 nnoremap <silent> <leader> :<c-u>WhichKey '<Space>'<CR>
