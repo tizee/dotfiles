@@ -86,8 +86,10 @@ let g:fzf_colors =
   \ 'header':  ['fg', 'Comment'] }
 
 " Terminal buffer options for fzf
+augroup TZFZF
 autocmd! FileType fzf
 autocmd! FileType fzf set noshowmode noruler nonu nornu
+augroup END "TZFZF
 
 " let g:fzf_preview_window = 'right:60%'
 if exists('$TMUX')
@@ -123,6 +125,8 @@ endif
 " }}}
 
 " fzf enhanced commands {{{
+
+" utilities {{{
 function! s:extend_opts(dict, eopts, prepend)
   if empty(a:eopts)
     return
@@ -336,22 +340,25 @@ function! s:fzf_with_preview(...)
   call s:merge_opts(spec, preview)
   return spec
 endfunction
+" }}}
 
-" All files
+" All files with fd {{{
 command! -nargs=? -complete=dir AF
   \ call fzf#run(fzf#wrap(s:fzf_with_preview({
   \   'source': 'fd --type f --hidden --follow --exclude .git --no-ignore . '.expand(<q-args>)
   \ })))
+" }}}
 
-" ag in file search
+" file search with ag {{{
 command! -bang -nargs=* Ag
       \ call fzf#vim#ag(<q-args>,
       \                 <bang>0 ? s:fzf_with_preview('up:60%')
       \                         : s:fzf_with_preview('right:50%:hidden', '?'),
       \                 <bang>0)
+" }}}
 
-" rg in file search
-function! RipgrepFzf(query, fullscreen)
+" content search with ripgrep {{{
+function! s:ripgrepFzf(query, fullscreen)
   let command_fmt = 'rg --column --line-number --no-heading --color=always --smart-case -- %s'
   let initial_command = printf(command_fmt, shellescape(a:query))
   let reload_command = printf(command_fmt, '{q} || true')
@@ -359,16 +366,9 @@ function! RipgrepFzf(query, fullscreen)
   call s:fzf_grep(initial_command, 1, s:fzf_with_preview(spec), a:fullscreen)
 endfunction
 
-command! -nargs=* -bang RG call RipgrepFzf(<q-args>, <bang>0)
+command! -nargs=* -bang RG call <SID>ripgrepFzf(<q-args>, <bang>0)
 
-" command! -bang -nargs=* Rg
-"       \ call fzf#vim#rg(<q-args>,
-"       \                 <bang>0 ? fzf#vim#with_preview('up:60%')
-"       \                         : fzf#vim#with_preview('right:50%:hidden', '?'),
-"       \                 <bang>0)
-
-
-function! RgWordFzf(query, fullscreen)
+function! s:rgWordFzf(query, fullscreen)
   " get word
   let word = execute('normal viwy')
   if len(word)
@@ -381,39 +381,76 @@ function! RgWordFzf(query, fullscreen)
   " throw error
 endfunction
 
-command! -nargs=* -bang RgWordFzf call RgWordFzf(<q-args>, <bang>0)
+command! -nargs=* -bang RgWordFzf call <SID>rgWordFzf(<q-args>, <bang>0)
+" }}}
 
-" git grep
+
+" git grep {{{
 command! -bang -nargs=* GGrep
   \ call s:fzf_grep(
   \   'git grep --line-number -- '.shellescape(<q-args>), 0,
   \   s:fzf_with_preview({'dir': systemlist('git rev-parse --show-toplevel')[0]}), <bang>0)
+" }}}
 
-" plug help
-function! s:plug_help_sink(line)
-  let dir = g:plugs[a:line].dir
-  for path in ['doc/*.text','README.md']
-    let match = get(split(globpath(dir,path),"\n"),0,'')
-    if len(match)
-      " show in new tab
-      execute 'tabedit' match
-      return
-    endif
-  endfor
-  tabnew
-  execute 'Explore' dir
+" plug help {{{
+if exists('g:plugs')
+  function! s:plug_help_sink(line)
+    let dir = g:plugs[a:line].dir
+    for path in ['doc/*.text','README.md']
+      let match = get(split(globpath(dir,path),"\n"),0,'')
+      if len(match)
+        " show in new tab
+        execute 'tabedit' match
+        return
+      endif
+    endfor
+    tabnew
+    execute 'Explore' dir
+  endfunction
+
+  command! PlugHelp call fzf#run(fzf#wrap({
+    \ 'source': sort(keys(g:plugs)),
+    \ 'sink': function('s:plug_help_sink')}))
+endif 
+" }}}
+
+" Quick edit oldfiles {{{
+function! s:open_file(file) abort
+  let absolute_path = resolve(a:file)
+  if empty(absolute_path) || !filereadable(absolute_path)
+    echohl Error
+    echom "Cannnot read " . absolute_path
+    echohl Normal
+    return
+  endif
+  " show in new tab
+  execute 'tabedit' absolute_path
 endfunction
 
-command! PlugHelp call fzf#run(fzf#wrap({
-  \ 'source': sort(keys(g:plugs)),
-  \ 'sink': function('s:plug_help_sink')}))
+" v:oldfiles depends on 'shada' option
+function! s:filter_oldfiles()
+  let oldfiles = []
+  for file in v:oldfiles
+    if !isdirectory(file) && filereadable(file)
+      call add(oldfiles, file)
+    endif
+  endfor
+  return oldfiles
+endfunction
 
+command! -nargs=* Ze call fzf#run(fzf#wrap({
+      \ 'source': s:filter_oldfiles(),
+      \ 'sink': function('s:open_file')}))
+" }}}
+
+" list files {{{
 " The query history for this command will be stored as 'ls' inside g:fzf_history_dir.
 " The name is ignored if g:fzf_history_dir is not defined.
 command! -bang -complete=dir -nargs=* LS
     \ call fzf#run(fzf#wrap('ls', {'source': 'ls', 'dir': <q-args>}, <bang>0))
+" }}}
 
-" list buffers
+" buffer close {{{
 function! s:list_buffers()
   redir => bf_list
   silent ls
@@ -431,6 +468,7 @@ command! BD call fzf#run(fzf#wrap({
 \ 'sink*': {lines -> s:close_buffers(lines)},
 \ 'options': '--multi --reverse'
 \ }))
+" }}}
 
 " Plugin Config Helpers {{{
 
@@ -449,7 +487,11 @@ endfunction
 
 " open custom plugin config file
 function! s:open_my_config_sink(line)
-  let dir = '~/.config/nvim/my-config'
+  if has('nvim')
+    let dir = resolve(stdpath('config')) . '/configs'
+  else
+    let dir = resolve('~/.config/nvim/configs')
+  endif 
   let match = get(split(globpath(dir,a:line . '.vim'),"\n"),0,'')
   if len(match)
     " show in new tab

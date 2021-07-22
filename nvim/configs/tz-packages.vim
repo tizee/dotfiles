@@ -8,8 +8,6 @@ Plug 'cespare/vim-toml'
 Plug 'godlygeek/tabular'
 " colored parentheses
 Plug 'luochen1990/rainbow'
-" start screen
-Plug 'mhinz/vim-startify'
 " eye candy
 if has('nvim')
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}  " We recommend updating the parsers on update
@@ -48,7 +46,11 @@ Plug 'tizee/keyboard.vim'
 " golang
 Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
 " local vim plugin
+" start screen
+Plug '~/dev/grepo_vim/vim-startify'
+" zen mode
 Plug '~/dev/grepo_vim/goyo.vim'
+" git blame / open git repo url
 Plug '~/dev/grepo_vim/vim-gh-line'
 " copy text to the system clipboard from anywhere using the ANSI OSC52 sequence
 Plug '~/dev/grepo_vim/vim-oscyank'

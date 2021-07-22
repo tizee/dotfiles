@@ -318,7 +318,7 @@ endif
 " vim: ~/.vimrc -> ~/.config/nvim/init.vim
 " expand and resolve symbolic links
 if has('nvim')
-  let g:vim_config_dir=resolve(stdpath('config'))
+  let g:vim_config_dir=resolve(stdpath('config')) . "/"
 else
   let g:vim_config_dir=fnamemodify(resolve(expand('<sfile>:p')),":h") . "/"
 endif 
