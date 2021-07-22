@@ -108,9 +108,10 @@ autocmd FileType go nmap gtx :CocCommand go.tags.clear<cr>
 if exists('loaded_tz_packages_vim') || &cp || v:version < 700
   finish
 endif
+
 let g:loaded_tz_packages_vim = 1
 function! s:source_helper(name)
-  let plugin_prefix=get(g:,'vim_config_dir') . "/".a:name."/"
+  let plugin_prefix=get(g:,'vim_config_dir') . a:name . "/"
   let plugins=readdir(plugin_prefix)
   for plugin_filename in plugins
     let plugin = plugin_prefix . plugin_filename

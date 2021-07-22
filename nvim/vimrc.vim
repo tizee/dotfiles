@@ -317,7 +317,11 @@ endif
 " nvim: ~/.config/nvim/init.vim -> git repo
 " vim: ~/.vimrc -> ~/.config/nvim/init.vim
 " expand and resolve symbolic links
-let g:vim_config_dir=fnamemodify(resolve(expand('<sfile>:p')),":h") . "/"
+if has('nvim')
+  let g:vim_config_dir=resolve(stdpath('config'))
+else
+  let g:vim_config_dir=fnamemodify(resolve(expand('<sfile>:p')),":h") . "/"
+endif 
 let s:packages=g:vim_config_dir . "configs/tz-packages.vim"
 execute "source " . s:packages
 
