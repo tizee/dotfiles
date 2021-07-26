@@ -4,7 +4,7 @@ function __sshtunnel(){
   local lc_port=$GITSSH_PORT
   local url_port="github.com:22"
   echo "[sshtunnel]: localhost:$lc_port <-> $url_port"
-  ssh -fNLT $lc_port:$url_port root@vps_vultr
+  ssh -L $lc_port:$url_port -N -T root@vps_vultr
   # -f run in background
   # -q quiet mode
   # -N do not execute any remote command
