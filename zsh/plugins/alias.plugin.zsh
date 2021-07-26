@@ -71,6 +71,8 @@ if [ $is_macOS ];then
     # no more default ctags
     alias ctags="`brew --prefix`/bin/ctags``"
   fi
+  # fix audio bust
+  alias audiofix="sudo pkill -9 coreaudiod"
   # print CPU number
   alias lcpunum="sysctl -n hw.ncpu"
   alias pcpunum="sysctl -n hw.physicalcpu"

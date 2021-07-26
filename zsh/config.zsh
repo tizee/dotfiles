@@ -103,6 +103,8 @@ haskell_completion_init
 # {{{
 source "$ZSHDIR/vendor/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
 source "$ZSHDIR/vendor/zsh-autosuggestions/zsh-autosuggestions.zsh"
+# source "$ZSHDIR/vendor/z.sh"
+source "$ZSHDIR/../zoxide.zsh"
 
 # lazy load functions
 # insert at head

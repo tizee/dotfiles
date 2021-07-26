@@ -123,6 +123,9 @@ export PATH="/usr/local/opt/krb5/sbin:$PATH"
 
 # macOS <-
 if $is_macOS; then
+  # plan9port
+  export PLAN9=$HOME/dev/plan9/plan9port
+  export PATH=$PATH:$PLAN9/bin
   # freetype
   # export FREETYPE_CFLAGS="-I:/usr/local/opt/freetype2/include/freetype2" 
   # haskell
