@@ -1,5 +1,5 @@
 #!/usr/bin/env zsh
 # vim:syntax=zsh
 for i in $(seq 1 10); do 
-  /usr/bin/time /bin/zsh -i -c exit;
+	time zsh -i -c exit;
 done
