@@ -64,6 +64,8 @@ Plug '~/dev/grepo_vim/indentLine'
 Plug '~/dev/grepo_vim/vim-LanguageTool'
 " beancount
 Plug '~/dev/grepo_vim/vim-beancount'
+" debugger
+Plug "~/dev/grepo_vim/vimspector"
 " }}}
 call plug#end()
 " vim-plug autocmd {{{

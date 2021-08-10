@@ -34,7 +34,14 @@ noremap Y y$
 
 " termianl shortcut
 " create terminal window then move it to the very bottom
-nnoremap <leader>t :execute "new \| wincmd J \| bo terminal"<CR>
+function! s:create_terminal_panel()
+  let t:terminal_name="terminal_buffer"
+  silent! execute "bo split new"
+  silent! execute "edit " . t:termianl_name
+  silent! execute "resize 10"
+  silent! execute "bo terminal"
+endfunction
+nnoremap <leader>t :call<SID>create_terminal_panel()<CR>
 
 " enter command mode quickly
 nnoremap ; :
