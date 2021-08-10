@@ -165,7 +165,6 @@ if $is_macOS; then
   # alias java13='export JAVA_HOME=$JAVA_13_HOME'
   # alias java14='export JAVA_HOME=$JAVA_14_HOME'
   # alias java15='export JAVA_HOME=$JAVA_15_HOME'
-  export SDKROOT="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.1.sdk"
   # export SDKROOT=$(xcrun --sdk macosx --show-sdk-path)
   # export JAVA_8_HOME=$(/usr/libexec/java_home -v1.8)
   export JAVA_8_HOME="/Library/Java/JavaVirtualMachines/jdk1.8.0_261.jdk/Contents/Home"
@@ -270,6 +269,7 @@ if $is_macOS; then
   # default include path for gcc/clang 
   export CPLUS_INCLUDE_PATH="$CPLUS_INCLUDE_PATH:Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include"
   # xcrun -sdk macosx --show-sdk-path
+  export SDKROOT="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.3.sdk"
   export DYLD_LIBRARY_PATH="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.3.sdk/usr/lib"
   export LDFLAGS="-L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib"
   # export LDFLAGS="-L/usr/local/lib"
