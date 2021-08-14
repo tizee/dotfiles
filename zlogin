@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 
 # Execute code in the background to not affect the current session
-(
+function zwc_watcher() {
     # <https://github.com/zimfw/zimfw/blob/master/login_init.zsh>
     setopt LOCAL_OPTIONS EXTENDED_GLOB
     autoload -U zrecompile
@@ -18,8 +18,6 @@
     zrecompile -pq ${ZDOTDIR:-${HOME}}/.zshrc
     zrecompile -pq ${ZDOTDIR:-${HOME}}/.zprofile
     zrecompile -pq ${ZDOTDIR:-${HOME}}/.zshenv
-    zrecompile -pq $ZSH_CONFIG/config.zsh
-    zrecompile -pq $ZSH_CONFIG/kiriline.theme.zsh
     # recompile all zsh or sh
     for f in $ZSH_PLUGINS/**/*.*sh
     do
@@ -29,6 +27,7 @@
     do
         zrecompile -pq $func
     done
-) &!
+}
+zwc_watcher &!
 
 # vim:syntax=zsh ft=zsh
