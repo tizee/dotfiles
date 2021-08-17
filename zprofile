@@ -78,7 +78,7 @@ PATH="$HOME/.deno/bin:$PATH"
 export DENO_INSTALL=$HOME/.deno
 
 # rust cargo
-export PATH="$HOME/.cargo/bin:$PATH"
+PATH="$HOME/.cargo/bin:$PATH"
 export CARGO_HOME="$HOME/.cargo"
 export RUSTUP_DIST_SERVER="https://mirrors.tuna.tsinghua.edu.cn/rustup"
 export CARGO_NET_GIT_FETCH_WITH_CLI=true
@@ -89,7 +89,7 @@ PATH="/usr/local/opt/curl/bin:$PATH"
 PATH="/usr/local/opt/ruby/bin:$PATH"
 PATH="$HOME/.rvm/bin:$PATH"
 export GEM_HOME=$HOME/.gem
-export PATH=$GEM_HOME/bin:$PATH
+PATH=$GEM_HOME/bin:$PATH
 # flutter dart
 PATH="$HOME/dev/grepo_dart/flutter/bin:$PATH"
 PATH="$HOME/flutter/bin:$PATH"
@@ -99,11 +99,11 @@ export FLUTTER_STORAGE_BASE_URL="https://mirrors.tuna.tsinghua.edu.cn/flutter"
 # golang
 # go modules
 export GO111MODULE="on"
-
+PATH=/usr/local/go/bin:$PATH
 
 # my shellscripts
-export PATH="$HOME/.config/bin:$PATH"
-export PATH="$HOME/.config/work_bin:$PATH" # work related scripts
+PATH="$HOME/.config/bin:$PATH"
+PATH="$HOME/.config/work_bin:$PATH" # work related scripts
 
 # terminal
 export TERM=xterm-256color
@@ -122,29 +122,37 @@ export FZF_DEFAULT_COMMAND="fd --exclude={.git,.idea,.vscode,.sass-cache,node_mo
 export FZF_DEFAULT_OPTS="--reverse --ansi --preview-window 'right:60%' --preview 'bat --color=always --style=header,grid --line-range :300 {} 2> /dev/null' --bind ctrl-c:select-all"
 
 # krb5
-export PATH="/usr/local/opt/krb5/bin:$PATH"
-export PATH="/usr/local/opt/krb5/sbin:$PATH"
+PATH="/usr/local/opt/krb5/bin:$PATH"
+PATH="/usr/local/opt/krb5/sbin:$PATH"
 # ->
 
 # macOS <-
 if $is_macOS; then
   # plan9port
   export PLAN9=$HOME/dev/plan9/plan9port
-  export PATH=$PATH:$PLAN9/bin
+  PATH=$PATH:$PLAN9/bin
   # freetype
   # export FREETYPE_CFLAGS="-I:/usr/local/opt/freetype2/include/freetype2" 
   # haskell
   [ -f "$HOME/.ghcup/env" ] && source "$HOME/.ghcup/env" # ghcup-env
-  export PATH="$HOME/.cabal/bin:$HOME/.ghcup/bin:$PATH"
+  PATH="$HOME/.cabal/bin:$HOME/.ghcup/bin:$PATH"
   # riscv
-  export PATH=$PATH:/usr/local/opt/riscv-gnu-toolchain/bin
+  PATH=$PATH:/usr/local/opt/riscv-gnu-toolchain/bin
   # git-bin
-  export PATH=$PATH:/Users/tizee/.config/git/bin
+  PATH=$PATH:/Users/tizee/.config/git/bin
   # sdkman
   export SDKMAN_CANDIDATES_API=https://api.sdkman.io/2
   export SDKMAN_CANDIDATES_DIR=/Users/tizee/.sdkman/candidates
   export SDKMAN_DIR=$HOME/.sdkman
-  # go modules
+  # /etc/paths.d Tex
+  PATH=/Library/Tex/texbin:$PATH
+  # /etc/paths.d 100-rvictl
+  PATH=/Library/Apple/usr:$PATH
+  # /etc/paths.d VMware fusion
+  PATH="/Applications/VMware\ Fusion.app/Contents/Public:$PATH"
+  # /etc/paths.d Wireshark
+  PATH="/Applications/Wireshark.app/Contents/MacOS:$PATH"
+  # golang modules
   PATH="/usr/local/go/bin:$PATH"
   PATH="$HOME/dev/go_proj/bin:$PATH"
   export GOPATH="$HOME/dev/go_proj"
@@ -159,7 +167,7 @@ if $is_macOS; then
   PATH="$HOME/Library/Android/sdk/tools:$PATH"
   PATH="/opt/gradle/gradle-6.6/bin:$PATH"
   export ANDROID_SDK=$HOME/Library/Android/sdk
-  export PATH=$ANDROID_SDK/emulator:$ANDROID_SDK/tools:$PATH
+  PATH=$ANDROID_SDK/emulator:$ANDROID_SDK/tools:$PATH
 
 
   alias java8='export JAVA_HOME=$JAVA_8_HOME'
@@ -182,7 +190,7 @@ if $is_macOS; then
   # export JAVA_15_HOME=$(/usr/libexec/java_home -v15)
   export JAVA_HOME=$JAVA_8_HOME
   # export TOOLCHAINS=swift
-  # export PATH=/Library/Developer/Toolchains/swift-latest.xctoolchain/usr/bin:"${PATH}"
+  # PATH=/Library/Developer/Toolchains/swift-latest.xctoolchain/usr/bin:"${PATH}"
   # sw_vers -productVersion 
   export MACOSX_DEPLOYMENT_TARGET=11
   # prevent auto-update whenever run a brew command
@@ -195,10 +203,10 @@ if $is_macOS; then
   #export CPPFLAGS="-I/usr/local/opt/llvm/include"
 
   # ncurses
-  export PATH="/usr/local/opt/ncurses/bin:$PATH"
+  PATH="/usr/local/opt/ncurses/bin:$PATH"
 
   # sqlite
-  export PATH="/usr/local/opt/sqlite/bin:$PATH"
+  PATH="/usr/local/opt/sqlite/bin:$PATH"
   export SQLITE_LIBS="/usr/local/opt/sqlite/lib"
   export SQLITE_CPPFLAGS="/usr/local/opt/sqlite/include"
 
@@ -217,7 +225,7 @@ if $is_macOS; then
   PATH="$HOME/anaconda3/condabin:$PATH"
 
   # openssl
-  export PATH="/usr/local/opt/openssl@1.1/bin:$PATH"
+  PATH="/usr/local/opt/openssl@1.1/bin:$PATH"
   export OPENSSL_CFLAGS="-I/usr/local/opt/openssl@1.1/include"
   export OPENSSL_LIBS="-L/usr/local/opt/openssl@1.1/lib"
   #export LDFLAGS="-L/usr/local/opt/openssl@1.1/lib"
@@ -253,10 +261,10 @@ if $is_macOS; then
   export SKIA_LIBRARY="$HOME/deps/skia/out/Release-x64"
 
   # ncurses
-  export PATH="/usr/local/opt/ncurses/bin:$PATH"
+  PATH="/usr/local/opt/ncurses/bin:$PATH"
 
   # bison
-  export PATH="/usr/local/opt/bison/bin:$PATH"
+  PATH="/usr/local/opt/bison/bin:$PATH"
   #export LDFLAGS="-L/usr/local/opt/bison/lib"
 
   # libxml2
@@ -291,6 +299,10 @@ if $is_macOS; then
     # else
     #   export COLEMAK_KEYBOARD=0
     # fi
+    
+    # hard-coded values of /etc/zprofile
+
+
 fi
 # ->
 
