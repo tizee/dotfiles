@@ -46,6 +46,36 @@
  (use-package benchmark-init
               :config (benchmark-init/activate)
               :hook (after-init . benchmark-init/deactivate))
+; ivy-counsel-swiper for better searching
+(use-package ivy
+  :defer 1
+  :demand
+  :hook (after-init . ivy-mode)
+  :config (ivy-mode 1)
+          (setq ivy-re-builders-alist '((t . ivy--regex-ignore-order)))
+         )
+
+(use-package counsel 
+             :after ivy
+             :bind (("M-x" . counsel-M-x)
+                    ("C-x C-f" . counsel-find-file)
+                    ("C-c g" . counsel-git)
+                    ("C-h f" . counsel-describe-function)
+                    ("C-h v" . counsel-describe-variable))
+             )
+
+(use-package swiper
+             :after ivy
+             :bind (("C-s" . swiper)
+                    ("C-r" . swiper-isearch-backward))
+             :config (setq swiper-include-line-number-in-search t
+                           swiper-action-recenter t)
+             )
+
+(use-package which-key
+              :defer nil
+              :config (which-key-mode)
+	      )
 
 ; }}}
 

@@ -17,8 +17,8 @@
 ; add confs to load-path
 (add-to-list 'load-path (expand-file-name (concat user-emacs-directory "lisp/")))
 
-(require 'init-packages)
 (require 'init-globals)
+(require 'init-packages)
 (require 'init-ui)
 (require 'init-keybindings)
 

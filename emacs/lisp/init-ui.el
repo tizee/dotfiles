@@ -35,16 +35,14 @@
 (tool-bar-mode -1)
 ; scroll bar
 (scroll-bar-mode -1)
-
+					; blinking cusor
+(blink-cursor-mode -1)
 ; font
 (set-face-attribute 'default nil
 		    :font (font-spec :name "JetBrains Mono"
-		    	     	       		  :size (cond (*is-windows* 16)
-						  	      (*is-mac* 16)
-							      (t 16)))
-						
+                        :size (cond (*is-win* 16)
+                                    (*is-mac* 16)
+                                    (t 16))))
 ;}}}
-
-
 
 (provide 'init-ui)
