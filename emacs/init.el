@@ -14,22 +14,12 @@
 ;;;
 
 ; add confs to load-path
-(add-to-list 'load-path 
-             (expand-file-name (concat user-emacs-directory "lisp/")))
+(add-to-list 'load-path (expand-file-name (concat user-emacs-directory "lisp/")))
 
 (require 'init-packages)
 (require 'init-ui)
 
 ; personal config
-(setq custome-file (expand-file-name "custom.el" user-emacs-directory))
+(setq custom-file (expand-file-name (concat user-emacs-directory "custom.el")))
 (when (file-exists-p custom-file)
-  (load-file custom-file)
-  )
-
-; debug {{{
-(defvar my-debug nil "Enable debug mode")
-; }}}
-
-; Profile {{{
-
-; }}}
+  (load-file custom-file))
