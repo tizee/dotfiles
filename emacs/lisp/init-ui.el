@@ -31,6 +31,9 @@
 ; }}}
 
 ; GUI {{{
+;; Inhibit resizing frame
+(setq frame-inhibit-implied-resize t
+      frame-resize-pixelwise t)
 ; hide tool bar
 (tool-bar-mode -1)
 ; scroll bar
@@ -42,7 +45,8 @@
 		    :font (font-spec :name "JetBrains Mono"
                         :size (cond (*is-win* 16)
                                     (*is-mac* 16)
-                                    (t 16))))
+                                   (t 16))))
+
 ;}}}
 
 (provide 'init-ui)

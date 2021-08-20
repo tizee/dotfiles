@@ -7,12 +7,22 @@ help:
 	echo "make install   - move ~/.config to ~/.config_backup"
 	echo "make uninstall - remove ~/.config and move ~/.config_backup to ~/.config"
 
-linkzsh:
+zsh:
 	@echo "link zsh config"
 	-ln -svf $(PWD)/zshrc ~/.zshrc
 	-ln -svf $(PWD)/zprofile ~/.zprofile
 	-ln -svf $(PWD)/zlogin ~/.zlogin
 	-ln -svf $(PWD)/zshenv ~/.zshenv
+
+emacs:
+	@echo "link zsh config"
+	-ln -sv $(PWD)/emacs ~/.emacs.d
+
+vim:
+	@echo "link vim config"
+	-ln -sv $(PWD)/nvim/vimrc.vim ~/.vimrc
+	# idea vim
+	-ln -sv $(PWD)/nvim/vimrc.vim ~/.ideavimrc
 
 cleanup:
 	-rm -v ${HOME}/.zlogin ${HOME}/.zprofile ${HOME}/.zshenv ${HOME}/.zshrc
