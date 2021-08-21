@@ -7,6 +7,9 @@
 ;; initialization, so we must prevent Emacs from doing it early!
 ; (setq package-enable-at-startup nil)
 
+; speed up
+(setq package-enable-at-startup nil)
+
 ; Do not resize the frame
 (setq frame-inhibit-implied-resize t)
 
