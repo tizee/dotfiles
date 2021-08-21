@@ -6,6 +6,11 @@
 ; Common packages {{{
 ; update keyring from gnu elpa
 (use-package gnu-elpa-keyring-update)
+
+; wakatime
+(use-package wakatime-mode
+             :hook (after-init . global-wakatime-mode))
+
 ; recent files
 (use-package recentf-settings
   :ensure nil
