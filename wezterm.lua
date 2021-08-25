@@ -3,6 +3,7 @@ local wezterm = require 'wezterm';
 return {
   -- general settings <-
   check_for_updates = true,
+  exit_behavior="CloseOnCleanExit", -- only exit with a successful status
   -- ->
   -- window settings <-
   window_padding = {
@@ -52,8 +53,20 @@ return {
     {key="s", mods="LEADER", action=wezterm.action{SplitVertical={domain="CurrentPaneDomain"}}},
     -- horizontal split direction
     {key="d", mods="LEADER", action=wezterm.action{SplitHorizontal={domain="CurrentPaneDomain"}}},
-    -- zoom
+    -- close current pane
+    {key="x", mods="LEADER", action=wezterm.action{CloseCurrentPane={confirm=true}}},
+    -- zoom state
     {key="z", mods="LEADER", action="TogglePaneZoomState"},
+    -- fullscreen
+    {key="f", mods="LEADER", action="ToggleFullScreen"},
+    -- debug
+    {key="p", mods="LEADER", action="ShowDebugOverlay"},
+    -- copy mode
+    {key="c", mods="LEADER", action="ActivateCopyMode"},
+    -- quick select mode
+    {key="q", mods="LEADER", action="QuickSelect"},
+    -- reload configuration
+    {key="r", mods="LEADER", action="ReloadConfiguration"},
   },
   -- ->
   -- IME <-
