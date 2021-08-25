@@ -1,4 +1,20 @@
 {
+  // coc
+  "coc.preferences.maxFileSize": "1MB",
+  // diagnostic
+  "diagnostic.enable": true,
+  "diagnostic.virtualText": true,
+  "diagnostic.virtualTextCurrentLineOnly": false,
+  "diagnostic.virtualTextLineSeparator": " . ",
+  "diagnostic.messageTarget": "float",
+  "diagnostic.hintSign": "",
+  "diagnostic.errorSign": "✗",
+  "diagnostic.warningSign": "!",
+  // codelens
+  "codeLens.enable": true,
+  "codeLens.separator": " ",
+  "codeLens.subseparator": " | ",
+  // lsp
   "tsserver.npm": "/usr/local/bin/npm",
   "languageserver": {
     "golang": {
@@ -7,11 +23,11 @@
       "disableWorkspaceFolders": true,
       "filetypes": ["go"]
     },
-    // "rust": {
-    //   "command": "rust-analyzer",
-    //   "filetypes": ["rust"],
-    //   "rootPatterns": ["Cargo.toml"]
-    // },
+    "rust": {
+       "command": "rust-analyzer",
+       "filetypes": ["rust"],
+       "rootPatterns": ["Cargo.toml"]
+    },
     "cmake":{
       "command": "cmake-language-server",
       "filetypes": ["cmake"],
@@ -28,10 +44,24 @@
   },
   // rust
   "rust-analyzer.enable": true,
-  "rust-analyzer.server.path": "~/.cargo/bin/rust-analyzer",
+  "rust-analyzer.server.path": "/usr/local/bin/rust-analyzer",
   "rust-analyzer.updates.channel": "stable",
   "rust-analyzer.inlayHints.enable": true,
-  
+  "rust-analyzer.inlayHints.typeHints": true,
+  "rust-analyzer.inlayHints.typeHintsSeparator": "‣" ,
+  "rust-analyzer.inlayHints.chainingHints": true,
+  "rust-analyzer.inlayHints.chainingHintsSeparator": "‣ ",
+  "rust-analyzer.inlayHints.refreshOnInsertMode": false,
+  "rust-analyzer.hoverActions.enable": true,
+  "rust-analyzer.lens.enable": true,
+  "rust-analyzer.lens.run": true,
+  "rust-analyzer.lens.methodReferences": true,
+  "rust-analyzer.lens.references": true,
+  "rust-analyzer.lens.implementations": true,
+  "rust-analyzer.debug.runtime": "vimspector",
+  "rust-analyzer.debug.vimspector.configuration.name": "rust lldb",
+  "rust-analyzer.terminal.startinsert": true,
+  "rust-analyzer.checkOnSave.command": "clippy",
   // c++/c
   "clangd.enabled": true,
   "coc.source.emoji.filetypes": ["markdown", "tmux", "vim"],
@@ -47,7 +77,8 @@
     "typescrip.tsx",
     "json",
     "rust",
-    "golang"
+    "golang",
+    "dart"
   ],
   "coc.preferences.jumpCommand": "vsplit",
   "emmet.includeLanguages": {
@@ -55,11 +86,14 @@
     "javascript": "javascriptreact"
   },
   "sh.enable": true,
+  // python
   "python.jediPath": "/Users/tizee/anaconda3/lib/python3.7/site-packages ",
   "python.linting.pylintPath": "/Users/tizee/anaconda3/bin/pylint",
   "python.pythonPath": "python3",
+  // javascript
   "eslint.autoFixOnSave": true,
   "suggest.snippetIndicator": "ﰴ",
+  // snippets
   "snippets.extends": {
     "cpp": ["cpp"],
     "javascriptreact": ["javascript"],
@@ -67,11 +101,57 @@
     "typescriptreact":  ["javascript"]
   },
   "snippets.ultisnips.directories":["$HOME/.config/nvim/snippets"],
+  // golang
   "go.goplsOptions": {
     "completeUnimported": true
   },
+  // flutter
+  "flutter.sdk.path": "~/dev/grepo_dart/flutter",
   // vue
   "vetur.format.enable": true,
   "vetur.format.defaultFormatter.pug": "prettier",
   "vetur.format.defaultFormatter.less": "prettier",
+  // eye candies - icons
+  "suggest.completionItemKindLabels": {
+    "keyword": "",
+    "variable": "",
+    "function": "ƒ",
+    "reference": "渚",
+    "constant": "",
+    "method": "",
+    "class": "",
+    "interface": "",
+    "enum": "",
+    "enumMember": "",
+    "module": "",
+    "color": "",
+    "property": "",
+    "file": "",
+    "folder": "",
+    "snippet": "",
+    "typeParameter": "",
+    "default": "",
+    "text": "",
+    "struct": "פּ",
+    "unit": "",
+    "event": "鬒",
+    "field": "料"
+  },
+  // json
+  "json.enable": true,
+  "json.schemaDownload.enable": true,
+  "json.schemas": [
+    {
+      "fileMatch": [
+        "/.vimspector.json"
+      ],
+      "url": "https://puremourning.github.io/vimspector/schema/vimspector.schema.json"
+    },
+    {
+      "fileMatch": [
+        "/.gadgets.json"
+      ],
+      "url": "https://puremourning.github.io/vimspector/schema/gadgets.schema.json"
+    }
+  ]
 }

@@ -12,6 +12,8 @@ Plug 'luochen1990/rainbow'
 if has('nvim')
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}  " We recommend updating the parsers on update
 endif
+" debugger
+Plug 'puremourning/vimspector'
 " Plug 'itchyny/lightline.vim'
 Plug 'ryanoasis/vim-devicons' " icons
 Plug 'airblade/vim-gitgutter' " git
@@ -36,7 +38,8 @@ Plug 'tpope/vim-fugitive'
 Plug 'easymotion/vim-easymotion'
 " Searching
 Plug '/usr/local/opt/fzf'
-Plug 'dracula/vim', { 'as': 'dracula' }
+" Plug 'dracula/vim', { 'as': 'dracula' }
+Plug 'morhetz/gruvbox'
 " Recording
 Plug 'wakatime/vim-wakatime'
 " LSP + nvim nodejs ABI for ts plugins
@@ -64,8 +67,8 @@ Plug '~/dev/grepo_vim/indentLine'
 Plug '~/dev/grepo_vim/vim-LanguageTool'
 " beancount
 Plug '~/dev/grepo_vim/vim-beancount'
-" debugger
-Plug "~/dev/grepo_vim/vimspector"
+" osc-yank
+Plug '~/dev/grepo_vim/vim-oscyank'
 " }}}
 call plug#end()
 " vim-plug autocmd {{{

@@ -4,6 +4,9 @@ endif
 let g:loaded_z_vim = 1
 
 function! s:add_or_update_entry(entry)
+  if !len(system("command -v zdb"))
+    return
+  endif 
   echo '[Z.vim]: update ' . a:entry
   let cmd = ['zdb','add'] + map(copy(a:entry), {_, arg -> shellescape(arg)})
   let res = systemlist(join(cmd))

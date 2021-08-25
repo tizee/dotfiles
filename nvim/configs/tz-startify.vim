@@ -1,3 +1,4 @@
+" TODO: use figlet to generate hanzi slogan
 let g:slogan = [
 \ '     __    __      __  __            __                 ',
 \ '    /\ \  /\ \    /\ \/\ \          /\ \                ',
@@ -7,6 +8,7 @@ let g:slogan = [
 \ '         \ \_\ \____/\ \_\ \_\ \__/.\_\\ \_\ \_\ \____/ ',
 \ '          \/_/\/___/  \/_/\/_/\/__/\/_/ \/_/\/_/\/___/  ',
 \ ]
+
 let g:startify_custom_header= 'startify#center(g:slogan)'
 
 " Startup with NERDTree and Startify opened

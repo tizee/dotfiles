@@ -345,12 +345,12 @@ endfunction
 " All files with fd {{{
 command! -nargs=? -complete=dir AF
   \ call fzf#run(fzf#wrap(s:fzf_with_preview({
-  \   'source': 'fd --type f --hidden --follow --exclude .git --no-ignore . '.expand(<q-args>)
+  \   'source': 'fd --type f --hidden --follow --exclude .git --no-ignore ' . <q-args>
   \ })))
 " }}}
 
 " file search with ag {{{
-command! -bang -nargs=* Ag
+command! -bang -nargs=* AG
       \ call fzf#vim#ag(<q-args>,
       \                 <bang>0 ? s:fzf_with_preview('up:60%')
       \                         : s:fzf_with_preview('right:50%:hidden', '?'),
@@ -512,10 +512,10 @@ command! PlugConfig call fzf#run(fzf#wrap({
 " }}}
 
 " fzf mappings{{{
-nnoremap <leader><C-d> :BD<CR>
-nnoremap <leader>g :GGrep<CR>
-nnoremap <leader>a :AG<CR>
-nnoremap <leader>r :RG<CR>
-nnoremap <leader>h :PlugHelp<CR>
+nnoremap <leader>fb :BD<CR>
+nnoremap <leader>fg :GGrep<CR>
+nnoremap <leader>fa :AG<CR>
+nnoremap <leader>fr :RG<CR>
+nnoremap <leader>fh :PlugHelp<CR>
 " }}}
 

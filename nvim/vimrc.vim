@@ -1,9 +1,11 @@
 " vim: set foldmethod=marker foldlevel=0 nomodeline:
 " see :help auto-setting
 
-let g:dracula_bold = 1
-let g:dracula_italic = 1
-let g:dracula_underline = 1
+if exists('#Dracula')
+  let g:dracula_bold = 1
+  let g:dracula_italic = 1
+  let g:dracula_underline = 1
+endif 
 
 " highlight
 "set cursorcolumn
@@ -350,11 +352,10 @@ endif
 
 " }}}
 
-" UI {{{ 
-colorscheme dracula
+let g:gruvbox_italic=1
+colorscheme gruvbox 
 " highlight Comment cterm=italic gui=italic
 " set background=dark
-" }}}
 
 " AUTOCMD GROUP {{{
 " VimScript  {{{
