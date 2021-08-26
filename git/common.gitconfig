@@ -73,9 +73,9 @@
   fzfco = !git checkout $(git branch | fzf )
   fzfm = !git merge $(git branch | fzf )
   visual = !gitk
-  lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative
+  lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an> %ae %Creset' --abbrev-commit --date=relative
   lg-ascii = log --graph --pretty=format:'%h -%d %s (%cr) <%an>' --abbrev-commit
-  logp= log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative --stat
+  lgg= log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %n%C(bold blue)<%an> %ae%Creset [%G?]%n' --abbrev-commit --date=relative --stat
   adog = log --all --decorate --oneline --graph --date=relative --stat 
   adogs = log --all --decorate --oneline --graph --date=relative --stat --show-signature
   adogr= log --all --decorate --oneline --reverse --date=relative --stat
@@ -85,6 +85,8 @@
   rebase = true
 [submodule]
   recurse= true
+[format]
+  pretty=%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %n%C(bold blue)<%an> %ae%Creset [%G?]%n
 
 [delta]
   syntax-theme = Github
