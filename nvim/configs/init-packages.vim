@@ -43,7 +43,9 @@ Plug 'morhetz/gruvbox'
 " Recording
 Plug 'wakatime/vim-wakatime'
 " LSP + nvim nodejs ABI for ts plugins
-Plug 'neoclide/coc.nvim', {'branch': 'release'}
+" Plug 'neoclide/coc.nvim', {'branch': 'release'}
+" TODO: add function for retrieving lsp info
+Plug '~/dev/grepo_vim/coc.nvim'
 " keyboard layout
 Plug 'tizee/keyboard.vim'
 " golang
@@ -122,7 +124,7 @@ function! s:source_helper(name)
   let plugins=readdir(plugin_prefix)
   for plugin_filename in plugins
     let plugin = plugin_prefix . plugin_filename
-    if  plugin_filename ==# 'tz_packages' || isdirectory(plugin)
+    if  plugin_filename ==# 'packages' || isdirectory(plugin)
       continue
     endif
     execute "source " . plugin

@@ -324,7 +324,7 @@ if has('nvim')
 else
   let g:vim_config_dir=fnamemodify(resolve(expand('<sfile>:p')),":h") . "/"
 endif 
-let s:packages=g:vim_config_dir . "configs/tz-packages.vim"
+let s:packages=g:vim_config_dir . "configs/init-packages.vim"
 execute "source " . s:packages
 
 " vim-plug cheatsheet

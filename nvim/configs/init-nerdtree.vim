@@ -11,14 +11,22 @@ let g:NERDTreeGitStatusIndicatorMapCustom = {
                 \ 'Modified'  :'!',
                 \ 'Staged'    :'+',
                 \ 'Untracked' :'?',
-                \ 'Renamed'   :'➜',
+                \ 'Renamed'   :'->',
                 \ 'Unmerged'  :'═',
-                \ 'Deleted'   :'[D]',
-                \ 'Dirty'     :'[Dirty]',
-                \ 'Ignored'   :'*',
-                \ 'Clean'     :'[C]',
+                \ 'Deleted'   :'Del',
+                \ 'Dirty'     :'*',
+                \ 'Ignored'   :'Ig',
+                \ 'Clean'     :'Cl',
                 \ 'Unknown'   :'??',
                 \ }
 " }}}
 
+" Quick toggle file manager
+" nerdtree
+nnoremap <silent> <script> <Plug>ChangePWD2CurrentWindow :<c-u>lcd %:h<CR>
+
+nnoremap <silent> tt :NERDTreeToggle<CR>
+" nnoremap <leader>r :NERDTreeFind<cr>
+nnoremap <silent> <C-n> :<c-u>execute "normal \<Plug>ChangePWD2CurrentWindow"<CR>:<c-u>NERDTreeCWD<CR>
+ 
 " vim:ft=vim sw=2

@@ -1,6 +1,7 @@
 {
   // coc
   "coc.preferences.maxFileSize": "1MB",
+  "list.source.outline.defaultAction":" quickfix",
   // diagnostic
   "diagnostic.enable": true,
   "diagnostic.virtualText": true,
@@ -35,7 +36,7 @@
       "initializationOptions": {
         "buildDirectory": "build"
       }
-    },
+    }
     // "clangd": {
     //   "command": "clangd",
     //   "rootPatterns": ["compile_flags.txt", "compile_commands.json"],
@@ -73,7 +74,7 @@
     "css",
     "markdown",
     "javascript",
-    "typescript",
+    // "typescript",
     "typescrip.tsx",
     "json",
     "rust",
