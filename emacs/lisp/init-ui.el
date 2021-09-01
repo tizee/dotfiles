@@ -19,7 +19,7 @@
 (use-package tab-settings
              :ensure nil
               :init(setq-default tab-width 4
-                                 fill-column 80
+                                 fill-column 80 ;https://www.emacswiki.org/emacs/EightyColumnRule
                                  indent-tabs-mode nil))
 
 ; Cursor & Current Line

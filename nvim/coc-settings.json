@@ -15,8 +15,9 @@
   "codeLens.enable": true,
   "codeLens.separator": " ",
   "codeLens.subseparator": " | ",
-  // lsp
+  // javascript/typescript
   "tsserver.npm": "/usr/local/bin/npm",
+  // lsp server without coc wrapper
   "languageserver": {
     "golang": {
       "command": "gopls",
@@ -24,11 +25,11 @@
       "disableWorkspaceFolders": true,
       "filetypes": ["go"]
     },
-    "rust": {
-       "command": "rust-analyzer",
-       "filetypes": ["rust"],
-       "rootPatterns": ["Cargo.toml"]
-    },
+    // "rust": {
+    //    "command": "rust-analyzer",
+    //    "filetypes": ["rust"],
+    //    "rootPatterns": ["Cargo.toml"]
+    // },
     "cmake":{
       "command": "cmake-language-server",
       "filetypes": ["cmake"],
@@ -53,9 +54,9 @@
   "rust-analyzer.inlayHints.chainingHints": true,
   "rust-analyzer.inlayHints.chainingHintsSeparator": "‣ ",
   "rust-analyzer.inlayHints.refreshOnInsertMode": false,
-  "rust-analyzer.hoverActions.enable": true,
-  "rust-analyzer.lens.enable": true,
-  "rust-analyzer.lens.run": true,
+  "rust-analyzer.hoverActions.enable": false,
+  "rust-analyzer.lens.enable": false,
+  "rust-analyzer.lens.run": false,
   "rust-analyzer.lens.methodReferences": true,
   "rust-analyzer.lens.references": true,
   "rust-analyzer.lens.implementations": true,
