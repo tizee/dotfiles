@@ -49,7 +49,8 @@ Plug '~/dev/grepo_vim/coc.nvim'
 " keyboard layout
 Plug 'tizee/keyboard.vim'
 " golang
-Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
+" conflict with coc-go
+" Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
 " local vim plugin
 " start screen
 Plug '~/dev/grepo_vim/vim-startify'
@@ -60,6 +61,8 @@ Plug '~/dev/grepo_vim/vim-gh-line'
 " copy text to the system clipboard from anywhere using the ANSI OSC52 sequence
 Plug '~/dev/grepo_vim/vim-oscyank'
 " my local plugin prototypes
+Plug '~/dev/grepo_vim/tz-vim-packages/find-root.vim'
+Plug '~/dev/grepo_vim/tz-vim-packages/nodemodules.vim'
 Plug '~/dev/grepo_vim/tz-vim-packages/md-table.vim'
 Plug '~/dev/grepo_vim/tz-vim-packages/moline.vim'
 Plug '~/dev/grepo_vim/tz-vim-packages/unicode.vim'
@@ -132,8 +135,8 @@ function! s:source_helper(name)
 endfunction
 
 " plugin prototype
-set rtp+=~/dev/grepo_vim/tz-vim-packages/nodemodules.vim
-set rtp+=~/dev/grepo_vim/tz-vim-packages/find-root.vim
+" coc extension local development
+set rtp+=~/dev/grepo_vim/coc-packages/coc-flutter
 
 call s:source_helper('plugins')
 call s:source_helper('configs')

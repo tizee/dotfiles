@@ -355,7 +355,9 @@ endif
 let g:gruvbox_italic=1
 colorscheme gruvbox 
 " highlight Comment cterm=italic gui=italic
-" set background=dark
+if !has('nvim')
+  set background=dark
+endif 
 
 " AUTOCMD GROUP {{{
 " VimScript  {{{
