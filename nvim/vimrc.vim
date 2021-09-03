@@ -1,12 +1,8 @@
 " vim: set foldmethod=marker foldlevel=0 nomodeline:
 " see :help auto-setting
+" GENERAL SETTINGS {{{
 
-if exists('#Dracula')
-  let g:dracula_bold = 1
-  let g:dracula_italic = 1
-  let g:dracula_underline = 1
-endif 
-
+" ========== vim basic options ========= {{{
 " highlight
 "set cursorcolumn
 set cursorline
@@ -16,9 +12,6 @@ set cursorline
 set t_ZH=[3m
 set t_ZR=[23m
 
-" GENERAL SETTINGS {{{
-
-" ========== vim basic options ========= {{{
 " Encoding
 scriptencoding utf-8
 set fileencodings=utf-8,cp936
@@ -352,6 +345,13 @@ endif
 
 " }}}
 
+
+if exists('#Dracula')
+  let g:dracula_bold = 1
+  let g:dracula_italic = 1
+  let g:dracula_underline = 1
+endif 
+
 let g:gruvbox_italic=1
 colorscheme gruvbox 
 " highlight Comment cterm=italic gui=italic
@@ -360,82 +360,85 @@ if !has('nvim')
 endif 
 
 " AUTOCMD GROUP {{{
-" VimScript  {{{
+if !has('nvim')
+  " VimScript  {{{
+  function! s:VimAbbrev()
+  iabbr nnp nnoremap
+  iabbr vnp vnoremap
+  iabbr cnp cnoremap
+  iabbr xnp xnoremap
+  iabbr onp onoremap
+  iabbr tnp tnoremap
+  endfunction
 
-function! s:VimAbbrev()
-iabbr nnp nnoremap
-iabbr vnp vnoremap
-iabbr cnp cnoremap
-iabbr xnp xnoremap
-iabbr onp onoremap
-iabbr tnp tnoremap
-endfunction
+  augroup filetype_vim
+    autocmd!          | " Deletes all auto-commands in the current group
+    autocmd FileType vim setlocal foldmethod=marker
+    autocmd FileType vim call s:VimAbbrev()
+    autocmd BufWritePost $MYVIMRC source $MYVIMRC
+    " force equalizing window
+    autocmd VimResized * tabdo wincmd =
+  augroup END
+  " }}}
 
-augroup filetype_vim
-  autocmd!          | " Deletes all auto-commands in the current group
-  autocmd FileType vim setlocal foldmethod=marker
-  autocmd FileType vim call s:VimAbbrev()
-  autocmd BufWritePost $MYVIMRC source $MYVIMRC
-  " force equalizing window
-  autocmd VimResized * tabdo wincmd =
-augroup END
+  " ShellScript {{{
+  augroup filetype_shell
+    autocmd!
+    autocmd FileType sh setlocal foldmethod=marker
+    autocmd FileType zsh setlocal foldmethod=marker
+    autocmd BufWritePost *.zsh set filetype=zsh
+    autocmd BufWritePost *.sh set filetype=sh
+  augroup END
+  " }}}
+
+  " git {{{
+  augroup filetype_gitconf
+    autocmd!
+    autocmd  BufNewFile,BufRead *.gitignore set filetype=conf
+  augroup END "filetype_gitconf
+  "}}}
+
+  " tmux {{{
+  augroup filetype_tmux
+    autocmd!
+    autocmd FileType tmux setlocal foldmethod=marker
+  augroup END
+  " }}}
+
+  " yaml {{{
+  augroup ft_yaml
+    " Remove all vimrc autocommands
+    autocmd!
+    autocmd FileType yaml setlocal foldmethod=indent
+  augroup END
+  " }}}
+
+
+  " python {{{
+  aug ft_python
+    autocmd!          | " Deletes all auto-commands in the current group
+    " ftype/python.vim overwrites this
+    autocmd FileType python 
+          \ setlocal expandtab smarttab nosmartindent
+          \ | setlocal tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80
+
+  aug end
 " }}}
 
-" ShellScript {{{
-augroup filetype_shell
-  autocmd!
-  autocmd FileType sh setlocal foldmethod=marker
-  autocmd FileType zsh setlocal foldmethod=marker
-  autocmd BufWritePost *.zsh set filetype=zsh
-  autocmd BufWritePost *.sh set filetype=sh
-augroup END
-" }}}
-
-" git {{{
-augroup filetype_gitconf
-  autocmd!
-  autocmd  BufNewFile,BufRead *.gitignore set filetype=conf
-augroup END "filetype_gitconf
-"}}}
-
-" tmux {{{
-augroup filetype_tmux
-  autocmd!
-  autocmd FileType tmux setlocal foldmethod=marker
-augroup END
-" }}}
-
-" yaml {{{
-augroup ft_yaml
-  " Remove all vimrc autocommands
-  autocmd!
-  autocmd FileType yaml setlocal foldmethod=indent
-augroup end
-" }}}
-
-" python {{{
-aug ft_python
-  autocmd!          | " Deletes all auto-commands in the current group
-  " ftype/python.vim overwrites this
-  autocmd FileType python 
-        \ setlocal expandtab smarttab nosmartindent
-        \ | setlocal tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80
-
-aug end
-" }}}
-
-" golang {{{
-aug ft_golang
-  autocmd!         | " Deletes all auto-commands in the current group
-  autocmd FileType go setlocal ts=4 sts=4 sw=4 noexpandtab
-  autocmd BufNewFile,BufRead *.go setlocal foldmethod=syntax
-aug end
-" }}}
-" markdown
-augroup ft_md
-  autocmd FileType markdown setlocal spell spelllang=en_us
-  autocmd FileType markdown setlocal dictionary=/usr/share/dict/words
-augroup END "ft_md
+" golang  {{{
+  aug ft_golang
+    autocmd!         | " Deletes all auto-commands in the current group
+    autocmd FileType go setlocal ts=4 sts=4 sw=4 noexpandtab
+    autocmd BufNewFile,BufRead *.go setlocal foldmethod=syntax foldlevel=3
+  aug end
+  " }}}
+  " markdown {{{
+  augroup ft_md
+    autocmd FileType markdown setlocal spell spelllang=en_us
+    autocmd FileType markdown setlocal dictionary=/usr/share/dict/words
+  augroup END "ft_md
+  " }}}
+endif
 
 " The following autocommand will cause the quickfix window to open after any grep invocation:
 autocmd QuickFixCmdPost *grep* cwindow
