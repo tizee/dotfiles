@@ -152,7 +152,14 @@ alias awk="gawk"
 
 # ========== ps ========== {{{
 alias psall="ps axw -o nice,pid,ppid,user,%mem,%cpu,vsz,wchan,command"
-
+function ps::search(){
+if [[ $(command -v rg) ]]; then
+    ps aux | rg -v rg | rg $@
+else
+    ps aux | grep -v grep | grep $@
+fi
+}
+alias pss='ps::search'
 # }}}
 
 # ========== tree ========== {{{
