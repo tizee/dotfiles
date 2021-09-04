@@ -51,6 +51,7 @@ function yogit::help() {
   print "${_yogit_basic_prefix}sst: list staged and unstaged file names only"
   print "${_yogit_basic_prefix}ls: git ls-files --others --exclude-standard"
   print "${_yogit_basic_prefix}pickclone: git clone --sparse --filter=blob:none --depth=1"
+  print "${_yogit_basic_prefix}sub: git submodule update --init --recursive"
 }
 
 alias "${yogit_help:-${_yogit_interactive_prefix}help}"='yogit::help'
@@ -115,6 +116,8 @@ alias "${_yogit_basic_prefix}ls"='git ls-files --others --exclude-standard'
 # --depth=1 truncate commit history to leave only the latest commit(may cause problems)
 alias "${_yogit_basic_prefix}pickclone"='git clone --sparse --filter=blob:none --depth=1'
 # use git sparse-checkout add [file]
+
+alias "${_yogit_basic_prefix}sub"='git submodule update --init --recursive'
 
 # restore
 

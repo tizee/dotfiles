@@ -39,6 +39,12 @@ alias printgccld="gcc -Xlinker -v"
 alias printgccplus="gcc -x c++ -v -E /dev/null"
 alias printld="ld -x -v /dev/null"
 
+
+
+# ========== emacs ========== {{{
+alias emacsc="emacs -nw"
+# ========== emacs ========== }}}
+
 # ========== tar ========== {{{
 alias -g tarsee="tar tvf " # list files
 # }}} 
@@ -204,6 +210,7 @@ alias ppsh="pipes.sh"
 # cowsay
 # cowthink
 # toilet
+# cmatrix
 
 # figlet
 alias -g fgfonts="ls ~/.config/figlet"
