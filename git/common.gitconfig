@@ -8,8 +8,8 @@
 [core]
   editor=nvim
   excludesfile = ~/.config/git/global.gitignore
-	# pager="bat -l diff -p | less --tabs=4 "
-	# pager="diff-so-fancy | less --tabs=4 -RFX"
+  # pager="bat -l diff -p | less --tabs=4 "
+  # pager="diff-so-fancy | less --tabs=4 -RFX"
   pager=delta  # git-delta
   quotePath=false # utf-8 characters
   autocrlf=input
@@ -28,11 +28,10 @@
 
 [filter "lfs"]
   required = true
-	clean = git-lfs clean -- %f
-	smudge = git-lfs smudge -- %f
-	process = git-lfs filter-process
+  clean = git-lfs clean -- %f
+  smudge = git-lfs smudge -- %f
+  process = git-lfs filter-process
 
-  
 [alias]
   ce = config --edit
   cge = config --global --edit
@@ -43,11 +42,11 @@
   addp =  add -p
   cop = checkout -p
   df = diff
-	ci = commit
+  ci = commit
   ls=ls-tree --full-tree --name-only -r HEAD
   rv= remote -v
-	cp = cherry-pick
-	fc = fetch
+  cp = cherry-pick
+  fc = fetch
   last = log -1 HEAD
   logr = log --reverse
   logrh = log --reverse --pretty=%H
@@ -110,7 +109,7 @@
 #[https]
 #  proxy = socks5://127.0.0.1:1080
 #[http]
-#	proxy = socks5://127.0.0.1:1080
+#  proxy = socks5://127.0.0.1:1080
 
 [merge]
   tool = vimdiff
@@ -118,7 +117,7 @@
 
 [mergetool]
   prompt = false
-	keepBackup = false
+  keepBackup = false
 
 [mergetool "vimdiff"]
   cmd = nvim -d $LOCAL $REMOTE $MERGED -c '$wincmd w' -c 'wincmd J'
@@ -130,12 +129,12 @@
   tool = vimdiff
 
 [difftool "sourcetree"]
-	cmd = opendiff \"$LOCAL\" \"$REMOTE\"
-	path = 
-	# path =
+  cmd = opendiff \"$LOCAL\" \"$REMOTE\"
+  path = 
+  # path =
 [mergetool "sourcetree"]
-	cmd = /Applications/Sourcetree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"
-	trustExitCode = true
+  cmd = /Applications/Sourcetree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"
+  trustExitCode = true
 [diff-so-fancy]
   stripLeadingSymbols = false
 

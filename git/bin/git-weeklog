@@ -1,7 +1,8 @@
 #!/usr/bin/env zsh
 
 function weeklog(){
-  git log --pretty=format:'%ad: %s - %an' --date=short --after=`date +"%y-%m-%d" -d "-6 day"`
+  local d=$(date +"%Y-%m-%d" -d "-6 day")
+  git log --pretty=format:'%Cred%h%Creset %Cgreen(%ad):%n%C(yellow)%d%Creset %s  %n%C(bold blue)<%an> %ae%Creset [%G?]%n' --stat --date=short --after=$d
 }
 
 weeklog
