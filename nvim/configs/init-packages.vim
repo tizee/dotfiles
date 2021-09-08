@@ -1,3 +1,9 @@
+" File: init-packages.vim
+" Author: tizee
+" Email: 33030965+tizee@users.noreply.github.com
+" Description: 
+
+scriptencoding utf-8
 call plug#begin('~/.vim/plugged')
 " plugin list {{{
 " text alignment
@@ -67,6 +73,7 @@ Plug '~/dev/grepo_vim/tz-vim-packages/md-table.vim'
 Plug '~/dev/grepo_vim/tz-vim-packages/moline.vim'
 Plug '~/dev/grepo_vim/tz-vim-packages/unicode.vim'
 Plug '~/dev/grepo_vim/tz-vim-packages/codecount.vim'
+" local version fixed packages
 Plug '~/dev/grepo_vim/indentLine'
 " language checker
 Plug '~/dev/grepo_vim/vim-LanguageTool'
@@ -74,6 +81,8 @@ Plug '~/dev/grepo_vim/vim-LanguageTool'
 Plug '~/dev/grepo_vim/vim-beancount'
 " osc-yank
 Plug '~/dev/grepo_vim/vim-oscyank'
+" vista for tags
+Plug '~/dev/grepo_vim/vista.vim'
 " }}}
 call plug#end()
 " vim-plug autocmd {{{
@@ -109,12 +118,6 @@ augroup VimPlugPlus
   autocmd! FileType vim-plug nnoremap <buffer> <silent> <C-h> :call <sid>plug_doc()<cr>
   autocmd! FileType vim-plug nnoremap <buffer> <silent> <Tab> :call <sid>plug_gx()<cr>
 augroup end
-
-autocmd BufWritePre *.go :silent call CocAction('runCommand', 'editor.action.organizeImport')
-autocmd FileType go autocmd BufWritePre <buffer> Format
-autocmd FileType go nmap gtj :CocCommand go.tags.add json<cr>
-autocmd FileType go nmap gty :CocCommand go.tags.add yaml<cr>
-autocmd FileType go nmap gtx :CocCommand go.tags.clear<cr>
 " }}}
 
 if exists('loaded_tz_packages_vim') || &cp || v:version < 700
