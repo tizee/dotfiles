@@ -139,7 +139,7 @@ endfunction
 
 " plugin prototype
 " coc extension local development
-" set rtp+=~/dev/grepo_vim/coc-packages/coc-flutter
+set rtp+=~/dev/grepo_vim/coc-packages/coc-flutter
 
 call s:source_helper('plugins')
 call s:source_helper('configs')
