@@ -19,12 +19,17 @@
   "tsserver.npm": "/usr/local/bin/npm",
   // lsp server without coc wrapper
   "languageserver": {
-    "golang": {
-      "command": "gopls",
-      "rootPatterns": ["go.mod"],
-      "disableWorkspaceFolders": true,
-      "filetypes": ["go"]
-    },
+    // see https://github.com/iamcco/coc-flutter/issues/127
+     // "dart": {
+     //   "command": "dart_lsp_server",
+     //   "filetypes": ["dart"]
+     // },
+    // "golang": {
+    //   "command": "gopls",
+    //   "rootPatterns": ["go.mod"],
+    //   "disableWorkspaceFolders": true,
+    //   "filetypes": ["go"]
+    // },
     // "rust": {
     //    "command": "rust-analyzer",
     //    "filetypes": ["rust"],
@@ -109,6 +114,18 @@
   },
   // flutter
   "flutter.sdk.path": "~/dev/grepo_dart/flutter",
+  "flutter.trace.server": "verbose",
+  "flutter.lsp.debug": true,
+  // FIXME until coc-flutter fixed the integration problem with Flutter 2.5.0
+  "flutter.lsp.initialization.onlyAnalyzeProjectsWithOpenFiles": false,
+  "flutter.lsp.initialization.closingLabels": true,
+  "flutter.lsp.initialization.suggestFromUnimportedLibraries": true,
+  "flutter.lsp.initialization.outline": true,
+  "flutter.lsp.initialization.flutterOutline": true,
+  "dart.enableSdkFormatter": true,
+  "dart.showTodos": true,
+  "dart.lineLength": 80,
+  "flutter.enabled": true,
   // vue
   "vetur.format.enable": true,
   "vetur.format.defaultFormatter.pug": "prettier",

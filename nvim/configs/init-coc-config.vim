@@ -1,6 +1,8 @@
 " COC CONFIG {{{
 
 let g:mapleader=" "
+" debug for coc.nvim development
+let $NVIM_COC_LOG_LEVEL='debug'
 
 " TextEdit might fail if hidden is not set.
 set hidden

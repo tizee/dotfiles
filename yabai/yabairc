@@ -27,7 +27,7 @@ yabai -m config window_gap     10
 # split ratios
 # ====================
 # Auto balance makes it so all windows always occupy the same space, independent of how deeply nested they are in the window tree. When a new window is inserted or a window is removed, the split ratios will be automatically adjusted
-yabai -m config auto_balance on
+yabai -m config auto_balance off
 yabai -m config split_ratio 0.5
 
 # ====================
@@ -107,13 +107,19 @@ yabai -m config status_bar_clock_icon        
 # ====================
 # rules {{{
 yabai -m rule --add app="^Chrome$" space=2
-yabai -m rule --add app="^Alacritty$" space=2
-yabai -m rule --add app="^Mail$"   space=2
+yabai -m rule --add app="^Mail$" space=2
+
+# yeah, you all are free.
 yabai -m rule --add app= "^System Preferences$"  manage=off
-yabai -m rule --add app= "^DingTalk Lite$"  manage=off
-yabai -m rule --add app= "^Android Studio$"  manage=off
 yabai -m rule --add app="^Finder$" manage=off
 yabai -m rule --add app="^Stickies$" manage=off
+yabai -m rule --add app= "^Android Studio$"  manage=off
+yabai -m rule --add app="^Alacritty$" manage=off
+yabai -m rule --add app="^WezTerm$" manage=off
+yabai -m rule --add app= "^DingTalk Lite$"  manage=off
+yabai -m rule --add app="^WeChat$" manage=off
+# screenshot
+yabai -m rule --add app="^LICEcap v1.31$" manage=off
 # }}}
 
 echo "yabai configuration loaded.."

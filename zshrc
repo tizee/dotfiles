@@ -281,10 +281,10 @@ fi
 # could get some ideas from famous Zsh frameworks
 # {{{
 # cost about 9ms
-source "$ZSHDIR/vendor/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
-source "$ZSHDIR/vendor/zsh-autosuggestions/zsh-autosuggestions.zsh"
+[ -e $ZSHDIR/vendor/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ] && source "$ZSHDIR/vendor/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+[ -e $ZSHDIR/vendor/zsh-autosuggestions/zsh-autosuggestions.zsh ] && source "$ZSHDIR/vendor/zsh-autosuggestions/zsh-autosuggestions.zsh"
 # source "$ZSHDIR/vendor/z.sh"
-source "$ZSHDIR/../zoxide.zsh"
+[ -e "$ZSHDIR/../zoxide.zsh" ] && source "$ZSHDIR/../zoxide.zsh"
 
 # lazy load functions
 # insert at head
@@ -305,7 +305,6 @@ done
 #export _ZL_LOG_NAME=true
 # eval "$(lua ~/.config/zsh/vendor/z.lua --init zsh enhanced)"
 # }}}
-# source $HOME/.config/work_bin/work_config
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 

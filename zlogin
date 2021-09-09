@@ -1,5 +1,15 @@
 #!/usr/bin/env zsh
 
+# magicTmux message
+echo "\033[94m Kilin is not kirlin"
+echo '    ___       ___       ___       ___       ___'
+echo '   /\__\     /\  \     /\__\     /\  \     /\__\ '
+echo '  /:/ _/_   _\:\  \   /:/  /    _\:\  \   /:| _|_'
+echo ' /::-"\__\ /\/::\__\ /:/__/    /\/::\__\ /::|/\__\'
+echo ' \;:;-",-" \::/\/__/ \:\  \    \::/\/__/ \/|::/  /'
+echo '  |:|  |    \:\__\    \:\__\    \:\__\     |:/  /'
+echo '   \|__|     \/__/     \/__/     \/__/     \/__/'
+
 # Execute code in the background to not affect the current session
 function zwc_watcher() {
     # <https://github.com/zimfw/zimfw/blob/master/login_init.zsh>

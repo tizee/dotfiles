@@ -82,7 +82,7 @@ Plug '~/dev/grepo_vim/vim-beancount'
 " osc-yank
 Plug '~/dev/grepo_vim/vim-oscyank'
 " vista for tags
-Plug '~/dev/grepo_vim/vista.vim'
+" Plug '~/dev/grepo_vim/vista.vim'
 " }}}
 call plug#end()
 " vim-plug autocmd {{{
@@ -139,7 +139,7 @@ endfunction
 
 " plugin prototype
 " coc extension local development
-set rtp+=~/dev/grepo_vim/coc-packages/coc-flutter
+" set rtp+=~/dev/grepo_vim/coc-packages/coc-flutter
 
 call s:source_helper('plugins')
 call s:source_helper('configs')

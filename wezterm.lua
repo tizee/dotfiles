@@ -26,7 +26,7 @@ return {
   },
   -- ->
   -- font settings <-
-  font_size = 14,
+  font_size = 16,
   font = wezterm.font_with_fallback({
     {
       family="JetBrains Mono",
@@ -37,7 +37,7 @@ return {
       family="JetBrainsMono Nerd Font",
       weight="Bold"
     },
-    "SimHei"
+    "SimHei" -- for Chinese or Japanese
     }),
   -- ->
   -- hotkeys <-
@@ -63,16 +63,18 @@ return {
     {key="p", mods="LEADER", action="ShowDebugOverlay"},
     -- copy mode
     {key="c", mods="LEADER", action="ActivateCopyMode"},
-    -- quick select mode
+    -- quick select mode - git hash, url etc.
     {key="q", mods="LEADER", action="QuickSelect"},
     -- reload configuration
     {key="r", mods="LEADER", action="ReloadConfiguration"},
   },
   -- ->
-  -- IME <-
+  -- IME
   use_ime = false, -- conflict with leader mode, could submit a PR for this
-  -- ->
   color_scheme = "Dracula",
+  -- font shaping that enables ligatures
+  -- see https://docs.microsoft.com/en-us/typography/opentype/spec/featurelist
+  harfbuzz_features = {"calt=1", "clig=1", "liga=1"},
 }
 
 -- vim:foldmarker=<-,-> foldmethod=marker

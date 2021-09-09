@@ -93,9 +93,12 @@ PATH=$GEM_HOME/bin:$PATH
 # flutter dart
 PATH="$HOME/dev/grepo_dart/flutter/bin:$PATH"
 PATH="$HOME/flutter/bin:$PATH"
-export PUB_HOSTED_URL="https://mirrors.tuna.tsinghua.edu.cn/dart-pub"
+# export PUB_HOSTED_URL="https://mirrors.tuna.tsinghua.edu.cn/dart-pub"
+# export FLUTTER_STORAGE_BASE_URL="https://mirrors.tuna.tsinghua.edu.cn/flutter"
+export PUB_HOSTED_URL=https://pub.flutter-io.cn
+export FLUTTER_STORAGE_BASE_URL=https://storage.flutter-io.cn
 export FLUTTER_INSTALL="$HOME/dev/grepo_dart/flutter"
-export FLUTTER_STORAGE_BASE_URL="https://mirrors.tuna.tsinghua.edu.cn/flutter"
+export FLUTTER_ROOT="$HOME/dev/grepo_dart/flutter"
 # golang
 # go modules
 export GO111MODULE="on"
@@ -103,8 +106,8 @@ PATH=/usr/local/go/bin:$PATH
 
 # my shellscripts
 PATH="$HOME/.config/bin:$PATH"
-PATH="$HOME/.config/work_bin:$PATH" # work related scripts
-
+# PATH="$HOME/.config/work_bin:$PATH" # work related scripts
+source $HOME/.config/work_bin/work_alias
 # terminal
 export TERM=xterm-256color
 export COLORTERM=truecolor
@@ -128,11 +131,18 @@ PATH="/usr/local/opt/krb5/sbin:$PATH"
 
 # macOS <-
 if $is_macOS; then
+  # emacs
+  PATH="/Applications/Emacs.app/Contents/MacOS/bin:$PATH"
   # plan9port
   export PLAN9=$HOME/dev/plan9/plan9port
   PATH=$PATH:$PLAN9/bin
+  # texinfo
+  PATH="/usr/local/opt/texinfo/bin:$PATH"
+  # harfbuzz
+  export HARFBUZZ_CFLAGS="-I/usr/local/opt/harfbuzz/include/harfbuzz"
+  export HARFBUZZ_LIBS="-L/usr/local/opt/harfbuzz/lib"
   # freetype
-  # export FREETYPE_CFLAGS="-I:/usr/local/opt/freetype2/include/freetype2" 
+  # export FREETYPE_CFLAGS="-I/usr/local/opt/freetype2/include/freetype2" 
   # haskell
   [ -f "$HOME/.ghcup/env" ] && source "$HOME/.ghcup/env" # ghcup-env
   PATH="$HOME/.cabal/bin:$HOME/.ghcup/bin:$PATH"
@@ -153,9 +163,8 @@ if $is_macOS; then
   # /etc/paths.d Wireshark
   PATH="/Applications/Wireshark.app/Contents/MacOS:$PATH"
   # golang modules
-  PATH="/usr/local/go/bin:$PATH"
-  PATH="$HOME/dev/go_proj/bin:$PATH"
   export GOPATH="$HOME/dev/go_proj"
+  PATH="$HOME/dev/go_proj/bin:$PATH"
     # gnu
     PATH="/usr/local/opt/make/libexec/gnubin:$PATH"
     PATH="/usr/local/opt/coreutils/libexec/gnubin:$PATH"
@@ -207,8 +216,8 @@ if $is_macOS; then
 
   # sqlite
   PATH="/usr/local/opt/sqlite/bin:$PATH"
-  export SQLITE_LIBS="/usr/local/opt/sqlite/lib"
-  export SQLITE_CPPFLAGS="/usr/local/opt/sqlite/include"
+  export SQLITE_LIBS="-L/usr/local/opt/sqlite/lib"
+  export SQLITE_CPPFLAGS="-I/usr/local/opt/sqlite/include"
 
 
   # google 
@@ -230,7 +239,7 @@ if $is_macOS; then
   export OPENSSL_LIBS="-L/usr/local/opt/openssl@1.1/lib"
   #export LDFLAGS="-L/usr/local/opt/openssl@1.1/lib"
   #export CPPFLAGS="-I/usr/local/opt/openssl@1.1/include"
-  export PKG_CONFIG_PATH="/usr/local/opt/openssl@1.1/lib/pkgconfig"
+  #export PKG_CONFIG_PATH="/usr/local/opt/openssl@1.1/lib/pkgconfig"
 
   # gnutls
   export GUILE_TLS_CERTIFICATE_DIRECTORY="/usr/local/etc/gnutls/"
