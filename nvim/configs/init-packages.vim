@@ -82,6 +82,7 @@ Plug '~/dev/grepo_vim/vim-beancount'
 " osc-yank
 Plug '~/dev/grepo_vim/vim-oscyank'
 " vista for tags
+" could use :CocOutline directly
 " Plug '~/dev/grepo_vim/vista.vim'
 " }}}
 call plug#end()

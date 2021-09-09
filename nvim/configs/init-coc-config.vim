@@ -184,6 +184,8 @@ nnoremap <silent><nowait> <leader>cp  :<C-u>CocListResume<CR>
 " use ctrl-p for CocList
 nnoremap <silent><nowait> <C-p> :<C-u>CocList<CR>
 
+nnoremap <silent><nowait> <C-o> :<C-U>CocOutline<CR>
+
 function! SetupCommandAbbrs(from, to)
   exec 'cnoreabbrev <expr> '.a:from
 	\ .' ((getcmdtype() ==# ":" && getcmdline() ==# "'.a:from.'")'
