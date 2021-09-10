@@ -86,13 +86,6 @@ else
   inoremap <expr> <cr> pumvisible() ? "\<C-y>" : "\<C-g>u\<CR>"
 endif
 
-" quickfix
-" Use `[g` and `]g` to navigate diagnostics
-" Use `:CocDiagnostics` to get all diagnostics of current buffer in location list.
-nmap <silent> <leader>d :CocDiagnostics<CR>
-nmap <silent> [g <Plug>(coc-diagnostic-prev)
-nmap <silent> ]g <Plug>(coc-diagnostic-next)
-
 " GoTo code navigation.
 nmap <silent> gd <Plug>(coc-definition)
 nmap <silent> gy <Plug>(coc-type-definition)
@@ -184,7 +177,15 @@ nnoremap <silent><nowait> <leader>cp  :<C-u>CocListResume<CR>
 " use ctrl-p for CocList
 nnoremap <silent><nowait> <C-p> :<C-u>CocList<CR>
 
-nnoremap <silent><nowait> <C-o> :<C-U>CocOutline<CR>
+" use ctrl-o for CocOutline
+" nnoremap <silent><nowait> <C-o> :<C-U>CocOutline<CR>
+" use ctrl-q for CocDiagnostics
+" Use `[g` and `]g` to navigate diagnostics
+" Use `:CocDiagnostics` to get all diagnostics of current buffer in location list.
+nmap <silent><nowait> <C-q> :<c-u>CocDiagnostics<CR>
+nmap <silent> [g <Plug>(coc-diagnostic-prev)
+nmap <silent> ]g <Plug>(coc-diagnostic-next)
+
 
 function! SetupCommandAbbrs(from, to)
   exec 'cnoreabbrev <expr> '.a:from

@@ -114,8 +114,8 @@
   },
   // flutter
   "flutter.sdk.path": "~/dev/grepo_dart/flutter",
-  "flutter.trace.server": "verbose",
-  "flutter.lsp.debug": true,
+  "flutter.trace.server": "off",
+  "flutter.lsp.debug": false,
   // FIXME until coc-flutter fixed the integration problem with Flutter 2.5.0
   "flutter.lsp.initialization.onlyAnalyzeProjectsWithOpenFiles": false,
   "flutter.lsp.initialization.closingLabels": true,
