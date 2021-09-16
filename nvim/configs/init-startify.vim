@@ -7,6 +7,8 @@ let g:default_slogan = [
 \ '       `\ \ \/\ \L\ \ \ \ \ \/\ \L\.\_\ \ \ \ \/\ \L\ \ ',
 \ '         \ \_\ \____/\ \_\ \_\ \__/.\_\\ \_\ \_\ \____/ ',
 \ '          \/_/\/___/  \/_/\/_/\/__/\/_/ \/_/\/_/\/___/  ',
+\ '',
+\ '',
 \ ]
 
 let g:colossal_slogan=[
@@ -21,6 +23,8 @@ let g:colossal_slogan=[
       \'   .d88P                          ',
       \' .d88P"                           ',
       \'888P"                             ',
+\ '',
+\ '',
       \]
 
 let g:roman_slogan=[
@@ -32,6 +36,8 @@ let g:roman_slogan=[
       \'    888 888    .o 888    .o   888 .  888  ',
       \'.o. 88P `Y8bod8P` `Y8bod8P`   "888" o888o ',
       \'`Y888P                                    ',
+\ '',
+\ '',
       \]
 
 " TODO: use a morden figlet alternative program for cjk characters or
@@ -43,7 +49,47 @@ let g:cjk_slogan=[
 \ '   ⠠⠤⠴⠖⠛⠒⠒⠚⠶',
 \]
 
-let g:startify_custom_header= 'startify#center(g:roman_slogan)'
+" need to escape control sequence for Chinese qutoes
+" 杨花榆荚无才思，惟解漫天作雪飞。
+" [33m    -- 韩愈[32m《晚春》[m[m
+"
+function! s:padstr(str,amt)
+    return a:str . repeat(' ',a:amt - len(a:str))
+endfunction
+
+function s:longest(l) abort
+  let max=0
+  for line in a:l
+    let llen = strlen(line)
+    if llen > l:max
+      let l:max = llen
+    endif 
+  endfor
+  return max
+endfunction
+
+let s:quote=system('fortune chinese | sed -r "s/.\[[0-9]*m//g"')
+let s:quote_lines=split(s:quote,"\n")
+let s:max_line=s:longest(s:quote_lines)
+let s:quote_lines=map(s:quote_lines,{_,val->s:padstr(val, s:max_line)})
+let g:startify_custom_header= startify#center(g:roman_slogan) +
+      \ startify#pad(startify#center(s:quote_lines))
+
+let g:startify_bookmarks = [ {'c': '~/.vimrc'}, '~/.zshrc' ]
+" A list of commands to execute on selection. Leading colons are optional. It
+" supports optional custom indices and/or command descriptions.
+let g:startify_commands = [
+    \ ['Plug Config', 'PlugConfig'],
+    \ ':CocInfo',
+    \ {'h': 'h ref'},
+    \ ]
+" Startify displays lists. Each list consists of a `type` and optionally a `header`
+" an custom `indices`.
+let g:startify_lists = [
+      \ { 'type': 'dir',       'header': ['   MRU '. getcwd()] },
+      \ { 'type': 'bookmarks', 'header': ['   Bookmarks']      },
+      \ { 'type': 'commands',  'header': ['   Commands']       },
+      \ ]
 
 " Startup with NERDTree and Startify opened
 autocmd VimEnter *

@@ -1,5 +1,15 @@
 " NerdTree {{{
 
+" When displaying directory nodes, this setting tells NERDTree to collapse directories that have only one child. Use one of the following lines for this setting
+let NERDTreeCascadeSingleChildDir=0
+" This setting disables the 'Bookmarks' label 'Press ? for help' text. Use one
+" of the following lines for this setting: >
+let NERDTreeMinimalUI=1
+let NERDTreeShowHidden=1
+" Tells the NERDTree whether to display the bookmarks table on startup.
+let NERDTreeShowBookmarks=1
+" Where the bookmarks are stored.
+let NERDTreeBookmarksFile=expand("$HOME/.NERDTreeBookmarks")
 " Can be enabled or disabled
 let g:webdevicons_enable_nerdtree = 1
 " whether or not to show the nerdtree brackets around flags
