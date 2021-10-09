@@ -367,3 +367,5 @@ autoload -U +X bashcompinit && bashcompinit
 # }}}
 # profiling
 # zprof
+
+export PATH="$HOME/.poetry/bin:$PATH"

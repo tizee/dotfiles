@@ -27,3 +27,5 @@ emacs/recentf
 emacs/places
 emacs/history
 flutter
+clash
+zsh/vendor

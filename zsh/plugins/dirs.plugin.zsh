@@ -42,8 +42,8 @@ alias la='ls -lAh'
 if [[ $SYSTEM = Darwin ]];then 
   alias dev="cd ~/dev/"
   alias work="cd ~/dev/work/"
-  alias play="cd ~/dev/playground/"
+  # alias play="cd ~/dev/playground/"
   alias blog="cd ~/dev/SideProject/BlogPosts/"
-  alias side="cd ~/dev/SideProject/"
+  # alias side="cd ~/dev/SideProject/"
 fi
 alias dotconf="cd ~/.config"
