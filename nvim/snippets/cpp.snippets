@@ -115,8 +115,8 @@ int main() {
   auto start = std::chrono::high_resolution_clock::now();
 
 #ifndef OJ_TEST
-  freopen("testa/1", "r", stdin);
-  freopen("testa/1.test.out", "w", stdout);
+  freopen("test${1:`!p snip.rv = snip.basename`}/1", "r", stdin);
+  freopen("test${1:`!p snip.rv = snip.basename`}/1.test.out", "w", stdout);
 #endif
 
   FASTIO;
