@@ -28,7 +28,9 @@ function! s:handle_c_cpp_file(path)
     else
       " use global astyle config by default on pwd
       let opts = ["-s4",
-            \ "--attach-closing-while",
+            \"--indent-classes",
+            \"--indent-namespaces",
+            \"--attach-closing-while",
             \ "--indent-cases",
             \"--break-blocks",
             \"--add-braces",
