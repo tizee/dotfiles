@@ -3,8 +3,8 @@ snippet pt "phony targets" b
 .PHONY: ${1:install} ${2:uninstall}
 endsnippet
 
-# base
-snippet csetup
+# c
+snippet csetup "c setup"
 	.PHONY: clean, mrproper
 	CC = gcc
 	CFLAGS = -g -Wall
@@ -22,18 +22,88 @@ snippet csetup
 
 	mrproper: clean
 		rm -f $1
+endsnippet
+
+# cpp standard
+snippet cpp11 "c++11 2011"
+	c++11
+endsnippet
+
+snippet cpp11 "c++14 2014"
+	c++14
+endsnippet
+
+snippet cpp11 "c++17 2017"
+	c++17
+endsnippet
+
+snippet cpp20 "c++20 2020"
+	c++20
+endsnippet
+
+snippet cpp2b "c++11 202b"
+	c++2b
+endsnippet
+
+snippet gnucpp11 "gnu++11 2011"
+	gnu++11
+endsnippet
+
+snippet gnucpp14 "gnu++14 2014"
+	gnu++14
+endsnippet
+
+snippet gnucpp17 "gnu++17 2017"
+	gnu++17
+endsnippet
+
+snippet gnucpp20 "gnu++20 2020"
+	gnu++20
+endsnippet
+
+snippet gnucpp20 "gnu++2b 2023"
+	gnu++2b
+endsnippet
+
+# cpp
+snippet cppsetup "cplusplus setup" b
+	.PHONY: clean, mrproper
+	CC = g++
+	CFLAGS = -g -Wall -std=c++11
+
+	all: $1
+
+	%.o: %.cpp
+		$(CC) $(CFLAGS) -c -o $@ $<
+	
+	${1:out}: $1.o
+		$(CC) $(CFLAGS) -o $@ $+
+
+	clean:
+		rm -f *.o core.*
+
+	mrproper: clean
+		rm -f $1
+endsnippet
+
 # add
 snippet add
 	${1:out}: $1.o
 		$(CC) $(CFLAGS) -o $@ $+
+endsnippet
+
 # print
 snippet print
 	print-%: ; @echo $*=$($*)
+endsnippet
+
 # ifeq
 snippet if
 	ifeq (${1:cond0}, ${2:cond1})
 		${0:${VISUAL}}
 	endif
+endsnippet
+
 # ifeq ... else ... endif
 snippet ife
 	ifeq (${1:cond0}, ${2:cond1})
@@ -41,17 +111,24 @@ snippet ife
 	else
 		${0}
 	endif
+endsnippet
+
 # else ...
 snippet el
 	else
 		${0:${VISUAL}}
+endsnippet
+
 # .DEFAULT_GOAL := target
 snippet default
 	.DEFAULT_GOAL := ${1}
+endsnippet
+
 # help target for self-documented Makefile
 snippet help
 	help: ## Prints help for targets with comments
 		@cat $(MAKEFILE_LIST) | grep -E '^[a-zA-Z_-]+:.*?## .*$$' | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $\$1, $\$2}'
 	${0}
+endsnippet
 
 # vim:ft=make
