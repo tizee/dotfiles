@@ -25,6 +25,23 @@ function! s:handle_c_cpp_file(path)
       let project_root = substitute(astyle_config_path,".clang-format","","")
       let cmd = "cd " . '"'. project_root .'"' . " && astyle --project=.astylerc" . " " . a:path
       call system(cmd)
+    else
+      " use global astyle config by default on pwd
+      let opts = ["-s4",
+            \ "--attach-closing-while",
+            \ "--indent-cases",
+            \"--break-blocks",
+            \"--add-braces",
+            \"--break-return-type",
+            \"--mode=c",
+            \"--suffix=none",
+            \"--pad-comma",
+            \"--pad-oper",
+            \"--suffix=none",
+            \"--formatted"]
+      let cmd = "astyle " . join(opts," ") . " " . a:path
+      echom cmd
+      call system(cmd)
     endif
     execute ":e"
     echo "Format: " . a:path
