@@ -53,6 +53,6 @@ endfunction
 
 augroup astyle_group
   if g:formatter_auto_disabled == 0
-    autocmd! BufWritePost *.{c,cpp,h,hpp} call <SID>handle_c_cpp_file(expand("<afile>:p"))
+    autocmd! BufWritePost *.{c,cpp,cxx,h,hpp} call <SID>handle_c_cpp_file(expand("<afile>:p"))
   endif 
 augroup END "file_vim
