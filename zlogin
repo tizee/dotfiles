@@ -2,16 +2,20 @@
 
 # magicTmux message
 date
-echo "\033[94m Kilin is not kirlin"
-echo '    ___       ___       ___       ___       ___'
-echo '   /\__\     /\  \     /\__\     /\  \     /\__\ '
-echo '  /:/ _/_   _\:\  \   /:/  /    _\:\  \   /:| _|_'
-echo ' /::-"\__\ /\/::\__\ /:/__/    /\/::\__\ /::|/\__\'
-echo ' \;:;-",-" \::/\/__/ \:\  \    \::/\/__/ \/|::/  /'
-echo '  |:|  |    \:\__\    \:\__\    \:\__\     |:/  /'
-echo '   \|__|     \/__/     \/__/     \/__/     \/__/'
-echo "\033[m"
-fortune chinese
+if [[ $PROLOGUE_LOGO ]]; then
+  echo "\033[94m Kilin is not kirlin"
+  echo '    ___       ___       ___       ___       ___'
+  echo '   /\__\     /\  \     /\__\     /\  \     /\__\ '
+  echo '  /:/ _/_   _\:\  \   /:/  /    _\:\  \   /:| _|_'
+  echo ' /::-"\__\ /\/::\__\ /:/__/    /\/::\__\ /::|/\__\'
+  echo ' \;:;-",-" \::/\/__/ \:\  \    \::/\/__/ \/|::/  /'
+  echo '  |:|  |    \:\__\    \:\__\    \:\__\     |:/  /'
+  echo '   \|__|     \/__/     \/__/     \/__/     \/__/'
+  echo "\033[m"
+fi
+if [[ $PROLOGUE_FORTUNE ]]; then
+  fortune chinese
+fi
 
 # Execute code in the background to not affect the current session
 function zwc_watcher() {
