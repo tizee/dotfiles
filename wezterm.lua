@@ -1,5 +1,11 @@
 local wezterm = require 'wezterm';
 
+-- The filled in variant of the < symbol
+local SOLID_LEFT_ARROW = utf8.char(0xe0b2)
+
+-- The filled in variant of the > symbol
+local SOLID_RIGHT_ARROW = utf8.char(0xe0b0)
+
 wezterm.on("format-tab-title", function(tab, tabs, panes, config, hover, max_width)
   local edge_background = "#0b0022"
   local background = "#1b1032"
@@ -17,7 +23,7 @@ wezterm.on("format-tab-title", function(tab, tabs, panes, config, hover, max_wid
 
   -- ensure that the titles fit in the available space,
   -- and that we have room for the edges
-  local title = wezterm.truncate_to_width(tab.active_pane.title, max_width-2)
+  local title = wezterm.truncate_right(tab.active_pane.title, max_width-2)
 
   return {
     {Background={Color=edge_background}},
@@ -25,7 +31,7 @@ wezterm.on("format-tab-title", function(tab, tabs, panes, config, hover, max_wid
     {Text=SOLID_LEFT_ARROW},
     {Background={Color=background}},
     {Foreground={Color=foreground}},
-    {Text=title},
+    {Text=(tab.tab_index+1) .. ":" .. title},
     {Background={Color=edge_background}},
     {Foreground={Color=edge_foreground}},
     {Text=SOLID_RIGHT_ARROW},
@@ -36,6 +42,9 @@ return {
   -- general settings <-
   check_for_updates = true,
   exit_behavior="CloseOnCleanExit", -- only exit with a successful status
+  default_cursor_style = "SteadyUnderline",
+  -- http://www.leonerd.org.uk/hacks/fixterms/
+  enable_csi_u_key_encoding = true,
   -- ->
   -- window settings <-
   window_padding = {
@@ -66,8 +75,10 @@ return {
   -- ->
   -- hotkeys <-
   -- tmux uses CTRL-A
-  leader = { key="a", mods="CMD", timeout_milliseconds=1001 },
+  leader = { key="a", mods="CMD", timeout_milliseconds=1002 },
   keys = {
+     -- Send "CTRL-A" to the terminal when pressing LEADER-a
+    {key="a", mods="LEADER", action=wezterm.action{SendString="\x01"}},
     -- h,j,k,l move between panes
     {key="h", mods="LEADER", action=wezterm.action{ActivatePaneDirection="Left"}},
     {key="j", mods="LEADER", action=wezterm.action{ActivatePaneDirection="Down"}},
@@ -94,7 +105,13 @@ return {
   },
   -- ->
   -- IME
-  use_ime = false, -- conflict with leader mode, could submit a PR for this
+  -- https://github.com/wez/wezterm/pull/1096
+  send_composed_key_when_left_alt_is_pressed=false,
+  send_composed_key_when_right_alt_is_pressed=true,
+  use_ime = true, -- need to submit a PR for this
+  use_dead_keys= false, -- prevent combination 
+  -- debug by launching wezterm in other terminal
+  debug_key_events = true,
   color_scheme = "Dracula",
   -- font shaping that enables ligatures
   -- see https://docs.microsoft.com/en-us/typography/opentype/spec/featurelist
