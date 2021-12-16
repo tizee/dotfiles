@@ -80,8 +80,9 @@ export DENO_INSTALL=$HOME/.deno
 # rust cargo
 PATH="$HOME/.cargo/bin:$PATH"
 export CARGO_HOME="$HOME/.cargo"
-export RUSTUP_DIST_SERVER="https://mirrors.tuna.tsinghua.edu.cn/rustup"
 export CARGO_NET_GIT_FETCH_WITH_CLI=true
+# export RUSTUP_UPDATE_ROOT="https://mirrors.tuna.tsinghua.edu.cn/rustup/rustup"
+# export RUSTUP_DIST_SERVER="https://mirrors.tuna.tsinghua.edu.cn/rustup"
 # export RUSTC_WRAPPER=$(which sccache)
 # curl
 PATH="/usr/local/opt/curl/bin:$PATH"
@@ -235,8 +236,15 @@ if $is_macOS; then
 
   # openssl
   PATH="/usr/local/opt/openssl@1.1/bin:$PATH"
-  export OPENSSL_CFLAGS="-I/usr/local/opt/openssl@1.1/include"
-  export OPENSSL_LIBS="-L/usr/local/opt/openssl@1.1/lib"
+  # rust crate openssl-sys bug
+  # https://stackoverflow.com/questions/49263452/how-do-i-statically-link-the-openssl-sys-crate-into-a-shared-library
+  # export OPENSSL_DIR="/usr/local/opt/openssl@1.1"
+  # export OPENSSL_CFLAGS="-I/usr/local/opt/openssl@1.1/include"
+  # export OPENSSL_LIBS="-L/usr/local/opt/openssl@1.1/lib"
+  # export OPENSSL_LIB_DIR="-L/usr/local/opt/openssl@1.1/lib"
+  # export OPENSSL_INCLUDE_DIR="-L/usr/local/opt/openssl@1.1/include"
+  # export OPENSSL_ROOT_DIR="/usr/local/opt/openssl@1.1"
+  #export OPENSSL_STATIC=1
   #export LDFLAGS="-L/usr/local/opt/openssl@1.1/lib"
   #export CPPFLAGS="-I/usr/local/opt/openssl@1.1/include"
   #export PKG_CONFIG_PATH="/usr/local/opt/openssl@1.1/lib/pkgconfig"
