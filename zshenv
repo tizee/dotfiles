@@ -15,3 +15,6 @@ export XDG_CONFIG_DIR=$XDG_CONFIG_HOME/.config
 
 # Home-made scripts
 export PATH=$PATH:${HOME}/.bin
+
+# export PROLOGUE_LOGO=1
+# export PROLOGUE_FORTUNE=1

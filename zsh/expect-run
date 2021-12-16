@@ -1,0 +1,13 @@
+#!/usr/bin/expect -f
+# https://github.com/zimfw/zimfw/wiki/Speed
+
+set wd [file tail [pwd]]
+set c0 [clock microseconds]
+spawn -noecho zsh -li
+expect {
+  -re {\e](?:[0127]|1337);.*?(?:\a|\e\\)} { exp_continue } ; # match escape sequences to be ignored
+  $wd { send_error "[expr [clock microseconds] - $c0]\n" } ; # match working dir at prompt
+  timeout { exit 1 }
+}
+sleep 1
+send "exit\r"

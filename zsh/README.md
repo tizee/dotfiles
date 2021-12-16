@@ -17,3 +17,11 @@ By setting up your own config, you will learn:
 2. Zsh prompt variables
 
 3. bash-compatible zsh script
+
+## Benchmark in seconds
+
+Use script `expect-run` from [zsh-framework-benchmark](https://github.com/zimfw/zsh-framework-benchmark) to startup 100 times with only `$HOME/.zshrc`.
+
+| mean     | stddev     | min      | max      |
+| -------- | ---------- | -------- | -------- |
+| 0.035888 | 0.00523845 | 0.031587 | 0.067983 |
