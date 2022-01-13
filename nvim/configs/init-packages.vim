@@ -84,6 +84,9 @@ Plug '~/dev/grepo_vim/vim-oscyank'
 " vista for tags
 " could use :CocOutline directly
 Plug '~/dev/grepo_vim/vista.vim'
+" Leaderf
+Plug '~/dev/grepo_vim/LeaderF',{ 'do': ':LeaderfInstallCExtension' }
+
 " }}}
 call plug#end()
 " vim-plug autocmd {{{

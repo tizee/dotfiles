@@ -1,6 +1,6 @@
 # nvim
 
-I'd like to keep the configure minimal, but, mind changed since NeoVim used.
+I'd like to keep the configuration simple, but, mind changed since NeoVim used.
 
 ## Roadmap
 
