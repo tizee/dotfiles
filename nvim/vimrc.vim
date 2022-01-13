@@ -60,6 +60,9 @@ set timeoutlen=500
 " key code timeout
 set ttimeoutlen=256 
 
+" maximum amount of memory to use for pattern matching (in Kbyte)
+" avoid E363
+set maxmempattern=20000
 " regex magic
 set magic
 " modeline
@@ -225,6 +228,9 @@ set langmenu=en_US.UTF-8
 " ignore cases by default
 set ic
 
+" change directory automatically
+set autochdir
+
 " message
 " language messages en_US.utf-8
 
@@ -360,6 +366,7 @@ endif
 
 " }}}
 
+" cursor style {{{
 " Nvim does not have special `t_XX` options nor <t_XX> keycodes to configure
 " terminal capabilities. Instead Nvim treats the terminal as any other UI,
 " e.g. 'guicursor' sets the terminal cursor style if possible.
@@ -389,6 +396,7 @@ else
   " If you are a neovim user then you will need to install a terminfo file that tells neovim about this support.
   " see https://wezfurlong.org/wezterm/faq.html#how-do-i-enable-undercurl-curly-underlines
 endif
+" }}}
 
 if exists('#Dracula')
   let g:dracula_bold = 1

@@ -15,7 +15,7 @@ set t_BE=
 " TODO: check existence
 nnoremap <leader>ev :tabe $MYVIMRC<cr>
 nnoremap <leader>sv :source $MYVIMRC<cr>
-
+nnoremap <leader>n :set rnu!<CR>
 " disable arrow
 noremap <Down> <nop>
 noremap <Left> <nop>
