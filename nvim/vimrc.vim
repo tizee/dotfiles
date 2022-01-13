@@ -141,12 +141,16 @@ set tags=./tags;,.tags,tags;,./.tags;
 if has('persistent_undo')
   set undofile
   set undolevels=10240
-  set undodir=~/.config/nvim/tmp/undo,.
+  if has('nvim')
+    set undodir=~/.config/nvim/tmp/undo,.
+  else
+    silent !mkdir -p ~/.config/nvim/tmp/vim_undo
+    set undodir=~/.config/nvim/tmp/vim_undo,.
+  endif
 endif
 
 set laststatus=2
 if !has('gui_running')
-
   set t_Co=256
   " https://github.com/dracula/vim/issues/96
   let g:dracula_colorterm = 0
@@ -356,6 +360,35 @@ endif
 
 " }}}
 
+" Nvim does not have special `t_XX` options nor <t_XX> keycodes to configure
+" terminal capabilities. Instead Nvim treats the terminal as any other UI,
+" e.g. 'guicursor' sets the terminal cursor style if possible.
+if has('nvim')
+  augroup reset_nvim_cursor
+    autocmd! 
+    autocmd VimEnter,VimResume * set guicursor=n-v-c:block,i-ci-ve:ver25,r-cr:hor20,o:hor50
+		  \,a:blinkwait700-blinkoff400-blinkon250-Cursor/lCursor
+		  \,sm:block-blinkwait175-blinkoff150-blinkon175
+  augroup END "reset_nvim_cursor
+else
+  " vim
+  let &t_SI .= "\e[5 q" " SI = INSERT mode
+  let &t_SR .= "\e[3 q" " SR = REPLACE mode
+  let &t_EI .= "\e[1 q" " EI = NORMAL mode (ELSE)
+  " cursor style in terminal emulator
+  let &t_Cs = "\e[4:3m"
+  let &t_Ce = "\e[4:0m"
+  hi SpellBad guisp=red gui=undercurl guifg=NONE guibg=NONE ctermfg=NONE ctermbg=NONE term=underline cterm=undercurl ctermul=red
+  hi SpellCap guisp=yellow gui=undercurl guifg=NONE guibg=NONE ctermfg=NONE ctermbg=NONE term=underline cterm=undercurl ctermul=yellow
+  " Initialize cursor shape/color on startup
+  augroup reset_cursor_on_enter
+    autocmd!
+    autocmd VimEnter * normal! :startinsert :stopinsert
+    autocmd VimEnter * redraw!
+  augroup END
+  " If you are a neovim user then you will need to install a terminfo file that tells neovim about this support.
+  " see https://wezfurlong.org/wezterm/faq.html#how-do-i-enable-undercurl-curly-underlines
+endif
 
 if exists('#Dracula')
   let g:dracula_bold = 1
@@ -424,7 +457,6 @@ if !has('nvim')
   augroup END
   " }}}
 
-
   " python {{{
   aug ft_python
     autocmd!          | " Deletes all auto-commands in the current group
@@ -443,6 +475,7 @@ if !has('nvim')
     autocmd BufNewFile,BufRead *.go setlocal foldmethod=syntax foldlevel=3
   aug end
   " }}}
+
   " markdown {{{
   augroup ft_md
     autocmd FileType markdown setlocal spell spelllang=en_us
