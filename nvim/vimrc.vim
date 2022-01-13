@@ -66,11 +66,22 @@ set magic
 set modeline
 
 " shada
+" The ShaDa file is used to store:
+" - The command line history.
+" - The search string history.
+" - The input-line history.
+" - Contents of non-empty registers.
+" - Marks for several files.
+" - File marks, pointing to locations in files.
+" - Last search/substitute pattern (for 'n' and '&').
+" - The buffer list.
+" - Global variables.
 if has('nvim') && ! has('win32') && ! has('win64')
   set shada=!,'100,<50,s10,h
+  set shadafile=~/.config/nvim/tmp/nvim.shada
 else
   set viminfo='100,<10,@50,h,n$DATA_PATH/viminfo
-endif 
+endif
 
 " Secure sensitive information, disable backup files in temp directories
 if exists('&backupskip')
