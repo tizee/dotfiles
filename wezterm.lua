@@ -31,7 +31,7 @@ wezterm.on("format-tab-title", function(tab, tabs, panes, config, hover, max_wid
     {Text=SOLID_LEFT_ARROW},
     {Background={Color=background}},
     {Foreground={Color=foreground}},
-    {Text=(tab.tab_index+1) .. ":" .. title},
+    {Text=title},
     {Background={Color=edge_background}},
     {Foreground={Color=edge_foreground}},
     {Text=SOLID_RIGHT_ARROW},
@@ -53,10 +53,16 @@ return {
     top = 0,
     bottom = 0,
   },
+  window_decorations = "RESIZE",
+  window_background_opacity = 0.95,
+  -- macos
+  native_macos_fullscreen_mode = true,
   -- ->
   -- tab bar settings <-
   -- set to false to disable the tab bar completely
   enable_tab_bar = true,
+  use_fancy_tab_bar = false,
+  hide_tab_bar_if_only_one_tab = true,
   -- ->
   -- font settings <-
   font_size = 16,
@@ -77,7 +83,7 @@ return {
   -- tmux uses CTRL-A
   leader = { key="a", mods="CMD", timeout_milliseconds=1002 },
   keys = {
-     -- Send "CTRL-A" to the terminal when pressing LEADER-a
+     -- Send "CTRL-A" to the terminal when pressing LEADER-a for tmux
     {key="a", mods="LEADER", action=wezterm.action{SendString="\x01"}},
     -- h,j,k,l move between panes
     {key="h", mods="LEADER", action=wezterm.action{ActivatePaneDirection="Left"}},
@@ -108,7 +114,7 @@ return {
   -- https://github.com/wez/wezterm/pull/1096
   send_composed_key_when_left_alt_is_pressed=false,
   send_composed_key_when_right_alt_is_pressed=true,
-  use_ime = true, -- need to submit a PR for this
+  use_ime = true,
   use_dead_keys= false, -- prevent combination 
   -- debug by launching wezterm in other terminal
   debug_key_events = true,
