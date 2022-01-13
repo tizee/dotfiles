@@ -1,4 +1,5 @@
-<div align="center"
+<div align="center">
+
 # Dotfiles
 
 ![Last commit](https://img.shields.io/github/last-commit/tizee/dotfiles?style=flat-square)
