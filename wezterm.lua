@@ -45,6 +45,7 @@ return {
   default_cursor_style = "SteadyUnderline",
   -- http://www.leonerd.org.uk/hacks/fixterms/
   enable_csi_u_key_encoding = true,
+  force_reverse_video_cursor = true,
   -- ->
   -- window settings <-
   window_padding = {
@@ -65,7 +66,7 @@ return {
   hide_tab_bar_if_only_one_tab = true,
   -- ->
   -- font settings <-
-  font_size = 16,
+  font_size = 20,
   font = wezterm.font_with_fallback({
     {
       family="JetBrains Mono",
@@ -108,16 +109,30 @@ return {
     {key="q", mods="LEADER", action="QuickSelect"},
     -- reload configuration
     {key="r", mods="LEADER", action="ReloadConfiguration"},
+    -- move tab
+    {key="<", mods="LEADER", action=wezterm.action{MoveTabRelative=-1}},
+    {key=">", mods="LEADER", action=wezterm.action{MoveTabRelative=1}},
+    -- scroll
+    {key="1", mods="LEADER", action=wezterm.action{ScrollByPage=-0.5}},
+    {key="2", mods="LEADER", action=wezterm.action{ScrollByPage=0.5}},
+    -- Clears only the scrollback and leaves the viewport intact.
+    -- This is the default behavior.
+    -- {key="K", mods="LEADER", action=wezterm.action{ClearScrollback="ScrollbackOnly"}}
+    -- Clears the scrollback and viewport leaving the prompt line the new first line.
+    {key="K", mods="LEADER", action=wezterm.action{ClearScrollback="ScrollbackAndViewport"}}
   },
   -- ->
-  -- IME
+  -- IME <-
   -- https://github.com/wez/wezterm/pull/1096
   send_composed_key_when_left_alt_is_pressed=false,
   send_composed_key_when_right_alt_is_pressed=true,
   use_ime = true,
+  -- ->
+  -- key assignment debug <-
   use_dead_keys= false, -- prevent combination 
   -- debug by launching wezterm in other terminal
   debug_key_events = true,
+  -- ->
   color_scheme = "Dracula",
   -- font shaping that enables ligatures
   -- see https://docs.microsoft.com/en-us/typography/opentype/spec/featurelist
