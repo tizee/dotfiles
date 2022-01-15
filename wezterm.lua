@@ -47,6 +47,16 @@ return {
   enable_csi_u_key_encoding = true,
   force_reverse_video_cursor = true,
   -- ->
+-- mouse bindings <-
+  mouse_bindings = {
+    -- Bind 'Up' event of CTRL-Click to open hyperlinks
+    {
+      event={Up={streak=1, button="Left"}},
+      mods="CTRL",
+      action="OpenLinkAtMouseCursor",
+    },
+  },
+-- ->
   -- window settings <-
   window_padding = {
     left = 0,
