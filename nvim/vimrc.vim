@@ -379,6 +379,16 @@ if has('nvim')
   augroup END "reset_nvim_cursor
 else
   " vim
+  " CSI code for cursors
+  " CSI Ps SP q
+  " Set cursor style (DECSCUSR), VT520.
+  "   Ps = 0  -> blinking block.
+  "   Ps = 1  -> blinking block (default).
+  "   Ps = 2  -> steady block.
+  "   Ps = 3  -> blinking underline.
+  "   Ps = 4  -> steady underline.
+  "   Ps = 5  -> blinking bar (xterm).
+  "   Ps = 6  -> steady bar (xterm).
   let &t_SI .= "\e[5 q" " SI = INSERT mode
   let &t_SR .= "\e[3 q" " SR = REPLACE mode
   let &t_EI .= "\e[1 q" " EI = NORMAL mode (ELSE)
