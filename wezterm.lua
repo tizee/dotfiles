@@ -129,7 +129,7 @@ return {
     -- This is the default behavior.
     -- {key="K", mods="LEADER", action=wezterm.action{ClearScrollback="ScrollbackOnly"}}
     -- Clears the scrollback and viewport leaving the prompt line the new first line.
-    {key="K", mods="LEADER", action=wezterm.action{ClearScrollback="ScrollbackAndViewport"}}
+    {key="K", mods="CTRL", action=wezterm.action{ClearScrollback="ScrollbackAndViewport"}}
   },
   -- ->
   -- IME <-
