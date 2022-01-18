@@ -153,4 +153,4 @@ cmd + alt - 1 : yabai -m space --focus 1
     "google chrome"
 ]
 
-cmd - return : open /Applications/Alacritty.app
+cmd - return : open /Applications/WezTerm.app
