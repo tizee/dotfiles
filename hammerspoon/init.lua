@@ -83,42 +83,43 @@ end
 -- window manager
 require("wm")
 
+-- DEPRECATED since we use wm.lua 
 -- Move/resize windows within a grid <-
-grid.GRIDWIDTH = 8
-grid.GRIDHEIGHT = 8
-grid.MARGINX = 0
-grid.MARGINY = 0
+-- grid.GRIDWIDTH = 8
+-- grid.GRIDHEIGHT = 8
+-- grid.MARGINX = 0
+-- grid.MARGINY = 0
 
-local gw = grid.GRIDWIDTH
-local gh = grid.GRIDHEIGHT
+-- local gw = grid.GRIDWIDTH
+-- local gh = grid.GRIDHEIGHT
 
-local grid_config = {
-  middle = {x = 1, y = 1, w = 6, h = 6},
-  center = {x = 1, y = 1, w = 4, h = 4},
-  large = {x = 0, y = 0, w = gw, h = gh},
-}
+-- local grid_config = {
+--   middle = {x = 1, y = 1, w = 6, h = 6},
+--   center = {x = 1, y = 1, w = 4, h = 4},
+--   large = {x = 0, y = 0, w = gw, h = gh},
+-- }
 
-hotkey.bind(
-    hyper,
-    "G",
-    function()
-        grid.set(hs.window.focusedWindow(), grid_config.middle)
-    end
-)
-hotkey.bind(
-    hyper,
-    "H",
-    function()
-        grid.set(hs.window.focusedWindow(), grid_config.center)
-    end
-)
-hotkey.bind(
-    hyper,
-    "L",
-    function()
-        grid.set(hs.window.focusedWindow(), grid_config.large)
-    end
-)
+-- hotkey.bind(
+--     hyper,
+--     "G",
+--     function()
+--         grid.set(hs.window.focusedWindow(), grid_config.middle)
+--     end
+-- )
+-- hotkey.bind(
+--     hyper,
+--     "H",
+--     function()
+--         grid.set(hs.window.focusedWindow(), grid_config.center)
+--     end
+-- )
+-- hotkey.bind(
+--     hyper,
+--     "L",
+--     function()
+--         grid.set(hs.window.focusedWindow(), grid_config.large)
+--     end
+-- )
 -- ->
 
 -- Show current App Info
