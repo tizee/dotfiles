@@ -4,7 +4,6 @@ require('hs.hotkey').setLogLevel("warning")
 -- local var from hammerspoon
 local hotkey = require('hs.hotkey')
 local alert = require('hs.alert')
-local window = require('hs.window')
 local application = require('hs.application')
 local pathwatcher = require('hs.pathwatcher')
 local hints = require('hs.hints')
@@ -16,15 +15,11 @@ local grid = require('hs.grid')
 local hyper = {"cmd","shift"}
 local CONFIG_PATH = os.getenv("HOME") .. "/.hammerspoon/"
 
--- basic config <-
--- auto-reload
-G_Config = {
-  -- whether auto-reload configuration when changed
-  auto_reload = false
-}
+-- config <-
+HS_Config = require('config')
 
 -- no animation
-window.animationDuration = 0.0
+hs.window.animationDuration = 0.0
 
 -- This controls the set of characters that will be used for window hints. They must be characters found in hs.keycodes.map
 hints.hintChars = {"J","K","H","L","A","S","D","F"}
@@ -85,7 +80,8 @@ end
 
 -- ehanced macOS <-
 
--- TODO: window manager
+-- window manager
+require("wm")
 
 -- Move/resize windows within a grid <-
 grid.GRIDWIDTH = 8
@@ -106,21 +102,21 @@ hotkey.bind(
     hyper,
     "G",
     function()
-        grid.set(window.focusedWindow(), grid_config.middle)
+        grid.set(hs.window.focusedWindow(), grid_config.middle)
     end
 )
 hotkey.bind(
     hyper,
     "H",
     function()
-        grid.set(window.focusedWindow(), grid_config.center)
+        grid.set(hs.window.focusedWindow(), grid_config.center)
     end
 )
 hotkey.bind(
     hyper,
     "L",
     function()
-        grid.set(window.focusedWindow(), grid_config.large)
+        grid.set(hs.window.focusedWindow(), grid_config.large)
     end
 )
 -- ->
@@ -133,8 +129,8 @@ hotkey.bind(
         alert.show(
             string.format(
                 "App path:      %s\nApp name:      %s\nIM source id:  %s",
-                window.focusedWindow():application():path(),
-                window.focusedWindow():application():name(),
+                hs.window.focusedWindow():application():path(),
+                hs.window.focusedWindow():application():name(),
                 hs.keycodes.currentSourceID()
             )
         )
@@ -207,7 +203,7 @@ local function reloadConfig(files)
         hs.reload()
     end
 end
-if G_Config.auto_reload then
+if HS_Config.auto_reload then
   local configWatcher = pathwatcher.new(os.getenv("HOME") .. "/.hammerspoon/", reloadConfig)
   configWatcher.start()
 end
