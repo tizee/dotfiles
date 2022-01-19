@@ -22,8 +22,8 @@ repr_dict = _repr_dict
 pp = pprint.pprint
 json_dumps = _json_dumps
 
-pp("(imported datetime, os, pprint, re, sys, time, json)")
-pp("(00-startup.py)")
+print("(imported datetime, os, pprint, re, sys, time, json)")
+print("(00-startup.py)")
 
 try:
     import matplotlib.pyplot as plt
