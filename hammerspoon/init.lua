@@ -7,7 +7,6 @@ local alert = require('hs.alert')
 local application = require('hs.application')
 local pathwatcher = require('hs.pathwatcher')
 local hints = require('hs.hints')
-local osascript = require('hs.osascript')
 local grid = require('hs.grid')
 
 -- hyper key
@@ -33,7 +32,6 @@ hotkey.bind("ctrl","tab",function ()
   hints.windowHints()
 end)
 
-
 -- hs alert style
 alert.defaultStyle.strokeColor = {white = 1, alpha = 0}
 alert.defaultStyle.fillColor = {white = 0.05, alpha = 0.85}
@@ -43,45 +41,10 @@ alert.defaultStyle.textFont = "Fira Code Regular"
 alert.defaultStyle.textSize = 30
 -- ->
 
--- util <-
--- read file content
-local function read_file_content(full_path)
-  -- make sure resolve symlink
-  local file = io.open(full_path,"r")
-  local data = file:read("*a")
-  file:close()
-  return data
-end
-
-local function toggle_app(name)
-  -- find running app with given name
-  local app = application.find(name)
-  if not app then
-    -- app = nil
-    application.launchOrFocus(name)
-    return
-  end
-  -- toggle max window
-  local mainWin = app:mainWindow()
-  if not mainWin then
-    -- no windows
-    application.launchOrFocus(name)
-  elseif app:isFrontmost() == true then
-    mainWin:application():hide()
-  else
-    -- bring front most all its windows
-    mainWin:application():activate(true)
-    mainWin:application():unhide()
-    mainWin:focus()
-  end
-end
-
--- ->
-
 -- ehanced macOS <-
 
--- window manager
-require("wm")
+require("window-layout-mode")
+require("quick-action-mode")
 
 -- Show current App Info
 hotkey.bind(
@@ -98,29 +61,6 @@ hotkey.bind(
         )
     end
 )
-
--- shortcuts to common Apps
-local apps = {
-  -- browser
-  b = "Firefox Developer Edition",
-  -- It's duplicate with my skhd settings but I don't mind
-  t = "WezTerm",
-  j = "Telegram",
-  -- music
-  m = "NeteaseMusic",
-  f = "Finder",
-}
-for key,app in pairs(apps) do
-  hotkey.bind(hyper,key,function ()
-    toggle_app(app)
-  end)
-end
-
--- toggle dark mode
-hotkey.bind(hyper,"D",function ()
-  osascript.applescript(read_file_content(CONFIG_PATH .. "scripts/" .. "toggle_darkmode.applescript"))
-  alert.show("Toggle Dark Mode")
-end)
 
 -- simple menubar item
 local caffeine = hs.menubar.new()
@@ -153,7 +93,7 @@ local finderWatcher = application.watcher.new(applicationWatcher)
 finderWatcher:start()
 -- ->
 
--- reload config
+-- auto-reload config
 local function reloadConfig(files)
     doReload = false
     for _,file in pairs(files) do
@@ -170,8 +110,5 @@ if HS_Config.auto_reload then
   configWatcher.start()
 end
 
-hotkey.bind(hyper, "R", function()
-  hs.reload()
-end)
 alert.show(string.format("Config loaded under\n %s",CONFIG_PATH))
 -- vim:foldmarker=<-,-> foldmethod=marker

@@ -21,6 +21,21 @@ return {
     -- { {},         kn',      'nextScreen' },
     -- { {},         'right',  'moveOneScreenEast' },
     -- { {},         'left',   'moveOneScreenWest' },
+  },
+},
+  quickActionMappings = {
+  modifiers = {'ctrl'},
+  showHelp  = true,
+  trigger   = 't',
+  mappings  = {
+    { {},         'd', 'toggleDarkMode' },
+    { {},         'r',  'reloadConfig' },
+    { {},         'h',      'Firefox' },
+    { {},         'j',      'OmniFocus' },
+    { {},         'k',      'NeteaseMusic' },
+    { {},         'l',      'Obsidian' },
+    { {},         'f',      'Finder' },
+    { {},         's',      'Telegram' },
+  },
   }
-}
 }
