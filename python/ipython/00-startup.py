@@ -31,7 +31,6 @@ try:
     import pandas as pd
     import requests
 except ImportError as e :
-    pp("fail to import ", e)
     pass
 
 def is_reload():
