@@ -132,6 +132,8 @@ PATH="/usr/local/opt/krb5/sbin:$PATH"
 
 # macOS <-
 if $is_macOS; then
+  # mame
+  alias mamed='/usr/local/Cellar/mame/0.234/share/mame/mamed'
   # emacs
   PATH="/Applications/Emacs.app/Contents/MacOS/bin:$PATH"
   # plan9port
@@ -140,10 +142,11 @@ if $is_macOS; then
   # texinfo
   PATH="/usr/local/opt/texinfo/bin:$PATH"
   # harfbuzz
-  export HARFBUZZ_CFLAGS="-I/usr/local/opt/harfbuzz/include/harfbuzz"
+  export HARFBUZZ_CFLAGS="-I/usr/local/opt/harfbuzz/include"
   export HARFBUZZ_LIBS="-L/usr/local/opt/harfbuzz/lib"
   # freetype
-  # export FREETYPE_CFLAGS="-I/usr/local/opt/freetype2/include/freetype2" 
+  export FREETYPE_CFLAGS="-I/usr/local/opt/freetype2/include"
+  export FREETYPE_LIBS="-L/usr/local/opt/freetype2/lib"
   # haskell
   [ -f "$HOME/.ghcup/env" ] && source "$HOME/.ghcup/env" # ghcup-env
   PATH="$HOME/.cabal/bin:$HOME/.ghcup/bin:$PATH"
@@ -238,7 +241,7 @@ if $is_macOS; then
   PATH="/usr/local/opt/openssl@1.1/bin:$PATH"
   # rust crate openssl-sys bug
   # https://stackoverflow.com/questions/49263452/how-do-i-statically-link-the-openssl-sys-crate-into-a-shared-library
-  # export OPENSSL_DIR="/usr/local/opt/openssl@1.1"
+ export OPENSSL_DIR="/usr/local/opt/openssl@1.1"
   # export OPENSSL_CFLAGS="-I/usr/local/opt/openssl@1.1/include"
   # export OPENSSL_LIBS="-L/usr/local/opt/openssl@1.1/lib"
   # export OPENSSL_LIB_DIR="-L/usr/local/opt/openssl@1.1/lib"
@@ -316,10 +319,9 @@ if $is_macOS; then
     # else
     #   export COLEMAK_KEYBOARD=0
     # fi
-    
     # hard-coded values of /etc/zprofile
-
-
+  export SSH_AUTH_SOCK=$(gpgconf --list-dirs agent-ssh-socket)
+  gpgconf --launch gpg-agent
 fi
 # ->
 
