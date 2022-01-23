@@ -288,7 +288,7 @@ fi
 
 # lazy load functions
 # insert at head
-fpath=($ZSHDIR/autoloaded "${fpath[@]}") 
+fpath=($ZSHDIR/autoloaded $HOME/.config/zfunc "${fpath[@]}")
 autoload -Uz $fpath[1]/*(.:t)
 
 ## plugins
@@ -369,3 +369,4 @@ autoload -U +X bashcompinit && bashcompinit
 # zprof
 
 export PATH="$HOME/.poetry/bin:$PATH"
+
