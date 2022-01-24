@@ -11,6 +11,10 @@
   "diagnostic.hintSign": "",
   "diagnostic.errorSign": "✗",
   "diagnostic.warningSign": "!",
+  // lua
+  "sumneko-lua.enable": true,
+  "sumneko-lua.enableNvimLuaDev": true,
+  "sumneko-lua.inlayHints.refreshOnInsertMode": false,
   // codelens
   "codeLens.enable": true,
   "codeLens.separator": " ",
