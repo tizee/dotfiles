@@ -54,6 +54,8 @@ Plug 'wakatime/vim-wakatime'
 Plug '~/dev/grepo_vim/coc.nvim'
 " keyboard layout
 Plug 'tizee/keyboard.vim'
+" Chinese format
+Plug 'hotoo/pangu.vim'
 " golang
 " conflict with coc-go
 " Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
