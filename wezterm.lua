@@ -87,7 +87,10 @@ return {
       family="JetBrainsMono Nerd Font",
       weight="Bold"
     },
-    "SimHei" -- for Chinese or Japanese
+    {
+      family="LXGW WenKai Mono", -- for Chinese or Japanese
+      weight="Regular"
+    }
     }),
   -- ->
   -- hotkeys <-
