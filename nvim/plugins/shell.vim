@@ -2,6 +2,7 @@ if exists('loaded_shell_vim') || &cp || v:version < 700
   finish
 endif
 let g:loaded_shell_vim = 1
+" idea from https://www.mahmoudashraf.dev/blog/no-more-postman-just-curl-and-vim/
 " execute current buffer as zsh script
 command! -nargs=0 ZshExec set splitright | vnew | set filetype=zsh | read !zsh #
 command! -nargs=0 BashExec set splitright | vnew | set filetype=bash | read !bash #
