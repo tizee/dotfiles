@@ -230,5 +230,16 @@ function wm_utils.nextScreen()
   end
 end
 
+function wm_utils.win1140x700()
+  local win = hs.window.focusedWindow()
+  local f = win:frame()
+
+  f.x = 0
+  f.y = 0
+  f.w = 1140
+  f.h = 700
+  win:setFrame(f)
+end
+
 -- window layout mode
 return mode_comp.new("Window Layout Mode","F16",HS_Config.windowMappings,wm_utils)

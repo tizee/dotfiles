@@ -18,6 +18,7 @@ return {
     { {},         'o',      'upRight' },
     { {},         ',',      'downLeft' },
     { {},         '.',      'downRight' },
+    { {},         '1',      'win1140x700' },
     -- { {},         kn',      'nextScreen' },
     -- { {},         'right',  'moveOneScreenEast' },
     -- { {},         'left',   'moveOneScreenWest' },
