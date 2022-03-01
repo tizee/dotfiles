@@ -115,8 +115,8 @@ export COLORTERM=truecolor
 
 # replace cat with bat
 if [ "$(command -v bat)" ]; then
-  unalias -m 'cat'
-  alias cat='bat -pp --theme="Nord"'
+  # unalias -m 'cat'
+  alias bat='bat -pp --theme="Nord"'
 fi
 export MANPAGER="sh -c 'col -bx | bat -l man -p'"
 
