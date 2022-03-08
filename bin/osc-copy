@@ -1,0 +1,11 @@
+#!/usr/bin/env zsh
+# copy via OSC 52
+osc_buf=$(cat "$@")
+osc_len=$(printf %s "$buf" | wc -c)
+osc_max=74994
+test $osc_len -gt $osc_max && echo "$0: input is $(( osc_len - osc_max )) bytes too long" >&2
+# OSC 52 format: osc 52 + base64(input)
+printf "\033]52;c;$(printf %s "$osc_buf" | head -c $osc_max | base64 | tr -d '\r\n' )\a"
+unset osc_but
+unset osc_len
+unset osc_max
