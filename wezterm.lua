@@ -40,6 +40,7 @@ end)
 
 return {
   -- general settings <-
+  colors = { compose_cursor = "green" },
   check_for_updates = true,
   exit_behavior="CloseOnCleanExit", -- only exit with a successful status
   default_cursor_style = "SteadyUnderline",
