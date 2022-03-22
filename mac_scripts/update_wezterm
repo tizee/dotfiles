@@ -1,0 +1,7 @@
+#!/usr/bin/env zsh
+if ! [ -x "$(command -v brew)" ]; then
+  echo "homebrew hasn't been installed yet"
+  exit 1
+else
+  brew upgrade --cask wezterm-nightly --no-quarantine --greedy-latest
+fi
