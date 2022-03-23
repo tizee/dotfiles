@@ -17,7 +17,6 @@ function vi-accept-line() {
 
 zle -N vi-accept-line
 
-
 bindkey -v
 
 # use custom accept-line widget to update $VI_KEYMAP

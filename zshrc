@@ -8,7 +8,8 @@
 # zmodload zsh/zprof
 
 ######################
-# Prompt
+# Prompt 
+# more details on https://zsh.sourceforge.io/Doc/Release/Prompt-Expansion.html
 ######################
 # {{{
 #     __ __    _            _    __   _                
@@ -18,13 +19,16 @@
 # /_/ |_|  /_/  /_/     /_/  /_/  /_/  /_/ /_/   \___/ 
 #                                                      
 # modified from gitstaus
-# TODO tidy code up
 
 zmodload zsh/datetime
 # Source gitstatus.plugin.zsh from $GITSTATUS_DIR or from the same directory
 # in which the current script resides if the variable isn't set.
 export GITSTATUS_DIR=${GITSTATUS_DIR:-"/usr/local/opt/gitstatus"}
-source "${GITSTATUS_DIR:-${${(%):-%x}:h}}/gitstatus.plugin.zsh" || return
+if [ -d $GITSTATUS_DIR ]; then
+  source "${GITSTATUS_DIR:-${${(%):-%x}:h}}/gitstatus.plugin.zsh" || return
+else
+  echo "gitstatus not found"
+fi
 
 # Sets GITSTATUS_PROMPT to reflect the state of the current git repository. Empty if not
 # in a git repository. In addition, sets GITSTATUS_PROMPT_LEN to the number of columns
@@ -129,10 +133,13 @@ function prompt_check_cmd_exec_time() {
 	}
 }
 
-function gitstatus_prompt_update() {
-  setopt localoptions noshwordsplit
+function cmd_exec_time_helper() {
   prompt_check_cmd_exec_time
   unset prompt_cmd_timestamp
+}
+
+function gitstatus_prompt_update() {
+  setopt localoptions noshwordsplit
   # emulate -L zsh
   typeset -g  GITSTATUS_PROMPT=''
   typeset -gi GITSTATUS_PROMPT_LEN=0
@@ -189,7 +196,7 @@ function gitstatus_prompt_update() {
   # ?42 if have untracked files. It's really a question mark, your font isn't broken.
   (( VCS_STATUS_NUM_UNTRACKED  )) && p+=" ${untracked}?${VCS_STATUS_NUM_UNTRACKED}"
   # Execution time
-  [[ -n $prompt_cmd_exec_time ]] && p+=" %F{229}${prompt_cmd_exec_time}"
+  # [[ -n $prompt_cmd_exec_time ]] && p+="%F{229} ${prompt_cmd_exec_time}"
 
   GITSTATUS_PROMPT="${p}%f"
 
@@ -210,22 +217,56 @@ function prompt_preexec() {
 autoload -Uz add-zsh-hook
 add-zsh-hook preexec prompt_preexec
 add-zsh-hook precmd gitstatus_prompt_update
+add-zsh-hook precmd cmd_exec_time_helper
 
 # Enable/disable the right prompt options.
 setopt no_prompt_bang prompt_percent prompt_subst
 
 # The current directory gets truncated from the left if the whole prompt doesn't fit on the line.
-local execute_color="%(?.${limegreen}.${red})"
-local error_code="%(?..×%? )"
-local default_path='<…<%6~%<<'
+
+local err_color="%(?.${limegreen}.${red})"
+local return_code="%(?.. ×%?)"
+local default_path="<…<%6~%<<"
+# local shell_symbol='ᐅ'
+local shell_symbol='$'
+local prompt_symbol="%(!.${shell_symbol}#.${shell_symbol})"
+# only run once
+case $SYSTEM in
+  Darwin)
+    local sys_icon=' '
+    sys_icon+=$(sw_vers -productVersion)
+    ;;
+  Linux)
+    local sys_icon=' '
+    sys_icon+=$(uname -r)
+    ;;
+esac
+
 # source "${${(%):-%x}:h}/fish_like_collapsed.zsh"
-PROMPT=' %(!,ROOT,)'
-PROMPT+='%{$cyan%}% [${SYSTEM}]%f '
-PROMPT+='%{$cyan%}%$((-GITSTATUS_PROMPT_LEN-1))${default_path}%f'  # blue current working directory
-PROMPT+='%B${GITSTATUS_PROMPT:+ $GITSTATUS_PROMPT}%b'      # git status
-PROMPT+=$'\n'                                          # new line
-PROMPT+='%{$execute_color%}%{$error_code%}%(!.#.ᐅ)%f '                         # %/# (normal/root); green/red (ok/error)
-RPROMPT=""
+# $COLUMNS terminal width
+
+function update_tz_prompt() {
+  NEWLINE=$'\n'
+  prompt_top_left="%(!,ROOT,)"
+  prompt_top_left+="%{$grey%}% ${sys_icon}%{$cyan%}%f "
+  prompt_err_code="%{(%)-$return_code}"
+  prompt_top_left+="%{$cyan%}%$((COLUMNS-2*GITSTATUS_PROMPT_LEN))${default_path}%f"
+  prompt_top_right="%B${(r:$GITSTATUS_PROMPT_LEN+1:: :)${GITSTATUS_PROMPT:+ $GITSTATUS_PROMPT}}"
+  prompt_input_line="$NEWLINE%b$err_color%{$prompt_symbol%}%f  "
+  prompt_command_time="%F{229} ${prompt_cmd_exec_time}%f"
+  PROMPT='${prompt_top_left}${prompt_top_right}${prompt_input_line}'
+  RPROMPT='$err_color${return_code} %{$cyan%}[%D{%L:%M:%S %p}]%f'
+  [[ -n $prompt_cmd_exec_time ]] && RPROMPT+=$prompt_command_time
+}
+
+# trick from 2007!
+# http://www.zsh.org/mla/users/2007/msg00944.html
+# TMOUT=1
+# TRAPALRM() {
+    # zle reset-prompt
+# }
+
+add-zsh-hook precmd update_tz_prompt
 # }}}
 
 export ZSHDIR=$HOME/.config/zsh
@@ -242,7 +283,7 @@ setopt CORRECT
 #setopt CORRECT_ALL
 setopt auto_cd # automatic cd to a directory without leading cd
 setopt multios
-setopt prompt_subst
+# setopt prompt_subst
 zstyle ':completion:*' rehash true # refresh autocompletion
 
 ## History file configuration {{{
