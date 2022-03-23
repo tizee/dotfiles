@@ -133,6 +133,7 @@ function prompt_check_cmd_exec_time() {
 	}
 }
 
+  # Execution time
 function cmd_exec_time_helper() {
   prompt_check_cmd_exec_time
   unset prompt_cmd_timestamp
@@ -195,8 +196,6 @@ function gitstatus_prompt_update() {
   (( VCS_STATUS_NUM_UNSTAGED   )) && p+=" ${modified}!${VCS_STATUS_NUM_UNSTAGED}"
   # ?42 if have untracked files. It's really a question mark, your font isn't broken.
   (( VCS_STATUS_NUM_UNTRACKED  )) && p+=" ${untracked}?${VCS_STATUS_NUM_UNTRACKED}"
-  # Execution time
-  # [[ -n $prompt_cmd_exec_time ]] && p+="%F{229} ${prompt_cmd_exec_time}"
 
   GITSTATUS_PROMPT="${p}%f"
 
@@ -230,6 +229,7 @@ local default_path="<…<%6~%<<"
 # local shell_symbol='ᐅ'
 local shell_symbol='$'
 local prompt_symbol="%(!.${shell_symbol}#.${shell_symbol})"
+local NEWLINE=$'\n'
 # only run once
 case $SYSTEM in
   Darwin)
@@ -243,14 +243,13 @@ case $SYSTEM in
 esac
 
 # source "${${(%):-%x}:h}/fish_like_collapsed.zsh"
-# $COLUMNS terminal width
 
+# $COLUMNS terminal width
 function update_tz_prompt() {
-  NEWLINE=$'\n'
   prompt_top_left="%(!,ROOT,)"
   prompt_top_left+="%{$grey%}% ${sys_icon}%{$cyan%}%f "
   prompt_err_code="%{(%)-$return_code}"
-  prompt_top_left+="%{$cyan%}%$((COLUMNS-2*GITSTATUS_PROMPT_LEN))${default_path}%f"
+  prompt_top_left+="%{$cyan%}%$((COLUMNS-GITSTATUS_PROMPT_LEN))${default_path}%f"
   prompt_top_right="%B${(r:$GITSTATUS_PROMPT_LEN+1:: :)${GITSTATUS_PROMPT:+ $GITSTATUS_PROMPT}}"
   prompt_input_line="$NEWLINE%b$err_color%{$prompt_symbol%}%f  "
   prompt_command_time="%F{229} ${prompt_cmd_exec_time}%f"
