@@ -213,6 +213,8 @@ imap <C-j> <Plug>(coc-snippets-expand-jump)
 
 " Use <leader>x for convert visual selected code to snippet
 xmap <leader>x  <Plug>(coc-convert-snippet)
+" Use <leader>x to close all floating windows in some buggy situations
+nmap <expr> <leader>x  coc#float#close_all()
 
 inoremap <silent><expr> <TAB>
       \ pumvisible() ? coc#_select_confirm() :
