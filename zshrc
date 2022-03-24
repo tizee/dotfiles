@@ -254,14 +254,13 @@ function update_tz_prompt() {
   prompt_top_left="%(!,[ROOT],)%1m "
   prompt_top_left+="%{$grey%}% ${sys_icon}%f "
   prompt_top_left+="%{$cyan%}${prompt_path}%f"
-  prompt_top_right="%B${GITSTATUS_PROMPT:+ $GITSTATUS_PROMPT}%f "
+  prompt_top_right="%B${GITSTATUS_PROMPT:+ $GITSTATUS_PROMPT}%f ${PROMPT_ZLE_MODE}"
   left=${(S)prompt_top_left//$~invisible}
   right=${(S)prompt_top_right//$~invisible}
   (( prompt_top_len=${#left}+${#right}))
-  prompt_padding="${(l,COLUMNS-prompt_top_len-4,)}"
   prompt_input_line="$NEWLINE%b$err_color$prompt_symbol%f "
   prompt_command_time="%F{229} ${prompt_cmd_exec_time}%f"
-  PROMPT='${prompt_top_left}${prompt_top_right}${PROMPT_ZLE_MODE}${prompt_input_line}'
+    PROMPT='${prompt_top_left}${prompt_top_right}${prompt_input_line}'
   RPROMPT="$err_color${return_code}%f "
   #RPROMPT=${(%):-'%B[%D{%L:%M:%S %p}]%f'}
   [[ -n $prompt_cmd_exec_time ]] && RPROMPT+=$prompt_command_time" "
