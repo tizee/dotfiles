@@ -251,7 +251,7 @@ esac
 function update_tz_prompt() {
   typeset -g PROMPT_ZLE_MODE="%{%F{159}%}[insert]%f"
   prompt_path="%$COLUMNS<…<%6~%<<"
-  prompt_top_left="%(!,[ROOT],)"
+  prompt_top_left="%(!,[ROOT],)%1m "
   prompt_top_left+="%{$grey%}% ${sys_icon}%f "
   prompt_top_left+="%{$cyan%}${prompt_path}%f"
   prompt_top_right="%B${GITSTATUS_PROMPT:+ $GITSTATUS_PROMPT}%f "
