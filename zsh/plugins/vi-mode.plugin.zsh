@@ -3,8 +3,16 @@
 function zle-keymap-select() {
   # update keymap variable for the prompt
   VI_KEYMAP=$KEYMAP
-
-  zle reset-prompt
+  PROMPT_ZLE_OLDMODE=$PROMPT_ZLE_MODE
+   case $KEYMAP in
+    (main)
+      case $ZLE_STATE in
+        (*insert*) PROMPT_ZLE_MODE="[insert]";;
+        (*) PROMPT_ZLE_MODE="[overwrite]"
+      esac;;
+    (*) PROMPT_ZLE_MODE="[$KEYMAP]"
+  esac
+  [[ $PROMPT_ZLE_MODE = $PROMPT_ZLE_OLDMODE ]] || zle reset-prompt
   zle -R
 }
 

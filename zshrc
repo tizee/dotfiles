@@ -200,7 +200,10 @@ function gitstatus_prompt_update() {
   GITSTATUS_PROMPT="${p}%f"
 
   # The length of GITSTATUS_PROMPT after removing %f and %F.
-  GITSTATUS_PROMPT_LEN="${(m)#${${GITSTATUS_PROMPT//\%\%/x}//\%(f|<->F)}}"
+  local invisible='%([BSUbfksu]|([FBK]|){*})'
+  local visible_git_prompt=${(S)GITSTATUS_PROMPT//$~invisible}
+  # GITSTATUS_PROMPT_LEN="${(m)#${${GITSTATUS_PROMPT//\%\%/x}//\%(f|<->F)}}"
+  GITSTATUS_PROMPT_LEN="${(m)#visible_git_prompt}"
 }
 
 # Start gitstatusd instance with name "MY". The same name is passed to
@@ -224,12 +227,12 @@ setopt no_prompt_bang prompt_percent prompt_subst
 # The current directory gets truncated from the left if the whole prompt doesn't fit on the line.
 
 local err_color="%(?.${limegreen}.${red})"
-local return_code="%(?.. ×%?)"
-local default_path="<…<%6~%<<"
+local return_code="%(?..%?)"
 # local shell_symbol='ᐅ'
 local shell_symbol='$'
 local prompt_symbol="%(!.${shell_symbol}#.${shell_symbol})"
 local NEWLINE=$'\n'
+local invisible='%([BSUbfksu]|([FBK]|){*})'
 # only run once
 case $SYSTEM in
   Darwin)
@@ -246,16 +249,22 @@ esac
 
 # $COLUMNS terminal width
 function update_tz_prompt() {
-  prompt_top_left="%(!,ROOT,)"
-  prompt_top_left+="%{$grey%}% ${sys_icon}%{$cyan%}%f "
-  prompt_err_code="%{(%)-$return_code}"
-  prompt_top_left+="%{$cyan%}%$((COLUMNS-GITSTATUS_PROMPT_LEN))${default_path}%f"
-  prompt_top_right="%B${(r:$GITSTATUS_PROMPT_LEN+1:: :)${GITSTATUS_PROMPT:+ $GITSTATUS_PROMPT}}"
-  prompt_input_line="$NEWLINE%b$err_color%{$prompt_symbol%}%f  "
+  typeset -g PROMPT_ZLE_MODE="[insert]"
+  prompt_path="%$COLUMNS<…<%6~%<<"
+  prompt_top_left="%(!,[ROOT],)"
+  prompt_top_left+="%{$grey%}% ${sys_icon}%f "
+  prompt_top_left+="%{$cyan%}${prompt_path}%f"
+  prompt_top_right="%B${GITSTATUS_PROMPT:+ $GITSTATUS_PROMPT}%f "
+  left=${(S)prompt_top_left//$~invisible}
+  right=${(S)prompt_top_right//$~invisible}
+  (( prompt_top_len=${#left}+${#right}))
+  prompt_padding="${(l,COLUMNS-prompt_top_len-4,)}"
+  prompt_input_line="$NEWLINE%b$err_color$prompt_symbol%f "
   prompt_command_time="%F{229} ${prompt_cmd_exec_time}%f"
-  PROMPT='${prompt_top_left}${prompt_top_right}${prompt_input_line}'
-  RPROMPT='$err_color${return_code} %{$cyan%}[%D{%L:%M:%S %p}]%f'
-  [[ -n $prompt_cmd_exec_time ]] && RPROMPT+=$prompt_command_time
+  PROMPT='${prompt_top_left}${prompt_top_right}${PROMPT_ZLE_MODE}${prompt_input_line}'
+  RPROMPT="$err_color${return_code}%f "
+  #RPROMPT=${(%):-'%B[%D{%L:%M:%S %p}]%f'}
+  [[ -n $prompt_cmd_exec_time ]] && RPROMPT+=$prompt_command_time" "
 }
 
 # trick from 2007!
