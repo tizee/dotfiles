@@ -7,10 +7,10 @@ function zle-keymap-select() {
    case $KEYMAP in
     (main)
       case $ZLE_STATE in
-        (*insert*) PROMPT_ZLE_MODE="[insert]";;
-        (*) PROMPT_ZLE_MODE="[overwrite]"
+        (*insert*) PROMPT_ZLE_MODE="%{%F{159}%}[insert]%f";;
+        (*) PROMPT_ZLE_MODE="%{%F{210}%}[overwrite]"
       esac;;
-    (*) PROMPT_ZLE_MODE="[$KEYMAP]"
+    (*) PROMPT_ZLE_MODE="%{%F{212}%}[$KEYMAP]%f"
   esac
   [[ $PROMPT_ZLE_MODE = $PROMPT_ZLE_OLDMODE ]] || zle reset-prompt
   zle -R

@@ -249,7 +249,7 @@ esac
 
 # $COLUMNS terminal width
 function update_tz_prompt() {
-  typeset -g PROMPT_ZLE_MODE="[insert]"
+  typeset -g PROMPT_ZLE_MODE="%{%F{159}%}[insert]%f"
   prompt_path="%$COLUMNS<…<%6~%<<"
   prompt_top_left="%(!,[ROOT],)"
   prompt_top_left+="%{$grey%}% ${sys_icon}%f "
