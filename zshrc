@@ -253,7 +253,7 @@ esac
 # source "${${(%):-%x}:h}/fish_like_collapsed.zsh"
 
 # $COLUMNS terminal width
-function update_tz_prompt() {
+function __update_tz_prompt() {
   typeset -g PROMPT_ZLE_MODE="%{%F{159}%}[insert]%f"
   prompt_path="%$COLUMNS<…<%6~%<<"
   prompt_top_left="%(!,[ROOT],)%1n@%1m "
@@ -278,7 +278,7 @@ function update_tz_prompt() {
     # zle reset-prompt
 # }
 
-add-zsh-hook precmd update_tz_prompt
+add-zsh-hook precmd __update_tz_prompt
 # }}}
 
 export ZSHDIR=$HOME/.config/zsh

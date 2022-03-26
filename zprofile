@@ -56,7 +56,7 @@ fi
 # Common <-
 # system
 path=(
-  /usr/local/{bin,sbin}  
+  /usr/local/{bin,sbin}
   /usr/{bin,sbin}
   /{bin,sbin}
   $HOME/.local/bin
@@ -70,11 +70,17 @@ export CPLUS_INCLUDE_PATH="/usr/local/include"
 export LIBRARY_PATH="$LIBRARY_PATH:/usr/local/lib"
 
 # yarn
-PATH="$HOME/.yarn/bin:$PATH"
-PATH="$HOME/.config/yarn/global/node_modules/.bin:$PATH"
+if [[ -d $HOME/.yarn/bin ]]; then
+  PATH="$HOME/.yarn/bin:$PATH"
+  if [[ -d $HOME/.config/yarn/global/node_modules/.bin ]]; then
+  PATH="$HOME/.config/yarn/global/node_modules/.bin:$PATH"
+  fi
+fi
 
 # deno
-PATH="$HOME/.deno/bin:$PATH"
+if [[ -d $HOME/.deno/bin ]]; then
+  PATH="$HOME/.deno/bin:$PATH"
+fi
 export DENO_INSTALL=$HOME/.deno
 
 # rust cargo
@@ -84,26 +90,6 @@ export CARGO_NET_GIT_FETCH_WITH_CLI=true
 # export RUSTUP_UPDATE_ROOT="https://mirrors.tuna.tsinghua.edu.cn/rustup/rustup"
 # export RUSTUP_DIST_SERVER="https://mirrors.tuna.tsinghua.edu.cn/rustup"
 # export RUSTC_WRAPPER=$(which sccache)
-# curl
-PATH="/usr/local/opt/curl/bin:$PATH"
-# ruby
-PATH="/usr/local/opt/ruby/bin:$PATH"
-PATH="$HOME/.rvm/bin:$PATH"
-export GEM_HOME=$HOME/.gem
-PATH=$GEM_HOME/bin:$PATH
-# flutter dart
-PATH="$HOME/dev/grepo_dart/flutter/bin:$PATH"
-PATH="$HOME/flutter/bin:$PATH"
-# export PUB_HOSTED_URL="https://mirrors.tuna.tsinghua.edu.cn/dart-pub"
-# export FLUTTER_STORAGE_BASE_URL="https://mirrors.tuna.tsinghua.edu.cn/flutter"
-export PUB_HOSTED_URL=https://pub.flutter-io.cn
-export FLUTTER_STORAGE_BASE_URL=https://storage.flutter-io.cn
-export FLUTTER_INSTALL="$HOME/dev/grepo_dart/flutter"
-export FLUTTER_ROOT="$HOME/dev/grepo_dart/flutter"
-# golang
-# go modules
-export GO111MODULE="on"
-PATH=/usr/local/go/bin:$PATH
 
 # my shellscripts
 PATH="$HOME/.config/bin:$PATH"
@@ -132,6 +118,28 @@ PATH="/usr/local/opt/krb5/sbin:$PATH"
 
 # macOS <-
 if $is_macOS; then
+  # mac specific scripts
+  PATH="$HOME/.config/mac_scripts:$PATH"
+  # curl
+  PATH="/usr/local/opt/curl/bin:$PATH"
+  # ruby
+  PATH="/usr/local/opt/ruby/bin:$PATH"
+  PATH="$HOME/.rvm/bin:$PATH"
+  export GEM_HOME=$HOME/.gem
+  PATH=$GEM_HOME/bin:$PATH
+  PATH="$HOME/flutter/bin:$PATH"
+  # flutter dart
+  PATH="$HOME/dev/grepo_dart/flutter/bin:$PATH"
+  # export PUB_HOSTED_URL="https://mirrors.tuna.tsinghua.edu.cn/dart-pub"
+  # export FLUTTER_STORAGE_BASE_URL="https://mirrors.tuna.tsinghua.edu.cn/flutter"
+  export PUB_HOSTED_URL=https://pub.flutter-io.cn
+  export FLUTTER_STORAGE_BASE_URL=https://storage.flutter-io.cn
+  export FLUTTER_INSTALL="$HOME/dev/grepo_dart/flutter"
+  export FLUTTER_ROOT="$HOME/dev/grepo_dart/flutter"
+  # golang
+  # go modules
+  export GO111MODULE="on"
+  PATH=/usr/local/go/bin:$PATH
   # mame
   alias mamed='/usr/local/Cellar/mame/0.234/share/mame/mamed'
   # emacs
