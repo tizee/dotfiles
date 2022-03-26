@@ -18,8 +18,9 @@
 #  / /| |   / /  / /     / /  / /  / /  / / / /  /  __/
 # /_/ |_|  /_/  /_/     /_/  /_/  /_/  /_/ /_/   \___/ 
 #                                                      
+#
 # modified from gitstaus
-
+# {{{
 zmodload zsh/datetime
 # Source gitstatus.plugin.zsh from $GITSTATUS_DIR or from the same directory
 # in which the current script resides if the variable isn't set.
@@ -101,44 +102,6 @@ ZSH_HIGHLIGHT_STYLES[path]='fg=cyan,underline'
 # To disable highlighting of globbing expressions
 # ZSH_HIGHLIGHT_STYLES[globbing]='none'
 
-function human_time() {
-	local human total_seconds=$1 var=$2
-	local -ri days=$(( total_seconds / 60 / 60 / 24 ))
-	local -ri hours=$(( total_seconds / 60 / 60 % 24 ))
-	local -ri minutes=$(( total_seconds / 60 % 60 ))
-	local -rF seconds=$(( total_seconds % 60 ))
-	(( days > 0 )) && human+="${days}d "
-	(( hours > 0 )) && human+="${hours}h "
-	(( minutes > 0 )) && human+="${minutes}m "
-  if (( seconds >= 1 )); then
-    local human_sec
-    printf -v human_sec '%.3fs' ${seconds}
-    human+="$human_sec"
-  else
-    local human_ms
-    printf -v human_ms '%ims' $(( seconds * 1000 ))
-    human+="$human_ms"
-  fi
-	# Store human readable time in a variable as specified by the caller
-	typeset -g "${var}"="${human}"
-}
-
-function prompt_check_cmd_exec_time() {
-	local -F elapsed
-  (( elapsed = EPOCHREALTIME - ${prompt_cmd_timestamp:-$EPOCHREALTIME} ))
-	typeset -g prompt_cmd_exec_time=
-  # show execution time when larger than 50ms
-  (( elapsed * 1000 > ${CMD_MAX_EXEC_TIME:-50} )) && {
-		human_time $elapsed "prompt_cmd_exec_time"
-	}
-}
-
-  # Execution time
-function cmd_exec_time_helper() {
-  prompt_check_cmd_exec_time
-  unset prompt_cmd_timestamp
-}
-
 function gitstatus_prompt_update() {
   setopt localoptions noshwordsplit
   # emulate -L zsh
@@ -210,16 +173,58 @@ function gitstatus_prompt_update() {
 # gitstatus_query in gitstatus_prompt_update. The flags with -1 as values
 # enable staged, unstaged, conflicted and untracked counters.
 gitstatus_stop 'MY' && gitstatus_start -s -1 -u -1 -c -1 -d -1 'MY'
+# }}}
+# On every prompt, fetch git status and set GITSTATUS_PROMPT.
+autoload -Uz add-zsh-hook
+add-zsh-hook precmd gitstatus_prompt_update
 
+# command time of execution {{{
 function prompt_preexec() {
   typeset -g prompt_cmd_timestamp=$EPOCHREALTIME
 }
 
-# On every prompt, fetch git status and set GITSTATUS_PROMPT.
-autoload -Uz add-zsh-hook
 add-zsh-hook preexec prompt_preexec
-add-zsh-hook precmd gitstatus_prompt_update
+
+function human_time() {
+	local human total_seconds=$1 var=$2
+	local -ri days=$(( total_seconds / 60 / 60 / 24 ))
+	local -ri hours=$(( total_seconds / 60 / 60 % 24 ))
+	local -ri minutes=$(( total_seconds / 60 % 60 ))
+	local -rF seconds=$(( total_seconds % 60 ))
+	(( days > 0 )) && human+="${days}d "
+	(( hours > 0 )) && human+="${hours}h "
+	(( minutes > 0 )) && human+="${minutes}m "
+  if (( seconds >= 1 )); then
+    local human_sec
+    printf -v human_sec '%.3fs' ${seconds}
+    human+="$human_sec"
+  else
+    local human_ms
+    printf -v human_ms '%ims' $(( seconds * 1000 ))
+    human+="$human_ms"
+  fi
+	# Store human readable time in a variable as specified by the caller
+	typeset -g "${var}"="${human}"
+}
+
+function prompt_check_cmd_exec_time() {
+	local -F elapsed
+  (( elapsed = EPOCHREALTIME - ${prompt_cmd_timestamp:-$EPOCHREALTIME} ))
+	typeset -g prompt_cmd_exec_time=
+  # show execution time when larger than 50ms
+  (( elapsed * 1000 > ${CMD_MAX_EXEC_TIME:-50} )) && {
+		human_time $elapsed "prompt_cmd_exec_time"
+	}
+}
+
+  # Execution time
+function cmd_exec_time_helper() {
+  prompt_check_cmd_exec_time
+  unset prompt_cmd_timestamp
+}
+
 add-zsh-hook precmd cmd_exec_time_helper
+# }}}
 
 # Enable/disable the right prompt options.
 setopt no_prompt_bang prompt_percent prompt_subst
@@ -251,7 +256,7 @@ esac
 function update_tz_prompt() {
   typeset -g PROMPT_ZLE_MODE="%{%F{159}%}[insert]%f"
   prompt_path="%$COLUMNS<…<%6~%<<"
-  prompt_top_left="%(!,[ROOT],)%1m "
+  prompt_top_left="%(!,[ROOT],)%1n@%1m "
   prompt_top_left+="%{$grey%}% ${sys_icon}%f "
   prompt_top_left+="%{$cyan%}${prompt_path}%f"
   prompt_top_right="%B${GITSTATUS_PROMPT:+ $GITSTATUS_PROMPT}%f ${PROMPT_ZLE_MODE}"

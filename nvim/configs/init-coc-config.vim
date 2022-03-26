@@ -44,6 +44,7 @@ inoremap <silent><expr> <TAB>
 
 " Use K to show documentation in preview window.
 nnoremap <silent> K :call <SID>show_documentation()<CR>
+nnoremap <silent> <C-x> :call coc#float#close_auto_hide_wins()<CR>
 
 function! s:show_documentation()
   if (index(['vim','help'], &filetype) >= 0)
@@ -214,7 +215,7 @@ imap <C-j> <Plug>(coc-snippets-expand-jump)
 " Use <leader>x for convert visual selected code to snippet
 xmap <leader>x  <Plug>(coc-convert-snippet)
 " Use <leader>x to close all floating windows in some buggy situations
-nmap <expr> <leader>x  coc#float#close_all()
+nmap <silent> <leader>x  :call coc#float#close_all()<CR>
 
 inoremap <silent><expr> <TAB>
       \ pumvisible() ? coc#_select_confirm() :

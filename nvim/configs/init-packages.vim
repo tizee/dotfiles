@@ -49,9 +49,9 @@ Plug 'morhetz/gruvbox'
 " Recording
 Plug 'wakatime/vim-wakatime'
 " LSP + nvim nodejs ABI for ts plugins
-" Plug 'neoclide/coc.nvim', {'branch': 'release'}
+Plug 'neoclide/coc.nvim', {'branch': 'release'}
 " TODO: add function for retrieving lsp info
-Plug '~/dev/grepo_vim/coc.nvim'
+" Plug '~/dev/grepo_vim/coc.nvim'
 " keyboard layout
 Plug 'tizee/keyboard.vim'
 " Chinese format

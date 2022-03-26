@@ -1,6 +1,8 @@
 {
   // coc
   "coc.preferences.maxFileSize": "1MB",
+  "coc.preferences.messageLevel":"error",
+  "hover.autoHide":true,
   "list.source.outline.defaultAction":" quickfix",
   // diagnostic
   "diagnostic.enable": true,
@@ -64,8 +66,8 @@
   "rust-analyzer.inlayHints.chainingHintsSeparator": "‣ ",
   "rust-analyzer.inlayHints.refreshOnInsertMode": false,
   "rust-analyzer.hoverActions.enable": false,
-  "rust-analyzer.lens.enable": false,
-  "rust-analyzer.lens.run": false,
+  "rust-analyzer.lens.enable": true,
+  "rust-analyzer.lens.run": true,
   "rust-analyzer.lens.methodReferences": true,
   "rust-analyzer.lens.references": true,
   "rust-analyzer.lens.implementations": true,
