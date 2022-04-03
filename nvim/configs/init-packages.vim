@@ -53,7 +53,7 @@ Plug 'neoclide/coc.nvim', {'branch': 'release'}
 " TODO: add function for retrieving lsp info
 " Plug '~/dev/grepo_vim/coc.nvim'
 " keyboard layout
-" Plug 'tizee/keyboard.vim'
+Plug 'tizee/keyboard.vim'
 " convert rgb hex string to r,g,b
 Plug 'tizee/hex2rgb.vim'
 " convert unicode value to corresponding unicode character
