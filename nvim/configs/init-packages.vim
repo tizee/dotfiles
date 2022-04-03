@@ -53,7 +53,11 @@ Plug 'neoclide/coc.nvim', {'branch': 'release'}
 " TODO: add function for retrieving lsp info
 " Plug '~/dev/grepo_vim/coc.nvim'
 " keyboard layout
-Plug 'tizee/keyboard.vim'
+" Plug 'tizee/keyboard.vim'
+" convert rgb hex string to r,g,b
+Plug 'tizee/hex2rgb.vim'
+" convert unicode value to corresponding unicode character
+Plug 'tizee/unicode.vim'
 " Chinese format
 Plug 'hotoo/pangu.vim'
 " golang
@@ -73,8 +77,7 @@ Plug '~/dev/grepo_vim/tz-vim-packages/find-root.vim'
 Plug '~/dev/grepo_vim/tz-vim-packages/nodemodules.vim'
 Plug '~/dev/grepo_vim/tz-vim-packages/md-table.vim'
 Plug '~/dev/grepo_vim/tz-vim-packages/moline.vim'
-Plug '~/dev/grepo_vim/tz-vim-packages/unicode.vim'
-Plug '~/dev/grepo_vim/tz-vim-packages/codecount.vim'
+" Plug '~/dev/grepo_vim/tz-vim-packages/codecount.vim'
 " local version fixed packages
 Plug '~/dev/grepo_vim/indentLine'
 " language checker
