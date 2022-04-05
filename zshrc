@@ -348,12 +348,15 @@ autoload -Uz $fpath[1]/*(.:t)
 
 ## plugins
 # cost about 60ms
-local plugins=($HOME/.config/zsh/plugins/*.plugin.zsh)
-for file in $plugins; do
+local my_plugins=($HOME/.config/zsh/plugins/*.plugin.zsh)
+local my_widgets=($HOME/.config/zsh/widgets/*.widget.zsh)
+for file in $my_plugins; do
+ source "$file"
+done
+for file in $my_widgets; do
  source "$file"
 done
 
-#source ~/dev/grepo_shell/fzf-tab/fzf-tab.plugin.zsh
 
 # debug
 #export _ZL_ECHO=1
@@ -361,8 +364,9 @@ done
 # eval "$(lua ~/.config/zsh/vendor/z.lua --init zsh enhanced)"
 # }}}
 
+# [ -f ~/dev/grepo_shell/fzf-tab/fzf-tab.plugin.zsh ] && source ~/dev/grepo_shell/fzf-tab/fzf-tab.plugin.zsh
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
-
+# [ -f ~/.config/zsh/fzf-tab-config.zsh ] && source ~/.config/zsh/fzf-tab-config.zsh
 # haskell completion
 function haskell_completion_init(){
 # eval "$(stack --bash-completion-script stack)"
