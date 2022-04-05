@@ -319,17 +319,20 @@ if $is_macOS; then
   # expat
   export LIBEXPAT_LIBS="-L/usr/local/opt/expat/lib"
   export LIBEXPAT_CFLAGS="-I/usr/local/opt/expat/include"
-    # anaconda3
-    # source $HOME/.config/conda_active.zsh
-    # keyboard setting for vim
+  # anaconda3
+  # source $HOME/.config/conda_active.zsh
+
+  # keyboard setting for vim
+  if [ -f (command -v kbaware) ]; then
+    export COLEMAK_KEYBOARD=0
     # if test $(kbaware) = 'Colemak'; then
     #   export COLEMAK_KEYBOARD=1
-    # else
-    #   export COLEMAK_KEYBOARD=0
     # fi
-    # hard-coded values of /etc/zprofile
+  if
+
+  # yubikey
   export SSH_AUTH_SOCK=$(gpgconf --list-dirs agent-ssh-socket)
   gpgconf --launch gpg-agent
+  # hard-coded values of /etc/zprofile
 fi
 # ->
-

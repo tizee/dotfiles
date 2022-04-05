@@ -165,8 +165,12 @@ function ps::search(){
 alias pss='ps::search'
 # }}}
 
+# ========== less ========== {{{
+alias lesswatch='less -F'
+# }}}
+
 # ========== tree ========== {{{
-# alias tree="find . -print | sed -e 's;[^/]*/;|____;g;s;____|; |;g'"
+# alias mytree="find . -print | sed -e 's;[^/]*/;|____;g;s;____|; |;g'"
 
 # }}}
 
