@@ -323,12 +323,12 @@ if $is_macOS; then
   # source $HOME/.config/conda_active.zsh
 
   # keyboard setting for vim
-  if [ -f (command -v kbaware) ]; then
+  if [ -f $(command -v kbaware) ]; then
     export COLEMAK_KEYBOARD=0
     # if test $(kbaware) = 'Colemak'; then
     #   export COLEMAK_KEYBOARD=1
     # fi
-  if
+  fi
 
   # yubikey
   export SSH_AUTH_SOCK=$(gpgconf --list-dirs agent-ssh-socket)
