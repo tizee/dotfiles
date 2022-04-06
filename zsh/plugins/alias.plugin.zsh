@@ -237,4 +237,8 @@ alias -g fgfonts="ls ~/.config/figlet"
 alias httpgodoc="godoc -http=:6060"
 # }}}
 
-# vim:ft=zsh:
+# ========== rust packages ========== {{{
+alias lgenerator="license-generator"
+# }}}
+
+# vim:ft=zsh:foldmethod={{{,}}}
