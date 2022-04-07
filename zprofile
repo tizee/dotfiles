@@ -334,5 +334,15 @@ if $is_macOS; then
   export SSH_AUTH_SOCK=$(gpgconf --list-dirs agent-ssh-socket)
   gpgconf --launch gpg-agent
   # hard-coded values of /etc/zprofile
+  
+  # pypi
+  if [[ -f $HOME/.config/python/pypi_personal ]]; then
+    source $HOME/.config/python/pypi_personal
+  fi
+
+  # clang address sanitizer
+  export ASAN_OPTIONS=detect_leaks=1,symbolize=1
+  # https://stackoverflow.com/questions/64126942/malloc-nano-zone-abandoned-due-to-inability-to-preallocate-reserved-vm-space
+  export MallocNanoZone=0
 fi
 # ->
