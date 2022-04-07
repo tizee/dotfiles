@@ -69,8 +69,30 @@ snippet allocinit "alloc and init"
 [[${1:ClassName} alloc] init]$0
 endsnippet
 
+snippet iinit "init and dealloc method " b
+-(id) init {
+	$0
+}
+
+-(void) dealloc {
+	
+}
+endsnippet
+
 snippet @sel "@selector"
 @selector
+endsnippet
+
+snippet superguard "check super init" b
+if (!(self = [super init])) {
+	return nil;
+}
+endsnippet
+
+snippet if "if block" b
+if (${1:true}) {
+	$0
+}
 endsnippet
 
 # Cocoa data types

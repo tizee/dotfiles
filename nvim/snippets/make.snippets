@@ -9,16 +9,16 @@ snippet csetup "c setup"
 CC = gcc
 CFLAGS = -g -Wall
 
-all: $1
+all: ${1:out}
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-${1:out}: $1.o
+${1:out}: ${1:out}.o
 	$(CC) $(CFLAGS) -o $@ $+
 
 clean:
-	rm -f *.o core.*
+	rm -f *.o
 
 mrproper: clean
 	rm -f $1

@@ -401,7 +401,7 @@ typeset -gU cdpath fpath
 autoload -Uz compinit
 
 # zcompdump
-case $SYSTEM in 
+case $SYSTEM in
   Darwin)
     # use macOS stat
     if [[ $(date +'%j') != $(/usr/bin/stat -f '%Sm' -t '%j' $HOME/.zcompdump) ]]; then
@@ -410,6 +410,20 @@ case $SYSTEM in
     else
       compinit -C;
     fi
+        # >>> conda initialize >>>
+        # !! Contents within this block are managed by 'conda init' !!
+        __conda_setup="$('/Users/tizee/anaconda3/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
+        if [ $? -eq 0 ]; then
+            eval "$__conda_setup"
+        else
+            if [ -f "/Users/tizee/anaconda3/etc/profile.d/conda.sh" ]; then
+                . "/Users/tizee/anaconda3/etc/profile.d/conda.sh"
+            else
+                export PATH="/Users/tizee/anaconda3/bin:$PATH"
+            fi
+        fi
+        unset __conda_setup
+        # <<< conda initialize <<<
     ;;
   Linux)
     if [[ $(date +'%j') != $(date -r $HOME/.zcompdump +'%j') ]]; then
@@ -428,4 +442,5 @@ autoload -U +X bashcompinit && bashcompinit
 # zprof
 
 export PATH="$HOME/.poetry/bin:$PATH"
+
 

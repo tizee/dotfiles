@@ -13,5 +13,8 @@ fzf::find_file() {
     fzf --query="$given_file"
 }
 
+
+
 alias fzff="fzf::find_fine"
 alias fzfk="fzf::kill_pid"
+alias fzfnvim="fzf::nvim"
