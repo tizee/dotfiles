@@ -1,8 +1,12 @@
 #!/usr/bin/env zsh
 
 # rg quick edit
-rgvi(){
-  nvim "$(rg $1 -i -l | fzf -m)"
+__rgvi(){
+  local pat=$(rg $1 -il)
+  local pat_len=${#pat}
+  if [[ $pat_len > 0 ]];then
+    nvim $(echo $pat | fzf -m)
+  fi
 }
 
-rgvi $@
+__rgvi $@
