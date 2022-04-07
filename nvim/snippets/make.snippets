@@ -5,91 +5,91 @@ endsnippet
 
 # c
 snippet csetup "c setup"
-	.PHONY: clean, mrproper
-	CC = gcc
-	CFLAGS = -g -Wall
+.PHONY: clean, mrproper
+CC = gcc
+CFLAGS = -g -Wall
 
-	all: $1
+all: $1
 
-	%.o: %.c
-		$(CC) $(CFLAGS) -c -o $@ $<
-	
-	${1:out}: $1.o
-		$(CC) $(CFLAGS) -o $@ $+
+%.o: %.c
+	$(CC) $(CFLAGS) -c -o $@ $<
 
-	clean:
-		rm -f *.o core.*
+${1:out}: $1.o
+	$(CC) $(CFLAGS) -o $@ $+
 
-	mrproper: clean
-		rm -f $1
+clean:
+	rm -f *.o core.*
+
+mrproper: clean
+	rm -f $1
 endsnippet
 
 # cpp standard
 snippet cpp11 "c++11 2011"
-	c++11
+c++11
 endsnippet
 
 snippet cpp11 "c++14 2014"
-	c++14
+c++14
 endsnippet
 
 snippet cpp11 "c++17 2017"
-	c++17
+c++17
 endsnippet
 
 snippet cpp20 "c++20 2020"
-	c++20
+c++20
 endsnippet
 
 snippet cpp2b "c++11 202b"
-	c++2b
+c++2b
 endsnippet
 
 snippet gnucpp11 "gnu++11 2011"
-	gnu++11
+gnu++11
 endsnippet
 
 snippet gnucpp14 "gnu++14 2014"
-	gnu++14
+gnu++14
 endsnippet
 
 snippet gnucpp17 "gnu++17 2017"
-	gnu++17
+gnu++17
 endsnippet
 
 snippet gnucpp20 "gnu++20 2020"
-	gnu++20
+gnu++20
 endsnippet
 
 snippet gnucpp20 "gnu++2b 2023"
-	gnu++2b
+gnu++2b
 endsnippet
 
 # cpp
 snippet cppsetup "cplusplus setup" b
-	.PHONY: clean, mrproper
-	CC = g++
-	CFLAGS = -g -Wall -std=c++11
+.PHONY: clean, mrproper
+CC = g++
+CFLAGS = -g -Wall -std=c++11
 
-	all: $1
+all: $1
 
-	%.o: %.cpp
-		$(CC) $(CFLAGS) -c -o $@ $<
-	
-	${1:out}: $1.o
-		$(CC) $(CFLAGS) -o $@ $+
+%.o: %.cpp
+	$(CC) $(CFLAGS) -c -o $@ $<
 
-	clean:
-		rm -f *.o core.*
+${1:out}: $1.o
+	$(CC) $(CFLAGS) -o $@ $+
 
-	mrproper: clean
-		rm -f $1
+clean:
+	rm -f *.o core.*
+
+mrproper: clean
+	rm -f $1
 endsnippet
 
 # add
 snippet add
-	${1:out}: $1.o
-		$(CC) $(CFLAGS) -o $@ $+
+${1:out}: $1.o
+	$(CC) $(CFLAGS) -o $@ $+
 endsnippet
 
 # print

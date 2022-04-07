@@ -1,0 +1,88 @@
+snippet def "#define ..."
+#define $1
+endsnippet
+
+snippet #ifndef "#ifndef ... #define ... #endif"
+#ifndef ${1/([A-Za-z0-9_]+).*/$1/}
+#define ${1:SYMBOL} ${2:value}
+#endif /* ifndef $1 */
+endsnippet
+
+snippet main "main() (main)"
+int main(int argc, char *argv[])
+{
+	${VISUAL}$0
+	return 0;
+}
+endsnippet
+
+snippet im "#import" b
+#import $0
+endsnippet
+
+snippet id "id variable" b
+id $1 = $0;
+endsnippet
+
+snippet protocol "@protocol block" b
+@protocol $1
+$0
+@end
+endsnippet
+
+snippet synth "@synthesize property" b
+@synthesize ${1:p_name}=${2:instance_name};
+$0
+endsnippet
+
+snippet interface "@interface block" b
+@interface ${1:MyInterface}
+$0
+@end
+endsnippet
+
+snippet impl "@implementation interface" b
+@implementation ${1:MyInterface}
+$0
+@end
+endsnippet
+
+snippet smethod "class level static method" b
++(${1:void}) ${2:func_name};
+endsnippet
+
+snippet imethod "instance method" b
+-(${1:void}) ${2:func_name};
+endsnippet
+
+snippet autoreleasepool "@autoreleasepool block" b
+@autoreleasepool {
+	$0
+}
+endsnippet
+
+snippet alloc "alloc space for object"
+[${1:ClassName} alloc]$0
+endsnippet
+
+snippet allocinit "alloc and init"
+[[${1:ClassName} alloc] init]$0
+endsnippet
+
+snippet @sel "@selector"
+@selector
+endsnippet
+
+# Cocoa data types
+snippet NSDict "NSDictionary"
+NSDictionary
+endsnippet
+
+snippet NSStr "NSString"
+NSString
+endsnippet
+
+snippet NSObj "NSOjbect"
+NSObject
+endsnippet
+
