@@ -1,0 +1,9 @@
+#!/usr/bin/env zsh
+if ! [ -x "$(command -v brew)" ]; then
+  echo "homebrew hasn't been installed yet"
+  exit 1
+else
+  # I'm considering use my forked skhd
+  brew list koekeishiya/formulae/skhd &>/dev/null || brew install koekeishiya/formulae/skhd
+  brew upgrade skhd --no-quarantine --greedy-latest
+fi
