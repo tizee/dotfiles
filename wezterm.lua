@@ -253,6 +253,11 @@ return {
     {key="j", mods="LEADER", action=wezterm.action{ActivatePaneDirection="Down"}},
     {key="k", mods="LEADER", action=wezterm.action{ActivatePaneDirection="Up"}},
     {key="l", mods="LEADER", action=wezterm.action{ActivatePaneDirection="Right"}},
+    -- TODO: H,J,K,L resize pane
+    {key="H", mods="LEADER", action=wezterm.action{ActivatePaneDirection="Left"}},
+    {key="J", mods="LEADER", action=wezterm.action{ActivatePaneDirection="Down"}},
+    {key="K", mods="LEADER", action=wezterm.action{ActivatePaneDirection="Up"}},
+    {key="L", mods="LEADER", action=wezterm.action{ActivatePaneDirection="Right"}},
     -- vertical split direction
     {key="s", mods="LEADER", action=wezterm.action{SplitVertical={domain="CurrentPaneDomain"}}},
     -- horizontal split direction
