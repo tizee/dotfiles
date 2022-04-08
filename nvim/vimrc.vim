@@ -413,26 +413,25 @@ if exists('#Dracula')
   let g:dracula_bold = 1
   let g:dracula_italic = 1
   let g:dracula_underline = 1
-endif 
+endif
 
 let g:gruvbox_italic=1
-colorscheme gruvbox 
+colorscheme gruvbox
 " highlight Comment cterm=italic gui=italic
 if !has('nvim')
   set background=dark
-endif 
+endif
 
 " AUTOCMD GROUP {{{
-if !has('nvim')
-  " VimScript  {{{
-  function! s:VimAbbrev()
-  iabbr nnp nnoremap
-  iabbr vnp vnoremap
-  iabbr cnp cnoremap
-  iabbr xnp xnoremap
-  iabbr onp onoremap
-  iabbr tnp tnoremap
-  endfunction
+" VimScript  {{{
+function! s:VimAbbrev()
+iabbr nnp nnoremap
+iabbr vnp vnoremap
+iabbr cnp cnoremap
+iabbr xnp xnoremap
+iabbr onp onoremap
+iabbr tnp tnoremap
+endfunction
 
   augroup filetype_vim
     autocmd!          | " Deletes all auto-commands in the current group
@@ -444,37 +443,31 @@ if !has('nvim')
   augroup END
   " }}}
 
-  " ShellScript {{{
-  augroup filetype_shell
+  augroup filetype_misc
     autocmd!
+    " ShellScript {{{
     autocmd FileType sh setlocal foldmethod=marker
     autocmd FileType zsh setlocal foldmethod=marker
     autocmd BufWritePost *.zsh set filetype=zsh
     autocmd BufWritePost *.sh set filetype=sh
-  augroup END
-  " }}}
-
+    " }}}
   " git {{{
-  augroup filetype_gitconf
-    autocmd!
     autocmd  BufNewFile,BufRead *.gitignore set filetype=conf
-  augroup END "filetype_gitconf
-  "}}}
-
-  " tmux {{{
-  augroup filetype_tmux
-    autocmd!
+    "}}}
+    " tmux {{{
     autocmd FileType tmux setlocal foldmethod=marker
-  augroup END
-  " }}}
-
+    " }}}
   " yaml {{{
-  augroup ft_yaml
-    " Remove all vimrc autocommands
-    autocmd!
     autocmd FileType yaml setlocal foldmethod=indent
-  augroup END
   " }}}
+  " c/cpp/objective-c {{{
+    autocmd BufNewFile,BufRead,BufWritePost *.m set filetype=objc
+    autocmd BufNewFile,BufRead,BufWritePost *.mm set filetype=objcpp
+    autocmd BufNewFile,BufRead,BufWritePost *.cc set filetype=cpp
+    autocmd BufNewFile,BufRead,BufWritePost *.c set filetype=c
+    " }}}
+  augroup END
+
 
   " python {{{
   aug ft_python
@@ -501,7 +494,6 @@ if !has('nvim')
     autocmd FileType markdown setlocal dictionary=/usr/share/dict/words
   augroup END "ft_md
   " }}}
-endif
 
 " The following autocommand will cause the quickfix window to open after any grep invocation:
 autocmd QuickFixCmdPost *grep* cwindow
