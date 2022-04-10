@@ -4,7 +4,7 @@
 
 local is_macOS=false
 local is_Linux=false
-case $SYSTEM in 
+case $SYSTEM in
    Darwin) is_macOS=true ;;
    Linux) is_Linux=true  ;;
 esac
@@ -239,6 +239,9 @@ alias httpgodoc="godoc -http=:6060"
 
 # ========== rust packages ========== {{{
 alias lgenerator="license-generator"
+alias rustc21="rustc --edition=2021"
+alias rustc18="rustc --edition=2018"
+alias rustccfg="touch rust_toolchain.toml"
 # }}}
 
 # vim:ft=zsh:foldmethod={{{,}}}

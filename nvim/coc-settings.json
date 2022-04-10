@@ -179,5 +179,8 @@
       ],
       "url": "https://puremourning.github.io/vimspector/schema/gadgets.schema.json"
     }
-  ]
+  ],
+  // toml
+  "toml.enabled": true,
+  "toml.formatter.alignEntries": true
 }

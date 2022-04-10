@@ -49,9 +49,9 @@ Plug 'morhetz/gruvbox'
 " Recording
 Plug 'wakatime/vim-wakatime'
 " LSP + nvim nodejs ABI for ts plugins
-Plug 'neoclide/coc.nvim', {'branch': 'release'}
+" Plug 'neoclide/coc.nvim', {'branch': 'master', 'do': 'yarn install --frozen-lockfile'}
 " TODO: add function for retrieving lsp info
-" Plug '~/dev/grepo_vim/coc.nvim'
+Plug '~/dev/grepo_vim/coc.nvim', {'branch': 'master', 'do': 'yarn install --frozen-lockfile'}
 " keyboard layout
 Plug 'tizee/keyboard.vim'
 " convert rgb hex string to r,g,b

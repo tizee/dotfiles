@@ -215,14 +215,20 @@ endsnippet
 
 # testing
 snippet testm "test module" b
-	#[cfg(test)]
-	mod test_${1:super}{
-		use super::${2:*};
-		#[test]
-		fn test_$3{
-			$4
-		}
-	}
+#[cfg(test)]
+mod test_${1:super}{
+  use super::${2:*};
+  #[test]
+  fn test_foo() {
+    $4
+  }
+  #[test]
+  #[should_panic(expected= "hello")]
+  fn test_bar() {
+    panic!("hello");
+  }
+  // you can't use Reulst<T,E> with #[should_panic] annotation
+}
 endsnippet
 
 snippet testfn "test function" b

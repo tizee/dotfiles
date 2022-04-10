@@ -248,16 +248,15 @@ return {
   keys = {
      -- Send "CTRL-A" to the terminal when pressing LEADER-a for tmux
     {key="a", mods="LEADER", action=wezterm.action{SendString="\x01"}},
-    -- h,j,k,l move between panes
-    {key="h", mods="LEADER", action=wezterm.action{ActivatePaneDirection="Left"}},
-    {key="j", mods="LEADER", action=wezterm.action{ActivatePaneDirection="Down"}},
-    {key="k", mods="LEADER", action=wezterm.action{ActivatePaneDirection="Up"}},
-    {key="l", mods="LEADER", action=wezterm.action{ActivatePaneDirection="Right"}},
-    -- TODO: H,J,K,L resize pane
-    {key="H", mods="LEADER", action=wezterm.action{ActivatePaneDirection="Left"}},
-    {key="J", mods="LEADER", action=wezterm.action{ActivatePaneDirection="Down"}},
-    {key="K", mods="LEADER", action=wezterm.action{ActivatePaneDirection="Up"}},
-    {key="L", mods="LEADER", action=wezterm.action{ActivatePaneDirection="Right"}},
+    -- pane navigation
+    {key="LeftArrow",mods="LEADER", action=wezterm.action{ActivatePaneDirection="Left"}},
+    {key="h",mods="LEADER", action=wezterm.action{ActivatePaneDirection="Left"}},
+    {key="RightArrow",mods="LEADER", action=wezterm.action{ActivatePaneDirection="Right"}},
+    {key="l",mods="LEADER", action=wezterm.action{ActivatePaneDirection="Right"}},
+    {key="UpArrow",mods="LEADER", action=wezterm.action{ActivatePaneDirection="Up"}},
+    {key="k",mods="LEADER", action=wezterm.action{ActivatePaneDirection="Up"}},
+    {key="DownArrow",mods="LEADER", action=wezterm.action{ActivatePaneDirection="Down"}},
+    {key="j",mods="LEADER", action=wezterm.action{ActivatePaneDirection="Down"}},
     -- vertical split direction
     {key="s", mods="LEADER", action=wezterm.action{SplitVertical={domain="CurrentPaneDomain"}}},
     -- horizontal split direction
@@ -275,7 +274,12 @@ return {
     -- quick select mode - git hash, url etc.
     {key="q", mods="LEADER", action="QuickSelect"},
     -- reload configuration
-    {key="r", mods="LEADER", action="ReloadConfiguration"},
+    -- wezterm auto re-load when config changes
+    -- {key="r", mods="LEADER", action="ReloadConfiguration"},
+    {key="r", mods="LEADER", action=wezterm.action{ ActivateKeyTable={
+        name="resize_pane",
+        one_shot=false,
+      }}},
     -- move tab
     {key="<", mods="LEADER", action=wezterm.action{MoveTabRelative=-1}},
     {key=">", mods="LEADER", action=wezterm.action{MoveTabRelative=1}},
@@ -287,6 +291,31 @@ return {
     -- {key="K", mods="LEADER", action=wezterm.action{ClearScrollback="ScrollbackOnly"}}
     -- Clears the scrollback and viewport leaving the prompt line the new first line.
     -- {key="K", mods="CTRL", action=wezterm.action{ClearScrollback="ScrollbackAndViewport"}}
+  },
+  key_tables = {
+    -- Defines the keys that are active in our resize-pane mode.
+    -- Since we're likely to want to make multiple adjustments,
+    -- we made the activation one_shot=false. We therefore need
+    -- to define a key assignment for getting out of this mode.
+    -- 'resize_pane' here corresponds to the name="resize_pane" in
+    -- the key assignments above.
+    resize_pane = {
+      {key="LeftArrow", action=wezterm.action{AdjustPaneSize={"Left", 1}}},
+      {key="h", action=wezterm.action{AdjustPaneSize={"Left", 1}}},
+
+      {key="RightArrow", action=wezterm.action{AdjustPaneSize={"Right", 1}}},
+      {key="l", action=wezterm.action{AdjustPaneSize={"Right", 1}}},
+
+      {key="UpArrow", action=wezterm.action{AdjustPaneSize={"Up", 1}}},
+      {key="k", action=wezterm.action{AdjustPaneSize={"Up", 1}}},
+
+      {key="DownArrow", action=wezterm.action{AdjustPaneSize={"Down", 1}}},
+      {key="j", action=wezterm.action{AdjustPaneSize={"Down", 1}}},
+
+      -- Cancel the mode by pressing escape
+      {key="Escape", action="PopKeyTable"},
+
+    },
   },
   -- ->
   -- IME <-
