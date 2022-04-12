@@ -42,10 +42,12 @@ function yogit::help() {
   print "${_yogit_basic_prefix}open: open/xdg-open repo url in browser"
   print "${_yogit_basic_prefix}htest: ssh -T git@github.com"
   print "${_yogit_basic_prefix}st: git status"
+  print "${_yogit_basic_prefix}sc: git clone with --depth 1"
   print "${_yogit_basic_prefix}cob: git checkout -b"
   print "${_yogit_basic_prefix}a: git add"
   print "${_yogit_basic_prefix}c: git commit -v"
   print "${_yogit_basic_prefix}c!: git commit --amend"
+  print "${_yogit_basic_prefix}cn!: git commit --amend --no-edit"
   print "${_yogit_basic_prefix}push: git push origin current_branch"
   print "${_yogit_basic_prefix}pull: git pull origin current_branch"
   print "${_yogit_basic_prefix}sst: list staged and unstaged file names only"
@@ -83,9 +85,15 @@ alias "${_yogit_basic_prefix}htest"='ssh -T git@github.com'
 # status
 alias "${_yogit_basic_prefix}st"='git status'
 
+# shallow clone with --depth 1
+function yogit::shallowclone(){
+  print "clone with --depth 1"
+  git clone $@ --depth 1
+}
+alias "${_yogit_basic_prefix}sc"='yogit::shallowclone'
+
 # git checkout
 alias "${_yogit_basic_prefix}cob"='git checkout -b'
-
 
 # add
 alias "${_yogit_basic_prefix}a"='git add'
@@ -93,6 +101,7 @@ alias "${_yogit_basic_prefix}a"='git add'
 # commit
 alias "${_yogit_basic_prefix}c"='git commit -v'
 alias "${_yogit_basic_prefix}c!"='git commit --amend'
+alias "${_yogit_basic_prefix}cn!"='git commit --amend --no-edit'
 
 # push
 alias "${_yogit_basic_prefix}push"='git push origin "$(yogit::current_branch)"'
