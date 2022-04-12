@@ -279,10 +279,13 @@ return {
     {key="r", mods="LEADER", action=wezterm.action{ ActivateKeyTable={
         name="resize_pane",
         one_shot=false,
-      }}},
+    }}},
     -- move tab
     {key="<", mods="LEADER", action=wezterm.action{MoveTabRelative=-1}},
     {key=">", mods="LEADER", action=wezterm.action{MoveTabRelative=1}},
+    {key="{", mods="ALT", action=wezterm.action{ActivateTabRelative=-1}},
+    {key="}", mods="ALT", action=wezterm.action{ActivateTabRelative=1}},
+    {key="q", mods="LEADER", action="ShowTabNavigator"},
     -- scroll
     {key="1", mods="LEADER", action=wezterm.action{ScrollByPage=-0.5}},
     {key="2", mods="LEADER", action=wezterm.action{ScrollByPage=0.5}},
@@ -290,8 +293,12 @@ return {
     -- This is the default behavior.
     -- {key="K", mods="LEADER", action=wezterm.action{ClearScrollback="ScrollbackOnly"}}
     -- Clears the scrollback and viewport leaving the prompt line the new first line.
-    -- {key="K", mods="CTRL", action=wezterm.action{ClearScrollback="ScrollbackAndViewport"}}
+    -- {key="K", mods="LEADER", action=wezterm.action{ClearScrollback="ScrollbackAndViewport"}}
+    {key="w", mods="LEADER", action=wezterm.action{ClearScrollback="ScrollbackOnly"}}
   },
+  -- save memory
+  -- lines pertained per tab
+  scrollback_lines = 3500,
   key_tables = {
     -- Defines the keys that are active in our resize-pane mode.
     -- Since we're likely to want to make multiple adjustments,
