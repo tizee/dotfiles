@@ -108,8 +108,15 @@
     pushInsteadOf = https://gist.github.com/
 #[https]
 #  proxy = socks5://127.0.0.1:1080
-#[http]
-#  proxy = socks5://127.0.0.1:1080
+; [http]
+  # proxy = socks5://127.0.0.1:1080
+  ; proxy = http://127.0.0.1:1079
+  ; sslVerify = false
+  ;
+# CVE-2022-24765
+; [safe]
+;   directory=
+
 
 [merge]
   tool = vimdiff
