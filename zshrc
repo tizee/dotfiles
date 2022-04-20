@@ -443,4 +443,12 @@ autoload -U +X bashcompinit && bashcompinit
 
 export PATH="$HOME/.poetry/bin:$PATH"
 
+# zsh hook
+function __cd_hook_list_files() {
+  # do not override user defined options
+  emulate -L zsh
+  ls -al
+}
 
+# zshbuiltin variable
+chpwd_functions=(${chpwd_functions[@]} "__cd_hook_list_files")

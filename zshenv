@@ -10,7 +10,7 @@ export SYSTEM=$(uname -s)
 # use $OSTYPE insteal of uname -s
 # export SYSTEM=$OSTYPE 
 
-# export XDG_CONFIG_HOME=$HOME
+export XDG_CONFIG_HOME=$HOME/.config
 export XDG_CONFIG_DIR=$XDG_CONFIG_HOME/.config
 
 # Home-made scripts
