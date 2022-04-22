@@ -166,7 +166,7 @@ alias pss='ps::search'
 # }}}
 
 # ========== less ========== {{{
-alias lesswatch='less -F'
+alias lesswatch='less +F'
 # }}}
 
 # ========== tree ========== {{{

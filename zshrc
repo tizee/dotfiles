@@ -339,7 +339,8 @@ fi
 [ -e $ZSHDIR/vendor/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ] && source "$ZSHDIR/vendor/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
 [ -e $ZSHDIR/vendor/zsh-autosuggestions/zsh-autosuggestions.zsh ] && source "$ZSHDIR/vendor/zsh-autosuggestions/zsh-autosuggestions.zsh"
 # source "$ZSHDIR/vendor/z.sh"
-[ -e "$ZSHDIR/../zoxide.zsh" ] && source "$ZSHDIR/../zoxide.zsh"
+# [ -e "$ZSHDIR/../zoxide.zsh" ] && source "$ZSHDIR/../zoxide.zsh"
+# use zcd instead
 
 # lazy load functions
 # insert at head
@@ -451,4 +452,4 @@ function __cd_hook_list_files() {
 }
 
 # zshbuiltin variable
-chpwd_functions=(${chpwd_functions[@]} "__cd_hook_list_files")
+# chpwd_functions=(${chpwd_functions[@]} "__cd_hook_list_files")
