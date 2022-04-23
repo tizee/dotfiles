@@ -7,6 +7,13 @@ import collections
 import sys
 # pretty printing
 import pprint
+try:
+    from rich import print # better print
+    from rich import inspect # inspect variables
+    from rich import pretty # integrate into REPL
+    pretty.install()
+except ImportError as e :
+    pass
 
 def _repr_dict(d):
     """https://stackoverflow.com/questions/25118698/print-python-dictionary-with-utf8-values"""
