@@ -87,6 +87,9 @@ export DENO_INSTALL=$HOME/.deno
 PATH="$HOME/.cargo/bin:$PATH"
 export CARGO_HOME="$HOME/.cargo"
 export CARGO_NET_GIT_FETCH_WITH_CLI=true
+# limit sccache on local disk
+export SCCACHE_DIR="/tmp/sccache/"
+export SCCACHE_CACHE_SIZE="2G"
 # export RUSTUP_UPDATE_ROOT="https://mirrors.tuna.tsinghua.edu.cn/rustup/rustup"
 # export RUSTUP_DIST_SERVER="https://mirrors.tuna.tsinghua.edu.cn/rustup"
 # export RUSTC_WRAPPER=$(which sccache)
@@ -100,10 +103,10 @@ export TERM=xterm-256color
 export COLORTERM=truecolor
 
 # replace cat with bat
-if [ "$(command -v bat)" ]; then
+# if [ "$(command -v bat)" ]; then
   # unalias -m 'cat'
-  alias bat='bat -pp --theme="Nord"'
-fi
+  # alias bat='bat -pp --theme="Nord"'
+# fi
 export MANPAGER="sh -c 'col -bx | bat -l man -p'"
 
 # fzf
@@ -344,5 +347,8 @@ if $is_macOS; then
   export ASAN_OPTIONS=detect_leaks=1,symbolize=1
   # https://stackoverflow.com/questions/64126942/malloc-nano-zone-abandoned-due-to-inability-to-preallocate-reserved-vm-space
   export MallocNanoZone=0
+  # https://git-scm.com/docs/git/2.35.2#Documentation/git.txt-codeGITCEILINGDIRECTORIEScode
+  # Git >=2.35.2
+  export GIT_CEILING_DIRECTORIES=/Users
 fi
 # ->

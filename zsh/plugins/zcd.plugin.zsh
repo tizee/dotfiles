@@ -1,0 +1,1 @@
+/Users/tizee/dev/grepo_rust/tz-rust-packages/zcd/scripts/zcd.plugin.zsh

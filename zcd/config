@@ -1,0 +1,8 @@
+#This is zcd's configuration file. You could define your zcd config here instead of putting it in your shell config files like bashrc etc.
+# Specify how long the entry persists in seconds.
+max_age=5000
+# Datafile
+datafile=~/.config/zcd/zcddata
+# Exclude dirs
+# eg. exclude_dirs=~/tmp,
+exclude_dirs=[]
