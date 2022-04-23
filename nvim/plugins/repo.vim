@@ -76,10 +76,10 @@ function! s:echo_remote_repo()
 endfunction
 
 nnoremap <silent> <Plug>(open-repo-url) :call <SID>open_remote_repo()<CR>
-nnoremap <silent> <Plug>(open-repo-url) :call <SID>copy_remote_repo()<CR>
+nnoremap <silent> <Plug>(copy-repo-url) :call <SID>copy_remote_repo()<CR>
 " could map with <leader>
 nnoremap <silent> <leader>go <Plug>(open-repo-url)
-nnoremap <silent> <leader>gp <Plug>(open-repo-url)
+nnoremap <silent> <leader>gp <Plug>(copy-repo-url)
 
 command! -nargs=0 RepoOpen call <SID>open_remote_repo()
 command! -nargs=0 RepoCopy call <SID>copy_remote_repo()
