@@ -1,18 +1,14 @@
 #!/usr/bin/env zsh
-#                                           _ _   
-#                         _   _  ___   __ _(_) |_ 
+#                                           _ _
+#                         _   _  ___   __ _(_) |_
 #                        | | | |/ _ \ / _` | | __|
-#                        | |_| | (_) | (_| | | |_ 
+#                        | |_| | (_) | (_| | | |_
 #                         \__, |\___/ \__, |_|\__|
-#                         |___/       |___/       
+#                         |___/       |___/
 # by Jeff Chiang(Tizee)
 # git >= 2.29
 # Have fun ;-)
-
-# This plugin is conflicted with fzf-tab. ;) 
-
-# --no-optional-locks is equivalent to GIT_OPTIONAL_LOCKS=0
-# do not perform optional operations require locks.
+# Note that this plugin is conflicted with fzf-tab.
 
 _yogit_basic_prefix=$YOGIT_BASIC_PREFIX
 _yogit_interactive_prefix=$YOGIT_INTERACTIVE_PREFIX
@@ -23,37 +19,48 @@ if [[ -z $YOGIT_INTERACTIVE_PREFIX ]]; then
 _yogit_interactive_prefix='ygi'
 fi
 
+if [ $SYSTEM = Darwin ]; then
+  alias _yogit_open='open'
+elif [ $SYSTEM = Linux ]; then
+  alias _yogit_open='xdg-open'
+fi
+
+function yogit::url() {
+  local remote_name="${1:-origin}"
+  git config --get remote.$remote_name.url | sed -E 's/^[^@]*@([^:\/]*)[:\/]/https:\/\/\1\//' | sed 's/\.git//'
+}
+
 function yogit::open() {
-  if [ $SYSTEM = Darwin ]; then
-    open $(git config --get remote.origin.url | sed -E 's/^[^@]*@([^:\/]*)[:\/]/https:\/\/\1\//' | sed 's/\.git//')
-  elif [ $SYSTEM = Linux ]; then 
-    xdg-open $(git config --get remote.origin.url | sed -E 's/^[^@]*@([^:\/]*)[:\/]/https:\/\/\1\//' | sed 's/\.git//')
-  fi
+  _yogit_open $(yogit::url)
 }
 
 function yogit::help() {
-  print "${yogit_checkout:-${_yogit_interactive_prefix}co}: checkout with fzf"
-  print "${yogit_cherry_pick:-${_yogit_interactive_prefix}cp}: cherry pick with fzf"
-  print "${yogit_show:-${_yogit_interactive_prefix}sc}: select commit with fzf"
-  print "${yogit_branch:-${_yogit_interactive_prefix}br}: select branch with fzf"
-  print "${yogit_diff:-${_yogit_interactive_prefix}diff}: diff with fzf"
-  print ""
   # basic
-  print "${_yogit_basic_prefix}open: open/xdg-open repo url in browser"
-  print "${_yogit_basic_prefix}htest: ssh -T git@github.com"
-  print "${_yogit_basic_prefix}st: git status"
-  print "${_yogit_basic_prefix}sc: git clone with --depth 1"
-  print "${_yogit_basic_prefix}cob: git checkout -b"
-  print "${_yogit_basic_prefix}a: git add"
-  print "${_yogit_basic_prefix}c: git commit -v"
-  print "${_yogit_basic_prefix}c!: git commit --amend"
-  print "${_yogit_basic_prefix}cn!: git commit --amend --no-edit"
-  print "${_yogit_basic_prefix}push: git push origin current_branch"
-  print "${_yogit_basic_prefix}pull: git pull origin current_branch"
-  print "${_yogit_basic_prefix}sst: list staged and unstaged file names only"
-  print "${_yogit_basic_prefix}ls: git ls-files --others --exclude-standard"
-  print "${_yogit_basic_prefix}pickclone: git clone --sparse --filter=blob:none --depth=1"
-  print "${_yogit_basic_prefix}sub: git submodule update --init --recursive"
+  printf "--> basic usage\n"
+  print "${_yogit_basic_prefix}htest     : ssh -T git@github.com"
+  print "${_yogit_basic_prefix}st        : git status"
+  print "${_yogit_basic_prefix}sc        : git clone with --depth 1"
+  print "${_yogit_basic_prefix}cob       : git checkout -b"
+  print "${_yogit_basic_prefix}a         : git add"
+  print "${_yogit_basic_prefix}c         : git commit -v"
+  print "${_yogit_basic_prefix}c!        : git commit --amend"
+  print "${_yogit_basic_prefix}cn!       : git commit --amend --no-edit"
+  print "${_yogit_basic_prefix}push      : git push origin current_branch"
+  print "${_yogit_basic_prefix}pull      : git pull origin current_branch"
+  print "${_yogit_basic_prefix}sst       : list staged and unstaged file names only"
+  print "${_yogit_basic_prefix}open      : open/xdg-open repo url in browser"
+  print "${_yogit_basic_prefix}url       : ${_yogit_basic_prefix}url <remote-name> to print remote url"
+  print "${_yogit_basic_prefix}lr        : remote list"
+  print "${_yogit_basic_prefix}ls        : git ls-files --others --exclude-standard"
+  print "${_yogit_basic_prefix}pickclone : git clone --sparse --filter=blob:none --depth=1"
+  print "${_yogit_basic_prefix}sub       : git submodule update --init --recursive"
+  print ""
+  printf "--> interactive usage\n"
+  print "${yogit_checkout:-${_yogit_interactive_prefix}co}    :  checkout with fzf"
+  print "${yogit_cherry_pick:-${_yogit_interactive_prefix}cp} :  cherry pick with fzf"
+  print "${yogit_show:-${_yogit_interactive_prefix}sc}        :  select commit with fzf"
+  print "${yogit_branch:-${_yogit_interactive_prefix}br}      :  select branch with fzf"
+  print "${yogit_diff:-${_yogit_interactive_prefix}diff}      :  diff with fzf"
 }
 
 alias "${yogit_help:-${_yogit_interactive_prefix}help}"='yogit::help'
@@ -90,6 +97,7 @@ function yogit::shallowclone(){
   print "clone with --depth 1"
   git clone $@ --depth 1
 }
+
 alias "${_yogit_basic_prefix}sc"='yogit::shallowclone'
 
 # git checkout
@@ -165,8 +173,10 @@ alias "${_yogit_basic_prefix}rhh"="git reset --hard"
 # remote
 # list remote branch
 alias "${_yogit_basic_prefix}br"='git branch -r'
-# list remote url
-alias "${_yogit_basic_prefix}url"='git remote -v'
+# print current remote url
+alias "${_yogit_basic_prefix}url"='yogit::url'
+# list remote
+alias "${_yogit_basic_prefix}lr"='git remote -v'
 
 # }}}
 
