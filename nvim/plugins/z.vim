@@ -5,12 +5,13 @@ endif
 let g:loaded_z_vim = 1
 
 function! s:add_or_update_entry(entry)
-  if !len(system("command -v zcd"))
+  if len(system("command -v zcd")) == 0
     return
   endif 
-  echo '[Z.vim]: update ' . a:entry
-  let cmd = ['zcd','insert'] + map(copy(a:entry), {_, arg -> shellescape(arg)})
+  echomsg '[Z.vim]: update ' . a:entry
+  let cmd = ['zcd','insert'] + map([a:entry], {_, arg -> shellescape(arg)})
   let res = systemlist(join(cmd))
+  " echomsg '[Z.vim]: use ' . join(cmd)
   if v:shell_error
     echohl ErrorMsg | echo join(res,'\n') | echohl None
   endif
@@ -18,9 +19,6 @@ endfunction
 
 augroup ZVIM
   autocmd! 
-  if has('nvim')
-    autocmd DirChanged * if v:event['changed_window'] | call <SID>add_or_update_entry(v:event['cwd']) | endif
-  else
-    autocmd DirChanged window,tabpage call <SID>add_or_update_entry(expand('<afile>'))
-  endif 
+    " autocmd DirChanged * if v:event['changed_window'] | call <SID>add_or_update_entry(v:event['cwd']) | endif
+    autocmd DirChanged window,tabpage,global call <SID>add_or_update_entry(expand('<afile>:p'))
 augroup END "ZVIM
