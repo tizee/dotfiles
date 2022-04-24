@@ -1,14 +1,15 @@
+" zcd.nvim
 if exists('loaded_z_vim') || v:version < 700
   finish
 endif
 let g:loaded_z_vim = 1
 
 function! s:add_or_update_entry(entry)
-  if !len(system("command -v zdb"))
+  if !len(system("command -v zcd"))
     return
   endif 
   echo '[Z.vim]: update ' . a:entry
-  let cmd = ['zdb','add'] + map(copy(a:entry), {_, arg -> shellescape(arg)})
+  let cmd = ['zcd','insert'] + map(copy(a:entry), {_, arg -> shellescape(arg)})
   let res = systemlist(join(cmd))
   if v:shell_error
     echohl ErrorMsg | echo join(res,'\n') | echohl None

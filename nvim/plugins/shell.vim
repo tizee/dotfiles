@@ -11,6 +11,7 @@ function! s:read_shell_output() range
   " let old_val=getreg("s")
   let cmd=join(getline(a:firstline,a:lastline),"\n")
   echom "Execute " . cmd
+  vnew
   execute("read !" . cmd)
   " call setreg("s", system("zsh".cmd))
   " execute('normal "sp')
