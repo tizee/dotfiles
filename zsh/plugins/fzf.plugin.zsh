@@ -1,4 +1,4 @@
-fzf::kill_pid() {
+function fzf::kill_pid() {
   pid=$(ps -ef | sed 1d | fzf -m --height 40%  --border=sharp | awk '{print $2}')
 
   if [ "x$pid" != "x" ]
@@ -7,14 +7,11 @@ fzf::kill_pid() {
   fi
 }
 
-fzf::find_file() {
-    given_file="$1"
+function fzf::find_file() {
+    local given_file="$1"
     #fd --type file --follow --hidden --exclude .git | fzf --query="$given_file"
     fzf --query="$given_file"
 }
 
-
-
 alias fzff="fzf::find_fine"
 alias fzfk="fzf::kill_pid"
-alias fzfnvim="fzf::nvim"

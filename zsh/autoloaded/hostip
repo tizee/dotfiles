@@ -1,10 +1,10 @@
 #!/usr/bin/env zsh
-function hostip() {
-  if [ $SYSTEM = Darwin ];then 
+function __hostip() {
+  if [ $SYSTEM = Darwin ];then
     ifconfig | rg 'inet ' | rg -Fv '127.0.0.1' | awk '{print $2}'
   else
-    ip address | rg 'inet ' | rg -Fv '127.0.0.1' | awk '{print $2}' 
+    ip address | rg 'inet ' | rg -Fv '127.0.0.1' | awk '{print $2}'
   fi
 }
 
-hostip
+__hostip

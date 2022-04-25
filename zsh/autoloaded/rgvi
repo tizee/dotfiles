@@ -1,12 +1,16 @@
 #!/usr/bin/env zsh
 
-# rg quick edit
+# rg quick edit with fzf
 __rgvi(){
+  local keyword=$1
   local pat=$(rg $1 -il)
   local pat_len=${#pat}
+  local fzf_preview_str="bat {} | rg \"$keyword\""
   if [[ $pat_len > 0 ]];then
-    nvim $(echo $pat | fzf -m)
+    local list=($(echo "$pat" | fzf -m --preview "$fzf_preview_str"))
+    [[ ${#list[@]} -gt 0 ]] && nvim -p $list
   fi
+  return 0
 }
 
 __rgvi $@

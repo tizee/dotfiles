@@ -70,12 +70,12 @@ export CPLUS_INCLUDE_PATH="/usr/local/include"
 export LIBRARY_PATH="$LIBRARY_PATH:/usr/local/lib"
 
 # yarn
-if [[ -d $HOME/.yarn/bin ]]; then
-  PATH="$HOME/.yarn/bin:$PATH"
-  if [[ -d $HOME/.config/yarn/global/node_modules/.bin ]]; then
-  PATH="$HOME/.config/yarn/global/node_modules/.bin:$PATH"
-  fi
-fi
+# if [[ -d $HOME/.yarn/bin ]]; then
+#   PATH="$HOME/.yarn/bin:$PATH"
+#   if [[ -d $HOME/.config/yarn/global/node_modules/.bin ]]; then
+#   PATH="$HOME/.config/yarn/global/node_modules/.bin:$PATH"
+#   fi
+# fi
 
 # deno
 if [[ -d $HOME/.deno/bin ]]; then
@@ -252,11 +252,12 @@ if $is_macOS; then
   PATH="/usr/local/opt/openssl@1.1/bin:$PATH"
   # rust crate openssl-sys bug
   # https://stackoverflow.com/questions/49263452/how-do-i-statically-link-the-openssl-sys-crate-into-a-shared-library
- export OPENSSL_DIR="/usr/local/opt/openssl@1.1"
+  # https://stackoverflow.com/questions/34612395/openssl-crate-fails-compilation-on-mac-os-x-10-11
+  export OPENSSL_DIR="/usr/local/opt/openssl@1.1"
+  export OPENSSL_LIB_DIR="-L/usr/local/opt/openssl@1.1/lib"
+  export OPENSSL_INCLUDE_DIR="-L/usr/local/opt/openssl@1.1/include"
   # export OPENSSL_CFLAGS="-I/usr/local/opt/openssl@1.1/include"
   # export OPENSSL_LIBS="-L/usr/local/opt/openssl@1.1/lib"
-  # export OPENSSL_LIB_DIR="-L/usr/local/opt/openssl@1.1/lib"
-  # export OPENSSL_INCLUDE_DIR="-L/usr/local/opt/openssl@1.1/include"
   # export OPENSSL_ROOT_DIR="/usr/local/opt/openssl@1.1"
   #export OPENSSL_STATIC=1
   #export LDFLAGS="-L/usr/local/opt/openssl@1.1/lib"

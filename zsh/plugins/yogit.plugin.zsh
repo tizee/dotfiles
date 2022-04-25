@@ -54,6 +54,9 @@ function yogit::help() {
   print "${_yogit_basic_prefix}ls        : git ls-files --others --exclude-standard"
   print "${_yogit_basic_prefix}pickclone : git clone --sparse --filter=blob:none --depth=1"
   print "${_yogit_basic_prefix}sub       : git submodule update --init --recursive"
+  print "${_yogit_basic_prefix}br        : git branch -r"
+  print "${_yogit_basic_prefix}bru       : git branch -u <remote>/<branch> <local-branch> "
+  print "${_yogit_basic_prefix}bm        : rename branch and update its tracked origin branch"
   print ""
   printf "--> interactive usage\n"
   print "${yogit_checkout:-${_yogit_interactive_prefix}co}    :  checkout with fzf"
@@ -116,6 +119,22 @@ alias "${_yogit_basic_prefix}push"='git push origin "$(yogit::current_branch)"'
 
 # pull
 alias "${_yogit_basic_prefix}pull"='git pull origin "$(yogit::current_branch)"'
+
+# change remote branch that current branch tracked
+alias "${_yogit_basic_prefix}bru"='yogit::change_current_tracked'
+
+function yogit::change_current_tracked(){
+  git branch -u $1 $(yogit::current_branch)
+}
+
+# rename and change tracked branch of origin
+alias "${_yogit_basic_prefix}bm"='yogit::rename_for_remote_origin_branch'
+function yogit::rename_for_remote_origin_branch(){
+  git branch -m $1 $2
+  git branch -u origin/$2 $2
+  print "1. git fetch origin"
+  print "2. git remote set-head -a"
+}
 
 function yogit::staged_and_unstaged(){
   git status --porcelain | sed 's/^...//'
