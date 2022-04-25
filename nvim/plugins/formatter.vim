@@ -7,43 +7,55 @@ if exists('loaded_formatter_vim')
   finish
 endif
 
-let g:clang_format_path=get(g:,"clang_format_path","/usr/local/opt/llvm/Toolchains/LLVM11.0.0.xctoolchain/usr/share/clang")
 let g:loaded_formatter_vim = 1
-let g:formatter_auto_disabled = get(g:,"astyle_auto_disabled", 0)
-let g:astyle_config_fallback= get(g:,"astyle_config_fallback", "~/.config/global.astylerc")
+let default_path=substitute(system("which clang-format"),"\n$",'','')
+let s:clang_format=get(g:,"clang_format_path",default_path)
+" clang-format.py:
+" g:clang_format_path - path to clang-format
+" g:clang_format_fallback_style - fallback style options
+let s:clang_format_py_path=get(g:,"clang_format_py_path","/usr/local/opt/llvm/share/clang/clang-format.py")
+let s:astyle_config_fallback= get(g:,"astyle_config_fallback", "~/.config/global.astylerc")
 
-function! s:handle_c_cpp_file(path)
-  if exists("*FindRootWindow") && exists("*readdir")
-    let astyle_config_path = g:FindRootWindow(".astylerc")
+" clang-format based on https://clang.llvm.org/docs/ClangFormat.html#vim-integration
+function! s:handle_c_based_lang_file(path) abort
+  if exists("*FindFirst") && exists("*readdir")
+    let astyle_config_path = g:FindFirst(".astylerc")
     " prefer clang-format
-    let clang_format_config_path = g:FindRootWindow(".clang-format")
+    let clang_format_config_path = g:FindFirst(".clang-format")
+    if !len(clang_format_config_path)
+      let clang_format_config_path=expand("~/.clang-format")
+    endif
     if !empty(clang_format_config_path)
-      let project_root = substitute(astyle_config_path,".clang-format","","")
-      let clang_format_py_path = g:clang_format_path . "/clang-format.py"
-      pyf clang_format_py_path
+      let project_root = substitute(clang_format_config_path,".clang-format","","")
+      " clang-format.py for vim is not customized
+      " pyf s:clang_format_py_path
+      let cmd =s:clang_format.' '.'--style='.clang_format_config_path.' '.'-i'.' '.a:path
+      echomsg cmd
+      call system(cmd)
     elseif !empty(astyle_config_path)
       let project_root = substitute(astyle_config_path,".clang-format","","")
       let cmd = "cd " . '"'. project_root .'"' . " && astyle --project=.astylerc" . " " . a:path
       call system(cmd)
     else
+      " should be no-op
       " use global astyle config by default on pwd
-      let opts = ["-s4",
-            \"--indent-classes",
-            \"--indent-namespaces",
-            \"--attach-closing-while",
-            \ "--indent-cases",
-            \"--break-blocks",
-            \"--add-braces",
-            \"--break-return-type",
-            \"--mode=c",
-            \"--suffix=none",
-            \"--pad-comma",
-            \"--pad-oper",
-            \"--suffix=none",
-            \"--formatted"]
-      let cmd = "astyle " . join(opts," ") . " " . a:path
-      echom cmd
-      call system(cmd)
+      " let opts = ["-s4",
+      "       \"--indent-classes",
+      "       \"--indent-namespaces",
+      "       \"--attach-closing-while",
+      "       \'--indent-cases',
+      "       \"--break-blocks",
+      "       \"--add-braces",
+      "       \"--break-return-type",
+      "       \"--mode=c",
+      "       \"--suffix=none",
+      "       \"--pad-comma",
+      "       \"--pad-oper",
+      "       \"--suffix=none",
+      "       \"--formatted"]
+      " let cmd = 'astyle '.join(opts,' ').' '.a:path
+      " echom cmd
+      " call system(cmd)
     endif
     execute ":e"
     echo "Format: " . a:path
@@ -51,8 +63,6 @@ function! s:handle_c_cpp_file(path)
 endfunction
 
 
-augroup astyle_group
-  if g:formatter_auto_disabled == 0
-    autocmd! BufWritePost *.{c,cpp,cxx,h,hpp} call <SID>handle_c_cpp_file(expand("<afile>:p"))
-  endif 
+augroup C_BASED_LANG_FORMATTER_GROUP
+  autocmd! BufWritePost *.{cc,m,mm,c,cpp,cxx,h,hpp} call <SID>handle_c_based_lang_file(expand("<afile>:p"))
 augroup END "file_vim
