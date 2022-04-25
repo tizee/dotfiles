@@ -10,7 +10,7 @@ case $SYSTEM in
 esac
 
 # ========== TITLE EXAMPLE ========== {{{
-# }}} 
+# }}}
 
 # ========== zsh only Alias suffix ========== {{{
 if [[ -e '/usr/bin/zsh' ]];then
@@ -20,7 +20,7 @@ if [[ -e '/usr/bin/zsh' ]];then
   alias -s 7z="7z"
   # alias -g G='| rg -i'
 fi
-# }}} 
+# }}}
 
 # ========== coreutils =========={{{
 alias mkdir='mkdir -v'
@@ -47,7 +47,7 @@ alias emacsc="emacs -nw"
 
 # ========== tar ========== {{{
 alias -g tarsee="tar tvf " # list files
-# }}} 
+# }}}
 
 # ========== Linux ========== {{{
 if [ $is_Linux ];then
@@ -65,7 +65,7 @@ if [ $is_Linux ];then
   # check available file descriptors
   alias filedescnum="ulimit -n"
 fi
-# }}} 
+# }}}
 
 # ========== macOS ========== {{{
 
@@ -82,7 +82,7 @@ if [ $is_macOS ];then
   # print CPU number
   alias lcpunum="sysctl -n hw.ncpu"
   alias pcpunum="sysctl -n hw.physicalcpu"
-  # print file descripts number 
+  # print file descripts number
   # https://stackoverflow.com/questions/795236/in-mac-os-x-how-can-i-get-an-accurate-count-of-file-descriptor-usage
   alias printfd="lsof -d '^txt' -p nnn | wc -l"
   alias printmaxfd="launchctl limit maxfiles"
@@ -90,32 +90,33 @@ if [ $is_macOS ];then
   alias printosx="xcrun  --sdk macosx --show-sdk-path"
 fi
 
-# }}} 
+# }}}
 
 # youtube-dl
 # ========== youtube-dl========== {{{
 alias ydl="youtube-dl"
-# }}} 
+# }}}
 
 # show key code
 alias showhex="xxd -psd"
 
 # ========== headless Chrome ========== {{{
 # requires chrome >= 59
-alias chrome="/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome" 
+alias chrome="/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome"
 # alias chrome="/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome"
 # alias chrome-canary="/Applications/Google\ Chrome\ Canary.app/Contents/MacOS/Google\ Chrome\ Canary"
 # alias chromium="/Applications/Chromium.app/Contents/MacOS/Chromium"
-# }}} 
+# }}}
 
 # ========== cmake ========== {{{
 if [[ -e /usr/local/bin/cmake ]]; then
   # emit compile_commands.json for clangd
   # see https://clang.llvm.org/docs/JSONCompilationDatabase.html
   # and https://clangd.llvm.org/installation.html#project-setup
- alias cmake="cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 " 
+ alias cmakecld="cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 "
+  # update: please use bear to generate compile_commands.json for clangd!!!
 fi
-# }}} 
+# }}}
 
 # ========== neovim  ========= {{{
 alias vi="nvim"
@@ -228,7 +229,7 @@ alias ppsh="pipes.sh"
 
 # figlet
 alias -g fgfonts="ls ~/.config/figlet"
-# Nice 
+# Nice
 #
 
 # }}}
@@ -244,4 +245,4 @@ alias rustc18="rustc --edition=2018"
 alias rustccfg="touch rust_toolchain.toml"
 # }}}
 
-# vim:ft=zsh:foldmethod={{{,}}}
+# vim:ft=zsh:foldmarker={{{,}}}
