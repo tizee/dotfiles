@@ -29,7 +29,8 @@ function! s:handle_c_based_lang_file(path) abort
       let project_root = substitute(clang_format_config_path,".clang-format","","")
       " clang-format.py for vim is not customized
       " pyf s:clang_format_py_path
-      let cmd =s:clang_format.' '.'--style='.clang_format_config_path.' '.'-i'.' '.a:path
+      " clang-format has implemented the searching logic itself
+      let cmd =s:clang_format.' '.'--style=file'.' '.'-i'.' '.a:path
       echomsg cmd
       call system(cmd)
     elseif !empty(astyle_config_path)

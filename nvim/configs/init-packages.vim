@@ -49,9 +49,10 @@ Plug 'morhetz/gruvbox'
 " Recording
 Plug 'wakatime/vim-wakatime'
 " LSP + nvim nodejs ABI for ts plugins
-" Plug 'neoclide/coc.nvim', {'branch': 'master', 'do': 'yarn install --frozen-lockfile'}
-" TODO: add function for retrieving lsp info
-Plug '~/dev/grepo_vim/coc.nvim', {'branch': 'master', 'do': 'yarn install --frozen-lockfile'}
+" use my forked of coc.nvim
+Plug 'tizee/coc.nvim', {'branch': 'master', 'do': 'yarn install --frozen-lockfile'}
+Plug 'tizee/findfirst.vim', {'branch': 'master'}
+" Plug '~/dev/grepo_vim/coc.nvim', {'branch': 'master', 'do': 'yarn install --frozen-lockfile'}
 " keyboard layout
 Plug 'tizee/keyboard.vim'
 " convert rgb hex string to r,g,b
@@ -73,7 +74,6 @@ Plug '~/dev/grepo_vim/vim-gh-line'
 " copy text to the system clipboard from anywhere using the ANSI OSC52 sequence
 Plug '~/dev/grepo_vim/vim-oscyank'
 " my local plugin prototypes
-Plug '~/dev/grepo_vim/tz-vim-packages/find-root.vim'
 Plug '~/dev/grepo_vim/tz-vim-packages/nodemodules.vim'
 Plug '~/dev/grepo_vim/tz-vim-packages/md-table.vim'
 Plug '~/dev/grepo_vim/tz-vim-packages/moline.vim'

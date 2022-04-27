@@ -25,6 +25,10 @@
   "tsserver.npm": "/usr/local/bin/npm",
   // lsp server without coc wrapper
   "languageserver": {
+    // "sourcekit-lsp": {
+    //   "filetypes": ["swift","objc","objcpp"],
+    //   "command": "sourcekit-lsp"
+    // },
     // see https://github.com/iamcco/coc-flutter/issues/127
      // "dart": {
      //   "command": "dart_lsp_server",
@@ -78,6 +82,13 @@
   "rust-analyzer.checkOnSave.command": "clippy",
   // c++/c
   "clangd.enabled": true,
+  "clangd.inlayHints.sep": "‣",
+  "clangd.inlayHints.enable": true,
+  // objective-c, swift, c++, c
+  "sourcekit.enable": true,
+  // "sourcekit.objc": true,
+  // "sourcekit.objcpp": true,
+  // emoji
   "coc.source.emoji.filetypes": ["markdown", "tmux", "vim"],
   "coc.source.emoji.enable": true,
   "coc.source.emoji.triggerCharacters": [":"],
@@ -168,6 +179,10 @@
   "json.schemaDownload.enable": true,
   "json.schemas": [
     {
+      "fileMatch": ["/clang-format.json"],
+      "url":"https://json-schema.org/draft/2019-09/schema"
+    },
+    {
       "fileMatch": [
         "/.vimspector.json"
       ],
@@ -182,5 +197,13 @@
   ],
   // toml
   "toml.enabled": true,
-  "toml.formatter.alignEntries": true
+  "toml.formatter.alignEntries": true,
+  // yaml
+  "yaml.enable": true,
+  "yaml.validate": true,
+  "yaml.schemaStore.enable": true,
+  "yaml.format.bracketSpacing": true,
+  "yaml.schemas":{
+    "/Users/tizee/.config/local_json_schema/docker-compose-spec.json": "docker-compose.yml",
+    "/Users/tizee/.config/local_json_schema/clang-format.json":[".clang-format","*.clang-format","clang-format.yml","clang-format.yaml"]  }
 }

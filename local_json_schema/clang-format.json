@@ -1,10 +1,11 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema",
   "type": "object",
-  "title": "Self maintained .clang-format config",
-  "description": "The .clang-format file is a YAML file defining formatting styles used by clang-format. see https://clang.llvm.org/docs/ClangFormatStyleOptions.html",
+  "title": ".clang-format config",
+  "description": "The .clang-format file is a YAML file defining formatting styles used by clang-format.\r\r see https://clang.llvm.org/docs/ClangFormatStyleOptions.html",
   "properties": {
     "BasedOnStyle": {
+      "$comment": "clang-format ignores cases. For the sake of consistency, use one of following enums",
       "type": "string",
       "description": "The style used for all options not specifically set in the configuration.",
       "enum": [
@@ -14,7 +15,14 @@
         "Mozilla",
         "WebKit",
         "Microsoft",
-        "GNU"
+        "GNU",
+        "chromium",
+        "google",
+        "llvm",
+        "mozilla",
+        "webkit",
+        "microsoft",
+        "gnu"
       ]
     },
     "AccessModifierOffset": {
@@ -24,7 +32,7 @@
     "AlignAfterOpenBracket": {
       "type": "string",
       "description": "clang-format 3.8\r\r This applies to round brackets (parentheses), angle brackets and square brackets.",
-      "enum": ["Align", "DontAligh", "AlwaysBreak"]
+      "enum": ["Align", "DontAlign", "AlwaysBreak", "BlockIndent"]
     },
     "AlignArrayOfStructures": {
       "description": " clang-format 13\r\r if not None, when using initialization for an array of structs aligns the fields into columns.",
@@ -283,9 +291,16 @@
       ]
     },
     "BreakBeforeConceptDeclarations": {
-      "type": "string",
-      "description": "clang-format 12\r\r The concept declaration style to use.",
-      "enum": ["Never", "Allowed", "Always"]
+      "oneOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "string",
+          "description": "clang-format 12\r\r The concept declaration style to use.",
+          "enum": ["Never", "Allowed", "Always"]
+        }
+      ]
     },
     "BreakBeforeInheritanceComma": {
       "description": "clnag-format 5\r\r If true, in the class inheritance expression clang-format will break before : and , if there is multiple inheritance.",
@@ -316,7 +331,7 @@
     "ColumnLimit": {
       "type": "integer",
       "description": "clang-format 3.7\r\r The column limit.",
-      "exclusiveMinimum": 0
+      "minimum": 0
     },
     "CommentPragmas": {
       "description": "clang-format 3.7\r\r A regular expression that describes comments with special meaning, which should not be split into lines or otherwise changed.",
@@ -333,14 +348,12 @@
     "ConstructorInitializerIndentWidth": {
       "type": "integer",
       "description": "clang-format 3.7\r\r The number of characters to use for indentation of constructor initializer lists as well as inheritance lists.",
-      "default": 4,
-      "exclusiveMinimum": 0
+      "minimum": 0
     },
     "ContinuationIndentWidth": {
       "type": "integer",
       "description": "clang-format 3.7\r\r Indent width for line continuations.",
-      "default": 4,
-      "exclusiveMinimum": 0
+      "minimum": 0
     },
     "Cpp11BracedListStyle": {
       "description": "clang-format 3.4\r\r If true, format braced lists as best suited for C++11 braced lists.",
@@ -464,7 +477,6 @@
     "IndentWidth": {
       "description": "clang-format 3.7\r\r The number of columns to use for indentation.",
       "type": "integer",
-      "default": 2,
       "minimum": 0
     },
     "IndentWrappedFunctionNames": {
@@ -509,7 +521,7 @@
         "None",
         "Cpp",
         "ObjC",
-        "Csharp",
+        "CSharp",
         "Java",
         "JavaScript",
         "Json",
@@ -556,7 +568,6 @@
     "ObjCBlockIndentWidth": {
       "description": "clang-format 3.7\r\r The number of characters to use for indentation of ObjC blocks.",
       "type": "integer",
-      "default": 2,
       "minimum": 0
     },
     "ObjCBreakBeforeNestedBlockParam": {
@@ -671,6 +682,18 @@
             "$ref": "#/properties/Language"
           },
           "Delimiters": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "CanonicalDelimiter": {
+            "type": "string"
+          },
+          "BasedOnStyle": {
+            "$ref": "#/properties/BasedOnStyle"
+          },
+          "EnclosingFunctions": {
             "type": "array",
             "items": {
               "type": "string"
@@ -962,11 +985,11 @@
       }
     }
   },
-
-  "patternProperties": { "^x-": {} },
-  "additionalProperties": {
-    "type": "boolean"
+  "patternProperties": {
+    "^x-": {
+      "$comment": "yaml marker for multiple documents in one single yaml file"
+    }
   },
-
+  "additionalProperties": {},
   "$defs": {}
 }
