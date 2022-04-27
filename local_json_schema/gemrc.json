@@ -1,0 +1,58 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "title": "ruby gemrc config",
+  "description": "gemrc is a YAML file that uses strings to match gem command arguments and symbols to match RubyGems options.\r\r see details on https://docs.ruby-lang.org/en/3.1/Gem/ConfigFile.html\r\r also see https://guides.rubygems.org/command-reference/#gem-environment",
+  "type": "object",
+  "properties": {
+    ":sources": {
+      "description": "A YAML array of remote gem repositories to install gems from\r\r",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    ":verbose": {
+      "description": ":verbose Verbosity of the gem command. false, true, and :really are the levels",
+      "oneOf": [{ "type": "boolean" }, { "type": "string", "enum": [":loud"] }]
+    },
+    ":update_sources": {
+      "description": ":update_sources Enable/disable automatic updating of repository metadata",
+      "type": "boolean"
+    },
+    ":backtrace": {
+      "description": ":backtrace Print backtrace when RubyGems encounters an error",
+      "type": "boolean"
+    },
+    ":gempath": {
+      "description": ":gempath The paths in which to look for gems",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    ":disable_default_gem_server": {
+      "type": "boolean",
+      "description": ":disable_default_gem_server Force specification of gem server host on push"
+    },
+    ":concurrent_downloads": {
+      "description": "Number of gem downloads that should be performed concurrently.",
+      "type": "integer"
+    },
+    "ssl_verify_mode": {
+      "description": "openssl verify mode value, used for remote https connection",
+      "type": "integer",
+      "default": 1
+    },
+    "ipv4_fallback_enabled": {
+      "type": "boolean"
+    },
+    ":bulk_threshold": {
+      "type": "integer",
+      "description": "Bulk threshold value. If the number of missing gems are above this threshold value, then a bulk download technique is used. (deprecated)"
+    }
+  },
+  "additionalProperties": {
+    "description": "<gem_command>: A string containing arguments for the specified gem command",
+    "type": "string"
+  }
+}
