@@ -93,7 +93,7 @@ wezterm.on("update-right-status", function(window, pane)
   local num_cells = 0;
 
   -- Translate a cell into elements
-  function push(text, is_last)
+function push(text, is_last)
     local cell_no = num_cells + 1
     table.insert(elements, {Foreground={Color=text_fg}})
     table.insert(elements, {Background={Color=colors[cell_no]}})
@@ -115,6 +115,8 @@ end);
 
 return {
   -- general settings <-
+  -- drop files in macOS
+  quote_dropped_files = "Posix",
   colors = {
       compose_cursor = "green",
       tab_bar = {
@@ -285,7 +287,7 @@ return {
     {key=">", mods="LEADER", action=wezterm.action{MoveTabRelative=1}},
     {key="{", mods="ALT", action=wezterm.action{ActivateTabRelative=-1}},
     {key="}", mods="ALT", action=wezterm.action{ActivateTabRelative=1}},
-    {key="q", mods="LEADER", action="ShowTabNavigator"},
+    {key="t", mods="LEADER", action="ShowTabNavigator"},
     -- scroll
     {key="1", mods="LEADER", action=wezterm.action{ScrollByPage=-0.5}},
     {key="2", mods="LEADER", action=wezterm.action{ScrollByPage=0.5}},
