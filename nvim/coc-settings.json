@@ -125,7 +125,9 @@
     "typescript": ["javascript"],
     "typescriptreact":  ["javascript"]
   },
-  "snippets.ultisnips.directories":["$HOME/.config/nvim/snippets"],
+  // do not use snippets as ultisnips
+  "snippets.textmateSnippetsRoots": ["$HOME/.config/mac_configs/textmate_snippets"],
+  "snippets.ultisnips.directories":["$HOME/.config/nvim/UltiSnips"],
   // golang
   "go.goplsOptions": {
     "completeUnimported": true
@@ -205,5 +207,7 @@
   "yaml.format.bracketSpacing": true,
   "yaml.schemas":{
     "/Users/tizee/.config/local_json_schema/docker-compose-spec.json": "docker-compose.yml",
-    "/Users/tizee/.config/local_json_schema/clang-format.json":[".clang-format","*.clang-format","clang-format.yml","clang-format.yaml"]  }
+    "https://json.schemastore.org/clang-format.json":[".clang-format","*.clang-format","clang-format.yml","clang-format.yaml"]
+    // "/Users/tizee/.config/local_json_schema/clang-format.json":[".clang-format","*.clang-format","clang-format.yml","clang-format.yaml"]  
+  }
 }
