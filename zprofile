@@ -130,7 +130,7 @@ if $is_macOS; then
   PATH="/usr/local/opt/ruby/bin:$PATH"
   PATH="$PATH:$GEM_HOME/bin"
   # rvm for ruby
-  PATH="$HOME/.rvm/bin:$PATH"
+  # PATH="$HOME/.rvm/bin:$PATH"
   PATH="$HOME/flutter/bin:$PATH"
   # flutter dart
   PATH="$HOME/dev/grepo_dart/flutter/bin:$PATH"
@@ -149,6 +149,7 @@ if $is_macOS; then
   # emacs
   PATH="/Applications/Emacs.app/Contents/MacOS/bin:$PATH"
   # plan9port
+   export PLAN9=${PLAN9:-/usr/local/opt/plan9port/libexec}
   # export PLAN9=$HOME/dev/plan9/plan9port
   # avoid conflicts with tools under /usr/bin
   # PATH=$PATH:$PLAN9/bin
