@@ -1,5 +1,6 @@
 {
   // coc
+  "highlight.colors.enable": true,
   "coc.preferences.maxFileSize": "1MB",
   "coc.preferences.messageLevel":"error",
   "hover.autoHide":true,
@@ -207,8 +208,13 @@
   "yaml.format.bracketSpacing": true,
   "yaml.schemas":{
     "/Users/tizee/.config/local_json_schema/docker-compose-spec.json": "docker-compose.yml",
-    "/Users/tizee/.config/local_json_schema/gemrc.json": ".gemrc",
+    "/Users/tizee/.config/local_json_schema/gemrc.json": [".gemrc","gemrc"],
     "https://json.schemastore.org/clang-format.json":[".clang-format","*.clang-format","clang-format.yml","clang-format.yaml"]
     // "/Users/tizee/.config/local_json_schema/clang-format.json":[".clang-format","*.clang-format","clang-format.yml","clang-format.yaml"]  
-  }
+  },
+  // ruby
+  "solargraph.logLevel": "debug",
+  "solargraph.commandPath": "/Users/tizee/.gem/bin/solargraph",
+  "solargraph.promptDownload": false,
+  "solargraph.useBundler": false
 }

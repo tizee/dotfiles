@@ -38,7 +38,7 @@
       "description": "Number of gem downloads that should be performed concurrently.",
       "type": "integer"
     },
-    "ssl_verify_mode": {
+    ":ssl_verify_mode": {
       "description": "openssl verify mode value, used for remote https connection",
       "type": "integer",
       "default": 1

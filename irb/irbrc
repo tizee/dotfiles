@@ -1,0 +1,37 @@
+# load rubygems and irbtools
+# autocompletion
+# require 'irb/completion'
+# pretty-print
+# require 'pp'
+# %[rubygems irbtools]
+%w[irb/completion irbtools pp].each do |gem|
+  begin
+    require gem
+  rescue LoadError
+    puts "Failed to load #{gem} gem."
+  end
+end
+# see https://docs.ruby-lang.org/en/2.2.0/IRB.html
+IRB.conf[:MATH_MODE]=true
+IRB.conf[:AUTO_INDENT]=true
+IRB.conf[:INSPECT_MODE]=true
+IRB.conf[:BACK_TRACE_LIMIT]=16
+IRB.conf[:USE_LOADER] = false
+IRB.conf[:USE_READLINE] = false
+IRB.conf[:USE_TRACER] =false
+IRB.conf[:IGNORE_SIGINT] = true
+IRB.conf[:IGNORE_EOF] = false
+IRB.conf[:PROMPT_MODE] = :DEFAULT
+
+# %N    # command name which is running
+# %m    # to_s of main object (self)
+# %M    # inspect of main object (self)
+# %l    # type of string(", ', /, ]), `]' is inner %w[...]
+# %NNi  # indent level. NN is digits and means as same as printf("%NNd").
+#       # It can be ommited
+# %NNn  # line number.
+# %%    # %
+
+# IRB.conf[:DEBUG_LEVEL]=1
+# history
+IRB.conf[:SAVE_HISTORY] = 500
