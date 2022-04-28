@@ -126,10 +126,11 @@ if $is_macOS; then
   # curl
   PATH="/usr/local/opt/curl/bin:$PATH"
   # ruby
-  PATH="/usr/local/opt/ruby/bin:$PATH"
-  PATH="$HOME/.rvm/bin:$PATH"
   export GEM_HOME=$HOME/.gem
-  PATH=$GEM_HOME/bin:$PATH
+  PATH="/usr/local/opt/ruby/bin:$PATH"
+  PATH="$PATH:$GEM_HOME/bin"
+  # rvm for ruby
+  PATH="$HOME/.rvm/bin:$PATH"
   PATH="$HOME/flutter/bin:$PATH"
   # flutter dart
   PATH="$HOME/dev/grepo_dart/flutter/bin:$PATH"
@@ -148,8 +149,9 @@ if $is_macOS; then
   # emacs
   PATH="/Applications/Emacs.app/Contents/MacOS/bin:$PATH"
   # plan9port
-  export PLAN9=$HOME/dev/plan9/plan9port
-  PATH=$PATH:$PLAN9/bin
+  # export PLAN9=$HOME/dev/plan9/plan9port
+  # avoid conflicts with tools under /usr/bin
+  # PATH=$PATH:$PLAN9/bin
   # texinfo
   PATH="/usr/local/opt/texinfo/bin:$PATH"
   # harfbuzz
@@ -338,7 +340,7 @@ if $is_macOS; then
   export SSH_AUTH_SOCK=$(gpgconf --list-dirs agent-ssh-socket)
   gpgconf --launch gpg-agent
   # hard-coded values of /etc/zprofile
-  
+
   # pypi
   if [[ -f $HOME/.config/python/pypi_personal ]]; then
     source $HOME/.config/python/pypi_personal

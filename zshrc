@@ -452,4 +452,7 @@ function __cd_hook_list_files() {
 }
 
 # zshbuiltin variable
-# chpwd_functions=(${chpwd_functions[@]} "__cd_hook_list_files")
+chpwd_functions=(${chpwd_functions[@]} "__cd_hook_list_files")
+
+# rbenv init make the startup slow down
+eval "$(rbenv init - zsh)"

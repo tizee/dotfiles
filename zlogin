@@ -1,7 +1,9 @@
 #!/usr/bin/env zsh
 
+# show date
+# date
+
 # magicTmux message
-date
 if [[ $PROLOGUE_LOGO ]]; then
   echo "\033[94m Kilin is not kirlin"
   echo '    ___       ___       ___       ___       ___'
@@ -47,4 +49,5 @@ function zwc_watcher() {
 }
 zwc_watcher &!
 
-# vim:syntax=zsh ft=zsh
+# [[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm" # Load RVM into a shell session *as a function*
+# vim: ft=zsh
