@@ -5,56 +5,66 @@
 CONFIG_DIR_NAME ?=.config
 
 help:
-	@echo "make install       -  move $(HOME)/$(CONFIG_DIR_NAME) $(HOME)/$(CONFIG_DIR_NAME)_backup"
+	@echo "run make install first"
+	@echo
+	@echo "make install       -  mv $(HOME)/$(CONFIG_DIR_NAME) $(HOME)/$(CONFIG_DIR_NAME)_backup"
 	@echo "make dry-uninstall -  a dry run of uninstall"
 	@echo "make uninstall     -  require make dry-uninstall"
 	@echo "                      rm $(HOME)/$(CONFIG_DIR_NAME)"
 	@echo "                      move $(HOME)/$(CONFIG_DIR_NAME)_back $(HOME)/$(CONFIG_DIR_NAME)"
 	@echo "make emacs         -  require make install"
-	@echo "make emacsforce    -  require make install"
+	@echo "make emacs-force   -  require make install"
 	@echo "make nvim          -  require make install"
-	@echo "make nvimforce     -  require make install"
+	@echo "make nvim-force    -  require make install"
 	@echo "make zsh           -  require make install"
-	@echo "make zshforce      -  require make install"
+	@echo "make zsh-force     -  require make install"
+	@echo "make rm-zsh        -  require make install"
 .PHONY: help
 
 # use ln -svf is dangerous
-zsh: install
+zsh:
 	@echo "link zsh config"
 	ln -sv $(PWD)/zshrc ~/.zshrc
 	ln -sv $(PWD)/zprofile ~/.zprofile
 	ln -sv $(PWD)/zlogin ~/.zlogin
 	ln -sv $(PWD)/zshenv ~/.zshenv
+.PHONY: zsh
 
-zsh-force: install
+zsh-force:
 	@echo "link zsh config"
 	ln -svf $(PWD)/zshrc ~/.zshrc
 	ln -svf $(PWD)/zprofile ~/.zprofile
 	ln -svf $(PWD)/zlogin ~/.zlogin
 	ln -svf $(PWD)/zshenv ~/.zshenv
+.PHONY: zsh-force
 
-emacs: install
+emacs:
 	@echo "link emacs config"
 	ln -sv $(PWD)/emacs ~/.emacs.d
+.PHONY: emacs
 
-emacs-force: install
+emacs-force:
 	@echo "force to link emacs config"
 	ln -svf $(PWD)/emacs ~/.emacs.d
+.PHONY: emacs-force
 
-nvim: install
+nvim:
 	@echo "link nvim config"
 	ln -svf $(PWD)/nvim/vimrc.vim ~/.vimrc
 	# idea vim
 	ln -svf $(PWD)/nvim/vimrc.vim ~/.ideavimrc
+.PHONY: nvim
 
-nvim-force: install
+nvim-force:
 	@echo "force to link nvim config"
 	ln -svf $(PWD)/nvim/vimrc.vim ~/.vimrc
 	# idea vim
 	ln -svf $(PWD)/nvim/vimrc.vim ~/.ideavimrc
+.PHONY: nvim-force
 
-# cleanzsh:
-# 	-rm -v $(HOME)/.zlogin $(HOME)/.zprofile $(HOME)/.zshenv $(HOME)/.zshrc
+rm-zsh:
+	rm -v $(HOME)/.zlogin $(HOME)/.zprofile $(HOME)/.zshenv $(HOME)/.zshrc
+.PHONY: nvim-force
 
 install:
 	@echo "move ~/$(CONFIG_DIR_NAME) to ~/$(CONFIG_DIR_NAME)_backup"
