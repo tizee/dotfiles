@@ -8,16 +8,16 @@
 # zmodload zsh/zprof
 
 ######################
-# Prompt 
+# Prompt
 # more details on https://zsh.sourceforge.io/Doc/Release/Prompt-Expansion.html
 ######################
 # {{{
-#     __ __    _            _    __   _                
-#    / //_/   (_)  _____   (_)  / /  (_)  ____     ___ 
+#     __ __    _            _    __   _
+#    / //_/   (_)  _____   (_)  / /  (_)  ____     ___
 #   / ,<     / /  / ___/  / /  / /  / /  / __ \   / _ \
 #  / /| |   / /  / /     / /  / /  / /  / / / /  /  __/
-# /_/ |_|  /_/  /_/     /_/  /_/  /_/  /_/ /_/   \___/ 
-#                                                      
+# /_/ |_|  /_/  /_/     /_/  /_/  /_/  /_/ /_/   \___/
+#
 #
 # modified from gitstaus
 # {{{
@@ -52,17 +52,17 @@ fi
 #      !42  42 unstaged changes
 #      ?42  42 untracked files
 
-# Dracula color scheme 
-# Background	59	
-# Current Line	60	
-# Foreground	231	
-# Comment	103	
-# Cyan	159	
-# Green	120	
-# Orange	222	
-# Pink	212	
-# Purple	183	
-# Red	210	
+# Dracula color scheme
+# Background	59
+# Current Line	60
+# Foreground	231
+# Comment	103
+# Cyan	159
+# Green	120
+# Orange	222
+# Pink	212
+# Purple	183
+# Red	210
 # Yellow	229
 
 #use extended color palette if available
@@ -152,7 +152,7 @@ function gitstatus_prompt_update() {
   [[ -n $VCS_STATUS_ACTION     ]] && p+=" ${conflicted}${VCS_STATUS_ACTION}"
   # ~42 if have merge conflicts.
   (( VCS_STATUS_NUM_CONFLICTED )) && p+=" ${conflicted}~${VCS_STATUS_NUM_CONFLICTED}"
-  # +42 if have staged changes. 
+  # +42 if have staged changes.
   # use ✓
   (( VCS_STATUS_NUM_STAGED     )) && p+=" ${add}✓${VCS_STATUS_NUM_STAGED}"
   # !42 if have unstaged changes.
@@ -317,7 +317,7 @@ setopt share_history          # share command history data across zsh sessions
 setopt append_history         # append to history rather than overwrite
 # setopt inc_append_history # adds commands while typing commands instead of at shell exit.
 
-# use CTRL-R to search command history reversely 
+# use CTRL-R to search command history reversely
 bindkey -v
 bindkey '^R' history-incremental-search-backward
 # }}}
@@ -338,6 +338,7 @@ fi
 # cost about 9ms
 [ -e $ZSHDIR/vendor/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ] && source "$ZSHDIR/vendor/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
 [ -e $ZSHDIR/vendor/zsh-autosuggestions/zsh-autosuggestions.zsh ] && source "$ZSHDIR/vendor/zsh-autosuggestions/zsh-autosuggestions.zsh"
+[ -e $ZSHDIR/vendor/zsh-completions/src ] && fapth=("$ZSHDIR/vendor/zsh-completions/src" fpath)
 # source "$ZSHDIR/vendor/z.sh"
 # [ -e "$ZSHDIR/../zoxide.zsh" ] && source "$ZSHDIR/../zoxide.zsh"
 # use zcd instead
@@ -388,7 +389,7 @@ complete -o filenames -F _stack stack
 }
 # haskell_completion_init
 
-# cleanup: remove duplicate PATH entries 
+# cleanup: remove duplicate PATH entries
 export -U PATH
 # eliminate duplicates
 typeset -gU cdpath fpath

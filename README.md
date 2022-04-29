@@ -1,7 +1,5 @@
 <div align="center">
-  
 # Dotfiles
-
 
 My dotfiles for Unix-like systems (MacOS and Arch Linux).
 
@@ -12,6 +10,26 @@ My dotfiles for Unix-like systems (MacOS and Arch Linux).
 
 ![](https://user-images.githubusercontent.com/33030965/150770997-7abd15ec-0882-41ea-911e-83241cc4b306.png)
 
+=======
+
+## Installation
+
+```
+run make install first
+
+make install       -  mv $HOME/.config $HOME/.config_backup
+make dry-uninstall -  a dry run of uninstall
+make uninstall     -  require make dry-uninstall
+                      1. rm $HOME/.config
+                      2. mv $HOME/.config_back $HOME/.config
+make emacs         -  require make install
+make emacs-force   -  require make install
+make nvim          -  require make install
+make nvim-force    -  require make install
+make zsh           -  require make install
+make zsh-force     -  require make install
+make rm-zsh        -  require make install
+```
 
 ## Packages
 
@@ -39,3 +57,7 @@ I do not use Emacs often but I'd like to maintain a minimal configuration of Ema
 Zsh is more powerful than Bash in my opinion for its zle and completion system that enables autoloaded functions.
 
 [Zsh Completion System](https://zsh.sourceforge.io/Doc/Release/Completion-System.html)
+
+## Credit
+
+- zsh completion idea from Phantas0s's article, see his dotfiles [Phantas0s/.dotfiles](https://github.com/Phantas0s/.dotfiles)
