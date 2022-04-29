@@ -128,10 +128,9 @@ if [[ "$(command -v exa)" ]]; then
   unalias -m 'ls'
   unalias -m 'la'
   unalias -m 'll'
-  alias ls="exa -G --color auto --icons -a -s type"
-  alias ll='exa -lG --color always --icons -s type'
-  alias la='exa -alG --color always --icons -s type'
-  alias qps='ps aux | fd'
+  alias ls="exa -G --color auto -a -s type"
+  alias ll='exa -lG --color auto --icons -s type'
+  alias la='exa -alG --color auto --icons -s type'
   alias qcd='cd $(exa -lG | fzf)'
 fi
 # ls
@@ -184,7 +183,7 @@ alias tm="tmux attach || tmux new"
 
 # ========== find ehancement ========== {{{
 alias fdsl="fd . -t l -d 1 -H"
-
+alias fdps='ps aux | fd'
 # }}}
 
 # ========== fzf ehancement ========== {{{
