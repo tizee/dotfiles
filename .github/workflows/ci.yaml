@@ -1,0 +1,30 @@
+name: ci
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  schedule:
+      - cron: '0 0 * * 0'
+jobs:
+  build:
+    name: ${{ matrix.kind }} ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macOS-latest, ubuntu-latest]
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: install
+        run: make install
+      - name: zsh
+        run: make zshforce
+      - name: nvim
+        run: make nvimforce
+      - name: emacs
+        run: make zshforce
+      - name: uninstall
+        run: make uninstall
