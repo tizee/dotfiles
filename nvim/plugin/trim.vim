@@ -6,6 +6,7 @@ let g:loaded_trim_vim = 1
 function! s:TrimEOLSpaces()
   echohl WarningMsg | echomsg "Trim all trailing spaces before eol" | echohl None
 
+  let saved_cursor=getcurpos()
   let saved_gdefault = &gdefault
   let saved_hlsearch = &hlsearch
   try
@@ -16,6 +17,7 @@ function! s:TrimEOLSpaces()
   finally
       let &gdefault = saved_gdefault
       let &hlsearch= saved_hlsearch
+      call setpos('.',saved_cursor)
   endtry
 endfunction
 
