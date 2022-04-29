@@ -23,11 +23,20 @@ set encoding=utf8
 set pyx=3
 
 " true color
-"For Neovim > 0.1.5 and Vim > patch 7.4.1799 < https://github.com/vim/vim/commit/61be73bb0f965a895bfb064ea3e55476ac175162 >
-"Based on Vim patch 7.4.1770 (`guicolors` option) < https://github.com/vim/vim/commit/8a633e3427b47286869aa4b96f2bfc1fe65b25cd >
-" < https://github.com/neovim/neovim/wiki/Following-HEAD#20160511 >
-if has("termguicolors")
-  set termguicolors
+"Use 24-bit (true-color) mode in Vim/Neovim when outside tmux.
+"If you're using tmux version 2.2 or later, you can remove the outermost $TMUX check and use tmux's 24-bit color support
+"(see < http://sunaku.github.io/tmux-24bit-color.html#usage > for more information.)
+if (empty($TMUX))
+  if (has("nvim"))
+    "For Neovim 0.1.3 and 0.1.4 < https://github.com/neovim/neovim/pull/2198 >
+    let $NVIM_TUI_ENABLE_TRUE_COLOR=1
+  endif
+  "For Neovim > 0.1.5 and Vim > patch 7.4.1799 < https://github.com/vim/vim/commit/61be73bb0f965a895bfb064ea3e55476ac175162 >
+  "Based on Vim patch 7.4.1770 (`guicolors` option) < https://github.com/vim/vim/commit/8a633e3427b47286869aa4b96f2bfc1fe65b25cd >
+  " < https://github.com/neovim/neovim/wiki/Following-HEAD#20160511 >
+  if has("termguicolors")
+    set termguicolors
+  endif
 endif
 " double with chracter
 " set ambiwidth=double
@@ -39,6 +48,8 @@ set listchars=eol:⏎,tab:»-,trail:-,nbsp:.
 set showbreak=⌞
 " linebreak
 set linebreak
+" decrease memory usage
+set bufhidden=wipe
 
 "show command line
 set showcmd
@@ -54,11 +65,11 @@ set hidden
 " delays and poor user experience.
 set updatetime=300
 " By default timeoutlen is 1000 ms
-set timeout 
+set timeout
 " map sequence timeout
 set timeoutlen=500
 " key code timeout
-set ttimeoutlen=256 
+set ttimeoutlen=256
 
 " maximum amount of memory to use for pattern matching (in Kbyte)
 " avoid E363
@@ -253,7 +264,7 @@ if has('nvim')
   set runtimepath^=~/.vim runtimepath+=~/.vim/after
   let &packpath = &runtimepath
   " Shows the effects of a command incrementally, as you type.
-  set inccommand=nosplit 
+  set inccommand=nosplit
   " source ~/.vimrc
   " echo $TERM
   " echo $COLORTERM => truecolor
@@ -338,7 +349,7 @@ if has('nvim')
   let g:vim_config_dir=resolve(stdpath('config')) . "/"
 else
   let g:vim_config_dir=fnamemodify(resolve(expand('<sfile>:p')),":h") . "/"
-endif 
+endif
 let s:packages=g:vim_config_dir . "configs/init-packages.vim"
 execute "source " . s:packages
 
@@ -373,7 +384,7 @@ endif
 " e.g. 'guicursor' sets the terminal cursor style if possible.
 if has('nvim')
   augroup reset_nvim_cursor
-    autocmd! 
+    autocmd!
     autocmd VimEnter,VimResume * set guicursor=n-v-c:block,i-ci-ve:ver25,r-cr:hor20,o:hor50
 		  \,a:blinkwait700-blinkoff400-blinkon250-Cursor/lCursor
 		  \,sm:block-blinkwait175-blinkoff150-blinkon175
@@ -417,10 +428,17 @@ endif
 
 let g:gruvbox_italic=1
 colorscheme gruvbox
+set background=dark
 " highlight Comment cterm=italic gui=italic
-if !has('nvim')
-  set background=dark
-endif
+function! s:switch_background() abort
+  if &background ==# 'dark'
+    set background=light
+  else
+    set background=dark
+  endif
+endfunction
+
+command! -nargs=0 SwitchBg call <SID>switch_background()
 
 " AUTOCMD GROUP {{{
 " VimScript  {{{
@@ -473,7 +491,7 @@ endfunction
   aug ft_python
     autocmd!          | " Deletes all auto-commands in the current group
     " ftype/python.vim overwrites this
-    autocmd FileType python 
+    autocmd FileType python
           \ setlocal expandtab smarttab nosmartindent
           \ | setlocal tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80
 

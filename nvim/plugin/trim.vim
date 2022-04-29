@@ -4,8 +4,19 @@ endif
 let g:loaded_trim_vim = 1
 
 function! s:TrimEOLSpaces()
-  call feedkeys(":\<C-U>%s/ *$//\<CR>")
-  setl nohlsearch
+  echohl WarningMsg | echomsg "Trim all trailing spaces before eol" | echohl None
+
+  let saved_gdefault = &gdefault
+  let saved_hlsearch = &hlsearch
+  try
+      set nogdefault
+      set nohlsearch
+      " call feedkeys(":\<C-U>%s/ *$//\<CR>")
+      silent! %s/\s\+$
+  finally
+      let &gdefault = saved_gdefault
+      let &hlsearch= saved_hlsearch
+  endtry
 endfunction
 
 nnoremap <silent> <Plug>(trim-eol-spaces) :call <SID>TrimEOLSpaces()<CR>
@@ -14,6 +25,6 @@ command! -nargs=0 TrimEOLSpaces call <SID>TrimEOLSpaces()
 
 augroup TRIM_EOL_SPACES
   autocmd!
-  autocmd BufWritePost * call <SID>TrimEOLSpaces()
+  autocmd BufWritePre * call <SID>TrimEOLSpaces()
 augroup END
 

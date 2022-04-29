@@ -3,7 +3,7 @@
 " Email: 33030965+tizee@users.noreply.github.com
 " Github: 
 " Description:
-" Last Modified: Tue 2021-08-31 23:35:36 (+0800)
+" Last Modified: Fri 2022-04-29 18:01:33 (+0800)
 
 if exists('loaded_last_modified_vim') || &cp || v:version < 700
   finish
@@ -18,6 +18,7 @@ let s:lastmod_line=6
 let s:lastmod_format='%a %Y-%m-%d %H:%M:%S (%z)'
 let s:lastmod_prefix='Last Modified:\s*'
 
+" update time according to metadata
 function! s:UpdateTime()
       let save_cursor = getpos('.')
       let n = min([s:lastmod_line, line('$')])

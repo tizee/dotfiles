@@ -216,5 +216,8 @@
   "solargraph.logLevel": "debug",
   "solargraph.commandPath": "/Users/tizee/.gem/bin/solargraph",
   "solargraph.promptDownload": false,
-  "solargraph.useBundler": false
+  "solargraph.useBundler": false,
+  "solargraph.hover": true,
+  "solargraph.diagnostics": true,
+  "solargraph.rename": true
 }

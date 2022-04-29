@@ -1,7 +1,7 @@
 " File: init-packages.vim
 " Author: tizee
 " Email: 33030965+tizee@users.noreply.github.com
-" Description: 
+" Description:
 
 scriptencoding utf-8
 call plug#begin('~/.vim/plugged')
@@ -14,6 +14,7 @@ Plug 'cespare/vim-toml'
 Plug 'godlygeek/tabular'
 " colored parentheses
 Plug 'luochen1990/rainbow'
+Plug 'amadeus/vim-convert-color-to'
 " eye candy
 if has('nvim')
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}  " We recommend updating the parsers on update
@@ -21,6 +22,7 @@ endif
 " debugger
 Plug 'puremourning/vimspector'
 " Plug 'itchyny/lightline.vim'
+Plug '~/dev/grepo_vim/tz-vim-packages/moline.vim'
 Plug 'ryanoasis/vim-devicons' " icons
 Plug 'airblade/vim-gitgutter' " git
 " key mapping helper
@@ -36,7 +38,7 @@ Plug '~/dev/grepo_vim/nerdtree-git-plugin'
 Plug 'tikhomirov/vim-glsl' " OpenGL shader language
 " }}}
 " formater
-Plug 'Chiel92/vim-autoformat'
+" Plug 'Chiel92/vim-autoformat'
 " Editing
 Plug 'tpope/vim-commentary' " commentary tool
 Plug 'tpope/vim-surround'
@@ -45,7 +47,9 @@ Plug 'easymotion/vim-easymotion'
 " Searching
 Plug '/usr/local/opt/fzf'
 " Plug 'dracula/vim', { 'as': 'dracula' }
-Plug 'morhetz/gruvbox'
+" Plug 'morhetz/gruvbox'
+" use my forked gruvbox
+Plug 'tizee/gruvbox.vim'
 " Recording
 Plug 'wakatime/vim-wakatime'
 " LSP + nvim nodejs ABI for ts plugins
@@ -76,7 +80,6 @@ Plug '~/dev/grepo_vim/vim-oscyank'
 " my local plugin prototypes
 Plug '~/dev/grepo_vim/tz-vim-packages/nodemodules.vim'
 Plug '~/dev/grepo_vim/tz-vim-packages/md-table.vim'
-Plug '~/dev/grepo_vim/tz-vim-packages/moline.vim'
 " Plug '~/dev/grepo_vim/tz-vim-packages/codecount.vim'
 " local version fixed packages
 Plug '~/dev/grepo_vim/indentLine'
@@ -142,13 +145,15 @@ function! s:source_helper(name)
     if  plugin_filename ==# 'packages' || isdirectory(plugin)
       continue
     endif
-    execute "source " . plugin
+    execute 'source '.plugin
   endfor
 endfunction
 
-" plugin prototype
+" set rtp+=~/.config/nvim/plugins
 " coc extension local development
-set rtp+=~/dev/grepo_vim/coc-packages/coc-flutter
-
-call s:source_helper('plugins')
+" plugin prototype
+" set rtp+=~/dev/grepo_vim/coc-packages/coc-flutter
+" call s:source_helper('plugins')
 call s:source_helper('configs')
+
+" vim: foldmarker={{{,}}}

@@ -42,6 +42,8 @@ let g:roman_slogan=[
 
 " TODO: use a morden figlet alternative program for cjk characters or
 " complicated scripts.
+" TODO steps to generate following slogan
+" use a cli font viewer for rendering non-Latin characters
 let g:cjk_slogan=[
 \ '     ⣀⣀⣀⣤⡤  ',
 \ '       ⣿⢀   ',
@@ -52,7 +54,7 @@ let g:cjk_slogan=[
 " need to escape control sequence for Chinese qutoes
 " 杨花榆荚无才思，惟解漫天作雪飞。
 " [33m    -- 韩愈[32m《晚春》[m[m
-"
+
 function! s:padstr(str,amt)
     return a:str . repeat(' ',a:amt - len(a:str))
 endfunction
@@ -79,7 +81,7 @@ let g:startify_bookmarks = [ {'c': '~/.vimrc'}, '~/.zshrc' ]
 " A list of commands to execute on selection. Leading colons are optional. It
 " supports optional custom indices and/or command descriptions.
 let g:startify_commands = [
-    \ ['Plug Config', 'PlugConfig'],
+    \ [':PlugConfig', 'PlugConfig'],
     \ ':CocInfo',
     \ {'h': 'h ref'},
     \ ]
@@ -91,10 +93,9 @@ let g:startify_lists = [
       \ { 'type': 'commands',  'header': ['   Commands']       },
       \ ]
 
-" Startup with NERDTree and Startify opened
+" Startup with NERDTree opened
 autocmd VimEnter *
           \   if !argc()
-          \ |   Startify
           \ |   NERDTree
           \ |   wincmd w
           \ | endif
