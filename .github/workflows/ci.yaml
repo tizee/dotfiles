@@ -25,10 +25,10 @@ jobs:
       - name: install
         run: make install
       - name: zsh
-        run: make zshforce
+        run: make zsh-force
       - name: nvim
-        run: make nvimforce
+        run: make nvim-force
       - name: emacs
-        run: make zshforce
+        run: make zsh-force
       - name: uninstall
         run: make uninstall
