@@ -298,7 +298,6 @@ setopt multios
 # setopt prompt_subst
 # enhanced glob
 setopt extendedglob
-zstyle ':completion:*' rehash true # refresh autocompletion
 
 ## History file configuration {{{
 [ -z "$HISTFILE" ] && HISTFILE="$HOME/.zsh_history"
@@ -338,7 +337,9 @@ fi
 # cost about 9ms
 [ -e $ZSHDIR/vendor/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ] && source "$ZSHDIR/vendor/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
 [ -e $ZSHDIR/vendor/zsh-autosuggestions/zsh-autosuggestions.zsh ] && source "$ZSHDIR/vendor/zsh-autosuggestions/zsh-autosuggestions.zsh"
-[ -e $ZSHDIR/vendor/zsh-completions/src ] && fapth=("$ZSHDIR/vendor/zsh-completions/src" fpath)
+if [ -d $ZSHDIR/vendor/zsh-completions/src ];then
+  fpath=("$ZSHDIR/vendor/zsh-completions/src" ${fpath[@]})
+fi
 # source "$ZSHDIR/vendor/z.sh"
 # [ -e "$ZSHDIR/../zoxide.zsh" ] && source "$ZSHDIR/../zoxide.zsh"
 # use zcd instead
