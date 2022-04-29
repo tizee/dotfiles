@@ -1,4 +1,6 @@
 name: ci
+env:
+  CONFIG_DIR_NAME: test_config
 on:
   push:
     branches:
@@ -18,6 +20,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+      - name: Create fake .config
+        run: mkdir $HOME/$CONFIG_DIR_NAME
       - name: install
         run: make install
       - name: zsh

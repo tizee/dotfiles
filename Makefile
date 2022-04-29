@@ -1,12 +1,15 @@
 # Why use stow when you could use makefile to do the same thing?
 # Because I can see anything, which I mean control anything with Makefile directly
 
+# for CI purpose
+CONFIG_DIR_NAME ?=.config
+
 help:
-	@echo "make install       -  move $(HOME)/.config $(HOME)/.config_backup"
+	@echo "make install       -  move $(HOME)/$(CONFIG_DIR_NAME) $(HOME)/$(CONFIG_DIR_NAME)_backup"
 	@echo "make dry-uninstall -  a dry run of uninstall"
 	@echo "make uninstall     -  require make dry-uninstall"
-	@echo "                      rm $(HOME)/.config"
-	@echo "                      move $(HOME)/.config_back $(HOME)/.config"
+	@echo "                      rm $(HOME)/$(CONFIG_DIR_NAME)"
+	@echo "                      move $(HOME)/$(CONFIG_DIR_NAME)_back $(HOME)/$(CONFIG_DIR_NAME)"
 	@echo "make emacs         -  require make install"
 	@echo "make emacsforce    -  require make install"
 	@echo "make nvim          -  require make install"
@@ -54,30 +57,30 @@ nvim-force: install
 # 	-rm -v $(HOME)/.zlogin $(HOME)/.zprofile $(HOME)/.zshenv $(HOME)/.zshrc
 
 install:
-	@echo "move ~/.config to ~/.config_backup"
-	mv $(HOME)/.config $(HOME)/.config_backup
-	ln -s $(PWD) $(HOME)/.config && print "Install done!"
+	@echo "move ~/$(CONFIG_DIR_NAME) to ~/$(CONFIG_DIR_NAME)_backup"
+	mv $(HOME)/$(CONFIG_DIR_NAME) $(HOME)/$(CONFIG_DIR_NAME)_backup
+	ln -s $(PWD) $(HOME)/$(CONFIG_DIR_NAME) && echo "Install done!"
 .PHONY: install
 
 dry-uninstall:
-	@echo "==> check $(HOME)/.config as symlink"
-	@[ -L "$(HOME)/.config" ]
-	@echo "$(HOME)/.config linked"
+	@echo "==> check $(HOME)/$(CONFIG_DIR_NAME) as symlink"
+	@[ -L "$(HOME)/$(CONFIG_DIR_NAME)" ]
+	@echo "$(HOME)/$(CONFIG_DIR_NAME) linked"
 	@echo
-	@echo "==> check $(HOME)/.config existence"
-	@[ -e "$(HOME)/.config" ]
-	@echo "$(HOME)/.config installed"
+	@echo "==> check $(HOME)/$(CONFIG_DIR_NAME) existence"
+	@[ -e "$(HOME)/$(CONFIG_DIR_NAME)" ]
+	@echo "$(HOME)/$(CONFIG_DIR_NAME) installed"
 	@echo
-	@echo "==> check $(HOME)/.config_backup existence"
-	@[ -e "$(HOME)/.config_backup" ]
-	@echo "$(HOME)/.config_backup exists"
+	@echo "==> check $(HOME)/$(CONFIG_DIR_NAME)_backup existence"
+	@[ -e "$(HOME)/$(CONFIG_DIR_NAME)_backup" ]
+	@echo "$(HOME)/$(CONFIG_DIR_NAME)_backup exists"
 	@exit 0
 .PHONY: dry-uninstall
 
 uninstall: dry-uninstall
-	@echo "delete $(HOME)/.config and move $(HOME)/.config_backup to $(HOME)/.config"
-	rm $(HOME)/.config
-	print "Uninstall done!"
-	# -[ -e $(HOME)/.config_backup] && mv $(HOME)/.config_backup $(HOME)/.config
+	@echo "delete $(HOME)/$(CONFIG_DIR_NAME) and move $(HOME)/$(CONFIG_DIR_NAME)_backup to $(HOME)/$(CONFIG_DIR_NAME)"
+	rm $(HOME)/$(CONFIG_DIR_NAME)
+	mv $(HOME)/$(CONFIG_DIR_NAME)_backup $(HOME)/$(CONFIG_DIR_NAME)
+	echo "Uninstall done!"
 
 # vim:ft=make
