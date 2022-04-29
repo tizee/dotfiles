@@ -4,5 +4,6 @@ endif
 let g:loaded_eol_vim = 1
 
 " highlight end of line in files
-autocmd Syntax * syn match Error /\s\+$\| \+\ze\t/
-autocmd BufRead * syn match Error /\s\+$\| \+\ze\t/
+autocmd Syntax * syn match ErrorMsg /\s\+$\| \ze\t$/
+" autocmd Syntax * syn match ErrorMsg /\s\+$/
+" autocmd BufRead * syn match ErrorMsg /\s\+$/
