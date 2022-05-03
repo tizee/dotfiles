@@ -11,8 +11,6 @@ My dotfiles for Unix-like systems (MacOS and Arch Linux).
 
 ![](https://user-images.githubusercontent.com/33030965/150770997-7abd15ec-0882-41ea-911e-83241cc4b306.png)
 
-=======
-
 ## Installation
 
 ```
