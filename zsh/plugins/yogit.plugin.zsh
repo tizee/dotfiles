@@ -201,6 +201,7 @@ alias "${_yogit_basic_prefix}url"='yogit::url'
 # list remote
 alias "${_yogit_basic_prefix}lr"='git remote -v'
 
+alias "${_yogit_basic_prefix}prune"='git remote prune origin'
 # }}}
 
 # Interactive commands aliases start with prefix gi {{{
