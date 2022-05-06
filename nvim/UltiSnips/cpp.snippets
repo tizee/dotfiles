@@ -11,7 +11,7 @@ endsnippet
 
 snippet hackit "not sync with stdio"
 auto hackit = [](){
-	std::ios::sync_with_stdio(false); 
+	std::ios::sync_with_stdio(false);
 	std::cin.tie(0);
 }();
 endsnippet
@@ -38,13 +38,19 @@ int BSearch(${1:vector<int> &sorted_list},${2:int key}){
 }
 endsnippet
 
-snippet KMP "KMP algorithm" b
-WIP
-endsnippet
-
 # should be compiled to a CLI tool
 snippet BIGEDIAN "Verify Machine big edian" b
 #define IS_BIG_ENDIAN (!*(unsigned char*)&(uint16_t){1})
+endsnippet
+
+snippet fastio "Fast IO" b
+static const auto f = []() {
+    std::ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    cout.tie(0);
+
+    return 0;
+}();
 endsnippet
 
 # leap year validator
