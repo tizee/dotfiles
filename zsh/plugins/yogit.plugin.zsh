@@ -92,17 +92,22 @@ function yogit::open() {
   _yogit_open $(yogit::url)
 }
 
-# open Github's permanent url of given commit of a git worktree
-function yogit::open_gh_commit() {
+function yogit::gh_commit_url() {
   local commit=$(git rev-parse --verify ${1:-HEAD})
   local base_url=$(yogit::url)
   if [[ "$base_url" =~ .*"github".* ]]; then
-    _yogit_open "${base_url}/tree/${commit}"
+    echo "${base_url}/tree/${commit}"
   else
     echo "Remote isn't not a Github repository" && exit 1
   fi
 }
 
+# open Github's permanent url of given commit of a git worktree
+function yogit::open_gh_commit() {
+  _yogit_open $(yogit::gh_commit_url $1)
+}
+
+alias "${_yogit_basic_prefix}ghurl"='yogit::gh_commit_url'
 alias "${_yogit_basic_prefix}opengh"='yogit::open_gh_commit'
 
 # open url of remote repo
