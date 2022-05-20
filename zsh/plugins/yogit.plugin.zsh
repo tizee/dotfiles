@@ -25,15 +25,6 @@ elif [ $SYSTEM = Linux ]; then
   alias _yogit_open='xdg-open'
 fi
 
-function yogit::url() {
-  local remote_name="${1:-origin}"
-  git config --get remote.$remote_name.url | sed -E 's/^[^@]*@([^:\/]*)[:\/]/https:\/\/\1\//' | sed 's/\.git//'
-}
-
-function yogit::open() {
-  _yogit_open $(yogit::url)
-}
-
 function yogit::help() {
   # basic
   printf "--> basic usage\n"
@@ -91,7 +82,30 @@ function yogit::current_branch() {
 # }}}
 
 # basic aliases start with prefix gg {{{
-# test github
+
+function yogit::url() {
+  local remote_name="${1:-origin}"
+  git config --get remote.$remote_name.url | sed -E 's/^[^@]*@([^:\/]*)[:\/]/https:\/\/\1\//' | sed 's/\.git//'
+}
+
+function yogit::open() {
+  _yogit_open $(yogit::url)
+}
+
+# open Github's permanent url of given commit of a git worktree
+function yogit::open_gh_commit() {
+  local commit=$(git rev-parse --verify ${1:-HEAD})
+  local base_url=$(yogit::url)
+  if [[ "$base_url" =~ .*"github".* ]]; then
+    _yogit_open "${base_url}/tree/${commit}"
+  else
+    echo "Remote isn't not a Github repository" && exit 1
+  fi
+}
+
+alias "${_yogit_basic_prefix}opengh"='yogit::open_gh_commit'
+
+# open url of remote repo
 alias "${_yogit_basic_prefix}open"='yogit::open'
 
 # test github
