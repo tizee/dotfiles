@@ -55,6 +55,7 @@ function yogit::help() {
   print "${_yogit_basic_prefix}pickclone : git clone --sparse --filter=blob:none --depth=1"
   print "${_yogit_basic_prefix}sub       : git submodule update --init --recursive"
   print "${_yogit_basic_prefix}br        : git branch -r"
+  print "${_yogit_basic_prefix}parse     : git rev-parse [input] | cut -d 1-6"
   print "git branch -r --merged          : ${_yogit_basic_prefix}br --merged"
   print "git branch --merged             : ${_yogit_basic_prefix}br --merged"
   print "${_yogit_basic_prefix}br        : git branch -r"
@@ -200,8 +201,18 @@ alias "${_yogit_basic_prefix}br"='git branch -r'
 alias "${_yogit_basic_prefix}url"='yogit::url'
 # list remote
 alias "${_yogit_basic_prefix}lr"='git remote -v'
-
+# prune unused branches
 alias "${_yogit_basic_prefix}prune"='git remote prune origin'
+
+function yogit::parse() {
+  local object_name="${1:-HEAD}"
+  # always print short sha-1 of commit
+  git rev-parse "$object_name" | cut -c 1-7
+}
+# print current commit
+alias "${_yogit_basic_prefix}last"="git log -1 HEAD --pretty='%h'"
+# print the commit of given object
+alias "${_yogit_basic_prefix}parse"='yogit::parse'
 # }}}
 
 # Interactive commands aliases start with prefix gi {{{
