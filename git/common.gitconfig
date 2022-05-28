@@ -90,16 +90,30 @@
   pretty=%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %n%C(bold blue)<%an> %ae%Creset [%G?]%n
 
 [delta]
-  syntax-theme = Github
-  side-by-side = false
-  diff-so-fancy = true # emulate diff-so-fancy
+  features = tizee decorations
+
+[delta "decorations"]
+    commit-decoration-style = bold yellow box ul
+    file-style = bold yellow ul
+    file-decoration-style = none
+    hunk-header-decoration-style = yellow box
+
+[delta "tizee"]
   navigate = true # n for next and N for previous
-  # line-numbers = true
-  features = side-by-side #line-nubmers # side-by-side
+  line-numbers = true
+  line-numbers-minus-style = "#444444"
+  line-numbers-zero-style = "#444444"
+  line-numbers-plus-style = "#444444"
+  line-numbers-left-format = "{nm:>4}┊"
+  line-numbers-right-format = "{np:>4}│"
+  line-numbers-left-style = blue
+  line-numbers-right-style = blue
+  side-by-side = true
+  diff-so-fancy = true # emulate diff-so-fancy
   whitespace-error-style = 22 reverse
 
 [interactive]
-  diffFilter = delta #--color-only # git-delta
+  diffFilter = delta --color-only # git-delta
 
 [url "git@github.com:"]
   insteadOf = https://github.com/
@@ -140,10 +154,11 @@
 [diff]
   # tool = vimdiff
   tool = difftastic
+  # Git>=2.17
+  colorMoved = default
 
 [difftool "sourcetree"]
   cmd = opendiff \"$LOCAL\" \"$REMOTE\"
-
 
 [mergetool "sourcetree"]
   cmd = /Applications/Sourcetree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"
