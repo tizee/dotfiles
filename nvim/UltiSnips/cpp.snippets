@@ -9,17 +9,6 @@ snippet vector "std::vector (v)"
 std::vector<${1:char}> v$0;
 endsnippet
 
-snippet hackit "not sync with stdio"
-auto hackit = [](){
-	std::ios::sync_with_stdio(false);
-	std::cin.tie(0);
-}();
-endsnippet
-
-snippet BinaryIndexdTree "" b
-WIP
-endsnippet
-
 snippet BSearch "binary search" b
 int BSearch(${1:vector<int> &sorted_list},${2:int key}){
 	int left = 0, right = sorted_list.size()-1;
@@ -43,11 +32,11 @@ snippet BIGEDIAN "Verify Machine big edian" b
 #define IS_BIG_ENDIAN (!*(unsigned char*)&(uint16_t){1})
 endsnippet
 
-snippet fastio "Fast IO" b
+snippet fastio "Fast IO - not sync with stdio" b
 static const auto f = []() {
     std::ios_base::sync_with_stdio(0);
-    cin.tie(0);
-    cout.tie(0);
+    cin.tie(nullptr);
+    cout.tie(nullptr);
 
     return 0;
 }();

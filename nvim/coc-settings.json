@@ -5,6 +5,7 @@
   "coc.preferences.messageLevel":"error",
   "hover.autoHide":true,
   "list.source.outline.defaultAction":" quickfix",
+  "coc.preferences.watchmanPath": "/usr/local/bin/watchman",
   // diagnostic
   "diagnostic.enable": true,
   "diagnostic.virtualText": true,
@@ -106,7 +107,7 @@
     "golang",
     "dart"
   ],
-  // "coc.preferences.jumpCommand": "vsplit",
+  "coc.preferences.jumpCommand": "vsplit",
   "emmet.includeLanguages": {
     "vue-html": "html",
     "javascript": "javascriptreact"
