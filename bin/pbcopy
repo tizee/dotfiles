@@ -1,0 +1,15 @@
+#!/usr/bin/env zsh
+
+case $(uname -s) in
+  Darwin*)
+     pbcopy $@
+    ;;
+  Linux*)
+     # xclip is avaliable in most Linux distributions
+     # TODO test in Linux
+     xclip -selection clipboard
+    ;;
+  *)
+    exit 1
+    ;;
+esac

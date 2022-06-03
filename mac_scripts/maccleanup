@@ -1,0 +1,121 @@
+#!/usr/bin/env zsh
+# idea from: https://gist.github.com/Aidurber/7549d3f83b00052cee745a6c4dcf7b9d
+
+
+function __cleanup_node_modules(){
+  # Cleanup old node_modules
+  case "$1" in
+    -dry)
+        find . -name "node_modules" -type d -mtime +30
+      ;;
+    *)
+      echo "Cleaning node_modules in projects older than 30 days"
+      # find . -name "node_modules" -type d -mtime +30 | xargs rm -rf
+      echo "Done cleaning node_modules"
+      ;;
+  esac
+
+}
+
+function __cleanup_rust(){
+  # Cleanup old target
+  case "$1" in
+    -dry)
+      find . -name "target" -type d -mtime +30
+      ;;
+    *)
+      echo "Cleaning target in projects older than 30 days"
+      # find . -name "target" -type d -mtime +30 | xargs rm -rf
+      echo "Done cleaning Cargo target"
+      ;;
+  esac
+}
+
+function __cleanup_homebrew(){
+  # Clean up homebrew
+  echo "Clean homebrew"
+  brew update && brew upgrade && brew cleanup
+  echo "Done cleaning homebrew"
+}
+
+
+function __cleanup_gems(){
+  # Clean up outdated gems
+  echo "Clean gems"
+  gem cleanup
+  echo "Done cleaning gems"
+}
+
+function __cleanup_pod(){
+  # Clean up pod caches
+  echo "Clean up pod caches"
+  rm -rf "${HOME}/Library/Caches/CocoaPods"
+  echo "Done cleaning pod caches"
+}
+
+function __cleanup_simulators(){
+  # Delete old XCode simulators
+  echo "Delete old XCode simulators"
+  xcrun simctl delete unavailable
+  echo "Done deleting old XCode simulators"
+}
+
+function __cleanup_xcode(){
+  # Clean up xcode junk
+  echo "Clean XCode junk"
+
+  rm -rf ~/Library/Developer/Xcode/Archives
+  rm -rf ~/Library/Developer/Xcode/DerivedData
+  rm -rf ~/Library/Developer/Xcode/iOS Device Logs/
+  echo "Done cleaning XCode junk"
+
+}
+
+case "$1" in
+  -rust)
+    shift
+    __cleanup_rust $@
+    ;;
+  -homebrew)
+    __cleanup_homebrew
+    ;;
+  -node_modules)
+    shift
+    __cleanup_node_modules $@
+    ;;
+  -gem)
+    __cleanup_gem
+    ;;
+  -pod)
+    __cleanup_pod
+    ;;
+  -simulator)
+    __cleanup_simulators
+    ;;
+  -xcode)
+    __cleanup_xcode
+    ;;
+  -all)
+    __cleanup_homebrew
+    __cleanup_node_modules
+    __cleanup_gem
+    __cleanup_pod
+    __cleanup_simulators
+    __cleanup_xcode
+    ;;
+  *)
+    echo 'usage: maccleanup [-name]
+options
+    -rust [-dry]          clean Cargo target order than 30 days
+    -homebrew             clean homebrew
+    -node_modules [-dry]  clean node_modules older than 30 days
+    -gem                  invoke gem cleanup
+    -pod                  clean pod caches
+    -simulator            remove old Xcode simulators
+    -xcode                remove Xcode junk
+    -all                  cleanup all
+    ' 1>&2
+    exit 1
+    ;;
+esac
+

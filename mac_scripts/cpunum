@@ -1,0 +1,6 @@
+#!/usr/bin/env zsh
+
+_(){
+  sysctl hw.ncpu | sed 's/hw.ncpu: //'
+}
+_
