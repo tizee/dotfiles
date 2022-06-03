@@ -5,6 +5,14 @@
   template = ~/.config/git/commit.template
 [gpg]
   program = /usr/local/bin/gpg
+
+[init]
+  templateDir=~/.config/git/hooks
+  # github compatible
+  defaultBranch=main
+
+[hooks]
+  allownonascii=true
 [core]
   editor=nvim
   attributeFile = ~/.config/git/common.gitattributes
@@ -16,6 +24,8 @@
   autocrlf=input
   # Ensure that unicode filenames aren't mangled by HFS
   precomposeUnicode=true
+  # prevent problems from changing case of a file
+  ignorecase=false
 
 [includeIf "gitdir:~/**"]
   path= ~/.config/git/gh.gitconfig
@@ -49,7 +59,7 @@
   rv= remote -v
   cp = cherry-pick
   fc = fetch
-  last = log -1 HEAD
+  last = log -1 HEAD --stat
   logr = log --reverse
   logrh = log --reverse --pretty=%H
   logs= log -S
@@ -81,6 +91,12 @@
   adogs = log --all --decorate --oneline --graph --date=relative --stat --show-signature
   adogr= log --all --decorate --oneline --reverse --date=relative --stat
   adogrs = log --all --decorate --oneline --graph --date=relative --stat --show-signature
+  # pull rebase remote main by default
+  sync= "!f(){git pull origin ${1-main} --rebase}; f"
+  unstage= reset HEAD --
+  undo= reset HEAD^
+  amend= commit --amend
+  apppend= commit --amend --no-edit
 
 [pull]
   rebase = true
