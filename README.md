@@ -30,6 +30,8 @@ make zsh-force     -  require make install
 make rm-zsh        -  require make install
 ```
 
+> I prefer `make` over `stow` so long as I could control the installation granuality.
+
 ## Packages
 
 Here are some packages why I choose to use.
@@ -57,6 +59,10 @@ Zsh is more powerful than Bash in my opinion for its zle and completion system t
 
 [Zsh Completion System](https://zsh.sourceforge.io/Doc/Release/Completion-System.html)
 
-## Credit
-
+- Use `gitstatus` in order to enable faster git prompt in zsh
+  - [gitstatus](https://github.com/romkatv/gitstatus)
 - zsh completion idea from Phantas0s's article, see his dotfiles [Phantas0s/.dotfiles](https://github.com/Phantas0s/.dotfiles)
+
+## Acknowledgement
+
+I have learned a lot from others dotfiles or scripts from which I could learn to write my own version of scripts to suit my need.
