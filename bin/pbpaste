@@ -2,7 +2,12 @@
 
 case $(uname -s) in
   Darwin*)
-     pbpaste $@
+      if [ -t 0 ]; then
+        /usr/bin/pbpaste $@
+      else
+        /usr/bin/pbpaste -$@
+      fi
+      ;;
     ;;
   Linux*)
      # xclip is avaliable in most Linux distributions
