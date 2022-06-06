@@ -41,6 +41,8 @@ function yogit::help() {
   print "${_yogit_basic_prefix}sst       : list staged and unstaged file names only"
   print "${_yogit_basic_prefix}open      : open/xdg-open repo url in browser"
   print "${_yogit_basic_prefix}url       : ${_yogit_basic_prefix}url <remote-name> to print remote url"
+  print "${_yogit_basic_prefix}ghurl     github repo worktree url of current commit"
+  print "${_yogit_basic_prefix}opengh    open github repo worktree url of current commit"
   print "${_yogit_basic_prefix}lr        : remote list"
   print "${_yogit_basic_prefix}ls        : git ls-files --others --exclude-standard"
   print "${_yogit_basic_prefix}pickclone : git clone --sparse --filter=blob:none --depth=1"
