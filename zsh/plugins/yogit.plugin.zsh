@@ -45,7 +45,8 @@ function yogit::help() {
   print "${_yogit_basic_prefix}opengh    open github repo worktree url of current commit"
   print "${_yogit_basic_prefix}lr        : remote list"
   print "${_yogit_basic_prefix}ls        : git ls-files --others --exclude-standard"
-  print "${_yogit_basic_prefix}pickclone : git clone --sparse --filter=blob:none --depth=1"
+  print "${_yogit_basic_prefix}pickclone : git clone --sparse --filter=blob:none --depth=1 --no-checkout"
+  print "after setting up the sparse-checkout, use git read-tree -mu HEAD"
   print "${_yogit_basic_prefix}sub       : git submodule update --init --recursive"
   print "${_yogit_basic_prefix}br        : git branch -r"
   print "${_yogit_basic_prefix}parse     : git rev-parse [input] | cut -d 1-6"
@@ -173,11 +174,12 @@ alias "${_yogit_basic_prefix}sst"='yogit::staged_and_unstaged'
 # alias "${_yogit_basic_prefix}stdiff"='yogit::staged_and_unstaged | xargs git diff'
 # list only untracked files
 alias "${_yogit_basic_prefix}ls"='git ls-files --others --exclude-standard'
+
 # --sparse initializes the sparse-checkout file so the working directory starts only with the files in the root directory
 # --filter=blob:none will exclude files so we could fetch them when needed
 # --depth=1 truncate commit history to leave only the latest commit(may cause problems)
-alias "${_yogit_basic_prefix}pickclone"='git clone --sparse --filter=blob:none --depth=1'
-# use git sparse-checkout add [file]
+# --no-checkout further accelerates the clone
+alias "${_yogit_basic_prefix}pickclone"='git clone --sparse --filter=blob:none --depth=1 --no-checkout'
 
 alias "${_yogit_basic_prefix}sub"='git submodule update --init --recursive'
 
