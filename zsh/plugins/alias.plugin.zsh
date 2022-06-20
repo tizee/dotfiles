@@ -39,7 +39,17 @@ alias printgccld="gcc -Xlinker -v"
 alias printgccplus="gcc -x c++ -v -E /dev/null"
 alias printld="ld -x -v /dev/null"
 
-
+# ========== pandoc ========== {{{
+function __pandocc(){
+  if [[ $# -lt 1 ]]; then
+    print "pandocc [input file] [output file]"
+    print "pandoc use eisvogel's template"
+  else
+    pandoc $1 -o $2 --template eisvogel --listings
+  fi
+}
+alias pandocc="__pandocc"
+# ========== emacs ========== }}}
 
 # ========== emacs ========== {{{
 alias emacsc="emacs -nw"
