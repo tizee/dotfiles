@@ -54,12 +54,12 @@ set vimhelp
 
 " If you would like to run an executable file when you
 " press Enter, l or Right Arrow, set this.
-
+"
 set norunexec
 
 " List of color schemes to try (picks the first one supported by the terminal)
 
-colorscheme Default-256 Default
+colorscheme gruvbox Default-256 Default
 
 " Format for displaying time in file list. For example:
 " TIME_STAMP_FORMAT=%m/%d-%H:%M
@@ -103,7 +103,7 @@ set slowfs=curlftpfs
 
 " Set custom status line look
 
-set statusline="  Hint: %z%= %A %10u:%-7g %15s %20d  "
+set statusline="  Tip: %z%= %A %10u:%-7g %15s %20d  "
 
 " ------------------------------------------------------------------------------
 
@@ -111,6 +111,7 @@ set statusline="  Hint: %z%= %A %10u:%-7g %15s %20d  "
 
 mark b ~/bin/
 mark h ~/
+mark d ~/dev
 
 " ------------------------------------------------------------------------------
 
@@ -208,14 +209,14 @@ fileviewer {*.avi,*.mp4,*.wmv,*.dat,*.3gp,*.ogv,*.mkv,*.mpg,*.mpeg,*.vob,
 
 " Web
 filetype {*.html,*.htm},<text/html>
+       \ {Open in vim}
+       \ nvim,
        \ {Open in Safari}
        \ open -a Safari.app,
        \ {Open in Firefox}
        \ open -a Firefox.app,
        \ {Open in Chrome}
        \ open -a Google\ Chrome.app,
-       \ {Open in vim}
-       \ vim,
 fileviewer {*.html,*.htm},<text/html> w3m -dump -T text/html
 
 " Object
@@ -230,6 +231,11 @@ filetype {*.bmp,*.jpg,*.jpeg,*.png,*.gif,*.xpm},<image/*>
        \ open -a Preview.app,
 fileviewer {*.bmp,*.jpg,*.jpeg,*.png,*.gif,*.xpm},<image/*>
          \ identify %f
+" fileviewer {*.bmp,*.jpg,*.jpeg,*.png,*.gif,*.xpm},<image/*>
+"        \ viu -b -s %f -h %ph -w %pw
+" wezterm imgcat
+" fileviewer {*.bmp,*.jpg,*.jpeg,*.png,*.gif,*.xpm},<image/*>
+"        \ wezterm imgcat --height %ph --width %pw %f
 
 " MD5
 filetype *.md5
@@ -335,11 +341,14 @@ set vifminfo=dhistory,savedirs,chistory,state,tui,shistory,
 " Examples of configuring both panels
 
 " Customize view columns a bit (enable ellipsis for truncated file names)
-"
-" set viewcolumns=-{name}..,6{}.
+" conflicts with lsview option
+" set millerview
+" set lsview
+set rnu
+set viewcolumns=-{name}...,6{size},11{perms},{mtime}.
 
 " Filter-out build and temporary files
-"
+
 " filter! {*.lo,*.o,*.d,*.class,*.pyc,*.pyo,.*~}
 
 " ------------------------------------------------------------------------------
@@ -357,13 +366,15 @@ nnoremap w :view<cr>
 vnoremap w :view<cr>gv
 
 " Open file in new MacVim tab
-nnoremap o :!mvim --remote-tab-silent %f<cr>
+" nnoremap o :!mvim --remote-tab-silent %f<cr>
+nnoremap o :!nvim --remote-tab-silent %f<cr>
 " Open file in new MacVim window
-nnoremap O :!mvim %f<cr>
+nnoremap O :!nvim %f<cr>
 
 " Open file in the background using its default program
 nnoremap gb :!open -g %f<cr>
 
+" https://wiki.vifm.info/index.php/How_to_copy_path_to_current_file/directory_to_system_clipboard
 " Yank current directory path into the clipboard
 nnoremap yd :!printf %d | pbcopy<cr>
 
@@ -381,7 +392,7 @@ nnoremap A cw
 " Open editor to edit vifmrc and apply settings after returning to vifm
 nnoremap ,c :write | edit $MYVIFMRC | restart full<cr>
 " Open MacVim to edit vifmrc
-nnoremap ,C :!mvim --remote-tab-silent $MYVIFMRC &<cr>
+" nnoremap ,C :!mvim --remote-tab-silent $MYVIFMRC &<cr>
 
 " Toggle wrap setting on ,w key
 nnoremap ,w :set wrap!<cr>
@@ -401,6 +412,24 @@ nnoremap <a-i> :sync<cr>
 nnoremap <a-o> :sync %c<cr>
 " Swap panes
 nnoremap <c-u> <c-w>x
+
+command! cdgit :execute 'cd' fnameescape(system('git rev-parse --git-dir'))
+
+" Single-pane
+" only
+
+" single-pane preview
+" nnoremap <silent> w : if &quickview && !layoutis('only')
+                   " \|     view
+                   " \| else
+                   " \|     if layoutis('only')
+                   " \|         if &lines + 50 < &columns | vsplit | else | split | endif
+                   " \|     endif
+                   " \|     view!
+                   " \|     execute 'qnoremap w q:view|only|qunmap w<lt>cr>'
+                   " \|     execute 'wincmd w'
+                   " \| endif
+                   " \| <cr>
 
 " ------------------------------------------------------------------------------
 

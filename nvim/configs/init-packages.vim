@@ -65,6 +65,8 @@ Plug 'tizee/hex2rgb.vim'
 Plug 'tizee/unicode.vim'
 " Chinese format
 Plug 'hotoo/pangu.vim'
+" vifm
+Plug 'vifm/vifm.vim'
 " golang
 " conflict with coc-go
 " Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
