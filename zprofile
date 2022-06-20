@@ -22,16 +22,16 @@ case $SYSTEM in
   Linux) is_Linux=true;;
 esac
 
-# ========== 
+# ==========
 # ENV
-# ========== 
+# ==========
 
 
 # homebrew
 if [[ -n "$HOMEBREW_MIRROR_CN" ]]; then
   if $is_Linux; then BREW_TYPE="linuxbrew"; else BREW_TYPE="homebrew"; fi
   export HOMEBREW_BREW_GIT_REMOTE="https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/brew.git"
-  export HOMEBREW_CORE_GIT_REMOTE="https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/${BREW_TYPE}-core.git"
+  # export HOMEBREW_CORE_GIT_REMOTE="https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/${BREW_TYPE}-core.git"
   export HOMEBREW_BOTTLE_DOMAIN="https://mirrors.tuna.tsinghua.edu.cn/${BREW_TYPE}-bottles"
 fi
 
@@ -121,6 +121,12 @@ PATH="/usr/local/opt/krb5/sbin:$PATH"
 
 # macOS <-
 if $is_macOS; then
+  # Fuck GFW !!!
+  # Fuck GFW !!!
+  # Fuck GFW !!!
+  export HOMEBREW_BREW_GIT_REMOTE="https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/brew.git"
+  export HOMEBREW_BOTTLE_DOMAIN="https://mirrors.tuna.tsinghua.edu.cn/homebrew-bottles"
+
   # mac specific scripts
   PATH="$HOME/.config/mac_scripts:$PATH"
   # curl
@@ -218,7 +224,7 @@ if $is_macOS; then
   export JAVA_HOME=$JAVA_8_HOME
   # export TOOLCHAINS=swift
   # PATH=/Library/Developer/Toolchains/swift-latest.xctoolchain/usr/bin:"${PATH}"
-  # sw_vers -productVersion 
+  # sw_vers -productVersion
   export MACOSX_DEPLOYMENT_TARGET=11
   # prevent auto-update whenever run a brew command
   export HOMEBREW_NO_AUTO_UPDATE=1
@@ -238,7 +244,7 @@ if $is_macOS; then
   export SQLITE_CPPFLAGS="-I/usr/local/opt/sqlite/include"
 
 
-  # google 
+  # google
   # PATH="$HOME/dev/grepo_cxx/chromium_depot_tools:$PATH"
   # vmware
   PATH="/Applications/VMware Fusion.app/Contents/Public:$PATH"
@@ -314,7 +320,7 @@ if $is_macOS; then
   export LIBMP3LAME_CFLAGS="-I/usr/local/opt/lame/include"
   export LIBMP3LAME_LIBS="-L/usr/local/lib"
 
-  # default include path for gcc/clang 
+  # default include path for gcc/clang
   export CPLUS_INCLUDE_PATH="$CPLUS_INCLUDE_PATH:Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include"
   # xcrun -sdk macosx --show-sdk-path
   export SDKROOT="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.3.sdk"

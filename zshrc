@@ -421,8 +421,8 @@ case $SYSTEM in
         else
             if [ -f "/Users/tizee/anaconda3/etc/profile.d/conda.sh" ]; then
                 . "/Users/tizee/anaconda3/etc/profile.d/conda.sh"
-            else
-                export PATH="/Users/tizee/anaconda3/bin:$PATH"
+            # else
+                # export PATH="/Users/tizee/anaconda3/bin:$PATH"
             fi
         fi
         unset __conda_setup

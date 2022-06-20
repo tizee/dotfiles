@@ -38,14 +38,19 @@ alias printgcc="gcc -x c -v -E /dev/null"
 alias printgccld="gcc -Xlinker -v"
 alias printgccplus="gcc -x c++ -v -E /dev/null"
 alias printld="ld -x -v /dev/null"
+# human-friendly and easy to remember
+alias fontlist="fc-list : family file"
 
 # ========== pandoc ========== {{{
 function __pandocc(){
-  if [[ $# -lt 1 ]]; then
+  if [[ $# -lt 2 ]]; then
     print "pandocc [input file] [output file]"
     print "pandoc use eisvogel's template"
   else
-    pandoc $1 -o $2 --template eisvogel --listings
+    local input="$1"
+    local output="$2"
+    shift 2
+    pandoc $input -o $output --template eisvogel $@
   fi
 }
 alias pandocc="__pandocc"
