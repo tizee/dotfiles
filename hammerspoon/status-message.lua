@@ -9,11 +9,11 @@ statusmessage.new = function(messageText)
     local frame = screen.primaryScreen():frame()
 
     local styledTextAttributes = {
-      font = { name = 'Fira Code Regular', size = 20 },
+      font = { name = 'Fira Code Regular', size = 26 },
       color = { white = 1, alpha = 0.95}
     }
 
-    local styledText = styledtext.new('🏆' .. messageText, styledTextAttributes)
+    local styledText = styledtext.new('MODE ' .. messageText, styledTextAttributes)
 
     local styledTextSize = drawing.getTextDrawingSize(styledText)
     local textRect = {

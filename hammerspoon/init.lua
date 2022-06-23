@@ -28,7 +28,7 @@ hints.iconAlpha = 1.0
 hints.showTitleThresh = 0
 
 -- quick navigation
-hotkey.bind("ctrl","tab",function ()
+hotkey.bind(hyper,"tab",function ()
   hints.windowHints()
 end)
 
@@ -45,8 +45,10 @@ alert.defaultStyle.textSize = 30
 
 require("window-layout-mode")
 require("quick-action-mode")
+require("switch-window-mode")
 
 -- Show current App Info
+-- use this shortcut to get the App name
 hotkey.bind(
     hyper,
     "i",
