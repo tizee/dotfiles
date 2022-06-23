@@ -27,11 +27,6 @@ hints.fontSize = 24
 hints.iconAlpha = 1.0
 hints.showTitleThresh = 0
 
--- quick navigation
-hotkey.bind(hyper,"tab",function ()
-  hints.windowHints()
-end)
-
 -- hs alert style
 alert.defaultStyle.strokeColor = {white = 1, alpha = 0}
 alert.defaultStyle.fillColor = {white = 0.05, alpha = 0.85}
@@ -41,11 +36,17 @@ alert.defaultStyle.textFont = "Fira Code Regular"
 alert.defaultStyle.textSize = 30
 -- ->
 
--- ehanced macOS <-
+-- keybindings <-
 
 require("window-layout-mode")
 require("quick-action-mode")
 require("switch-window-mode")
+
+-- quick navigation
+hotkey.bind(hyper,"t",function ()
+  hints.windowHints()
+end)
+
 
 -- Show current App Info
 -- use this shortcut to get the App name
