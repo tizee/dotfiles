@@ -115,6 +115,7 @@ end);
 
 return {
   -- general settings <-
+  term = "xterm-256color",
   -- drop files in macOS
   quote_dropped_files = "Posix",
   colors = {
@@ -334,7 +335,7 @@ return {
   use_ime = true,
   -- ->
   -- key assignment debug <-
-  use_dead_keys= false, -- prevent combination 
+  use_dead_keys= false, -- prevent combination
   -- debug by launching wezterm in other terminal
   debug_key_events = true,
   -- ->
