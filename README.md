@@ -15,8 +15,10 @@ My dotfiles for Unix-like systems (MacOS and Arch Linux).
 
 ```
 run make install first
-
-make install       -  mv $HOME/.config $HOME/.config_backup
+make help          - show help message
+make install       -  backup old .config dir and create symlink
+                      1. mv $HOME/.config $HOME/.config_backup
+                      2. ln -s path/to/dotfiles $HOME/.config
 make dry-uninstall -  a dry run of uninstall
 make uninstall     -  require make dry-uninstall
                       1. rm $HOME/.config
@@ -32,6 +34,16 @@ make rm-zsh        -  require make install
 
 > I prefer `make` over `stow` so long as I could control the installation granuality.
 
+## Trade offs
+
+- Maybe it's a good idea to use a Dockerfile to setup the development environment and reuse it from the container instead of `make install` each time on a new machine.
+- But from my view, I think the frequency is too low and you have to pay a lot for this convenience later.
+  - 1. your productivity tools are restricted to directories mapped to the container.
+
+```
+ docker run -v <path-to-local-dir>:/root/work -it <dotfiles-image>
+```
+
 ## Packages
 
 Here are some packages why I choose to use.
@@ -46,6 +58,12 @@ I'd recommend [Wezterm](https://github.com/wez/wezterm) for:
 4. Commit frequently
 
 BTW, leader key bug has been fixed in [#1409](https://github.com/wez/wezterm/issues/1409). Now I could use it for my daily work with `use_ime=true` to type in non-latin words.
+
+I sometimes use Alacritty or Kitty to test the compatibility of cli apps.
+
+### Tmux
+
+I build the tmux from source to use its latest features as well as wezterm nightly. This is because my workflow in tmux based on `display-popup`, which is supported for Tmux >= 3.2.
 
 ### Editor
 
