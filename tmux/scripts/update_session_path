@@ -1,0 +1,4 @@
+# update session
+attach-session -t . -c '#{pane_current_path}'
+# create session
+new-session -c '#{session_path}'

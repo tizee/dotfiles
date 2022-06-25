@@ -56,7 +56,7 @@ if command -v tmux &>/dev/null; then
       if tmux has-session "$target_session" &>/dev/null; then
         tmux attach -t "$target_session"
       else
-        tmux new -s "$target_session"
+        tmux new -A -s "$target_session"
       fi
     else
       echo "fzf is not installed!" && exit 1
