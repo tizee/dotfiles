@@ -8,6 +8,7 @@ if exists('loaded_formatter_vim')
 endif
 
 let g:loaded_formatter_vim = 1
+let g:enable_my_clang_formatter=1
 let default_path=substitute(system("which clang-format"),"\n$",'','')
 let s:clang_format=get(g:,"clang_format_path",default_path)
 " clang-format.py:
@@ -16,8 +17,16 @@ let s:clang_format=get(g:,"clang_format_path",default_path)
 let s:clang_format_py_path=get(g:,"clang_format_py_path","/usr/local/opt/llvm/share/clang/clang-format.py")
 let s:astyle_config_fallback= get(g:,"astyle_config_fallback", "~/.config/global.astylerc")
 
+function! s:toggle_clang_formatter()
+  let g:enable_my_clang_formatter = !g:enable_my_clang_formatter
+  echo "toggle clang formatter: " . g:enable_my_clang_formatter
+endfunction
+
 " clang-format based on https://clang.llvm.org/docs/ClangFormat.html#vim-integration
 function! s:handle_c_based_lang_file(path) abort
+  if !g:enable_my_clang_formatter
+    return
+  endif
   if exists("*FindFirst") && exists("*readdir")
     let astyle_config_path = g:FindFirst(".astylerc")
     " prefer clang-format
@@ -60,10 +69,10 @@ function! s:handle_c_based_lang_file(path) abort
     endif
     execute ":e"
     echo "Format: " . a:path
-  endif 
+  endif
 endfunction
 
-
+command! -nargs=0 ToggleClangFormatter call <SID>toggle_clang_formatter()
 augroup C_BASED_LANG_FORMATTER_GROUP
   autocmd! BufWritePost *.{cc,m,mm,c,cpp,cxx,h,hpp} call <SID>handle_c_based_lang_file(expand("<afile>:p"))
 augroup END "file_vim
