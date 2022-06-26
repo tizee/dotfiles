@@ -14,6 +14,8 @@ try:
     from rich import inspect # inspect variables
     from rich import pretty # integrate into REPL
     from rich.pretty import pprint
+    from rich.text import Text
+    from rich.table import Table
     # pretty.install()
     from IPython import get_ipython
     ipython = get_ipython()
