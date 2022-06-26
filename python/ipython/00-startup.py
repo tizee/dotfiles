@@ -5,15 +5,22 @@ import time
 import datetime as dt
 import collections
 import sys
+
 # pretty printing
-import pprint
+# duplicate with pprint in rich.pretty
+# import pprint
 try:
     from rich import print # better print
     from rich import inspect # inspect variables
     from rich import pretty # integrate into REPL
-    pretty.install()
+    from rich.pretty import pprint
+    # pretty.install()
+    from IPython import get_ipython
+    ipython = get_ipython()
+    ipython.magic("load_ext rich")
 except ImportError as e :
     pass
+
 
 def _repr_dict(d):
     """https://stackoverflow.com/questions/25118698/print-python-dictionary-with-utf8-values"""
@@ -26,7 +33,7 @@ def _json_dumps(dict_data, indent=4):
 
 
 repr_dict = _repr_dict
-pp = pprint.pprint
+pp = pprint
 json_dumps = _json_dumps
 
 print("(imported datetime, os, pprint, re, sys, time, json)")
@@ -52,8 +59,6 @@ def is_reload():
 # print("export RELOAD={}".format(_is_reload))
 # if _is_reload:
 #     # ipython auto-reload
-#     from IPython import get_ipython
-#     ipython = get_ipython()
 
 #     ipython.magic("load_ext autoreload")
 #     ipython.magic("autoreload 2")
