@@ -8,7 +8,8 @@ if exists('loaded_formatter_vim')
 endif
 
 let g:loaded_formatter_vim = 1
-let g:enable_my_clang_formatter=1
+" disable by default in case of messing up the codebase
+let g:enable_my_clang_formatter=0
 let default_path=substitute(system("which clang-format"),"\n$",'','')
 let s:clang_format=get(g:,"clang_format_path",default_path)
 " clang-format.py:
