@@ -61,6 +61,8 @@ Plug 'tizee/findfirst.vim', {'branch': 'master'}
 Plug 'tizee/keyboard.vim'
 " convert rgb hex string to r,g,b
 Plug 'tizee/hex2rgb.vim'
+" display color
+Plug 'rrethy/vim-hexokinase', { 'do': 'make hexokinase' }
 " convert unicode value to corresponding unicode character
 Plug 'tizee/unicode.vim'
 " Chinese format
