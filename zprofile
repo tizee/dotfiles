@@ -63,11 +63,6 @@ path=(
   $path
 )
 
-# C/C++ libs
-export C_INCLUDE_PATH="/usr/local/include"
-export CPLUS_INCLUDE_PATH="/usr/local/include"
-# static libs e.g. sdl2
-export LIBRARY_PATH="$LIBRARY_PATH:/usr/local/lib"
 
 # yarn
 # if [[ -d $HOME/.yarn/bin ]]; then
@@ -167,6 +162,22 @@ if $is_macOS; then
   # freetype
   export FREETYPE_CFLAGS="-I/usr/local/opt/freetype2/include"
   export FREETYPE_LIBS="-L/usr/local/opt/freetype2/lib"
+  # ncurses
+  PATH="/usr/local/opt/ncurses/bin:$PATH"
+  # Need to link header and libs manually
+  export LIBNCURSES_CFLAGS="-I/usr/local/opt/ncurses/include"
+  # I've symbolically linked libncursers.dylib into /usr/local/lib
+  # So gcc should searches via -lncurses to locate the installed one
+  # instead of the system's outdated ncurses lib
+  export LIBNCURSES_LIBS="-lncurses"
+  # export LDFLAGS="-L/usr/local/opt/ncurses/lib"
+  # export CPPFLAGS="-I/usr/local/opt/ncurses/include"
+  # libevent
+  # export LIBEVENT_CFLAGS="-I/usr/local/opt/libevent/include"
+  # export LIBEVENT_LIBS="-L/usr/local/opt/libevent/lib"
+  # utf8proc
+  # export LIBUTF8PROC_CFLAGS="-I/usr/local/opt/utf8proc/include"
+  # export LIBUTF8PROC_LIBS="-L/usr/local/opt/utf8proc/lib"
   # haskell
   [ -f "$HOME/.ghcup/env" ] && source "$HOME/.ghcup/env" # ghcup-env
   PATH="$HOME/.cabal/bin:$HOME/.ghcup/bin:$PATH"
@@ -321,14 +332,21 @@ if $is_macOS; then
   export LIBMP3LAME_LIBS="-L/usr/local/lib"
 
   # default include path for gcc/clang
-  export CPLUS_INCLUDE_PATH="$CPLUS_INCLUDE_PATH:Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include"
+  # export CPLUS_INCLUDE_PATH="$CPLUS_INCLUDE_PATH:Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include"
   # xcrun -sdk macosx --show-sdk-path
   export SDKROOT="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.3.sdk"
-  export DYLD_LIBRARY_PATH="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.3.sdk/usr/lib"
-  export LDFLAGS="-L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib"
-  # export LDFLAGS="-L/usr/local/lib"
-  # export CPPFLAGS="-I/usr/local/include"
-  #
+  # export DYLD_LIBRARY_PATH="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.3.sdk/usr/lib"
+  # export LDFLAGS="-L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib"
+  export DYLD_LIBRARY_PATH="/usr/local/lib"
+  export LDFLAGS="-L/usr/local/lib"
+  export CPPFLAGS="-I/usr/local/include"
+  # C/C++ libs
+  # default search paths
+  export C_INCLUDE_PATH="/usr/local/include"
+  export CPLUS_INCLUDE_PATH="/usr/local/include"
+  # static libs e.g. sdl2
+  export LIBRARY_PATH="/usr/local/lib"
+
   # expat
   export LIBEXPAT_LIBS="-L/usr/local/opt/expat/lib"
   export LIBEXPAT_CFLAGS="-I/usr/local/opt/expat/include"
