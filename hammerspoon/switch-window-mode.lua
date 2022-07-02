@@ -34,6 +34,7 @@ local function update_mappings()
   local mappings = {}
   for i, win in ipairs(windows) do
     if i<10 then
+      -- use number
       table.insert(mappings,{ {}, string.char(i+string.byte('0')) , win:title()}) ;
     end
   end
@@ -43,7 +44,7 @@ end
 local function update_actions()
   local windows = get_app_windows()
   local actions = {}
-  for i,win in pairs(windows) do
+  for _,win in pairs(windows) do
     actions[win:title()] = function ()
       switch_to(win)
     end
