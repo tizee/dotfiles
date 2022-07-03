@@ -121,6 +121,8 @@ if $is_macOS; then
   # Fuck GFW !!!
   export HOMEBREW_BREW_GIT_REMOTE="https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/brew.git"
   export HOMEBREW_BOTTLE_DOMAIN="https://mirrors.tuna.tsinghua.edu.cn/homebrew-bottles"
+  # prevent auto-update whenever run a brew command
+  export HOMEBREW_NO_AUTO_UPDATE=1
 
   # mac specific scripts
   PATH="$HOME/.config/mac_scripts:$PATH"
@@ -200,9 +202,9 @@ if $is_macOS; then
   # golang modules
   export GOPATH="$HOME/dev/go_proj"
   PATH="$HOME/dev/go_proj/bin:$PATH"
-    # gnu
-    PATH="/usr/local/opt/make/libexec/gnubin:$PATH"
-    PATH="/usr/local/opt/coreutils/libexec/gnubin:$PATH"
+  # gnu
+  PATH="/usr/local/opt/make/libexec/gnubin:$PATH"
+  PATH="/usr/local/opt/coreutils/libexec/gnubin:$PATH"
   # Android
   # https://stackoverflow.com/questions/52524112/how-do-i-install-java-on-mac-osx-allowing-version-switching
   PATH="$HOME/Library/Android/sdk/emulator:$PATH"
@@ -237,8 +239,6 @@ if $is_macOS; then
   # PATH=/Library/Developer/Toolchains/swift-latest.xctoolchain/usr/bin:"${PATH}"
   # sw_vers -productVersion
   export MACOSX_DEPLOYMENT_TARGET=11
-  # prevent auto-update whenever run a brew command
-  export HOMEBREW_NO_AUTO_UPDATE=1
   # LuaJIT 2.1
   PATH="/usr/local/opt/luajit-openresty/bin:$PATH"
   # llvm
@@ -334,7 +334,7 @@ if $is_macOS; then
   # default include path for gcc/clang
   # export CPLUS_INCLUDE_PATH="$CPLUS_INCLUDE_PATH:Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include"
   # xcrun -sdk macosx --show-sdk-path
-  export SDKROOT="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.3.sdk"
+  export SDKROOT="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk"
   # export DYLD_LIBRARY_PATH="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.3.sdk/usr/lib"
   # export LDFLAGS="-L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib"
   export DYLD_LIBRARY_PATH="/usr/local/lib"
