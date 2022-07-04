@@ -123,6 +123,9 @@ if $is_macOS; then
   export HOMEBREW_BOTTLE_DOMAIN="https://mirrors.tuna.tsinghua.edu.cn/homebrew-bottles"
   # prevent auto-update whenever run a brew command
   export HOMEBREW_NO_AUTO_UPDATE=1
+  # Carp - statically typed lisp
+  export CARP_DIR="/usr/local/opt/carp"
+  PATH="$CARP_DIR/bin:$PATH"
 
   # mac specific scripts
   PATH="$HOME/.config/mac_scripts:$PATH"
