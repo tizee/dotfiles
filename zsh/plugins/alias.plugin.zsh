@@ -156,9 +156,6 @@ fi
 # ========== npm/yarn ========== {{{
 alias cnpm="npm --registry=https://registry.npm.taobao.org"
 alias cyarn="yarn --registry https://registry.npm.taobao.org"
-# work
-alias pnpm="npm --registry=http://npm.piaoniu.com"
-alias pyarn="yarn --registry http://npm.piaoniu.com"
 # }}}
 
 # ========== gun pacakge ========== {{{
