@@ -228,8 +228,8 @@ if $is_macOS; then
   # alias java14='export JAVA_HOME=$JAVA_14_HOME'
   # alias java15='export JAVA_HOME=$JAVA_15_HOME'
   # export SDKROOT=$(xcrun --sdk macosx --show-sdk-path)
-  # export JAVA_8_HOME=$(/usr/libexec/java_home -v1.8)
-  export JAVA_8_HOME="/Library/Java/JavaVirtualMachines/jdk1.8.0_261.jdk/Contents/Home"
+  export JAVA_8_HOME=$(/usr/libexec/java_home -v1.8)
+  # export JAVA_8_HOME="/Library/Java/JavaVirtualMachines/microsoft-11.jdk/Contents/Home"
   # export JAVA_9_HOME=$(/usr/libexec/java_home -v9)
   export JAVA_10_HOME=$(/usr/libexec/java_home -v10)
   export JAVA_11_HOME=$(/usr/libexec/java_home -v11)
