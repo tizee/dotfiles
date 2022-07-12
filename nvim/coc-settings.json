@@ -54,6 +54,10 @@
       "initializationOptions": {
         "buildDirectory": "build"
       }
+    },
+    "zls": {
+      "command": "~/zls/zls",
+      "filetypes": ["zig"]
     }
     // "clangd": {
     //   "command": "clangd",
@@ -103,7 +107,6 @@
     // "typescript",
     "typescrip.tsx",
     "json",
-    "rust",
     "golang",
     "dart"
   ],
