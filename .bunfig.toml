@@ -22,7 +22,7 @@
 [install]
 # Default registry
 # can be a URL string or an object
-registry = "https://registry.yarnpkg.com/"
+registry = "https://registry.npmjs.org/"
 # as an object
 #registry = { url = "https://registry.yarnpkg.com/", token = "123456" }
 
