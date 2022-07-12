@@ -10,7 +10,13 @@
   templateDir=~/.config/git/hooks
   # github compatible
   defaultBranch=main
-
+[gc]
+  # http://git-scm.com/docs/git-reflog#Documentation/git-reflog.txt---expire-unreachablelttimegt
+  # by default 30 days
+  reflogExpireUnreachable=never
+  # by default 90 days
+  reflogExpire=never
+  # we should use git reflog expire --expire=<time> to specify the time manually
 [hooks]
   allownonascii=true
 [core]
@@ -97,9 +103,15 @@
   undo= reset HEAD^
   amend= commit --amend
   apppend= commit --amend --no-edit
+  spco= sparse-checkout
 
+[branch]
+  # always rebase for new branches
+  autosetupprebase=always
 [pull]
-  rebase = true
+  # make my life easier :)
+  rebase=true
+
 [submodule]
   recurse= true
 [format]

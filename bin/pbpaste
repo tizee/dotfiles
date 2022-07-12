@@ -7,7 +7,6 @@ case $(uname -s) in
       else
         /usr/bin/pbpaste -$@
       fi
-      ;;
     ;;
   Linux*)
      # xclip is avaliable in most Linux distributions

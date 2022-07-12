@@ -301,6 +301,8 @@ return {
   -- tmux uses CTRL-A
   leader = { key="a", mods="CMD", timeout_milliseconds=1002 },
   keys = {
+    -- {key="d", mods="CTRL", action="Nop"},
+    {key="d", mods="LEADER", action=wezterm.action{SendString="\x01"}},
      -- Send "CTRL-A" to the terminal when pressing LEADER-a for tmux
     {key="a", mods="LEADER", action=wezterm.action{SendString="\x01"}},
     -- pane navigation
@@ -347,7 +349,7 @@ return {
     {key="2", mods="LEADER", action=wezterm.action{ScrollByPage=0.5}},
     -- Clears only the scrollback and leaves the viewport intact.
     -- This is the default behavior.
-    -- {key="K", mods="LEADER", action=wezterm.action{ClearScrollback="ScrollbackOnly"}}
+    -- {key="k", mods="LEADER", action=wezterm.action{ClearScrollback="ScrollbackOnly"}}
     -- Clears the scrollback and viewport leaving the prompt line the new first line.
     -- {key="K", mods="LEADER", action=wezterm.action{ClearScrollback="ScrollbackAndViewport"}}
     {key="w", mods="LEADER", action=wezterm.action{ClearScrollback="ScrollbackOnly"}}

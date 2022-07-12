@@ -69,9 +69,13 @@ Plug 'tizee/unicode.vim'
 Plug 'hotoo/pangu.vim'
 " vifm
 Plug 'vifm/vifm.vim'
+" ziglang
+Plug 'ziglang/zig.vim'
+
 " golang
 " conflict with coc-go
 " Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
+
 " local vim plugin
 " start screen
 Plug '~/dev/grepo_vim/vim-startify'

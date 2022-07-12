@@ -218,7 +218,6 @@ if $is_macOS; then
   export ANDROID_SDK=$HOME/Library/Android/sdk
   PATH=$ANDROID_SDK/emulator:$ANDROID_SDK/tools:$PATH
 
-
   alias java8='export JAVA_HOME=$JAVA_8_HOME'
   # alias java9='export JAVA_HOME=$JAVA_9_HOME'
   alias java10='export JAVA_HOME=$JAVA_10_HOME'
@@ -228,20 +227,28 @@ if $is_macOS; then
   # alias java14='export JAVA_HOME=$JAVA_14_HOME'
   # alias java15='export JAVA_HOME=$JAVA_15_HOME'
   # export SDKROOT=$(xcrun --sdk macosx --show-sdk-path)
-  export JAVA_8_HOME=$(/usr/libexec/java_home -v1.8)
-  # export JAVA_8_HOME="/Library/Java/JavaVirtualMachines/microsoft-11.jdk/Contents/Home"
+  # export JAVA_8_HOME=$(/usr/libexec/java_home -v1.8)
+  export JAVA_8_HOME="/Library/Java/JavaVirtualMachines/openjdk-8.jdk/Contents/Home"
   # export JAVA_9_HOME=$(/usr/libexec/java_home -v9)
   export JAVA_10_HOME=$(/usr/libexec/java_home -v10)
   export JAVA_11_HOME=$(/usr/libexec/java_home -v11)
+  export JAVA_18_HOME=$(/usr/libexec/java_home -v18)
   # export JAVA_12_HOME=$(/usr/libexec/java_home -v12)
   # export JAVA_13_HOME=$(/usr/libexec/java_home -v13)
   # export JAVA_14_HOME=$(/usr/libexec/java_home -v14)
   # export JAVA_15_HOME=$(/usr/libexec/java_home -v15)
-  export JAVA_HOME=$JAVA_8_HOME
+  # PATH="/usr/local/opt/openjdk@8/bin:$PATH"
+  export JAVA_HOME=$JAVA_10_HOME
+  # PATH="$JAVA_HOME/bin:$PATH"
+  # export CLASS_PATH=$JAVA_HOME/lib
+  # export CLASSPATH=$JAVA_HOME/lib
+
   # export TOOLCHAINS=swift
   # PATH=/Library/Developer/Toolchains/swift-latest.xctoolchain/usr/bin:"${PATH}"
+
   # sw_vers -productVersion
-  export MACOSX_DEPLOYMENT_TARGET=11
+  # export MACOSX_DEPLOYMENT_TARGET=11
+
   # LuaJIT 2.1
   PATH="/usr/local/opt/luajit-openresty/bin:$PATH"
   # llvm
@@ -340,7 +347,10 @@ if $is_macOS; then
   export SDKROOT="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk"
   # export DYLD_LIBRARY_PATH="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.3.sdk/usr/lib"
   # export LDFLAGS="-L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib"
-  export DYLD_LIBRARY_PATH="/usr/local/lib"
+  # export DYLD_LIBRARY_PATH="/usr/local/lib"
+
+  # use /usr/lib for Java
+  export DYLD_LIBRARY_PATH="/usr/lib"
   export LDFLAGS="-L/usr/local/lib"
   export CPPFLAGS="-I/usr/local/include"
   # C/C++ libs
@@ -373,6 +383,13 @@ if $is_macOS; then
   if [[ -f $HOME/.config/python/pypi_personal ]]; then
     source $HOME/.config/python/pypi_personal
   fi
+
+  # bun completions
+  [ -s "/Users/tizee/.bun/_bun" ] && source "/Users/tizee/.bun/_bun"
+
+  # bun
+  export BUN_INSTALL="/Users/tizee/.bun"
+  PATH="$BUN_INSTALL/bin:$PATH"
 
   # clang address sanitizer
   export ASAN_OPTIONS=detect_leaks=1,symbolize=1
