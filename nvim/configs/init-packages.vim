@@ -45,7 +45,7 @@ Plug 'tpope/vim-surround'
 Plug 'tpope/vim-fugitive'
 Plug 'easymotion/vim-easymotion'
 " Searching
-Plug '/usr/local/opt/fzf'
+" Plug '/usr/local/opt/fzf'
 " Plug 'dracula/vim', { 'as': 'dracula' }
 " Plug 'morhetz/gruvbox'
 " use my forked gruvbox

@@ -35,11 +35,16 @@ noremap Y y$
 " termianl shortcut
 " create terminal window then move it to the very bottom
 function! s:create_terminal_panel()
-  let t:terminal_name="terminal_buffer"
-  silent! execute "bo split new"
-  silent! execute "edit " . t:termianl_name
-  silent! execute "resize 10"
-  silent! execute "bo terminal"
+  if !has("nvim")
+    let t:terminal_name="terminal_buffer"
+    silent! execute "bo split new"
+    silent! execute "edit " . t:termianl_name
+    silent! execute "resize 10"
+    silent! execute "bo terminal"
+  else
+    silent! execute "bo split term://zsh"
+    silent! execute "resize 10"
+  endif
 endfunction
 nnoremap <leader>t :call<SID>create_terminal_panel()<CR>
 
@@ -123,9 +128,9 @@ vnoremap \ U
 vnoremap <leader>R :s//g<left><left>
 " quick search
 " vnoremap // y/\V<C-r>=escape(@",'/\')<CR><CR>
-" quick search all non-ascii characters 
+" quick search all non-ascii characters
 " vnoremap <leader>a :s/\([^\u0020-\u0070]*\)/\1/
-" quick search all non-ascii characters (including control characters) 
+" quick search all non-ascii characters (including control characters)
 " vnoremap <leader>A :s/\([^\u0000-\u0070]*\)/\1/
 
 " copy to/paste from system clipboard
@@ -134,12 +139,12 @@ vnoremap <leader>y "+y
 " quick sort
 vnoremap <leader>s :sort<CR>
 
-" 
+"
 " }}}
 
 " Command Mode {{{
 
-" 
+"
 " }}}
 
 " Terminal Mode {{{
@@ -151,7 +156,7 @@ if has("nvim")
   tnoremap <m-L> <nop>
   " simulate i_CTRL-R
   tnoremap <Esc> <C-\><C-n>
-endif 
+endif
 
 " }}}
 
