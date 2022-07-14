@@ -156,6 +156,10 @@ if has("nvim")
   tnoremap <m-L> <nop>
   " simulate i_CTRL-R
   tnoremap <Esc> <C-\><C-n>
+else
+  " vim change terminal into Normal mode
+  " see help terminal
+  tnoremap <Esc> <C-W>N
 endif
 
 " }}}
