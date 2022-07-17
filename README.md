@@ -69,7 +69,11 @@ I build the tmux from source to use its latest features as well as wezterm night
 
 I use Neovim and Vim. I try my best to maintain the compatibility of configuration between NeoVim and Vim. For example, some vim plugins use functions that Neovim hadn't implemented yet or Neovim uses different names. In such cases, I have to write some plugins myself.
 
-I do not use Emacs often but I'd like to maintain a minimal configuration of Emacs.
+~~I do not use Emacs often but I'd like to maintain a minimal configuration of Emacs.~~
+
+I am trying to migrate to Emacs because the divergence between Neovim and Vim9 is tedious for me to maintain a compatible configuration.
+
+I would continue to use Vim/NeoVim when Emacs is not convenient to use i.e. in the termianl (It's easier to configure a usable Neovim/Vim than Emacs).
 
 ### Shell
 
@@ -80,6 +84,35 @@ Zsh is more powerful than Bash in my opinion for its zle and completion system t
 - Use `gitstatus` in order to enable faster git prompt in zsh
   - [gitstatus](https://github.com/romkatv/gitstatus)
 - zsh completion idea from Phantas0s's article, see his dotfiles [Phantas0s/.dotfiles](https://github.com/Phantas0s/.dotfiles)
+
+## macOS
+
+- key
+  - ~~skhd~~
+  - karabiner elements
+- Window related
+  - ~~yabai~~
+  - hammerspoon
+- Editor
+  - Vim 9.0 (terminal)
+  - Neovim (terminal)
+  - lem (CommonLisp IDE in terminal)
+  - Emacs (GUI)
+- Shell
+  - Zsh
+- Terminal Emulator
+  - Kitty
+  - Wezterm
+
+## Arch Linux
+
+- Window
+  - X.Org
+  - i3wm
+- Program Launcher
+  - Rofi
+- Terminal Emulator
+  - Alacritty
 
 ## Acknowledgement
 
