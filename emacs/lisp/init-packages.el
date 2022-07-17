@@ -37,7 +37,7 @@
           (setq ivy-re-builders-alist '((t . ivy--regex-ignore-order)))
          )
 
-(use-package counsel 
+(use-package counsel
              :after ivy
              :bind (("M-x" . counsel-M-x)
                     ("C-x C-f" . counsel-find-file)
@@ -72,7 +72,7 @@
   :config
   ;; use hard-coded value instead of regexp-opt to prevent hang
   (when (>= emacs-major-version 27)
-    (let ((alist 
+    (let ((alist
         '((33 . "\\(?:!\\(?:==\\|[!=]\\)\\)") ;;; (?!  . ,(regexp-opt '("!==" "!!" "!=")))
           (35 . "\\(?:#\\(?:###?\\|_(\\|[!#(:=?[_{]\\)\\)") ;;; (?#  . ,(regexp-opt '("####" "###" "#[" "#{" "#=" "#!" "#:" "#_(" "#_" "#?" "#(" "##")))
           (36 . "\\(?:\\$>\\)") ;;;(?$  . ,(regexp-opt '("$>")))

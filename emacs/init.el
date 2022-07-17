@@ -26,6 +26,7 @@
   (message "Your Emacs is old, and some functionality in this config will be disabled. Please upgrade if possible."))
 
 ; add confs to load-path
+; load packages under lisp
 (add-to-list 'load-path (expand-file-name (concat user-emacs-directory "lisp/")))
 
 (require 'init-globals)
@@ -40,11 +41,14 @@
 (require 'init-modeline)
 (require 'init-kbd)
 
-; config via customize interface
+; config via the package 'customize' interface
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
 (when (file-exists-p custom-file)
   (load-file custom-file))
 
 ; roswell helper
-(load (expand-file-name "~/.roswell/helper.el"))
-(setq inferior-lisp-program "ros -Q run")
+(setq roswell-helper-file (expand-file-name "~/.roswell/helper.el"))
+(when (file-exists-p roswell-helper-file)
+  (message "load file %s." roswell-helper-file)
+  (load-file roswell-helper-file)
+  (setq inferior-lisp-program "ros -Q run"))

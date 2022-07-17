@@ -3,7 +3,7 @@
 
 ; init-elpa.el -- elpa relating settings
 
-; Source Mirror 
+; Source Mirror
 (setq package-archives '(("gnu"   . "http://mirrors.tuna.tsinghua.edu.cn/elpa/gnu/")
                          ("melpa" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")
                          ("org" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/org/")))
@@ -20,13 +20,14 @@
 (unless package-archive-contents
   (package-refresh-contents))
 
-; install use-package
+; install use-package via Emacs builtin package.el
 (unless (package-installed-p 'use-package)
   (package-refresh-contents)
   (package-install 'use-package))
 
+;; use use-package to manage package configurations
 ; use-package configuration
-(eval-and-compile 
+(eval-and-compile
 (setq use-package-always-ensure t
       use-package-always-defer t
       use-package-always-demand nil

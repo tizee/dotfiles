@@ -1,18 +1,17 @@
 ;;; -*- coding: utf-8; lexical-binding: t; -*-
-;;; vim: foldmethod=marker foldmarker={{{,}}}
 
 ;;; init-ui.el - UI settings
 
 ; general settings {{{
 
 ; hide startup screen messages
-(setq inhibit-startup-screen t)
+(setq inhibit-startup-screen -1)
 ; line number
 (use-package line-number-settings
   :ensure nil
   :init
   (setq dispaly-line-numbers-width 3
-                display-line-numbers-type 'relative)
+        display-line-numbers-type 'relative)
   (global-display-line-numbers-mode t))
 
 ; tab-settings -  tab width
@@ -29,7 +28,7 @@
   ; disable blinking cusor
   (blink-cursor-mode -1)
   ; highlight current line
-  (global-hl-line-mode -1)
+  (global-hl-line-mode 1)
   ; (set-face-background hl-line-face "#F2F2F2")
   )
 ; }}}
@@ -45,10 +44,11 @@
 ; font
 (set-face-attribute 'default nil
     :font (font-spec :name "JetBrains Mono"
-                        :size (cond (*is-win* 16)
-                                    (*is-mac* 16)
-                                   (t 16))))
+                        :size (cond (*is-win* 18)
+                                    (*is-mac* 18)
+                                   (t 18))))
 
 ;}}}
 
 (provide 'init-ui)
+; vim: foldmethod=marker foldmarker={{{,}}}

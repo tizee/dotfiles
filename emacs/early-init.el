@@ -1,4 +1,4 @@
-
+;;; vim: ft=lisp
 ; Defer garbage collection
 (setq gc-cons-threshold most-positive-fixnum)
 

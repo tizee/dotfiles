@@ -16,6 +16,11 @@
   (interactive)
   (load-file user-init-file))
 
+(defun utils/open-init-file ()
+  "Open the user init file."
+  (interactive)
+  (find-file "~/.emacs.d/init.el"))
+
 (defun utils/packages-upgrade()
   "Upgrade all the packages."
   (interactive)

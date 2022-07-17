@@ -3,6 +3,11 @@
 
 ;;; init-lsp.el - lsp mode
 
+;; lsp-mode Performance
+;; https://emacs-lsp.github.io/lsp-mode/page/performance/#increase-the-amount-of-data-which-emacs-reads-from-the-process
+(setq read-process-output-max (* 1024 1024)) ;; 1MB
+;; enable lsp-use-plists flag
+(setenv "LSP_USE_PLISTS" "true")
 (use-package lsp-mode
   ;; add prog-mode to lsp instead of adding one by one
   ;; :hook ((prog-mode . (lsp-deferred))
@@ -17,10 +22,10 @@
               lsp-enable-snippet t
               lsp-prefer-flymake t
               lsp-prefer-capf t
+              lsp-use-plists t
               lsp-modeline-diagnostics-enable t
               lsp-modeline-diagnostics-scope :workspace ;; workspace/global/file
               lsp-idle-delay 0.500
-              read-process-output-max (* 1024 1024) ;; 1MB
               lsp-completion-provider :capf)
   :config
   ;; Configure LSP Clients
