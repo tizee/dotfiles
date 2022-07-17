@@ -92,7 +92,7 @@ export SCCACHE_CACHE_SIZE="2G"
 # my shellscripts
 PATH="$HOME/.config/bin:$PATH"
 # PATH="$HOME/.config/work_bin:$PATH" # work related scripts
-source $HOME/.config/work_bin/work_alias
+# source $HOME/.config/work_bin/work_alias
 # terminal
 export TERM=xterm-256color
 export COLORTERM=truecolor
@@ -384,9 +384,6 @@ if $is_macOS; then
     source $HOME/.config/python/pypi_personal
   fi
 
-  # bun completions
-  [ -s "/Users/tizee/.bun/_bun" ] && source "/Users/tizee/.bun/_bun"
-
   # bun
   export BUN_INSTALL="/Users/tizee/.bun"
   PATH="$BUN_INSTALL/bin:$PATH"
@@ -398,5 +395,10 @@ if $is_macOS; then
   # https://git-scm.com/docs/git/2.35.2#Documentation/git.txt-codeGITCEILINGDIRECTORIEScode
   # Git >=2.35.2
   export GIT_CEILING_DIRECTORIES=/Users
+
+  # nodejs
+  export NODE_PATH="/usr/local/lib/node_modules"
+  # roswell for lisp packages
+  PATH="$HOME/.roswell/bin:$PATH"
 fi
 # ->
