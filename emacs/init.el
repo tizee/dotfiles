@@ -2,16 +2,16 @@
 ;;; vim: foldmethod=marker foldmarker={{{,}}}
 ;;; I also use vim's modeline for Emacas. Why? Because I like it.
 
-;;;     ______                         
+;;;     ______
 ;;;   / ____/___ ___  ____ ___________
 ;;;  / __/ / __ `__ \/ __ `/ ___/ ___/
-;;; / /___/ / / / / / /_/ / /__(__  ) 
-;;;/_____/_/ /_/ /_/\__,_/\___/____/  
+;;; / /___/ / / / / / /_/ / /__(__  )
+;;;/_____/_/ /_/ /_/\__,_/\___/____/
 ;;;
 ;;; init-globals.el     - Global constants
 ;;; init-basic.el       - Basic settings
 ;;; init-elpa.el        - Elpa settings
-;;; ini-utils.el        - Interactive funcs or utility 
+;;; ini-utils.el        - Interactive funcs or utility
 ;;; ini-ui.el           - UI settings
 ;;; ini-org.el          - org mode
 ;;; init-packages.el    - Package List
@@ -45,3 +45,6 @@
 (when (file-exists-p custom-file)
   (load-file custom-file))
 
+; roswell helper
+(load (expand-file-name "~/.roswell/helper.el"))
+(setq inferior-lisp-program "ros -Q run")
