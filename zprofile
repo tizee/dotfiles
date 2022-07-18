@@ -350,7 +350,8 @@ if $is_macOS; then
   # export DYLD_LIBRARY_PATH="/usr/local/lib"
 
   # use /usr/lib for Java
-  export DYLD_LIBRARY_PATH="/usr/lib"
+  export DYLD_FALLBACK_LIBRARY_PATH="/usr/local/lib:/usr/lib"
+  export DYLD_LIBRARY_PATH="/usr/local/lib:/usr/lib"
   export LDFLAGS="-L/usr/local/lib"
   export CPPFLAGS="-I/usr/local/include"
   # C/C++ libs
