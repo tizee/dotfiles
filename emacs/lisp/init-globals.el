@@ -1,7 +1,7 @@
 ;;; -*- coding: utf-8; lexical-binding: t; -*-
 ;;; vim: foldmethod=marker foldmarker={{{,}}}
 
-;;; init-globals.el - Global values
+;;; init-globals.el - Global constants
 
 (defconst *is-mac* (eq system-type 'darwin) "Const value for macOS check")
 (defconst *is-linux* (eq system-type 'gnu/linux) "Const value for Linux check")
@@ -22,5 +22,8 @@
 (defconst *mac-with-cocoa*
   (featurep 'cocoa)
   "Are we running with Cocoa on a Mac system?")
+(defconst elpa-use-tsinghua-mirror
+          1
+          "Use Tsinghua Tuna Mirror")
 
 (provide 'init-globals)

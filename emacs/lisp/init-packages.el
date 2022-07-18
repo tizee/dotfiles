@@ -3,6 +3,14 @@
 
 ;;; init-packages.el - Package management
 
+;;; use-package config
+; Always make sure packages are installed, otherwise
+; install missing packages
+(require 'use-package-ensure)
+(setq use-package-always-ensure t)
+
+(require 'init-funcs)
+
 ; Common packages {{{
 ; update keyring from gnu elpa
 (use-package gnu-elpa-keyring-update)
@@ -28,6 +36,7 @@
  (use-package benchmark-init
               :config (benchmark-init/activate)
               :hook (after-init . benchmark-init/deactivate))
+
 ; ivy-counsel-swiper for better searching
 (use-package ivy
   :defer 1
@@ -190,8 +199,12 @@
                                               regexp-search-ring
                                               extended-command-history)
               savehist-autosave-interval 300))
+(use-package all-the-icons
+  :if (display-graphic-p))
 
+;; Emacs' builtin package
 (use-package simple
+  :after all-the-icons
   :ensure nil
   :hook ((after-init . size-indication-mode)
          (text-mode . visual-line-mode)
@@ -199,7 +212,7 @@
   :init
   (setq column-number-mode t
         line-number-mode t
-        ;; kill-whole-line t               ; Kill line including '\n'
+        ;; kill-whole-line t               ; Kill line including '\n', please use edit/copy-line
         line-move-visual nil
         track-eol t                     ; Keep cursor at end of lines. Require line-move-visual is nil.
         set-mark-command-repeat-pop t)  ; Repeating C-SPC after popping mark pops it again
@@ -216,15 +229,15 @@
     (define-derived-mode process-menu-mode tabulated-list-mode "Process Menu"
       "Major mode for listing the processes called by Emacs."
       (setq tabulated-list-format `[("" ,(if (icons-displayable-p) 2 0))
-                                    ("Process" 25 t)
-			                        ("PID"      7 t)
-			                        ("Status"   7 t)
                                     ;; 25 is the length of the long standard buffer
+                              ("Process" 25 t)
+                              ("PID"      7 t)
+                              ("Status"   7 t)
                                     ;; name "*Async Shell Command*<10>" (bug#30016)
-			                        ("Buffer"  25 t)
-			                        ("TTY"     12 t)
-			                        ("Thread"  12 t)
-			                        ("Command"  0 t)])
+                              ("Buffer"  25 t)
+                              ("TTY"     12 t)
+                              ("Thread"  12 t)
+                              ("Command"  0 t)])
       (make-local-variable 'process-menu-query-only)
       (setq tabulated-list-sort-key (cons "Process" nil))
       (add-hook 'tabulated-list-revert-hook 'list-processes--refresh nil t))
@@ -311,6 +324,27 @@ Also, delete any process that is exited or signaled."
   :ensure nil
   :init (setq display-time-24hr-format t
               display-time-day-and-date t))
+
+;;; magit
+(use-package magit
+  :ensure t)
+
+;;; terminal mode
+(use-package term
+  :bind (("C-c t" . term)
+         :map term-mode-map
+         ("M-p" . term-send-up)
+         ("M-n" . term-send-down)
+         :map term-raw-map
+         ("M-o" . other-window)
+         ("M-p" . term-send-up)
+         ("M-n" . term-send-down)))
+
+;;; quick navigating with ace-jump-mode
+; (use-package ace-jump-mode
+;   :commands ace-jump-mode
+;   :init
+;   (bind-key "C-." 'ace-jump-mode))
 ; }}}
 
 ; macOS packages {{{
