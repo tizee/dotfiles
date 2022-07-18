@@ -21,7 +21,7 @@
 (global-set-key (kbd "s-v") 'yank)
 (global-set-key (kbd "s-z") 'undo)
 (global-set-key (kbd "s-x") 'kill-region)
-(global-set-key (kbd "s-x") 'kill-region)
+
 ; reload config
 (global-set-key (kbd "<f1>") #'utils/reload-init-file)
 ; reload init file

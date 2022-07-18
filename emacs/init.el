@@ -17,6 +17,7 @@
 ;;; init-packages.el    - Package List
 ;;; init-lsp.el         - lsp mode
 ;;; init-kbd.el         - Key bindings
+;;; init-edit.el        - edit enhancement
 ;;;
 
 (let ((minver "27.2"))
@@ -38,6 +39,7 @@
 (require 'init-lsp)
 (require 'init-org)
 (require 'init-ui)
+(require 'init-edit)
 (require 'init-modeline)
 (require 'init-kbd)
 
