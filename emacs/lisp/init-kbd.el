@@ -21,6 +21,8 @@
 (global-set-key (kbd "s-v") 'yank)
 (global-set-key (kbd "s-z") 'undo)
 (global-set-key (kbd "s-x") 'kill-region)
+;;; C-Spc conflicts with switching-input-source key-binding in macOS
+(global-set-key (kbd "C-c m") 'set-mark-command)
 
 ; reload config
 (global-set-key (kbd "<f1>") #'utils/reload-init-file)

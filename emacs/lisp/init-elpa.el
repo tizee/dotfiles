@@ -39,6 +39,7 @@
       use-package-verbose t))
 (setq load-prefer-newer t)
 
+; reduce load time
 (eval-when-compile (require 'use-package))
 
 (provide 'init-elpa)
