@@ -299,7 +299,7 @@ return {
   -- ->
   -- hotkeys <-
   -- tmux uses CTRL-A
-  leader = { key="a", mods="CMD", timeout_milliseconds=1002 },
+  leader = { key="a", mods="CMD", timeout_milliseconds=1004 },
   keys = {
     -- {key="d", mods="CTRL", action="Nop"},
     {key="d", mods="LEADER", action=wezterm.action{SendString="\x01"}},
