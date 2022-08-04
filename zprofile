@@ -146,7 +146,8 @@ if $is_macOS; then
   export FLUTTER_STORAGE_BASE_URL=https://storage.flutter-io.cn
   export FLUTTER_INSTALL="$HOME/dev/grepo_dart/flutter"
   export FLUTTER_ROOT="$HOME/dev/grepo_dart/flutter"
-  # golang
+  # golang modules
+  export GOPATH="$HOME/dev/go_proj"
   # go modules
   export GO111MODULE="on"
   PATH=/usr/local/go/bin:$PATH
@@ -202,12 +203,11 @@ if $is_macOS; then
   PATH="/Applications/VMware\ Fusion.app/Contents/Public:$PATH"
   # /etc/paths.d Wireshark
   PATH="/Applications/Wireshark.app/Contents/MacOS:$PATH"
-  # golang modules
-  export GOPATH="$HOME/dev/go_proj"
   PATH="$HOME/dev/go_proj/bin:$PATH"
   # gnu
   PATH="/usr/local/opt/make/libexec/gnubin:$PATH"
   PATH="/usr/local/opt/coreutils/libexec/gnubin:$PATH"
+
   # Android
   # https://stackoverflow.com/questions/52524112/how-do-i-install-java-on-mac-osx-allowing-version-switching
   PATH="$HOME/Library/Android/sdk/emulator:$PATH"
@@ -351,7 +351,7 @@ if $is_macOS; then
 
   # use /usr/lib for Java
   export DYLD_FALLBACK_LIBRARY_PATH="/usr/local/lib:/usr/lib"
-  export DYLD_LIBRARY_PATH="/usr/local/lib:/usr/lib"
+  export DYLD_LIBRARY_PATH="/usr/lib:/usr/local/lib"
   export LDFLAGS="-L/usr/local/lib"
   export CPPFLAGS="-I/usr/local/include"
   # C/C++ libs

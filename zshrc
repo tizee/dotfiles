@@ -80,12 +80,12 @@ if [[ $TERM = *256color* || $TERM = *rxvt* ]]; then
    local pink="%F{212}"
    local limegreen="%F{120}"
 else
-    turquoise="$fg[cyan]"
-    orange="$fg[yellow]"
-    purple="$fg[magenta]"
-    pink="$fg[pink]"
-    limegreen="$fg[green]"
-    grey="$fg[grey]"
+   local turquoise="$fg[cyan]"
+   local orange="$fg[yellow]"
+   local purple="$fg[magenta]"
+   local pink="$fg[pink]"
+   local limegreen="$fg[green]"
+   local grey="$fg[grey]"
 fi
 
 # Declare the variable
@@ -317,14 +317,14 @@ setopt append_history         # append to history rather than overwrite
 # setopt inc_append_history # adds commands while typing commands instead of at shell exit.
 
 # use CTRL-R to search command history reversely
-bindkey -v
-bindkey '^R' history-incremental-search-backward
+# bindkey -v
+# bindkey '^R' history-incremental-search-backward
 # }}}
 
 # enable diff color if possible.
-if command diff --color . . &>/dev/null; then
-  alias diff='diff --color'
-fi
+# if command diff --color . . &>/dev/null; then
+#   alias diff='diff --color'
+# fi
 # }}}
 
 #}}}
@@ -354,11 +354,13 @@ autoload -Uz $fpath[1]/*(.:t)
 local my_plugins=($HOME/.config/zsh/plugins/*.plugin.zsh)
 local my_widgets=($HOME/.config/zsh/widgets/*.widget.zsh)
 for file in $my_plugins; do
- source "$file"
+  source "$file"
 done
 for file in $my_widgets; do
- source "$file"
+  source "$file"
 done
+unset my_widgets
+unset my_plugins
 
 
 # debug
@@ -368,26 +370,28 @@ done
 # }}}
 
 # [ -f ~/dev/grepo_shell/fzf-tab/fzf-tab.plugin.zsh ] && source ~/dev/grepo_shell/fzf-tab/fzf-tab.plugin.zsh
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+# [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 # [ -f ~/.config/zsh/fzf-tab-config.zsh ] && source ~/.config/zsh/fzf-tab-config.zsh
+
 # haskell completion
-function haskell_completion_init(){
-# eval "$(stack --bash-completion-script stack)"
-_stack()
-{
-    local CMDLINE
-    local IFS=$'\n'
-    CMDLINE=(--bash-completion-index $COMP_CWORD)
+# function haskell_completion_init(){
+# # eval "$(stack --bash-completion-script stack)"
+# _stack()
+# {
+#     local CMDLINE
+#     local IFS=$'\n'
+#     CMDLINE=(--bash-completion-index $COMP_CWORD)
 
-    for arg in ${COMP_WORDS[@]}; do
-        CMDLINE=(${CMDLINE[@]} --bash-completion-word $arg)
-    done
+#     for arg in ${COMP_WORDS[@]}; do
+#         CMDLINE=(${CMDLINE[@]} --bash-completion-word $arg)
+#     done
 
-    COMPREPLY=( $(stack "${CMDLINE[@]}") )
-}
+#     COMPREPLY=( $(stack "${CMDLINE[@]}") )
+# }
 
-complete -o filenames -F _stack stack
-}
+# complete -o filenames -F _stack stack
+# }
 # haskell_completion_init
 
 # cleanup: remove duplicate PATH entries
@@ -413,20 +417,6 @@ case $SYSTEM in
     else
       compinit -C;
     fi
-        # >>> conda initialize >>>
-        # !! Contents within this block are managed by 'conda init' !!
-        __conda_setup="$('/Users/tizee/anaconda3/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
-        if [ $? -eq 0 ]; then
-            eval "$__conda_setup"
-        else
-            if [ -f "/Users/tizee/anaconda3/etc/profile.d/conda.sh" ]; then
-                . "/Users/tizee/anaconda3/etc/profile.d/conda.sh"
-            # else
-                # export PATH="/Users/tizee/anaconda3/bin:$PATH"
-            fi
-        fi
-        unset __conda_setup
-        # <<< conda initialize <<<
     ;;
   Linux)
     if [[ $(date +'%j') != $(date -r $HOME/.zcompdump +'%j') ]]; then
@@ -441,8 +431,6 @@ esac
 # bash completion compatibility
 autoload -U +X bashcompinit && bashcompinit
 # }}}
-# profiling
-# zprof
 
 export PATH="$HOME/.poetry/bin:$PATH"
 
@@ -457,4 +445,20 @@ function __cd_hook_list_files() {
 chpwd_functions=(${chpwd_functions[@]} "__cd_hook_list_files")
 
 # rbenv init make the startup slow down
-eval "$(rbenv init - zsh)"
+# eval "$(rbenv init - zsh)"
+
+# >>> conda initialize >>>
+# # !! Contents within this block are managed by 'conda init' !!
+# __conda_setup="$('/Users/tizee/anaconda3/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
+# if [ $? -eq 0 ]; then
+#     eval "$__conda_setup"
+# else
+#     if [ -f "/Users/tizee/anaconda3/etc/profile.d/conda.sh" ]; then
+#         . "/Users/tizee/anaconda3/etc/profile.d/conda.sh"
+#     fi
+# fi
+# unset __conda_setup
+# <<< conda initialize <<<
+
+# zsh profiling end
+# zprof
