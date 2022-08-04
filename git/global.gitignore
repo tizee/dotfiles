@@ -24,3 +24,10 @@ CMakeCache.txt
 
 # python
 __pycache__
+
+# zig lang
+zig-cache
+zig-out
+
+# ccls
+.ccls-cache

@@ -104,6 +104,8 @@
   amend= commit --amend
   apppend= commit --amend --no-edit
   spco= sparse-checkout
+  ra = remote add
+  rrm = remote remove
 
 [branch]
   # always rebase for new branches
@@ -146,9 +148,9 @@
 [url "git@github.com:"]
   insteadOf = https://github.com/
 [url "ssh://git@gist.github.com/"]
-    # only works for my gists
-    pushInsteadOf = https://gist.github.com/tizee/
-    # For gists cloned with official no-username URL:
+;     # only works for my gists
+;     pushInsteadOf = https://gist.github.com/tizee/
+;     # For gists cloned with official no-username URL:
     pushInsteadOf = https://gist.github.com/
 ; [https]
 ;   proxy = socks5://127.0.0.1:1080
