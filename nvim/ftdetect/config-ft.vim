@@ -4,4 +4,6 @@ augrou CONFIG_FT
   autocmd! BufRead,BufNewFile .irbrc,irbrc set ft=ruby
   autocmd! BufRead,BufNewFile .gemrc,gemrc set ft=yaml
   autocmd! BufRead,BufNewFile *.code-snippets set ft=json
+  autocmd! BufRead,BufNewFile *.h set ft=c
+  autocmd! BufRead,BufNewFile *.hpp set ft=cpp
 augroup END

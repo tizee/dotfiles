@@ -1,0 +1,31 @@
+priority -10
+
+snippet for "for loop" b
+for ($1) |value| {
+$0
+}
+endsnippet
+
+snippet while "while loop" b
+while ($1) |${2:value}| {
+$0
+}
+endsnippet
+
+snippet fn "function" b
+pub fn ${1:foo}() ${2:anyerror!void} {
+$0
+}
+endsnippet
+
+snippet struct "struct" b
+const $1 = struct {
+$0
+};
+endsnippet
+
+snippet test "test" b
+test "$1" {
+$0
+}
+endsnippet

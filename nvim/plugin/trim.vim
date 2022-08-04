@@ -2,8 +2,17 @@ if exists('loaded_trim_vim') || &cp || v:version < 700
   finish
 endif
 let g:loaded_trim_vim = 1
+let g:disable_trialing_spaces = v:false
+
+function s:toggleTrimEOLSpaces() abort
+  let g:disable_trialing_spaces = !g:disable_trialing_spaces
+  echohl WarningMsg | echomsg "disable: " . g:disable_trialing_spaces | echohl None
+endfunction
 
 function! s:TrimEOLSpaces()
+  if g:disable_trialing_spaces
+   return
+  endif
   echohl WarningMsg | echomsg "Trim all trailing spaces before eol" | echohl None
 
   let saved_cursor=getcurpos()
@@ -24,6 +33,7 @@ endfunction
 nnoremap <silent> <Plug>(trim-eol-spaces) :call <SID>TrimEOLSpaces()<CR>
 
 command! -nargs=0 TrimEOLSpaces call <SID>TrimEOLSpaces()
+command! -nargs=0 TrimEOLSpacesToggle call <SID>toggleTrimEOLSpaces()
 
 augroup TRIM_EOL_SPACES
   autocmd!

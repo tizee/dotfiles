@@ -58,13 +58,28 @@
     "zls": {
       "command": "~/zls/zls",
       "filetypes": ["zig"]
-    }
-    // "clangd": {
-    //   "command": "clangd",
-    //   "rootPatterns": ["compile_flags.txt", "compile_commands.json"],
-    //   "filetypes": ["c", "cc", "cpp", "c++", "objc", "objcpp"]
+    },
+    "glsl": {
+      "command": "/usr/local/bin/glslls",
+      "filetypes": ["glsl"]
+    },
+    // "texlab": {
+    //   "command": "texlab",
+    //   "filetypes": ["tex"]
     // }
+    "clangd": {
+      "command": "clangd",
+      "rootPatterns": ["compile_flags.txt", "compile_commands.json"],
+      "filetypes": ["cpp", "c++", "objc", "objcpp"]
+    },
+    "ccls": {
+      "command": "ccls",
+      "rootPatterns": ["compile_commands.json"],
+      "filetypes": ["c"]
+    }
   },
+  // tex
+  "texlab.path": "~/.cargo/bin/texlab",
   // rust
   "rust-analyzer.enable": true,
   "rust-analyzer.procMacro.enable":false,
@@ -87,9 +102,9 @@
   "rust-analyzer.terminal.startinsert": true,
   "rust-analyzer.checkOnSave.command": "clippy",
   // c++/c
-  "clangd.enabled": true,
-  "clangd.inlayHints.sep": "‣",
-  "clangd.inlayHints.enable": true,
+  // "clangd.enabled": true,
+  // "clangd.inlayHints.sep": "‣",
+  // "clangd.inlayHints.enable": true,
   // objective-c, swift, c++, c
   "sourcekit.enable": true,
   // "sourcekit.objc": true,

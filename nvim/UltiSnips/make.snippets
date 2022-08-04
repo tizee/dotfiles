@@ -7,7 +7,7 @@ endsnippet
 snippet csetup "c setup"
 .PHONY: clean, mrproper
 CC = gcc
-CFLAGS = -g -Wall
+CFLAGS = -g -Wall -std=gnu99 -O2
 
 all: ${1:out}
 
@@ -69,7 +69,7 @@ endsnippet
 snippet cppsetup "cplusplus setup" b
 .PHONY: clean, mrproper
 CC = g++
-CFLAGS = -g -Wall -std=c++11
+CFLAGS = -g -Wall -std=c++11 -O2
 
 all: $1
 
