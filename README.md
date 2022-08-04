@@ -111,6 +111,9 @@ Zsh is more powerful than Bash in my opinion for its zle and completion system t
   - i3wm
 - Program Launcher
   - Rofi
+- Package manager
+  - pacman
+  - yay (easy to use)
 - Terminal Emulator
   - Alacritty
 
