@@ -62,7 +62,7 @@ if $is_Linux; then
     # wsl auto-load ssh key
     eval "$(ssh-agent -s)" >/dev/null
     $(ssh-add "$HOME/.ssh/win_github_id_rsa" >/dev/null) || exit 1
-    $(ssh-add "$HOME/.ssh/mac_id_rsa.pub" >/dev/null) || exit 1
+    $(ssh-add "$HOME/.ssh/mac_id_rsa" >/dev/null) || exit 1
 
     gpg-agent-relay start
     # use ssh-key from smart-card
