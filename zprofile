@@ -29,10 +29,49 @@ esac
 
 # homebrew
 if [[ -n "$HOMEBREW_MIRROR_CN" ]]; then
-  if $is_Linux; then BREW_TYPE="linuxbrew"; else BREW_TYPE="homebrew"; fi
+  if $is_Linux; then BREW_TYPE="linuxbrew" ;else BREW_TYPE="homebrew"; fi
   export HOMEBREW_BREW_GIT_REMOTE="https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/brew.git"
   # export HOMEBREW_CORE_GIT_REMOTE="https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/${BREW_TYPE}-core.git"
   export HOMEBREW_BOTTLE_DOMAIN="https://mirrors.tuna.tsinghua.edu.cn/${BREW_TYPE}-bottles"
+fi
+
+if $is_Linux; then
+  export HOMEBREW_NO_INSTALL_CLEANUP=1
+  if $(uname -r | grep 'microsoft' > /dev/null); then
+    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+    export LINUXBREW_PATH="/home/linuxbrew/.linuxbrew"
+    export PATH="/usr/local/bin:$PATH"
+    export PATH="/home/linuxbrew/.linuxbrew/bin/:/home/linuxbrew/.linuxbrew/sbin/:$PATH"
+    export MANPATH="/home/linuxbrew/.linuxbrew/share/man:$MANPATH"
+    export INFOPATH="/home/linuxbrew/.linuxbrew/share/info:$INFOPATH"
+    # wsl auto-load ssh key
+    eval "$(ssh-agent -s)" >/dev/null
+    $(ssh-add "$HOME/.ssh/win_github_id_rsa" >/dev/null) || exit 1
+    # Please create a new conf file under /etc/ld.so.conf.d to include libraries installed by linuxbrew
+    export LD_LIBRARY_PATH="${LD_LIBRARY_PATH:-"/usr/lib/wsl/lib"}:$HOME/linuxbrew/.linuxbrew/lib"
+    export DYLD_LIBRARY_PATH="/usr/lib:/usr/local/lib:/home/linuxbrew/.linuxbrew/lib"
+    # golang modules
+    export GOPATH="$HOME/go-projects"
+    # go modules
+    # Go 1.11 or Go 1.12 default to auto
+    # Go >= 1.13 always set to on when outside GOPATH
+    # set to off inside GOPATH even there is go.mod
+    export GO111MODULE="auto"
+
+    # always use host proxy
+    source ~/.config/win_scripts/wsl2/wsl-proxy
+    export PATH="$HOME/.config/win_scripts/wsl2:$PATH"
+    gpg-agent-relay start
+    # export SSH_AUTH_SOCK=$HOME/.gnupg/S.gpg-agent.ssh
+
+    # libxml2
+    export PATH="$LINUXBREW_PATH/opt/libxml2/bin:$PATH"
+    export LIBXML2_CFLAGS="-I$LINUXBREW_PATH/opt/libxml2/include"
+    export LIBXML2_LIBS="-L$LINUXBREW_PATH/opt/libxml2/lib"
+  else
+    echo "use Linux"
+    export GITSTATUS_DIR=${GITSTATUS_DIR:-"/usr/local/opt/gitstatus"}
+  fi
 fi
 
 # Preferred editor for local and remote sessions
@@ -402,4 +441,3 @@ if $is_macOS; then
   # roswell for lisp packages
   PATH="$HOME/.roswell/bin:$PATH"
 fi
-# ->

@@ -22,7 +22,8 @@ endif
 " debugger
 Plug 'puremourning/vimspector'
 " Plug 'itchyny/lightline.vim'
-Plug '~/dev/grepo_vim/tz-vim-packages/moline.vim'
+" my statusline plugin
+Plug 'tizee/moline.vim'
 Plug 'ryanoasis/vim-devicons' " icons
 Plug 'airblade/vim-gitgutter' " git
 " key mapping helper
@@ -71,6 +72,8 @@ Plug 'hotoo/pangu.vim'
 Plug 'vifm/vifm.vim'
 " ziglang
 Plug 'ziglang/zig.vim'
+" start screen
+Plug 'mhinz/vim-startify'
 
 " golang
 " conflict with coc-go
@@ -78,7 +81,8 @@ Plug 'ziglang/zig.vim'
 
 " local vim plugin
 " start screen
-Plug '~/dev/grepo_vim/vim-startify'
+" Plug '~/dev/grepo_vim/vim-startify'
+"
 " zen mode
 Plug '~/dev/grepo_vim/goyo.vim'
 " git blame / open git repo url

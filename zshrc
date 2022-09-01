@@ -24,12 +24,29 @@
 zmodload zsh/datetime
 # Source gitstatus.plugin.zsh from $GITSTATUS_DIR or from the same directory
 # in which the current script resides if the variable isn't set.
-export GITSTATUS_DIR=${GITSTATUS_DIR:-"/usr/local/opt/gitstatus"}
+
+if $(uname -r | grep 'microsoft' > /dev/null); then
+  echo "use WSL"
+  # wsl
+  export GITSTATUS_DIR=${GITSTATUS_DIR:-"/home/linuxbrew/.linuxbrew/opt/gitstatus"}
+  # ip
+  export LOCAL_IP=$(cat /etc/resolv.conf | grep nameserver | awk '{print $2}')
+  # x-server
+  export DISPLAY="$LOCAL_IP:0"
+  # zig lang
+  # export PATH="$HOME/zig-linux-x86_64-0.10.0-dev.3685+dae7aeb33/:$PATH"
+else
+  echo "use Linux"
+  export GITSTATUS_DIR=${GITSTATUS_DIR:-"/usr/local/opt/gitstatus"}
+fi
+
 if [ -d $GITSTATUS_DIR ]; then
   source "${GITSTATUS_DIR:-${${(%):-%x}:h}}/gitstatus.plugin.zsh" || return
 else
   echo "gitstatus not found"
 fi
+
+
 
 # Sets GITSTATUS_PROMPT to reflect the state of the current git repository. Empty if not
 # in a git repository. In addition, sets GITSTATUS_PROMPT_LEN to the number of columns

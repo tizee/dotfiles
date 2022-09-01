@@ -53,6 +53,8 @@ nvim:
 	ln -svf $(PWD)/nvim/vimrc.vim ~/.vimrc
 	# idea vim
 	ln -svf $(PWD)/nvim/vimrc.vim ~/.ideavimrc
+	# vim-plug
+	curl -fLo ~/.vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 .PHONY: nvim
 
 nvim-force:
