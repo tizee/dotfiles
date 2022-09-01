@@ -44,9 +44,6 @@ if $is_Linux; then
     export PATH="/home/linuxbrew/.linuxbrew/bin/:/home/linuxbrew/.linuxbrew/sbin/:$PATH"
     export MANPATH="/home/linuxbrew/.linuxbrew/share/man:$MANPATH"
     export INFOPATH="/home/linuxbrew/.linuxbrew/share/info:$INFOPATH"
-    # wsl auto-load ssh key
-    eval "$(ssh-agent -s)" >/dev/null
-    $(ssh-add "$HOME/.ssh/win_github_id_rsa" >/dev/null) || exit 1
     # Please create a new conf file under /etc/ld.so.conf.d to include libraries installed by linuxbrew
     export LD_LIBRARY_PATH="${LD_LIBRARY_PATH:-"/usr/lib/wsl/lib"}:$HOME/linuxbrew/.linuxbrew/lib"
     export DYLD_LIBRARY_PATH="/usr/lib:/usr/local/lib:/home/linuxbrew/.linuxbrew/lib"
@@ -61,7 +58,14 @@ if $is_Linux; then
     # always use host proxy
     source ~/.config/win_scripts/wsl2/wsl-proxy
     export PATH="$HOME/.config/win_scripts/wsl2:$PATH"
+
+    # wsl auto-load ssh key
+    eval "$(ssh-agent -s)" >/dev/null
+    $(ssh-add "$HOME/.ssh/win_github_id_rsa" >/dev/null) || exit 1
+    $(ssh-add "$HOME/.ssh/mac_id_rsa.pub" >/dev/null) || exit 1
+
     gpg-agent-relay start
+    # use ssh-key from smart-card
     # export SSH_AUTH_SOCK=$HOME/.gnupg/S.gpg-agent.ssh
 
     # libxml2
