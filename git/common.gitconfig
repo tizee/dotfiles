@@ -3,6 +3,8 @@
 [commit]
   gpgsign=true
   template = ~/.config/git/commit.template
+[gpg]
+  program = gpg
 
 [init]
   templateDir=~/.config/git/hooks
@@ -104,6 +106,7 @@
   spco= sparse-checkout
   ra = remote add
   rrm = remote remove
+  summary = --no-pager shortlog  -sne
 
 [branch]
   # always rebase for new branches
