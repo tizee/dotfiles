@@ -20,6 +20,7 @@ try:
     from IPython import get_ipython
     ipython = get_ipython()
     ipython.magic("load_ext rich")
+    link_github = Text("github","link https://github.com")
 except ImportError as e :
     pass
 

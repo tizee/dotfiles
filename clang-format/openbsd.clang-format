@@ -1,0 +1,120 @@
+# https://man.openbsd.org/OpenBSD-current/man9/style.9
+# https://www.reddit.com/r/openbsd/comments/n0deco/openbsds_style9_for_clangformat/gxhdw6q/?context=8&depth=9
+---
+# BasedOnStyle:  WebKit
+Language:        Cpp
+# Indentation is an 8 character tab. Second level indents are four spaces. All code should fit in 80 columns.
+TabWidth:        8
+UseTab:          ForContinuationAndIndentation
+ColumnLimit:     80
+
+# Do not add whitespace at the end of a line, and only use tabs followed by spaces to form the indentation
+# Do not use more spaces than a tab will produce and do not use spaces in front of tabs.
+# Do not use spaces after function names. Commas have a space after them. Do not use spaces after ‘(’ or ‘[’ or preceding ‘]’ or ‘)’ characters.
+SpaceAfterCStyleCast: false
+#SpaceAfterLogicalNot: false
+SpaceAfterTemplateKeyword: true
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeCpp11BracedList: true
+SpaceBeforeCtorInitializerColon: true
+SpaceBeforeInheritanceColon: true
+SpaceBeforeParens: ControlStatements
+SpaceBeforeRangeBasedForLoopColon: true
+SpaceInEmptyParentheses: false
+SpacesBeforeTrailingComments: 1
+SpacesInAngles:  Never
+SpacesInContainerLiterals: true
+SpacesInCStyleCastParentheses: false
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
+
+#  Closing and opening braces go on the same line as the else. Braces that aren't necessary may be left out, unless they cause a compiler warning.
+BraceWrapping:
+  AfterClass:      false
+  AfterControlStatement: Never
+  AfterEnum:       false
+  AfterFunction:   true
+  AfterNamespace:  false
+  AfterObjCDeclaration: false
+  AfterStruct:     false
+  AfterUnion:      false
+  AfterExternBlock: false
+  BeforeCatch:     false
+  BeforeElse:      false
+  IndentBraces:    false
+  SplitEmptyFunction: true
+  SplitEmptyRecord: true
+  SplitEmptyNamespace: true
+
+# Unary operators don't require spaces; binary operators do. Don't use parentheses unless they're required for precedence, the statement is confusing without them, or the compiler generates a warning without them.
+AccessModifierOffset: -4
+AlignAfterOpenBracket: DontAlign
+AlignConsecutiveAssignments: None
+AlignConsecutiveDeclarations: None
+#AlignConsecutiveMacros: true
+AlignEscapedNewlines: Right
+AlignOperands:   "DontAlign"
+AlignTrailingComments: true
+# AllowAllArgumentsOnNextLine: false
+AllowAllParametersOfDeclarationOnNextLine: true
+AllowShortBlocksOnASingleLine: Never
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: All
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AlwaysBreakAfterDefinitionReturnType: None
+# Always use ANSI function definitions. Long parameter lists are wrapped with a normal four space indent.
+AlwaysBreakAfterReturnType: AllDefinitions
+AlwaysBreakBeforeMultilineStrings: false
+AlwaysBreakTemplateDeclarations: MultiLine
+BinPackArguments: true
+BinPackParameters: true
+BreakBeforeBinaryOperators: All
+BreakBeforeBraces: Custom
+BreakBeforeTernaryOperators: true
+BreakBeforeInheritanceComma: false
+BreakInheritanceList: BeforeColon
+BreakConstructorInitializersBeforeComma: false
+BreakConstructorInitializers: BeforeComma
+BreakAfterJavaFieldAnnotations: false
+BreakStringLiterals: true
+CommentPragmas:  '^ IWYU pragma:'
+CompactNamespaces: false
+ConstructorInitializerAllOnOneLineOrOnePerLine: false
+ConstructorInitializerIndentWidth: 8
+ContinuationIndentWidth: 8
+Cpp11BracedListStyle: false
+DerivePointerAlignment: false
+DisableFormat:   false
+ExperimentalAutoDetectBinPacking: false
+FixNamespaceComments: false
+IncludeBlocks: Preserve
+IndentCaseLabels: false
+IndentPPDirectives: None
+IndentWidth:     8
+IndentWrappedFunctionNames: false
+JavaScriptQuotes: Leave
+JavaScriptWrapImports: true
+KeepEmptyLinesAtTheStartOfBlocks: false
+MacroBlockBegin: ''
+MacroBlockEnd:   ''
+MaxEmptyLinesToKeep: 1
+NamespaceIndentation: Inner
+ObjCBinPackProtocolList: Auto
+ObjCBlockIndentWidth: 4
+ObjCSpaceAfterProperty: true
+ObjCSpaceBeforeProtocolList: true
+PenaltyBreakAssignment: 2
+PenaltyBreakBeforeFirstCallParameter: 19
+PenaltyBreakComment: 300
+PenaltyBreakFirstLessLess: 120
+PenaltyBreakString: 1000
+PenaltyBreakTemplateDeclaration: 10
+PenaltyExcessCharacter: 1000000
+PenaltyReturnTypeOnItsOwnLine: 60
+PointerAlignment: Right
+ReflowComments:  true
+SortIncludes:    Never
+SortUsingDeclarations: true
+
+Standard:        c++11

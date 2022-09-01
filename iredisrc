@@ -1,0 +1,3 @@
+# ft=toml
+[alias_dn]
+dev=redis://localhost:6379
