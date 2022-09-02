@@ -1,5 +1,6 @@
 [init]
   defaultBranch=master # Yes, the old-school
+
 [commit]
   gpgsign=true
   template = ~/.config/git/commit.template
@@ -33,6 +34,10 @@
   # prevent problems from changing case of a file
   ignorecase=false
 
+# system
+[includeIf "gitdir:/*/**"]
+  path= ~/.config/git/gh.gitconfig
+# user home
 [includeIf "gitdir:~/**"]
   path= ~/.config/git/gh.gitconfig
 # for work

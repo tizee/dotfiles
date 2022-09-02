@@ -12,6 +12,7 @@ help:
 	@echo "make uninstall     -  require make dry-uninstall"
 	@echo "                      rm $(HOME)/$(CONFIG_DIR_NAME)"
 	@echo "                      move $(HOME)/$(CONFIG_DIR_NAME)_back $(HOME)/$(CONFIG_DIR_NAME)"
+	@echo "make git           -  require make install"
 	@echo "make emacs         -  require make install"
 	@echo "make emacs-force   -  require make install"
 	@echo "make nvim          -  require make install"
@@ -20,6 +21,11 @@ help:
 	@echo "make zsh-force     -  require make install"
 	@echo "make rm-zsh        -  require make install"
 .PHONY: help
+
+git:
+	@echo "link git config"
+	ln -sv $(PWD)/git/common.gitconfig ~/.gitconfig
+.PHONY: git
 
 # use ln -svf is dangerous
 zsh:
