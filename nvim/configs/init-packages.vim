@@ -75,6 +75,11 @@ Plug 'ziglang/zig.vim'
 " start screen
 Plug 'mhinz/vim-startify'
 
+" copy text to the system clipboard from anywhere using the ANSI OSC52 sequence
+Plug 'ojroques/vim-oscyank'
+" Indent
+Plug 'Yggdroot/indentLine'
+
 " golang
 " conflict with coc-go
 " Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
@@ -84,30 +89,28 @@ Plug 'mhinz/vim-startify'
 " Plug '~/dev/grepo_vim/vim-startify'
 "
 " zen mode
-Plug '~/dev/grepo_vim/goyo.vim'
+Plug 'junegunn/goyo.vim'
 " git blame / open git repo url
-Plug '~/dev/grepo_vim/vim-gh-line'
-" copy text to the system clipboard from anywhere using the ANSI OSC52 sequence
-Plug '~/dev/grepo_vim/vim-oscyank'
+Plug 'tizee/vim-gh-line'
+Plug 'tizee/nodemodules.vim'
+Plug 'tizee/md-table.vim'
+
 " my local plugin prototypes
-Plug '~/dev/grepo_vim/tz-vim-packages/nodemodules.vim'
-Plug '~/dev/grepo_vim/tz-vim-packages/md-table.vim'
 " Plug '~/dev/grepo_vim/tz-vim-packages/codecount.vim'
+
 " local version fixed packages
-Plug '~/dev/grepo_vim/indentLine'
-" language checker
-Plug '~/dev/grepo_vim/vim-LanguageTool'
+
+" open-source grammar checker (alternative of Grammarly)
+Plug 'dpelle/vim-LanguageTool'
 " beancount
-Plug '~/dev/grepo_vim/vim-beancount'
-" osc-yank
-Plug '~/dev/grepo_vim/vim-oscyank'
+Plug 'nathangrigg/vim-beancount'
 " vista for tags
 " could use :CocOutline directly
-Plug '~/dev/grepo_vim/vista.vim'
+Plug 'liuchengxu/vista.vim'
 " Leaderf
-Plug '~/dev/grepo_vim/LeaderF',{ 'do': ':LeaderfInstallCExtension' }
-
+Plug 'Yggdroot/LeaderF',{ 'do': ':LeaderfInstallCExtension' }
 " }}}
+
 call plug#end()
 " vim-plug autocmd {{{
 

@@ -65,6 +65,7 @@ relay() {
   local ssh_agent_socket="$GNUPGHOME/S.gpg-agent.ssh"
 
   # You should use gpgconf.exe --list-dirs to find the path to
+  # use gpgconf --list-dir agent-socket
   # gpg socket under Windows
   # seee https://stackoverflow.com/questions/50332885/how-do-i-install-and-use-gpg-agent-on-windows
   local win_gpg_agent_socket="${WSL_WIN_HOME}/AppData/Local/gnupg/S.gpg-agent"
