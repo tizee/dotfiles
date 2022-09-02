@@ -35,9 +35,9 @@ if [[ -n "$HOMEBREW_MIRROR_CN" ]]; then
   export HOMEBREW_BOTTLE_DOMAIN="https://mirrors.tuna.tsinghua.edu.cn/${BREW_TYPE}-bottles"
 fi
 
-if $is_Linux; then
-  export HOMEBREW_NO_INSTALL_CLEANUP=1
-  if $(uname -r | grep 'microsoft' > /dev/null); then
+ubuntu_setup() {
+    # Ubuntu uses Linuxbrew
+    export HOMEBREW_NO_INSTALL_CLEANUP=1
     eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
     export LINUXBREW_PATH="/home/linuxbrew/.linuxbrew"
     export PATH="/usr/local/bin:$PATH"
@@ -55,27 +55,52 @@ if $is_Linux; then
     # set to off inside GOPATH even there is go.mod
     export GO111MODULE="auto"
 
-    # always use host proxy
-    source ~/.config/win_scripts/wsl2/wsl-proxy
-    export PATH="$HOME/.config/win_scripts/wsl2:$PATH"
+    # libxml2
+    export PATH="$LINUXBREW_PATH/opt/libxml2/bin:$PATH"
+    export LIBXML2_CFLAGS="-I$LINUXBREW_PATH/opt/libxml2/include"
+    export LIBXML2_LIBS="-L$LINUXBREW_PATH/opt/libxml2/lib"
 
     # wsl auto-load ssh key
     eval "$(ssh-agent -s)" >/dev/null
     $(ssh-add "$HOME/.ssh/win_github_id_rsa" >/dev/null) || exit 1
     $(ssh-add "$HOME/.ssh/mac_id_rsa" >/dev/null) || exit 1
+}
 
+arch_setup() {
+    # golang modules
+    export GOPATH="$HOME/go-projects"
+    # go modules
+    # Go 1.11 or Go 1.12 default to auto
+    # Go >= 1.13 always set to on when outside GOPATH
+    # set to off inside GOPATH even there is go.mod
+    export GO111MODULE="auto"
+
+    # wsl auto-load ssh key
+    eval "$(ssh-agent -s)" >/dev/null
+    $(ssh-add "$HOME/.ssh/win_github_id_rsa" >/dev/null) || exit 1
+    $(ssh-add "$HOME/.ssh/mac_id_rsa" >/dev/null) || exit 1
+}
+
+if $is_Linux; then
+  if $(uname -r | grep 'microsoft' > /dev/null); then
+    case $(lsb_release -d | awk '{print $2}') in
+      Ubuntu)
+        ubuntu_setup
+        ;;
+      Arch)
+        arch_setup
+        ;;
+    esac
+    # always use host proxy
+    source ~/.config/win_scripts/wsl2/wsl-proxy
+    export PATH="$HOME/.config/win_scripts/wsl2:$PATH"
     gpg-agent-relay start
     # use ssh-key from smart-card
     # export SSH_AUTH_SOCK=$HOME/.gnupg/S.gpg-agent.ssh
-
-    # libxml2
-    export PATH="$LINUXBREW_PATH/opt/libxml2/bin:$PATH"
-    export LIBXML2_CFLAGS="-I$LINUXBREW_PATH/opt/libxml2/include"
-    export LIBXML2_LIBS="-L$LINUXBREW_PATH/opt/libxml2/lib"
-  else
-    echo "use Linux"
-    export GITSTATUS_DIR=${GITSTATUS_DIR:-"/usr/local/opt/gitstatus"}
   fi
+else
+  echo "use macOS"
+  export GITSTATUS_DIR=${GITSTATUS_DIR:-"/usr/local/opt/gitstatus"}
 fi
 
 # Preferred editor for local and remote sessions

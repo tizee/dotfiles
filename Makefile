@@ -76,7 +76,7 @@ rm-zsh:
 
 install:
 	@echo "move ~/$(CONFIG_DIR_NAME) to ~/$(CONFIG_DIR_NAME)_backup"
-	mv $(HOME)/$(CONFIG_DIR_NAME) $(HOME)/$(CONFIG_DIR_NAME)_backup
+	-mv $(HOME)/$(CONFIG_DIR_NAME) $(HOME)/$(CONFIG_DIR_NAME)_backup > /dev/null
 	ln -s $(PWD) $(HOME)/$(CONFIG_DIR_NAME) && echo "Install done!"
 .PHONY: install
 
