@@ -2,7 +2,7 @@
 
 # Dotfiles
 
-My dotfiles for Unix-like systems (MacOS and Arch Linux).
+My dotfiles for Unix-like systems (MacOS/Arch Linux/WSL2).
 
 </div>
 
