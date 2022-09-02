@@ -108,7 +108,7 @@ Plug 'nathangrigg/vim-beancount'
 " could use :CocOutline directly
 Plug 'liuchengxu/vista.vim'
 " Leaderf
-Plug 'Yggdroot/LeaderF',{ 'do': ':LeaderfInstallCExtension' }
+" Plug 'Yggdroot/LeaderF',{ 'do': ':LeaderfInstallCExtension' }
 " }}}
 
 call plug#end()

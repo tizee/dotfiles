@@ -75,6 +75,7 @@ relay() {
   killsocket "$ssh_agent_socket"
 
   # Make sure windows gpg agent is running
+  # "$win_gpg_connect_agent" reloadagent /bye
   "$win_gpg_connect_agent" /bye
 
   # relay the gpg-agent socket
