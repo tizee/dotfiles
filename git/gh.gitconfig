@@ -1,0 +1,11 @@
+[user]
+  name = tizee
+  email = 33030965+tizee@users.noreply.github.com
+  signingkey = 92180C1B273A7726
+[commit]
+  gpgsign = true
+  template = ~/.config/git/commit.template
+[gpg]
+  program = gpg
+
+# vim:ft=gitconfig
