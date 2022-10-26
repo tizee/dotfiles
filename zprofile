@@ -63,7 +63,7 @@ ubuntu_setup() {
     # wsl auto-load ssh key
     eval "$(ssh-agent -s)" >/dev/null
     [ -e "$HOME/.ssh/win_github_id_rsa" ] && $(ssh-add "$HOME/.ssh/win_github_id_rsa" >/dev/null)
-    [ -e "$HOME/.ssh/win_github_id_rsa" ] && $(ssh-add "$HOME/.ssh/mac_id_rsa" >/dev/null)
+    [ -e "$HOME/.ssh/mac_id_rsa" ] && $(ssh-add "$HOME/.ssh/mac_id_rsa" >/dev/null)
 }
 
 arch_setup() {
