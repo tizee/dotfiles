@@ -28,11 +28,12 @@ esac
 
 
 # homebrew
+# gfw
 if [[ -n "$HOMEBREW_MIRROR_CN" ]]; then
   if $is_Linux; then BREW_TYPE="linuxbrew" ;else BREW_TYPE="homebrew"; fi
   export HOMEBREW_BREW_GIT_REMOTE="https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/brew.git"
   # export HOMEBREW_CORE_GIT_REMOTE="https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/${BREW_TYPE}-core.git"
-  export HOMEBREW_BOTTLE_DOMAIN="https://mirrors.tuna.tsinghua.edu.cn/${BREW_TYPE}-bottles"
+  # export HOMEBREW_BOTTLE_DOMAIN="https://mirrors.tuna.tsinghua.edu.cn/${BREW_TYPE}-bottles"
 fi
 
 ubuntu_setup() {
@@ -81,26 +82,23 @@ arch_setup() {
     [ -e "$HOME/.ssh/win_github_id_rsa" ] && $(ssh-add "$HOME/.ssh/mac_id_rsa" >/dev/null)
 }
 
-if $is_Linux; then
-  if $(uname -r | grep 'microsoft' > /dev/null); then
-    case $(lsb_release -d | awk '{print $2}') in
-      Ubuntu)
-        ubuntu_setup
-        ;;
-      Arch)
-        arch_setup
-        ;;
-    esac
-    # always use host proxy
-    source ~/.config/win_scripts/wsl2/wsl-proxy
-    export PATH="$HOME/.config/win_scripts/wsl2:$PATH"
-    gpg-agent-relay start
-    # use ssh-key from smart-card
-    # export SSH_AUTH_SOCK=$HOME/.gnupg/S.gpg-agent.ssh
-  fi
-else
-  echo "use macOS"
-  export GITSTATUS_DIR=${GITSTATUS_DIR:-"/usr/local/opt/gitstatus"}
+# WSL
+if $(uname -r | grep 'microsoft' > /dev/null); then
+  case $(lsb_release -d | awk '{print $2}') in
+    Ubuntu)
+      ubuntu_setup
+      ;;
+    Arch)
+      arch_setup
+      ;;
+  esac
+  echo "WSL"
+  # always use host proxy
+  source ~/.config/win_scripts/wsl2/wsl-proxy
+  export PATH="$HOME/.config/win_scripts/wsl2:$PATH"
+  gpg-agent-relay start
+  # use ssh-key from smart-card
+  # export SSH_AUTH_SOCK=$HOME/.gnupg/S.gpg-agent.ssh
 fi
 
 # Preferred editor for local and remote sessions
@@ -184,11 +182,6 @@ PATH="/usr/local/opt/krb5/sbin:$PATH"
 
 # macOS <-
 if $is_macOS; then
-  # Fuck GFW !!!
-  # Fuck GFW !!!
-  # Fuck GFW !!!
-  export HOMEBREW_BREW_GIT_REMOTE="https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/brew.git"
-  export HOMEBREW_BOTTLE_DOMAIN="https://mirrors.tuna.tsinghua.edu.cn/homebrew-bottles"
   # prevent auto-update whenever run a brew command
   export HOMEBREW_NO_AUTO_UPDATE=1
   # Carp - statically typed lisp

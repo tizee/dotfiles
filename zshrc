@@ -26,7 +26,6 @@ zmodload zsh/datetime
 # in which the current script resides if the variable isn't set.
 
 if $(uname -r | grep 'microsoft' > /dev/null); then
-  echo "use WSL"
   # wsl
   export GITSTATUS_DIR=${GITSTATUS_DIR:-"/home/linuxbrew/.linuxbrew/opt/gitstatus"}
   # ip
@@ -36,7 +35,7 @@ if $(uname -r | grep 'microsoft' > /dev/null); then
   # zig lang
   # export PATH="$HOME/zig-linux-x86_64-0.10.0-dev.3685+dae7aeb33/:$PATH"
 else
-  echo "use Linux"
+  # macOS
   export GITSTATUS_DIR=${GITSTATUS_DIR:-"/usr/local/opt/gitstatus"}
 fi
 
