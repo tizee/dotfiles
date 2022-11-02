@@ -99,6 +99,8 @@ if $(uname -r | grep 'microsoft' > /dev/null); then
   gpg-agent-relay start
   # use ssh-key from smart-card
   # export SSH_AUTH_SOCK=$HOME/.gnupg/S.gpg-agent.ssh
+else
+  echo "macOS"
 fi
 
 # Preferred editor for local and remote sessions

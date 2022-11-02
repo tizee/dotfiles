@@ -1,11 +1,16 @@
 [init]
   defaultBranch=master # Yes, the old-school
 
+[user]
+  name = tizee
+  email = 33030965+tizee@users.noreply.github.com
+  signingkey = 92180C1B273A7726
+
 [commit]
   gpgsign=true
   template = ~/.config/git/commit.template
 [gpg]
-  program = gpg
+  program = /usr/local/bin/gpg
 
 [init]
   templateDir=~/.config/git/hooks
@@ -34,12 +39,6 @@
   # prevent problems from changing case of a file
   ignorecase=false
 
-# system
-[includeIf "gitdir:/*/**"]
-  path= ~/.config/git/gh.gitconfig
-# user home
-[includeIf "gitdir:~/**"]
-  path= ~/.config/git/gh.gitconfig
 # for work
 [includeIf "gitdir:~/dev/work/**"]
   path= ~/.config/git/work.gitconfig
