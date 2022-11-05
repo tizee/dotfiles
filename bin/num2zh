@@ -1,0 +1,77 @@
+#!/usr/bin/env python3
+
+import sys
+
+chars = {
+    1: '壹',
+    2: '贰',
+    3: '叁',
+    4: '肆',
+    5: '伍',
+    6: '陆',
+    7: '柒',
+    8: '捌',
+    9: '玖',
+    0: '零',
+    10: '拾',
+    100: '佰',
+    1000: '仟',
+    10000: '万'
+}
+
+def display(num,word):
+    print(num," -> ",word)
+
+
+def test_script():
+    print("convert number into Chinese characters")
+    display(1234,num2zh(1234))
+    display(12340,num2zh(12340))
+    display(123400,num2zh(123400))
+    display(1234000,num2zh(1234000))
+    display(1230004,num2zh(1230004))
+
+def num2zh(num):
+    word = []
+    num_10000 = int(num/10000)
+    if num_10000 > 0:
+        word.append(num2zh(num_10000))
+        word.append(chars.get(10000))
+
+    num = num%10000
+    num_1000 = int(num/1000)
+    if num_1000 > 0:
+        word.append(num2zh(num_1000))
+        word.append(chars.get(1000))
+
+    num = num%1000
+    num_100 = int(num/100)
+    if num_100 > 0:
+        word.append(num2zh(num_100))
+        word.append(chars.get(100))
+
+    num = num%100
+    if num == 0:
+        return ''.join(word)
+
+    num_10 = int(num/10)
+    if num_10 > 0:
+        word.append(num2zh(num_10))
+        word.append(chars.get(10))
+    elif num_100 > 0:
+        word.append(chars.get(0))
+
+    num = num%10
+    word.append(chars.get(num))
+    return ''.join(word)
+
+def main(nums):
+    for num in nums:
+        display(num,num2zh(int(num)))
+
+
+if __name__ == "__main__":
+    if len(sys.argv[1:]) > 0:
+        main(sys.argv[1:])
+    else:
+        test_script()
