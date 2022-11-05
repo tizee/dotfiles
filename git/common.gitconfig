@@ -33,7 +33,7 @@
   # pager="diff-so-fancy | less --tabs=4 -RFX"
   pager=delta  # git-delta
   quotePath=false # utf-8 characters
-  autocrlf=input
+  autocrlf=input # enforce windows use Linux breaks
   # Ensure that unicode filenames aren't mangled by HFS
   precomposeUnicode=true
   # prevent problems from changing case of a file
