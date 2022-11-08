@@ -157,11 +157,17 @@
 ;     pushInsteadOf = https://gist.github.com/tizee/
 ;     # For gists cloned with official no-username URL:
     pushInsteadOf = https://gist.github.com/
-; [https]
+
+#  see https://github.com/renovatebot/renovate/issues/13440
+[uploadpack]
+  allowfilter = true
+
+[https]
 ;   proxy = socks5://127.0.0.1:1080
+;   vpn may cause ssl issues
+ sslVerify = false
 [http]
 ;   proxy = socks5://127.0.0.1:1080
-;   proxy = http://127.0.0.1:1079
 ;   vpn may cause ssl issues
  sslVerify = false
 

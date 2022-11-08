@@ -31,7 +31,10 @@ if $(uname -r | grep 'microsoft' > /dev/null); then
   # ip
   export LOCAL_IP=$(cat /etc/resolv.conf | grep nameserver | awk '{print $2}')
   # x-server
-  export DISPLAY="$LOCAL_IP:0"
+  # export DISPLAY="$LOCAL_IP:0"
+  # https://github.com/microsoft/wslg/wiki/Diagnosing-%22cannot-open-display%22-type-issues-with-WSLg
+  # WSLg's X server is running on display 0 by default, which is used for GUI apps to connect the right display.
+  export DISPLAY=":0"
   # zig lang
   # export PATH="$HOME/zig-linux-x86_64-0.10.0-dev.3685+dae7aeb33/:$PATH"
 else
