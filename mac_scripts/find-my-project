@@ -1,0 +1,18 @@
+#!/usr/bin/env zsh
+
+if [ -n "$1" ]; then
+  eval "directories=($1)"
+  for dir in $directories; do
+    # Check if the directory is a git repository
+    if git -C $dir rev-parse; then
+      # Check if the user from the global git config is the creator of the repository
+      if git -C $dir config user.name | grep $(git config --global user.name); then
+        echo $dir
+      fi
+    fi
+  done
+else
+  echo "You must provide an array of directories"
+  exit 1
+fi
+
