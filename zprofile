@@ -464,4 +464,9 @@ if $is_macOS; then
   export NODE_PATH="/usr/local/lib/node_modules"
   # roswell for lisp packages
   PATH="$HOME/.roswell/bin:$PATH"
+
+  # pnpm
+  export PNPM_HOME="/Users/tizee/Library/pnpm"
+  export PATH="$PNPM_HOME:$PATH"
+  # pnpm end
 fi

@@ -31,20 +31,20 @@ function zwc_watcher() {
     # Compile zcompdump, if modified, to increase startup speed.
     zcompdump="${ZDOTDIR:-$HOME}/.zcompdump"
     if [[ -s "$zcompdump" && (! -s "${zcompdump}.zwc" || "$zcompdump" -nt "${zcompdump}.zwc") ]]; then
-        zrecompile -pq "$zcompdump"
+        zrecompile -pqn "$zcompdump"
     fi
     # zcompile .zshrc
-    zrecompile -pq ${ZDOTDIR:-${HOME}}/.zshrc
-    zrecompile -pq ${ZDOTDIR:-${HOME}}/.zprofile
-    zrecompile -pq ${ZDOTDIR:-${HOME}}/.zshenv
+    zrecompile -pqn ${ZDOTDIR:-${HOME}}/.zshrc
+    zrecompile -pqn ${ZDOTDIR:-${HOME}}/.zprofile
+    zrecompile -pqn ${ZDOTDIR:-${HOME}}/.zshenv
     # recompile all zsh or sh
     for f in $ZSH_PLUGINS/**/*.*sh
     do
-        zrecompile -pq $f
+        zrecompile -pqn $f
     done
     for func in $ZSH_FUNCS/**/*
     do
-        zrecompile -pq $func
+        zrecompile -pqn $func
     done
 }
 zwc_watcher &!
