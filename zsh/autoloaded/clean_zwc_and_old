@@ -1,10 +1,12 @@
 #!/usr/bin/env zsh
 
-# disable no match found error
-# setopt no_nomatch
-__clean_zwc() {
-  local zwc_list=($(pwd)/*.zwc);((${#zwc_list[@]})) && rm -i $zwc_list
-  local old_list=($(pwd)/*.old);((${#old_list[@]})) && rm -i $old_list
+function __clean_zwc() {
+  setopt LOCAL_OPTIONS EXTENDED_GLOB
+
+  local -a zwc_files old_files
+  zwc_files=($(fd --hidden --no-ignore -e '.zwc'))
+  old_files=($(fd --hidden --no-ignore -e '.old'))
+  rm -i ${zwc_files[@]} ${old_files[@]}
 }
 
 __clean_zwc
