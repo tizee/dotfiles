@@ -261,11 +261,11 @@ local invisible='%([BSUbfksu]|([FBK]|){*})'
 case $SYSTEM in
   Darwin)
     local sys_icon=' '
-    sys_icon+=$(sw_vers -productVersion)
+    # sys_icon+=$(sw_vers -productVersion)
     ;;
   Linux)
     local sys_icon=' '
-    sys_icon+=$(uname -r)
+    # sys_icon+=$(uname -r)
     ;;
 esac
 
