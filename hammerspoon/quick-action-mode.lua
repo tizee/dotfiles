@@ -1,5 +1,7 @@
 HS_Config = require('config')
 local mode_comp = require('mode')
+local alert = require('hs.alert')
+local hints = require('hs.hints')
 local application = require('hs.application')
 local osascript = require('hs.osascript')
 local CONFIG_PATH = os.getenv("HOME") .. "/.hammerspoon/"
@@ -38,11 +40,29 @@ local app_names= {
  {"Telegram","Telegram"},
  {"Finder","Finder"}}
 
+
 for key,row in ipairs(app_names) do
   local action, name = table.unpack(row)
   actions[action] = function ()
     toggle_app(name)
   end
+end
+
+-- quick navigation
+function actions.quickNavigation()
+  hints.windowHints()
+end
+
+-- show app info
+function actions.showAppInfo()
+      alert.show(
+          string.format(
+              "App path:      %s\nApp name:      %s\nIM source id:  %s",
+              hs.window.focusedWindow():application():path(),
+              hs.window.focusedWindow():application():name(),
+              hs.keycodes.currentSourceID()
+          )
+      )
 end
 
 function actions.reloadConfig()

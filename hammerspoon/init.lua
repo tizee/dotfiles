@@ -42,28 +42,6 @@ require("window-layout-mode")
 require("quick-action-mode")
 require("switch-window-mode")
 
--- quick navigation
-hotkey.bind(hyper,"t",function ()
-  hints.windowHints()
-end)
-
-
--- Show current App Info
--- use this shortcut to get the App name
-hotkey.bind(
-    hyper,
-    "i",
-    function()
-        alert.show(
-            string.format(
-                "App path:      %s\nApp name:      %s\nIM source id:  %s",
-                hs.window.focusedWindow():application():path(),
-                hs.window.focusedWindow():application():name(),
-                hs.keycodes.currentSourceID()
-            )
-        )
-    end
-)
 
 -- simple menubar item
 local caffeine = hs.menubar.new()

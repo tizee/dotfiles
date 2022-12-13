@@ -30,6 +30,8 @@ return {
     showHelp  = true,
     trigger   = 't',
     mappings  = {
+      { {},         't', 'quickNavigation' },
+      { {},         'i', 'showAppInfo' },
       { {},         'd', 'toggleDarkMode' },
       { {},         'r',  'reloadConfig' },
       { {},         'h',      'Firefox' },
