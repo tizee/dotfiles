@@ -1,0 +1,4 @@
+view-info-*
+*.history
+stdin-captures
+crash
