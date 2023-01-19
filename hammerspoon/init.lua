@@ -43,12 +43,19 @@ require("quick-action-mode")
 require("switch-window-mode")
 
 
--- simple menubar item
+-- menubar item
 local caffeine = hs.menubar.new()
+local awake_icon= hs.image.imageFromPath("~/.config/hammerspoon/icons/sun.max@2x.png")
+local sleepy_icon = hs.image.imageFromPath("~/.config/hammerspoon/icons/bed.double.fill@2x.png")
+
 local function setCaffeineDisplay(state)
+  print(caffeine:icon())
     if state then
-        caffeine:setTitle("AWAKE")    else
-        caffeine:setTitle("SLEEPY")
+        caffeine:setIcon(awake_icon,false)
+print("awake", awake_icon)
+    else
+        caffeine:setIcon(sleepy_icon,false)
+print("sleepy", sleepy_icon)
     end
 end
 
