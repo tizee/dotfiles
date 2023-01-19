@@ -281,6 +281,9 @@ if $is_macOS; then
   export ANDROID_SDK=$HOME/Library/Android/sdk
   PATH=$ANDROID_SDK/emulator:$ANDROID_SDK/tools:$PATH
 
+  # mac sdk related
+  alias sdkroot='xcrun --sdk macosx --show-sdk-path'
+
   alias java8='export JAVA_HOME=$JAVA_8_HOME'
   # alias java9='export JAVA_HOME=$JAVA_9_HOME'
   alias java10='export JAVA_HOME=$JAVA_10_HOME'
