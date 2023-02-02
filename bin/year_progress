@@ -1,0 +1,21 @@
+#!/usr/bin/env python3
+
+import datetime
+import math
+BLOCK = ['▓','░']
+LEN = 15
+
+
+def main():
+    now=datetime.datetime.now()
+    today=now.timetuple().tm_yday
+    last_day= datetime.datetime(now.year,12,31,0,0,0).timetuple().tm_yday
+    bar = LEN*[BLOCK[1]]
+    days = math.ceil(LEN*today/last_day)
+    for i in range(days):
+        bar[i] = BLOCK[0]
+    print(''.join(bar), '{}%'.format(math.floor(100*(today/last_day))),
+            now.strftime('%Y-%m-%d'))
+
+if __name__ == '__main__':
+    main()
