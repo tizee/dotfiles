@@ -31,3 +31,9 @@ zig-out
 
 # ccls
 .ccls-cache
+
+# pnpm
+.pnpm-debug.log
+
+# common pattern for logs
+.*-debug.log
