@@ -304,6 +304,9 @@ if !has("gui_running")
     " :echo has('python3')
     " 1: enable, 0: disable
     let g:python3_host_prog=system("which python")
+    " https://stackoverflow.com/questions/2600783/how-does-the-vim-write-with-sudo-trick-work
+    " Linux only
+    cmap w!! w !sudo tee > /dev/null %
   elseif g:os == "Windows"
     set guifont=JetBrainsMono\ Nerd\ Font\ Mono\ 16
   endif
