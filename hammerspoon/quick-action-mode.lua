@@ -57,10 +57,11 @@ end
 function actions.showAppInfo()
       alert.show(
           string.format(
-              "App path:      %s\nApp name:      %s\nIM source id:  %s",
+              "App path:      %s\nApp name:      %s\nIM source id:  %s\nWindow Size:%s",
               hs.window.focusedWindow():application():path(),
               hs.window.focusedWindow():application():name(),
-              hs.keycodes.currentSourceID()
+              hs.keycodes.currentSourceID(),
+              hs.window.focusedWindow():size()
           )
       )
 end
