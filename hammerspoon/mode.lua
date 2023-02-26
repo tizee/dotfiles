@@ -1,3 +1,4 @@
+-- Hammerspoon based mode component
 local log = hs.logger.new('mode','debug')
 
 -- generic mode component
@@ -15,7 +16,7 @@ local function getModifiersStr(modifiers)
   return retVal
 end
 
-local function new_modal(modeName,keycode, modeConfig,mappings, opTable)
+local function new_modal(modeName,keycode,modeConfig,mappings,opTable)
   local hotkey_modal = hs.hotkey.modal.new({}, keycode)
   local showHelp  = modeConfig.showHelp
   local modifiers = modeConfig.modifiers
@@ -61,7 +62,8 @@ local function new_modal(modeName,keycode, modeConfig,mappings, opTable)
   end
   return hotkey_modal
 end
--- creat the modal component each time
+
+-- create the modal component each time
 mode_comp.new_reactive = function(modeName, keycode, modeConfig, update_mappings,update_actions)
   -- static fields
   local modifiers = modeConfig.modifiers
@@ -83,7 +85,8 @@ mode_comp.new_reactive = function(modeName, keycode, modeConfig, update_mappings
 end
 
 -- static mode component
--- keycode: A string containing the name of a keyboard key (as found in hs.keycodes.map ), or a raw keycode number
+-- modeName: mode name
+-- keycode: A string containing the name of a keyboard key (as found in hs.keycodes.map ), or a raw keycode number, usually this is an non-op keycode
 -- modeMappings: mapping configuration table
 -- opTable: table of operations
 mode_comp.new = function(modeName,keycode,modeConfig,opTable)
@@ -101,6 +104,5 @@ mode_comp.new = function(modeName,keycode,modeConfig,opTable)
   end)
   return nil
 end
-
 
 return mode_comp

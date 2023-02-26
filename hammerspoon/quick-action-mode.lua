@@ -35,7 +35,6 @@ local actions= {}
 local app_names= {
  {"Firefox","Firefox Developer Edition"},
  {"OmniFocus","OmniFocus"},
- {"NeteaseMusic","NeteaseMusic"},
  {"Obsidian","Obsidian"},
  {"Telegram","Telegram"},
  {"Finder","Finder"}}
@@ -57,11 +56,12 @@ end
 function actions.showAppInfo()
       alert.show(
           string.format(
-              "App path:      %s\nApp name:      %s\nIM source id:  %s\nWindow Size:%s",
+              "App path:      %s\nApp name:      %s\nIM source id:  %s\nWindow Size: width:%s height:%s",
               hs.window.focusedWindow():application():path(),
               hs.window.focusedWindow():application():name(),
               hs.keycodes.currentSourceID(),
-              hs.window.focusedWindow():size()
+              hs.window.focusedWindow():size().w,
+              hs.window.focusedWindow():size().h
           )
       )
 end
