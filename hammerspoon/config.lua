@@ -36,7 +36,6 @@ return {
       { {},         'r',  'reloadConfig' },
       { {},         'h',      'Firefox'},
       { {},         'j',      'OmniFocus'},
-      { {},         'k',      'NeteaseMusic'},
       { {},         'l',      'Obsidian'},
       { {},         'f',      'Finder'},
       { {},         's',      'Telegram'},
