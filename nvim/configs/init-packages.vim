@@ -51,8 +51,8 @@ Plug 'easymotion/vim-easymotion'
 " Plug 'morhetz/gruvbox'
 " use my forked gruvbox
 Plug 'tizee/gruvbox.vim'
-" Recording
-Plug 'wakatime/vim-wakatime'
+" time spending recorder
+" Plug 'wakatime/vim-wakatime'
 " LSP + nvim nodejs ABI for ts plugins
 " use my forked of coc.nvim
 Plug 'tizee/coc.nvim', {'branch': 'master', 'do': 'yarn install --frozen-lockfile'}
@@ -101,9 +101,9 @@ Plug 'tizee/md-table.vim'
 " local version fixed packages
 
 " open-source grammar checker (alternative of Grammarly)
-Plug 'dpelle/vim-LanguageTool'
+" Plug 'dpelle/vim-LanguageTool'
 " beancount
-Plug 'nathangrigg/vim-beancount'
+" Plug 'nathangrigg/vim-beancount'
 " vista for tags
 " could use :CocOutline directly
 Plug 'liuchengxu/vista.vim'

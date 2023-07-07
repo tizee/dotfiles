@@ -353,6 +353,7 @@ if has('nvim')
 else
   let g:vim_config_dir=fnamemodify(resolve(expand('<sfile>:p')),":h") . "/"
 endif
+" load plugin configs
 let s:packages=g:vim_config_dir . "configs/init-packages.vim"
 execute "source " . s:packages
 
@@ -423,11 +424,11 @@ else
 endif
 " }}}
 
-if exists('#Dracula')
-  let g:dracula_bold = 1
-  let g:dracula_italic = 1
-  let g:dracula_underline = 1
-endif
+" if exists('#Dracula')
+"   let g:dracula_bold = 1
+"   let g:dracula_italic = 1
+"   let g:dracula_underline = 1
+" endif
 
 let g:gruvbox_italic=1
 colorscheme gruvbox

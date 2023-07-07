@@ -17,8 +17,15 @@ end
 
 -- shortcuts to common Apps
 local function switch_to(window)
-  log.d("switch to",window)
+  -- log.d("switch to",window)
   if window then
+    -- if minimized then unhide
+    if window:isMinimized() then
+      window:unminimize();
+    end
+    if window:isVisible() then
+      window:raise();
+    end
     window:focus()
   end
 end
