@@ -7,20 +7,26 @@ local mode_comp = {}
 -- helper
 local function getModifiersStr(modifiers)
   local modMap = { shift = '⇧', ctrl = '⌃', alt = '⌥', cmd = '⌘' }
-  local retVal = ''
+  local modStr = ''
 
   for _, v in ipairs(modifiers) do
-    retVal = retVal .. modMap[v]
+    modStr = modStr .. modMap[v]
   end
 
-  return retVal
+  return modStr
 end
 
-local function new_modal(modeName,keycode,modeConfig,mappings,opTable)
+-- modeName: mode name
+-- keycode: global hotkey for current mode
+-- modeConfig: configuration for mode
+-- mappings: key bindings
+-- opTable: actions for key bindings
+local function newModal(modeName,keycode,modeConfig,mappings,opTable)
   local hotkey_modal = hs.hotkey.modal.new({}, keycode)
   local showHelp  = modeConfig.showHelp
   local modifiers = modeConfig.modifiers
   local trigger   = modeConfig.trigger
+
   hotkey_modal.entered = function()
     hotkey_modal.statusMessage:show()
   end
@@ -75,7 +81,7 @@ mode_comp.new_reactive = function(modeName, keycode, modeConfig, update_mappings
   hs.hotkey.bind(modifiers, trigger, function()
     local mappings  = update_mappings()
     local opTable = update_actions()
-    hotkey_modal = new_modal(modeName, keycode, modeConfig,mappings,opTable)
+    hotkey_modal = newModal(modeName, keycode, modeConfig,mappings,opTable)
     hotkey_modal:bind(modifiers, trigger, function()
       hotkey_modal:exit()
     end)
@@ -93,7 +99,7 @@ mode_comp.new = function(modeName,keycode,modeConfig,opTable)
   local modifiers = modeConfig.modifiers
   local trigger   = modeConfig.trigger
   local mappings  = modeConfig.mappings
-  local hotkey_modal = new_modal(modeName,keycode,modeConfig,mappings,opTable)
+  local hotkey_modal = newModal(modeName,keycode,modeConfig,mappings,opTable)
 
   -- Use modifiers+trigger to toggle Mode
   hs.hotkey.bind(modifiers, trigger, function()
