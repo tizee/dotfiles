@@ -23,10 +23,10 @@ local function switchWindow(window)
     if window:isMinimized() then
       window:unminimize();
     end
-    if window:isVisible() then
+    if window:isVisible() == false then
       window:raise();
     end
-    window:focus()
+    window:focus();
   end
 end
 
@@ -52,7 +52,7 @@ local function update_actions()
   local windows = getAppWindows()
   local actions = {}
   for _,win in pairs(windows) do
-    actions[win:title()] = function ()
+    actions[string.sub(win:title(),0,50)] = function ()
       switchWindow(win)
     end
   end
