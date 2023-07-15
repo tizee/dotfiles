@@ -58,7 +58,6 @@ nnoremap <leader>p "+p
 " clear heighlight
 nnoremap <silent><leader><CR> :noh<CR>
 
-
 " Press ` to change case (instead of ~)
 nnoremap ` ~
 
@@ -77,28 +76,6 @@ nnoremap <leader>2 2gt
 nnoremap <leader>3 3gt
 nnoremap <leader>4 4gt
 nnoremap <leader>5 5gt
-
-function! s:open_url() abort
-  let url = expand('<cfile>')
-  if has('macunix') && executable('open')
-    call system('open '.url)
-    return
-  elseif executable('xdg-open')
-    call system('xdg-open '.url)
-    return
-  elseif has('win32') || has('win64')
-    call system('cmd /c start "" /b '. substitute(url, '&', '^&', 'g'))
-    if v:shell_error
-      echohl Error | echom 'Failed to open '.url | echohl None
-      return
-    endif
-  endif
-endfunction
-
-" alternative for broken netrwBrowseX
-" TODO: figure what happens to netrw's gx
-nmap <silent> <Plug>(gx-open-url) :call <SID>open_url()<CR>
-nmap <silent> gx <Plug>(gx-open-url)
 
 " }}}
 
@@ -138,13 +115,6 @@ vnoremap <leader>p "+p
 vnoremap <leader>y "+y
 " quick sort
 vnoremap <leader>s :sort<CR>
-
-"
-" }}}
-
-" Command Mode {{{
-
-"
 " }}}
 
 " Terminal Mode {{{
@@ -166,4 +136,4 @@ endif
 
 " }}}
 
-" vim:ft=vim
+" vim:ft=vim foldmethod=marker
