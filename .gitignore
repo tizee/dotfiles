@@ -1,11 +1,9 @@
 *.pyo
 .DS_Store
-cargo
 coc
 codeforces
 configstore
 figma/api_tokens
-gatsby
 gatsby
 others_pbkey/
 work_bin
