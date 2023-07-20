@@ -1,0 +1,42 @@
+[alias] # command
+b   = "build"
+ben = "bench"
+ins = "instruments"
+dep = "depgraph"
+c   = "check"
+t   = "test"
+r   = "run"
+rr  = "run --release"
+
+[source.crates-io]
+replace-with = 'tuna'
+# WIP
+# replace-with = "crates-io-http"
+
+[source.tuna]
+registry = "https://mirrors.tuna.tsinghua.edu.cn/git/crates.io-index.git"
+
+[source.crates-io-http]
+registry = "sparse+https://index.crates.io/"
+
+[term]
+verbose        = false  # whether cargo provides verbose output
+color          = 'auto' # whether cargo colorizes output
+progress.when  = 'auto' # whether cargo shows progress bar
+progress.width = 80     # width of progress bar
+
+# use sccache for better compilation cache
+# not stable sometimes for example in coc.nvim uses it for lsp which conflicts with cargo build cache
+# [build]
+# rustc-wrapper = "/usr/local/bin/sccache"
+
+# use zld for faster compilation on intel macOS
+[target.x86_64-apple-darwin]
+rustflags = ["-C", "link-arg=-fuse-ld=/usr/local/bin/zld"]
+
+# use mold in Linux for faster compilation
+[target.x86_64-unknown-linux-gnu]
+linker    = "clang"
+rustflags = ["-C", "link-arg=-fuse-ld=/usr/bin/mold"]
+
+# vim:ft=toml
