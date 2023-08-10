@@ -146,7 +146,7 @@
     "typescriptreact":  ["javascript"]
   },
   // load vscode snippets
-  "snippets.textmateSnippetsRoots": ["$HOME/.config/mac_configs/textmate_snippets", "$HOME/.config/nvim/code_snippets"],
+  "snippets.textmateSnippetsRoots": ["$HOME/.config/nvim/code_snippets"],
   // do not use snippets as ultisnips
   "snippets.ultisnips.directories":["$HOME/.config/nvim/UltiSnips"],
   // golang

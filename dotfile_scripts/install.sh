@@ -100,15 +100,12 @@ function __install_dotfiles() {
   if cli_has_installed 'unzip'; then
     local zip_file="${HOME}/tizee-dotfiles.zip"
     /bin/bash -c "$(curl -fsSL https://github.com/tizee/dotfiles/archive/refs/heads/master.zip -o ${zip_file})"
-    if [[ -d $HOME/.config ]]; then
-      echo -e " ${lightgreen}$HOME/.config${reset_color} existed! Rename it to ${lightgreen}$HOME/.config_backup${reset_color}"
-      mv $HOME/.config $HOME/.config_backup
-    fi
     echo -e " ${lightgreen}Install dotfiles${reset_color}"
     # dotfiles-master
     unzip ${zip_file}
-    mv "$HOME/dotfiles-master" "$HOME/.config"
+    mv "$HOME/dotfiles-master" "$HOME/tizee-dotfiles"
     rm ${zip_file}
+    cd "$HOME/tizee-dotfiles"; make install; make zsh
   fi
 }
 
@@ -139,12 +136,12 @@ if [[ $(uname -s) = "Darwin" ]]; then
   }
   echo -e "$lightyellow MacOS dotfiles ${reset_color}setup"
   install_homebrew || echo -e " install homebrew $red failed $reset_color" || exit 1
-  (echo; echo 'eval "$(/opt/homebrew/bin/brew shellenv))"') >> $HOME/.zprofile
   eval "$(/opt/homebrew/bin/brew shellenv)"
   __install_pkgs || echo -e " install packages $red  failed $reset_color" || exit 1
   echo -e "$lightyellow MacOS ${reset_color}good to go ${lightgreen}✔$reset_color"
   unset install_homebrew
   __install_dotfiles || echo -e " install dotfiles $red  failed $reset_color" || exit 1
+  (echo; echo 'eval "$(/opt/homebrew/bin/brew shellenv))"') >> $HOME/.zprofile
 fi
 # }}}
 
