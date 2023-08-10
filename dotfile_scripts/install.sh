@@ -76,7 +76,7 @@ function pacman_package_has_installed() {
  cli_has_installed 'pacman' && pacman -Qi $@ > /dev/null 2>&1 && return
 }
 
-function helper::install_pkgs() {
+function __install_pkgs() {
   # count time eclipsed
   if cli_has_installed 'date'; then
     local start_time=$(date +%s)
@@ -96,7 +96,7 @@ function helper::install_pkgs() {
   fi
 }
 
-function helper::install_dotfiles() {
+function __install_dotfiles() {
   if cli_has_installed 'unzip'; then
     local zip_file="${HOME}/tizee-dotfiles.zip"
     /bin/bash -c "$(curl -fsSL https://github.com/tizee/dotfiles/archive/refs/heads/master.zip -o ${zip_file})"
@@ -108,6 +108,7 @@ function helper::install_dotfiles() {
     # dotfiles-master
     unzip ${zip_file}
     mv "$HOME/dotfiles-master" "$HOME/.config"
+    rm ${zip_file}
   fi
 }
 
@@ -120,9 +121,8 @@ function helper::install_dotfiles() {
 if [[ $(uname -s) = "Linux" ]]; then
   echo -e "$lightyellow Linux dotfiles ${reset_color}setup"
   cli_has_installed 'pacman' || echo -e " ${red}pacman${reset_color} is not installed" || exit 1
-  helper::install_pkgs || echo -e " install packages $red  failed $reset_color" || exit 1
-  helper::install_dotfiles || echo -e " install dotfiles $red  failed $reset_color" || exit 1
-
+  __install_pkgs || echo -e " install packages $red  failed $reset_color" || exit 1
+  __install_dotfiles || echo -e " install dotfiles $red  failed $reset_color" || exit 1
 fi
 # }}}
 
@@ -141,15 +141,15 @@ if [[ $(uname -s) = "Darwin" ]]; then
   install_homebrew || echo -e " install homebrew $red failed $reset_color" || exit 1
   (echo; echo 'eval "$(/opt/homebrew/bin/brew shellenv))"') >> $HOME/.zprofile
   eval "$(/opt/homebrew/bin/brew shellenv)"
-  helper::install_pkgs || echo -e " install packages $red  failed $reset_color" || exit 1
+  __install_pkgs || echo -e " install packages $red  failed $reset_color" || exit 1
   echo -e "$lightyellow MacOS ${reset_color}good to go ${lightgreen}✔$reset_color"
   unset install_homebrew
-  helper::install_dotfiles || echo -e " install dotfiles $red  failed $reset_color" || exit 1
+  __install_dotfiles || echo -e " install dotfiles $red  failed $reset_color" || exit 1
 fi
 # }}}
 
 unset cli_has_installed
 unset pacman_package_has_installed
-unset helper::install_pkgs
-unset helper::install_dotfiles
+unset __install_pkgs
+unset __install_dotfiles
 # vim:ft=sh:foldmethod=marker
