@@ -15,7 +15,7 @@ My dotfiles for Unix-like systems (MacOS/Arch Linux/WSL2).
 
 Clean setup directly from command line:
 ```
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/tizee/dotfiles/master/dotfile_scripts/install.sh)"
+/bin/zsh -c "$(curl -fsSL https://raw.githubusercontent.com/tizee/dotfiles/master/dotfile_scripts/install.sh)"
 ```
 
 Install from github repo:
