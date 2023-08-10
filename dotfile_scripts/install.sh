@@ -105,7 +105,9 @@ function helper::install_dotfiles() {
       mv $HOME/.config $HOME/.config_backup
     fi
     echo -e " ${lightgreen}Install dotfiles${reset_color}"
-    unzip ${zip_file} -d ${HOME}/.config
+    # dotfiles-master
+    unzip ${zip_file}
+    mv "$HOME/dotfiles-master" "$HOME/.config"
   fi
 }
 
@@ -137,6 +139,8 @@ if [[ $(uname -s) = "Darwin" ]]; then
   }
   echo -e "$lightyellow MacOS dotfiles ${reset_color}setup"
   install_homebrew || echo -e " install homebrew $red failed $reset_color" || exit 1
+  (echo; echo 'eval "$(/opt/homebrew/bin/brew shellenv))"') >> $HOME/.zprofile
+  eval "$(/opt/homebrew/bin/brew shellenv)"
   helper::install_pkgs || echo -e " install packages $red  failed $reset_color" || exit 1
   echo -e "$lightyellow MacOS ${reset_color}good to go ${lightgreen}✔$reset_color"
   unset install_homebrew
