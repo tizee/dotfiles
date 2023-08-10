@@ -57,7 +57,7 @@ fi
 # clang for compiling backend
 # rust for writing good program
 # gtk for developing gui
-declare -a pkgs=(unzip git curl clang gdb vim neovim tmux python3 rust)
+declare -a pkgs=(unzip git curl clang gdb vim neovim tmux python3 rust "romkatv/gitstatus/gitstatus")
 brew_cask_apps=()
 linux_pkgs=()
 
