@@ -15,9 +15,9 @@
     "coc-json": ">=1.4.1",
     "coc-prettier": ">=9.2.3",
     "coc-python": ">=1.2.13",
-    "coc-rust-analyzer": ">=0.61.1",
+    "coc-rust-analyzer": ">=0.73.0",
     "coc-sh": ">=0.6.1",
-    "coc-snippets": ">=3.0.5",
+    "coc-snippets": ">=3.1.6",
     "coc-solargraph": ">=1.2.4",
     "coc-sourcekit": "*",
     "coc-sumneko-lua": ">=0.0.23",
@@ -26,8 +26,8 @@
     "coc-toml": ">=1.2.5",
     "coc-tsserver": ">=1.9.14",
     "coc-vetur": ">=1.2.5",
-    "coc-vimlsp": ">=0.12.5",
+    "coc-vimlsp": ">=0.13.1",
     "coc-word": ">=1.2.2",
-    "coc-yaml": ">=1.7.5"
+    "coc-yaml": ">=1.9.0"
   }
 }

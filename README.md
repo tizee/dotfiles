@@ -13,6 +13,12 @@ My dotfiles for Unix-like systems (MacOS/Arch Linux/WSL2).
 
 ## Installation
 
+Clean setup directly from command line:
+```
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/tizee/dotfiles/master/dotfile_scripts/install.sh)"
+```
+
+Install from github repo:
 ```
 run make install first
 make help          - show help message

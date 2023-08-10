@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# ______                            
-#/\__  _\__                         
-#\/_/\ \/\_\  ____      __     __   
-#   \ \ \/\ \/\_ ,`\  /'__`\ /'__`\ 
-#    \ \ \ \ \/_/  /_/\  __//\  __/ 
+# ______
+#/\__  _\__
+#\/_/\ \/\_\  ____      __     __
+#   \ \ \/\ \/\_ ,`\  /'__`\ /'__`\
+#    \ \ \ \ \/_/  /_/\  __//\  __/
 #     \ \_\ \_\/\____\ \____\ \____\
 #      \/_/\/_/\/____/\/____/\/____/
-#                                   
+#
 # Tizee (Jeff Chiang)
 # https://github.com/tizee
 
@@ -57,7 +57,7 @@ fi
 # clang for compiling backend
 # rust for writing good program
 # gtk for developing gui
-declare -a pkgs=(curl clang gdb vim neovim tmux python3 rust gtk hg)
+declare -a pkgs=(unzip git curl clang gdb vim neovim tmux python3 rust)
 brew_cask_apps=()
 linux_pkgs=()
 
@@ -69,7 +69,7 @@ linux_pkgs=()
 # {{{
 # helper to make sure packages have been installed
 function cli_has_installed() {
- command -v $@ > /dev/null 2>&1 && return 
+ command -v $@ > /dev/null 2>&1 && return
 }
 
 function pacman_package_has_installed() {
@@ -95,6 +95,20 @@ function helper::install_pkgs() {
     echo -e " ${lightgreen}${#pkgs[@]}${reset_color} packages installed in ${lightgreen}$[$end_time - $start_time]${reset_color} seconds"
   fi
 }
+
+function helper::install_dotfiles() {
+  if cli_has_installed 'unzip'; then
+    local zip_file="${HOME}/tizee-dotfiles.zip"
+    /bin/bash -c "$(curl -fsSL https://github.com/tizee/dotfiles/archive/refs/heads/master.zip -o ${zip_file})"
+    if [[ -d $HOME/.config ]]; then
+      echo -e " ${lightgreen}$HOME/.config${reset_color} existed! Rename it to ${lightgreen}$HOME/.config_backup${reset_color}"
+      mv $HOME/.config $HOME/.config_backup
+    fi
+    echo -e " ${lightgreen}Install dotfiles${reset_color}"
+    unzip ${zip_file} -d ${HOME}/.config
+  fi
+}
+
 # }}}
 
 # ====================
@@ -105,11 +119,13 @@ if [[ $(uname -s) = "Linux" ]]; then
   echo -e "$lightyellow Linux dotfiles ${reset_color}setup"
   cli_has_installed 'pacman' || echo -e " ${red}pacman${reset_color} is not installed" || exit 1
   helper::install_pkgs || echo -e " install packages $red  failed $reset_color" || exit 1
+  helper::install_dotfiles || echo -e " install dotfiles $red  failed $reset_color" || exit 1
+
 fi
 # }}}
 
 # ====================
-# MacOS 
+# MacOS
 # ====================
 # {{{
 if [[ $(uname -s) = "Darwin" ]]; then
@@ -124,10 +140,12 @@ if [[ $(uname -s) = "Darwin" ]]; then
   helper::install_pkgs || echo -e " install packages $red  failed $reset_color" || exit 1
   echo -e "$lightyellow MacOS ${reset_color}good to go ${lightgreen}✔$reset_color"
   unset install_homebrew
+  helper::install_dotfiles || echo -e " install dotfiles $red  failed $reset_color" || exit 1
 fi
 # }}}
 
 unset cli_has_installed
 unset pacman_package_has_installed
 unset helper::install_pkgs
+unset helper::install_dotfiles
 # vim:ft=sh:foldmethod=marker

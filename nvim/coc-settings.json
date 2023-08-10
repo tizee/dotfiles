@@ -247,5 +247,6 @@
   // dictionary
   "coc.source.dictionary.enable": true,
   "coc.source.dictionary.filetypes": ["markdown","json","yaml"],
-  "coc.source.dictionary.priority": -50
+  "coc.source.dictionary.priority": -50,
+  "snippets.ultisnips.pythonPrompt": false
 }
