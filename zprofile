@@ -184,262 +184,262 @@ PATH="/usr/local/opt/krb5/sbin:$PATH"
 
 # macOS <-
 if $is_macOS; then
-  # prevent auto-update whenever run a brew command
-  export HOMEBREW_NO_AUTO_UPDATE=1
-  # Carp - statically typed lisp
-  export CARP_DIR="/usr/local/opt/carp"
-  PATH="$CARP_DIR/bin:$PATH"
+  ## prevent auto-update whenever run a brew command
+  #export HOMEBREW_NO_AUTO_UPDATE=1
+  ## Carp - statically typed lisp
+  #export CARP_DIR="/usr/local/opt/carp"
+  #PATH="$CARP_DIR/bin:$PATH"
 
-  # mac specific scripts
-  PATH="$HOME/.config/mac_scripts:$PATH"
-  # curl
-  PATH="/usr/local/opt/curl/bin:$PATH"
-  # ruby
-  export GEM_HOME=$HOME/.gem
-  PATH="/usr/local/opt/ruby/bin:$PATH"
-  PATH="$PATH:$GEM_HOME/bin"
-  # rvm for ruby
-  # PATH="$HOME/.rvm/bin:$PATH"
-  PATH="$HOME/flutter/bin:$PATH"
-  # flutter dart
-  PATH="$HOME/dev/grepo_dart/flutter/bin:$PATH"
-  # export PUB_HOSTED_URL="https://mirrors.tuna.tsinghua.edu.cn/dart-pub"
-  # export FLUTTER_STORAGE_BASE_URL="https://mirrors.tuna.tsinghua.edu.cn/flutter"
-  export PUB_HOSTED_URL=https://pub.flutter-io.cn
-  export FLUTTER_STORAGE_BASE_URL=https://storage.flutter-io.cn
-  export FLUTTER_INSTALL="$HOME/dev/grepo_dart/flutter"
-  export FLUTTER_ROOT="$HOME/dev/grepo_dart/flutter"
-  # golang modules
-  export GOPATH="$HOME/dev/go_proj"
-  # go modules
-  export GO111MODULE="on"
-  PATH=/usr/local/go/bin:$PATH
-  # mame
-  alias mamed='/usr/local/Cellar/mame/0.234/share/mame/mamed'
-  # emacs
-  PATH="/Applications/Emacs.app/Contents/MacOS/bin:$PATH"
-  # plan9port
-   export PLAN9=${PLAN9:-/usr/local/opt/plan9port/libexec}
-  # export PLAN9=$HOME/dev/plan9/plan9port
-  # avoid conflicts with tools under /usr/bin
-  # PATH=$PATH:$PLAN9/bin
-  # texinfo
-  PATH="/usr/local/opt/texinfo/bin:$PATH"
-  # harfbuzz
-  export HARFBUZZ_CFLAGS="-I/usr/local/opt/harfbuzz/include"
-  export HARFBUZZ_LIBS="-L/usr/local/opt/harfbuzz/lib"
-  # freetype
-  export FREETYPE_CFLAGS="-I/usr/local/opt/freetype2/include"
-  export FREETYPE_LIBS="-L/usr/local/opt/freetype2/lib"
-  # ncurses
-  PATH="/usr/local/opt/ncurses/bin:$PATH"
-  # Need to link header and libs manually
-  export LIBNCURSES_CFLAGS="-I/usr/local/opt/ncurses/include"
-  # I've symbolically linked libncursers.dylib into /usr/local/lib
-  # So gcc should searches via -lncurses to locate the installed one
-  # instead of the system's outdated ncurses lib
-  export LIBNCURSES_LIBS="-lncurses"
-  # export LDFLAGS="-L/usr/local/opt/ncurses/lib"
-  # export CPPFLAGS="-I/usr/local/opt/ncurses/include"
-  # libevent
-  # export LIBEVENT_CFLAGS="-I/usr/local/opt/libevent/include"
-  # export LIBEVENT_LIBS="-L/usr/local/opt/libevent/lib"
-  # utf8proc
-  # export LIBUTF8PROC_CFLAGS="-I/usr/local/opt/utf8proc/include"
-  # export LIBUTF8PROC_LIBS="-L/usr/local/opt/utf8proc/lib"
-  # haskell
-  [ -f "$HOME/.ghcup/env" ] && source "$HOME/.ghcup/env" # ghcup-env
-  PATH="$HOME/.cabal/bin:$HOME/.ghcup/bin:$PATH"
-  # riscv
-  PATH=$PATH:/usr/local/opt/riscv-gnu-toolchain/bin
-  # git-bin
-  PATH=$PATH:/Users/tizee/.config/git/bin
-  # sdkman
-  export SDKMAN_CANDIDATES_API=https://api.sdkman.io/2
-  export SDKMAN_CANDIDATES_DIR=/Users/tizee/.sdkman/candidates
-  export SDKMAN_DIR=$HOME/.sdkman
-  # /etc/paths.d Tex
-  PATH=/Library/Tex/texbin:$PATH
-  # /etc/paths.d 100-rvictl
-  PATH=/Library/Apple/usr:$PATH
-  # /etc/paths.d VMware fusion
-  PATH="/Applications/VMware\ Fusion.app/Contents/Public:$PATH"
-  # /etc/paths.d Wireshark
-  PATH="/Applications/Wireshark.app/Contents/MacOS:$PATH"
-  PATH="$HOME/dev/go_proj/bin:$PATH"
-  # gnu
-  PATH="/usr/local/opt/make/libexec/gnubin:$PATH"
-  PATH="/usr/local/opt/coreutils/libexec/gnubin:$PATH"
+  ## mac specific scripts
+  #PATH="$HOME/.config/mac_scripts:$PATH"
+  ## curl
+  ## PATH="/usr/local/opt/curl/bin:$PATH"
+  ## ruby
+  ## export GEM_HOME=$HOME/.gem
+  ## PATH="/usr/local/opt/ruby/bin:$PATH"
+  #PATH="$PATH:$GEM_HOME/bin"
+  ## rvm for ruby
+  ## PATH="$HOME/.rvm/bin:$PATH"
+  #PATH="$HOME/flutter/bin:$PATH"
+  ## flutter dart
+  #PATH="$HOME/dev/grepo_dart/flutter/bin:$PATH"
+  ## export PUB_HOSTED_URL="https://mirrors.tuna.tsinghua.edu.cn/dart-pub"
+  ## export FLUTTER_STORAGE_BASE_URL="https://mirrors.tuna.tsinghua.edu.cn/flutter"
+  #export PUB_HOSTED_URL=https://pub.flutter-io.cn
+  #export FLUTTER_STORAGE_BASE_URL=https://storage.flutter-io.cn
+  #export FLUTTER_INSTALL="$HOME/dev/grepo_dart/flutter"
+  #export FLUTTER_ROOT="$HOME/dev/grepo_dart/flutter"
+  ## golang modules
+  #export GOPATH="$HOME/dev/go_proj"
+  ## go modules
+  #export GO111MODULE="on"
+  #PATH=/usr/local/go/bin:$PATH
+  ## mame
+  #alias mamed='/usr/local/Cellar/mame/0.234/share/mame/mamed'
+  ## emacs
+  #PATH="/Applications/Emacs.app/Contents/MacOS/bin:$PATH"
+  ## plan9port
+  # export PLAN9=${PLAN9:-/usr/local/opt/plan9port/libexec}
+  ## export PLAN9=$HOME/dev/plan9/plan9port
+  ## avoid conflicts with tools under /usr/bin
+  ## PATH=$PATH:$PLAN9/bin
+  ## texinfo
+  #PATH="/usr/local/opt/texinfo/bin:$PATH"
+  ## harfbuzz
+  #export HARFBUZZ_CFLAGS="-I/usr/local/opt/harfbuzz/include"
+  #export HARFBUZZ_LIBS="-L/usr/local/opt/harfbuzz/lib"
+  ## freetype
+  #export FREETYPE_CFLAGS="-I/usr/local/opt/freetype2/include"
+  #export FREETYPE_LIBS="-L/usr/local/opt/freetype2/lib"
+  ## ncurses
+  #PATH="/usr/local/opt/ncurses/bin:$PATH"
+  ## Need to link header and libs manually
+  #export LIBNCURSES_CFLAGS="-I/usr/local/opt/ncurses/include"
+  ## I've symbolically linked libncursers.dylib into /usr/local/lib
+  ## So gcc should searches via -lncurses to locate the installed one
+  ## instead of the system's outdated ncurses lib
+  #export LIBNCURSES_LIBS="-lncurses"
+  ## export LDFLAGS="-L/usr/local/opt/ncurses/lib"
+  ## export CPPFLAGS="-I/usr/local/opt/ncurses/include"
+  ## libevent
+  ## export LIBEVENT_CFLAGS="-I/usr/local/opt/libevent/include"
+  ## export LIBEVENT_LIBS="-L/usr/local/opt/libevent/lib"
+  ## utf8proc
+  ## export LIBUTF8PROC_CFLAGS="-I/usr/local/opt/utf8proc/include"
+  ## export LIBUTF8PROC_LIBS="-L/usr/local/opt/utf8proc/lib"
+  ## haskell
+  #[ -f "$HOME/.ghcup/env" ] && source "$HOME/.ghcup/env" # ghcup-env
+  #PATH="$HOME/.cabal/bin:$HOME/.ghcup/bin:$PATH"
+  ## riscv
+  #PATH=$PATH:/usr/local/opt/riscv-gnu-toolchain/bin
+  ## git-bin
+  #PATH=$PATH:/Users/tizee/.config/git/bin
+  ## sdkman
+  #export SDKMAN_CANDIDATES_API=https://api.sdkman.io/2
+  #export SDKMAN_CANDIDATES_DIR=/Users/tizee/.sdkman/candidates
+  #export SDKMAN_DIR=$HOME/.sdkman
+  ## /etc/paths.d Tex
+  #PATH=/Library/Tex/texbin:$PATH
+  ## /etc/paths.d 100-rvictl
+  #PATH=/Library/Apple/usr:$PATH
+  ## /etc/paths.d VMware fusion
+  #PATH="/Applications/VMware\ Fusion.app/Contents/Public:$PATH"
+  ## /etc/paths.d Wireshark
+  #PATH="/Applications/Wireshark.app/Contents/MacOS:$PATH"
+  #PATH="$HOME/dev/go_proj/bin:$PATH"
+  ## gnu
+  #PATH="/usr/local/opt/make/libexec/gnubin:$PATH"
+  #PATH="/usr/local/opt/coreutils/libexec/gnubin:$PATH"
 
-  # Android
-  # https://stackoverflow.com/questions/52524112/how-do-i-install-java-on-mac-osx-allowing-version-switching
-  PATH="$HOME/Library/Android/sdk/emulator:$PATH"
-  PATH="$HOME/Library/Android/sdk/platform-tools:$PATH"
-  PATH="$HOME/Library/Android/sdk/tools/bin:$PATH"
-  PATH="$HOME/Library/Android/sdk/tools:$PATH"
-  PATH="/opt/gradle/gradle-6.6/bin:$PATH"
-  export ANDROID_SDK=$HOME/Library/Android/sdk
-  PATH=$ANDROID_SDK/emulator:$ANDROID_SDK/tools:$PATH
+  ## Android
+  ## https://stackoverflow.com/questions/52524112/how-do-i-install-java-on-mac-osx-allowing-version-switching
+  #PATH="$HOME/Library/Android/sdk/emulator:$PATH"
+  #PATH="$HOME/Library/Android/sdk/platform-tools:$PATH"
+  #PATH="$HOME/Library/Android/sdk/tools/bin:$PATH"
+  #PATH="$HOME/Library/Android/sdk/tools:$PATH"
+  #PATH="/opt/gradle/gradle-6.6/bin:$PATH"
+  #export ANDROID_SDK=$HOME/Library/Android/sdk
+  #PATH=$ANDROID_SDK/emulator:$ANDROID_SDK/tools:$PATH
 
-  # mac sdk related
-  alias sdkroot='xcrun --sdk macosx --show-sdk-path'
+  ## mac sdk related
+  #alias sdkroot='xcrun --sdk macosx --show-sdk-path'
 
-  alias java8='export JAVA_HOME=$JAVA_8_HOME'
-  # alias java9='export JAVA_HOME=$JAVA_9_HOME'
-  alias java10='export JAVA_HOME=$JAVA_10_HOME'
-  alias java11='export JAVA_HOME=$JAVA_11_HOME'
-  # alias java12='export JAVA_HOME=$JAVA_12_HOME'
-  # alias java13='export JAVA_HOME=$JAVA_13_HOME'
-  # alias java14='export JAVA_HOME=$JAVA_14_HOME'
-  # alias java15='export JAVA_HOME=$JAVA_15_HOME'
-  # export SDKROOT=$(xcrun --sdk macosx --show-sdk-path)
-  # export JAVA_8_HOME=$(/usr/libexec/java_home -v1.8)
-  export JAVA_8_HOME="/Library/Java/JavaVirtualMachines/openjdk-8.jdk/Contents/Home"
-  # export JAVA_9_HOME=$(/usr/libexec/java_home -v9)
-  export JAVA_10_HOME=$(/usr/libexec/java_home -v10)
-  export JAVA_11_HOME=$(/usr/libexec/java_home -v11)
-  export JAVA_18_HOME=$(/usr/libexec/java_home -v18)
-  # export JAVA_12_HOME=$(/usr/libexec/java_home -v12)
-  # export JAVA_13_HOME=$(/usr/libexec/java_home -v13)
-  # export JAVA_14_HOME=$(/usr/libexec/java_home -v14)
-  # export JAVA_15_HOME=$(/usr/libexec/java_home -v15)
-  # PATH="/usr/local/opt/openjdk@8/bin:$PATH"
-  export JAVA_HOME=$JAVA_10_HOME
-  # PATH="$JAVA_HOME/bin:$PATH"
-  # export CLASS_PATH=$JAVA_HOME/lib
-  # export CLASSPATH=$JAVA_HOME/lib
+  #alias java8='export JAVA_HOME=$JAVA_8_HOME'
+  ## alias java9='export JAVA_HOME=$JAVA_9_HOME'
+  #alias java10='export JAVA_HOME=$JAVA_10_HOME'
+  #alias java11='export JAVA_HOME=$JAVA_11_HOME'
+  ## alias java12='export JAVA_HOME=$JAVA_12_HOME'
+  ## alias java13='export JAVA_HOME=$JAVA_13_HOME'
+  ## alias java14='export JAVA_HOME=$JAVA_14_HOME'
+  ## alias java15='export JAVA_HOME=$JAVA_15_HOME'
+  ## export SDKROOT=$(xcrun --sdk macosx --show-sdk-path)
+  ## export JAVA_8_HOME=$(/usr/libexec/java_home -v1.8)
+  #export JAVA_8_HOME="/Library/Java/JavaVirtualMachines/openjdk-8.jdk/Contents/Home"
+  ## export JAVA_9_HOME=$(/usr/libexec/java_home -v9)
+  #export JAVA_10_HOME=$(/usr/libexec/java_home -v10)
+  #export JAVA_11_HOME=$(/usr/libexec/java_home -v11)
+  #export JAVA_18_HOME=$(/usr/libexec/java_home -v18)
+  ## export JAVA_12_HOME=$(/usr/libexec/java_home -v12)
+  ## export JAVA_13_HOME=$(/usr/libexec/java_home -v13)
+  ## export JAVA_14_HOME=$(/usr/libexec/java_home -v14)
+  ## export JAVA_15_HOME=$(/usr/libexec/java_home -v15)
+  ## PATH="/usr/local/opt/openjdk@8/bin:$PATH"
+  #export JAVA_HOME=$JAVA_10_HOME
+  ## PATH="$JAVA_HOME/bin:$PATH"
+  ## export CLASS_PATH=$JAVA_HOME/lib
+  ## export CLASSPATH=$JAVA_HOME/lib
 
-  # export TOOLCHAINS=swift
-  # PATH=/Library/Developer/Toolchains/swift-latest.xctoolchain/usr/bin:"${PATH}"
+  ## export TOOLCHAINS=swift
+  ## PATH=/Library/Developer/Toolchains/swift-latest.xctoolchain/usr/bin:"${PATH}"
 
-  # sw_vers -productVersion
-  # export MACOSX_DEPLOYMENT_TARGET=11
+  ## sw_vers -productVersion
+  ## export MACOSX_DEPLOYMENT_TARGET=11
 
-  # LuaJIT 2.1
-  PATH="/usr/local/opt/luajit-openresty/bin:$PATH"
-  # llvm
-  PATH="/usr/local/opt/llvm/bin:$PATH"
-  #export LDFLAGS="-L/usr/local/opt/llvm/lib"
-  #export CPPFLAGS="-I/usr/local/opt/llvm/include"
+  ## LuaJIT 2.1
+  #PATH="/usr/local/opt/luajit-openresty/bin:$PATH"
+  ## llvm
+  #PATH="/usr/local/opt/llvm/bin:$PATH"
+  ##export LDFLAGS="-L/usr/local/opt/llvm/lib"
+  ##export CPPFLAGS="-I/usr/local/opt/llvm/include"
 
-  # ncurses
-  PATH="/usr/local/opt/ncurses/bin:$PATH"
+  ## ncurses
+  #PATH="/usr/local/opt/ncurses/bin:$PATH"
 
-  # sqlite
-  PATH="/usr/local/opt/sqlite/bin:$PATH"
-  export SQLITE_LIBS="-L/usr/local/opt/sqlite/lib"
-  export SQLITE_CPPFLAGS="-I/usr/local/opt/sqlite/include"
+  ## sqlite
+  #PATH="/usr/local/opt/sqlite/bin:$PATH"
+  #export SQLITE_LIBS="-L/usr/local/opt/sqlite/lib"
+  #export SQLITE_CPPFLAGS="-I/usr/local/opt/sqlite/include"
 
 
-  # google
-  # PATH="$HOME/dev/grepo_cxx/chromium_depot_tools:$PATH"
-  # vmware
-  PATH="/Applications/VMware Fusion.app/Contents/Public:$PATH"
-  # tex
-  PATH="/Library/TeX/texbin:$PATH"
-  PATH="/Library/Apple/usr/bin:$PATH"
-  # wireshark
-  PATH="/Applications/Wireshark.app/Contents/MacOS:$PATH"
-  # anaconda3
-  PATH="$HOME/anaconda3/bin:$PATH"
-  PATH="$HOME/anaconda3/condabin:$PATH"
+  ## google
+  ## PATH="$HOME/dev/grepo_cxx/chromium_depot_tools:$PATH"
+  ## vmware
+  #PATH="/Applications/VMware Fusion.app/Contents/Public:$PATH"
+  ## tex
+  #PATH="/Library/TeX/texbin:$PATH"
+  #PATH="/Library/Apple/usr/bin:$PATH"
+  ## wireshark
+  #PATH="/Applications/Wireshark.app/Contents/MacOS:$PATH"
+  ## anaconda3
+  #PATH="$HOME/anaconda3/bin:$PATH"
+  #PATH="$HOME/anaconda3/condabin:$PATH"
 
-  # openssl
-  PATH="/usr/local/opt/openssl@1.1/bin:$PATH"
-  # rust crate openssl-sys bug
-  # https://stackoverflow.com/questions/49263452/how-do-i-statically-link-the-openssl-sys-crate-into-a-shared-library
-  # https://stackoverflow.com/questions/34612395/openssl-crate-fails-compilation-on-mac-os-x-10-11
-  export OPENSSL_DIR="/usr/local/opt/openssl@1.1"
-  export OPENSSL_LIB_DIR="-L/usr/local/opt/openssl@1.1/lib"
-  export OPENSSL_INCLUDE_DIR="-L/usr/local/opt/openssl@1.1/include"
-  # export OPENSSL_CFLAGS="-I/usr/local/opt/openssl@1.1/include"
-  # export OPENSSL_LIBS="-L/usr/local/opt/openssl@1.1/lib"
-  # export OPENSSL_ROOT_DIR="/usr/local/opt/openssl@1.1"
-  #export OPENSSL_STATIC=1
-  #export LDFLAGS="-L/usr/local/opt/openssl@1.1/lib"
-  #export CPPFLAGS="-I/usr/local/opt/openssl@1.1/include"
-  #export PKG_CONFIG_PATH="/usr/local/opt/openssl@1.1/lib/pkgconfig"
+  ## openssl
+  #PATH="/usr/local/opt/openssl@1.1/bin:$PATH"
+  ## rust crate openssl-sys bug
+  ## https://stackoverflow.com/questions/49263452/how-do-i-statically-link-the-openssl-sys-crate-into-a-shared-library
+  ## https://stackoverflow.com/questions/34612395/openssl-crate-fails-compilation-on-mac-os-x-10-11
+  #export OPENSSL_DIR="/usr/local/opt/openssl@1.1"
+  #export OPENSSL_LIB_DIR="-L/usr/local/opt/openssl@1.1/lib"
+  #export OPENSSL_INCLUDE_DIR="-L/usr/local/opt/openssl@1.1/include"
+  ## export OPENSSL_CFLAGS="-I/usr/local/opt/openssl@1.1/include"
+  ## export OPENSSL_LIBS="-L/usr/local/opt/openssl@1.1/lib"
+  ## export OPENSSL_ROOT_DIR="/usr/local/opt/openssl@1.1"
+  ##export OPENSSL_STATIC=1
+  ##export LDFLAGS="-L/usr/local/opt/openssl@1.1/lib"
+  ##export CPPFLAGS="-I/usr/local/opt/openssl@1.1/include"
+  ##export PKG_CONFIG_PATH="/usr/local/opt/openssl@1.1/lib/pkgconfig"
 
-  # gnutls
-  export GUILE_TLS_CERTIFICATE_DIRECTORY="/usr/local/etc/gnutls/"
-  export LIBGNUTLS_CFLAGS="-I/usr/local/opt/gnutls/include"
-  export LIBGNUTLS_LIBS="-L/usr/local/opt/gnutls/lib"
+  ## gnutls
+  #export GUILE_TLS_CERTIFICATE_DIRECTORY="/usr/local/etc/gnutls/"
+  #export LIBGNUTLS_CFLAGS="-I/usr/local/opt/gnutls/include"
+  #export LIBGNUTLS_LIBS="-L/usr/local/opt/gnutls/lib"
 
-  # libuv
-  export LIBUV_CFLAGS="-I/usr/local/opt/libuv/include"
-  export LIBUV_LIBS="-L/usr/local/opt/libuv/lib"
+  ## libuv
+  #export LIBUV_CFLAGS="-I/usr/local/opt/libuv/include"
+  #export LIBUV_LIBS="-L/usr/local/opt/libuv/lib"
 
-  # lissh2
-  export LIBSSH2_CFLAGS="-I/usr/local/opt/libssh2/include"
-  export LIBSSH2_LIBS="-lssh2"
+  ## lissh2
+  #export LIBSSH2_CFLAGS="-I/usr/local/opt/libssh2/include"
+  #export LIBSSH2_LIBS="-lssh2"
 
-  # gmp
-  export LIBGMP_CFLAGS="-I/usr/local/opt/gmp/include"
-  export LIBGMP_LIBS="-L/usr/local/opt/gmp/lib"
+  ## gmp
+  #export LIBGMP_CFLAGS="-I/usr/local/opt/gmp/include"
+  #export LIBGMP_LIBS="-L/usr/local/opt/gmp/lib"
 
-  # linettle
-  export LIBNETTLE_CFLAGS="-I/usr/local/opt/libnettle/include"
-  export LIBNETTLE_LIBS="-L/usr/local/opt/libnettle/lib"
+  ## linettle
+  #export LIBNETTLE_CFLAGS="-I/usr/local/opt/libnettle/include"
+  #export LIBNETTLE_LIBS="-L/usr/local/opt/libnettle/lib"
 
-  # jemalloc
-  export JEMALLOC_CFLAGS="-I/usr/local/opt/jemalloc/include"
-  export JEMALLOC_LIBS="-L/usr/local/opt/jemalloc/lib"
+  ## jemalloc
+  #export JEMALLOC_CFLAGS="-I/usr/local/opt/jemalloc/include"
+  #export JEMALLOC_LIBS="-L/usr/local/opt/jemalloc/lib"
 
-  # skia
-  export SKIA_LIBRARY="$HOME/deps/skia/out/Release-x64"
+  ## skia
+  #export SKIA_LIBRARY="$HOME/deps/skia/out/Release-x64"
 
-  # ncurses
-  PATH="/usr/local/opt/ncurses/bin:$PATH"
+  ## ncurses
+  #PATH="/usr/local/opt/ncurses/bin:$PATH"
 
-  # bison
-  PATH="/usr/local/opt/bison/bin:$PATH"
-  #export LDFLAGS="-L/usr/local/opt/bison/lib"
+  ## bison
+  #PATH="/usr/local/opt/bison/bin:$PATH"
+  ##export LDFLAGS="-L/usr/local/opt/bison/lib"
 
-  # libxml2
-  export PATH="/usr/local/opt/libxml2/bin:$PATH"
-  export LIBXML2_CFLAGS="-I/usr/local/opt/libxml2/include"
-  export LIBXML2_LIBS="-L/usr/local/opt/libxml2/lib"
-  #export PKG_CONFIG_PATH="/usr/local/opt/libxml2/lib/pkgconfig"
-  #export LDFLAGS="-L/usr/local/opt/libxml2/lib"
-  #export CPPFLAGS="-I/usr/local/opt/libxml2/include"
+  ## libxml2
+  #export PATH="/usr/local/opt/libxml2/bin:$PATH"
+  #export LIBXML2_CFLAGS="-I/usr/local/opt/libxml2/include"
+  #export LIBXML2_LIBS="-L/usr/local/opt/libxml2/lib"
+  ##export PKG_CONFIG_PATH="/usr/local/opt/libxml2/lib/pkgconfig"
+  ##export LDFLAGS="-L/usr/local/opt/libxml2/lib"
+  ##export CPPFLAGS="-I/usr/local/opt/libxml2/include"
 
-  # lame
-  export LIBMP3LAME_CFLAGS="-I/usr/local/opt/lame/include"
-  export LIBMP3LAME_LIBS="-L/usr/local/lib"
+  ## lame
+  #export LIBMP3LAME_CFLAGS="-I/usr/local/opt/lame/include"
+  #export LIBMP3LAME_LIBS="-L/usr/local/lib"
 
-  # default include path for gcc/clang
-  # export CPLUS_INCLUDE_PATH="$CPLUS_INCLUDE_PATH:Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include"
-  # xcrun -sdk macosx --show-sdk-path
-  export SDKROOT="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX13.0.sdk"
-  # export DYLD_LIBRARY_PATH="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.3.sdk/usr/lib"
-  # export LDFLAGS="-L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib"
-  # export DYLD_LIBRARY_PATH="/usr/local/lib"
+  ## default include path for gcc/clang
+  ## export CPLUS_INCLUDE_PATH="$CPLUS_INCLUDE_PATH:Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include"
+  ## xcrun -sdk macosx --show-sdk-path
+  #export SDKROOT="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX13.0.sdk"
+  ## export DYLD_LIBRARY_PATH="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.3.sdk/usr/lib"
+  ## export LDFLAGS="-L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib"
+  ## export DYLD_LIBRARY_PATH="/usr/local/lib"
 
-  # use /usr/lib for Java
-  export DYLD_FALLBACK_LIBRARY_PATH="/usr/local/lib:/usr/lib"
-  export DYLD_LIBRARY_PATH="/usr/lib:/usr/local/lib"
-  export LDFLAGS="-L/usr/local/lib"
-  export CPPFLAGS="-I/usr/local/include"
-  # C/C++ libs
-  # default search paths
-  export C_INCLUDE_PATH="/usr/local/include"
-  export CPLUS_INCLUDE_PATH="/usr/local/include"
-  # static libs e.g. sdl2
-  export LIBRARY_PATH="/usr/local/lib"
+  ## use /usr/lib for Java
+  #export DYLD_FALLBACK_LIBRARY_PATH="/usr/local/lib:/usr/lib"
+  #export DYLD_LIBRARY_PATH="/usr/lib:/usr/local/lib"
+  #export LDFLAGS="-L/usr/local/lib"
+  #export CPPFLAGS="-I/usr/local/include"
+  ## C/C++ libs
+  ## default search paths
+  #export C_INCLUDE_PATH="/usr/local/include"
+  #export CPLUS_INCLUDE_PATH="/usr/local/include"
+  ## static libs e.g. sdl2
+  #export LIBRARY_PATH="/usr/local/lib"
 
-  # expat
-  export LIBEXPAT_LIBS="-L/usr/local/opt/expat/lib"
-  export LIBEXPAT_CFLAGS="-I/usr/local/opt/expat/include"
-  # anaconda3
-  # source $HOME/.config/conda_active.zsh
+  ## expat
+  #export LIBEXPAT_LIBS="-L/usr/local/opt/expat/lib"
+  #export LIBEXPAT_CFLAGS="-I/usr/local/opt/expat/include"
+  ## anaconda3
+  ## source $HOME/.config/conda_active.zsh
 
-  # keyboard setting for vim
-  if [ -f $(command -v kbaware) ]; then
-    export COLEMAK_KEYBOARD=0
-    # if test $(kbaware) = 'Colemak'; then
-    #   export COLEMAK_KEYBOARD=1
-    # fi
-  fi
+  ## keyboard setting for vim
+  #if [ -f $(command -v kbaware) ]; then
+  #  export COLEMAK_KEYBOARD=0
+  #  # if test $(kbaware) = 'Colemak'; then
+  #  #   export COLEMAK_KEYBOARD=1
+  #  # fi
+  #fi
 
   # yubikey
   export SSH_AUTH_SOCK=$(gpgconf --list-dirs agent-ssh-socket)
@@ -452,8 +452,8 @@ if $is_macOS; then
   fi
 
   # bun
-  export BUN_INSTALL="/Users/tizee/.bun"
-  PATH="$BUN_INSTALL/bin:$PATH"
+  # export BUN_INSTALL="/Users/tizee/.bun"
+  # PATH="$BUN_INSTALL/bin:$PATH"
 
   # clang address sanitizer
   export ASAN_OPTIONS=detect_leaks=1,symbolize=1
@@ -464,12 +464,13 @@ if $is_macOS; then
   export GIT_CEILING_DIRECTORIES=/Users
 
   # nodejs
-  export NODE_PATH="/usr/local/lib/node_modules"
+  # export NODE_PATH="/usr/local/lib/node_modules"
   # roswell for lisp packages
-  PATH="$HOME/.roswell/bin:$PATH"
+  # PATH="$HOME/.roswell/bin:$PATH"
 
   # pnpm
   export PNPM_HOME="/Users/tizee/Library/pnpm"
   export PATH="$PNPM_HOME:$PATH"
   # pnpm end
+  eval "$(/opt/homebrew/bin/brew shellenv)"
 fi

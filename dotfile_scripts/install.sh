@@ -141,7 +141,6 @@ if [[ $(uname -s) = "Darwin" ]]; then
   echo -e "$lightyellow MacOS ${reset_color}good to go ${lightgreen}✔$reset_color"
   unset install_homebrew
   __install_dotfiles || echo -e " install dotfiles $red  failed $reset_color" || exit 1
-  (echo; echo 'eval "$(/opt/homebrew/bin/brew shellenv)"') >> $HOME/.zprofile
 fi
 # }}}
 
