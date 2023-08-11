@@ -76,6 +76,7 @@ nvim:
 	# vim-plug
 	curl -fLo $(HOME)/.vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 	# install packages with vim-plug
+	# reference from https://github.com/junegunn/vim-plug/issues/225
 	nvim -Es +PlugInstall +visual +qall
 .PHONY: nvim
 

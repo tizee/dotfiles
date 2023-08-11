@@ -57,7 +57,7 @@ fi
 # clang for compiling backend
 # rust for writing good program
 # gtk for developing gui
-declare -a pkgs=(unzip git curl clang gdb vim neovim tmux python3 node pnpm rust "romkatv/gitstatus/gitstatus" fzf neofetch)
+declare -a pkgs=(unzip git curl clang gdb vim neovim tmux python3 node pnpm "romkatv/gitstatus/gitstatus" fzf neofetch)
 declare -a brew_cask_apps=(wezterm karabiner-elements hammerspoon)
 declare -a cargo_pkgs=(git-delta difftastic exa bat)
 linux_pkgs=()
@@ -82,6 +82,8 @@ function __install_pkgs() {
   if cli_has_installed 'date'; then
     local start_time=$(date +%s)
   fi
+  # install Rust with rustup instead Homebrew
+  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
   for pkg in ${pkgs[@]:0}; do
     echo -e " install${lightgreen} ${pkg}$reset_color"
     if [[ $(uname -s) = "Darwin" ]]; then
