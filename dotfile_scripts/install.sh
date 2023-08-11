@@ -57,8 +57,9 @@ fi
 # clang for compiling backend
 # rust for writing good program
 # gtk for developing gui
-declare -a pkgs=(unzip git curl clang gdb vim neovim tmux python3 rust "romkatv/gitstatus/gitstatus")
-brew_cask_apps=()
+declare -a pkgs=(unzip git curl clang gdb vim neovim tmux python3 node pnpm rust "romkatv/gitstatus/gitstatus" fzf neofetch)
+declare -a brew_cask_apps=(wezterm karabiner-elements hammerspoon)
+declare -a cargo_pkgs=(git-delta difftastic exa bat)
 linux_pkgs=()
 
 # }}}
@@ -90,10 +91,26 @@ function __install_pkgs() {
       sudo $PM -S $pkg 1>/dev/null 2>&1 || echo -e "\n ${red}${pkg}${reset_color} failed" || exit 1
     fi
   done
+  # casks
+  for pkg in ${brew_cask_apps[@]:0}; do
+    if [[ $(uname -s) = "Darwin" ]]; then
+      echo -e " install${lightgreen} ${pkg}$reset_color"
+      $PM list $pkg 1>/dev/null 2>&1 || brew install --cask $pkg || echo -e "\n ${red}${pkg}${reset_color} failed" || exit 1
+    fi
+  done
   if cli_has_installed 'date'; then
     local end_time=$(date +%s)
     echo -e " ${lightgreen}${#pkgs[@]}${reset_color} packages installed in ${lightgreen}$[$end_time - $start_time]${reset_color} seconds"
   fi
+}
+
+function __install_cargo_pkgs() {
+  for pkg in ${cargo_pkgs[@]:0}; do
+    echo -e " install${lightgreen} ${pkg}$reset_color"
+    if [[ $(uname -s) = "Darwin" ]]; then
+      $PM list $pkg 1>/dev/null 2>&1 || cargo install "$pkg" || echo -e "\n ${red}${pkg}${reset_color} failed" || exit 1
+    fi
+  done
 }
 
 function __install_dotfiles() {
@@ -105,7 +122,8 @@ function __install_dotfiles() {
     unzip ${zip_file}
     mv "$HOME/dotfiles-master" "$HOME/tizee-dotfiles"
     rm ${zip_file}
-    cd "$HOME/tizee-dotfiles"; make install; make zsh
+    cd "$HOME/tizee-dotfiles"; make install; make zsh; make git; make nvim; make cargo
+    __install_cargo_pkgs
   fi
 }
 
@@ -148,4 +166,5 @@ unset cli_has_installed
 unset pacman_package_has_installed
 unset __install_pkgs
 unset __install_dotfiles
+unset __install_cargo_pkgs
 # vim:ft=sh:foldmethod=marker

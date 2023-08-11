@@ -442,8 +442,8 @@ if $is_macOS; then
   #fi
 
   # yubikey
-  export SSH_AUTH_SOCK=$(gpgconf --list-dirs agent-ssh-socket)
-  gpgconf --launch gpg-agent
+  # export SSH_AUTH_SOCK=$(gpgconf --list-dirs agent-ssh-socket)
+  # gpgconf --launch gpg-agent
   # hard-coded values of /etc/zprofile
 
   # pypi

@@ -16,8 +16,8 @@ replace-with = 'tuna'
 [source.tuna]
 registry = "https://mirrors.tuna.tsinghua.edu.cn/git/crates.io-index.git"
 
-[source.crates-io-http]
-registry = "sparse+https://index.crates.io/"
+# [source.crates-io-http]
+# registry = "sparse+https://index.crates.io/"
 
 [term]
 verbose        = false  # whether cargo provides verbose output

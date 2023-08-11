@@ -453,6 +453,10 @@ autoload -U +X bashcompinit && bashcompinit
 
 export PATH="$HOME/.poetry/bin:$PATH"
 
+# yubikey
+export SSH_AUTH_SOCK=$(gpgconf --list-dirs agent-ssh-socket)
+gpgconf --launch gpg-agent
+
 # zsh hook
 function __cd_hook_list_files() {
   # do not override user defined options

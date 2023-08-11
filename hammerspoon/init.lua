@@ -22,7 +22,7 @@ hs.window.animationDuration = 0.0
 
 -- This controls the set of characters that will be used for window hints. They must be characters found in hs.keycodes.map
 hints.hintChars = {"J","K","H","L","A","S","D","F"}
-hints.fontName = "Fira Code Regular"
+hints.fontName = "JetBrainsMono Nerd Font"
 hints.fontSize = 24
 hints.iconAlpha = 1.0
 hints.showTitleThresh = 0
@@ -32,7 +32,7 @@ alert.defaultStyle.strokeColor = {white = 1, alpha = 0}
 alert.defaultStyle.fillColor = {white = 0.05, alpha = 0.85}
 alert.defaultStyle.radius = 8
 alert.defaultStyle.fadeOutDuration = 0.8
-alert.defaultStyle.textFont = "Fira Code Regular"
+alert.defaultStyle.textFont = "JetBrainsMono Nerd Font"
 alert.defaultStyle.textSize = 30
 -- ->
 

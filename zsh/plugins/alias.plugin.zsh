@@ -30,7 +30,7 @@ alias rm='rm -v'
 alias ln='ln -v'
 # }}}
 
-alias socks5="http_proxy=socks5://127.0.0.1:1080 https_proxy=socks5://127.0.0.1:1080 all_proxy=socks5://127.0.0.1:1080 "
+alias socks5="http_proxy=socks5://127.0.0.1:7890 https_proxy=socks5://127.0.0.1:7890 all_proxy=socks5://127.0.0.1:7890"
 # print clang included header paths
 alias printclang="clang++ -E -x c++ - -v < /dev/null"
 alias printcc="cc -E -x c++ - -v < /dev/null"

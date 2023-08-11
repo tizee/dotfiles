@@ -12,6 +12,8 @@ help:
 	@echo "make uninstall     -  require make dry-uninstall"
 	@echo "                      rm $(HOME)/$(CONFIG_DIR_NAME)"
 	@echo "                      move $(HOME)/$(CONFIG_DIR_NAME)_back $(HOME)/$(CONFIG_DIR_NAME)"
+	@echo "make hammerspoon   - (mac) require make install"
+	@echo "make cargo         -  require make install"
 	@echo "make git           -  require make install"
 	@echo "make emacs         -  require make install"
 	@echo "make emacs-force   -  require make install"
@@ -21,6 +23,12 @@ help:
 	@echo "make zsh-force     -  require make install"
 	@echo "make rm-zsh        -  require make install"
 .PHONY: help
+
+cargo:
+	@echo "link cargo config"
+	mkdir -p ~/.cargo
+	ln -sv $(PWD)/mac_configs/cargo/* ~/.cargo
+.PHONY: cargo
 
 git:
 	@echo "link git config"
@@ -44,6 +52,12 @@ zsh-force:
 	ln -svf $(PWD)/zshenv ~/.zshenv
 .PHONY: zsh-force
 
+hammerspoon:
+	@echo "link hammerspoon config"
+	mkdir -p $(HOME)/.hammerspoon
+	ln -sv $(PWD)/hammerspoon/* $(HOME)/.hammerspoon
+.PHONY: hammerspoon
+
 emacs:
 	@echo "link emacs config"
 	ln -sv $(PWD)/emacs ~/.emacs.d
@@ -60,7 +74,9 @@ nvim:
 	# idea vim
 	ln -svf $(PWD)/nvim/vimrc.vim ~/.ideavimrc
 	# vim-plug
-	curl -fLo ~/.vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+	curl -fLo $(HOME)/.vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+	# install packages with vim-plug
+	nvim -Es +PlugInstall +visual +qall
 .PHONY: nvim
 
 nvim-force:

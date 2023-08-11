@@ -9,7 +9,7 @@ statusmessage.new = function(messageText)
     local frame = screen.primaryScreen():frame()
 
     local styledTextAttributes = {
-      font = { name = 'Fira Code Regular', size = 26 },
+      font = { name = 'JetBrainsMono Nerd Font', size = 26 },
       color = { white = 1, alpha = 0.95}
     }
 
