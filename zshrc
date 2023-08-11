@@ -39,7 +39,7 @@ if $(uname -r | grep 'microsoft' > /dev/null); then
   # export PATH="$HOME/zig-linux-x86_64-0.10.0-dev.3685+dae7aeb33/:$PATH"
 else
   # macOS
-  export GITSTATUS_DIR=${GITSTATUS_DIR:-"/usr/local/opt/gitstatus"}
+  export GITSTATUS_DIR=${GITSTATUS_DIR:-"/opt/homebrew/opt/gitstatus"}
 fi
 
 if [ -d $GITSTATUS_DIR ]; then
