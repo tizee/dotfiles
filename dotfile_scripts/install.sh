@@ -149,9 +149,9 @@ fi
 # {{{
 if [[ $(uname -s) = "Darwin" ]]; then
   function install_homebrew() {
-    local url="https://brew.sh/"
     cli_has_installed 'brew' && return
     echo -e "install $lightgreen homebrew $reset_color now."
+    # Following command will install homebrew and XCode Command Line Tools
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" 2>&1
   }
   echo -e "$lightyellow MacOS dotfiles ${reset_color}setup"
