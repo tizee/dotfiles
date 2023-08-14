@@ -5,7 +5,7 @@ function repo() {
     if [[ -z $1 ]];then
       local repo_name="$(fd . -t d -d 1 $HOME/projects --exec basename | fzf --preview "bat $HOME/projects/{+1}/README* 2>/dev/null || tree -L 1 $HOME/projects/{+1}")"
       if [[ -n $repo_name ]];then
-        cd "$HOME/$repo_name"
+        cd "$HOME/projects/$repo_name"
       fi
     fi
   else
