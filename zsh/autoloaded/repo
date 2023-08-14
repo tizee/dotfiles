@@ -3,16 +3,9 @@
 function repo() {
   if [ $SYSTEM = Darwin ]; then
     if [[ -z $1 ]];then
-      cd $HOME/dev/$(fd -t d -d 1 'grepo_.*' $HOME/dev --exec basename | fzf)
-      local repo_name="$(fd -t d -d 1 . | fzf --preview "bat {+1}/README* 2>/dev/null || tree -L 1 {+1}")"
+      local repo_name="$(fd . -t d -d 1 $HOME/projects --exec basename | fzf --preview "bat $HOME/projects/{+1}/README* 2>/dev/null || tree -L 1 $HOME/projects/{+1}")"
       if [[ -n $repo_name ]];then
-        cd "$repo_name"
-      fi
-    else
-      cd "$HOME/dev/grepo_$1";
-      local repo_name="$(fd -t d -d 1 . | fzf --preview "bat {+1}/README* 2>/dev/null || tree -L 1 {+1} ")"
-      if [[ -n $repo_name ]];then
-        cd "$repo_name"
+        cd "$HOME/$repo_name"
       fi
     fi
   else

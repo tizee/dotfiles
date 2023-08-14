@@ -124,8 +124,9 @@ alias "${_yogit_basic_prefix}st"='git status'
 
 # shallow clone with --depth 1
 function yogit::shallowclone(){
-  print "clone with --depth 1"
-  git clone $@ --depth 1
+  print "clone with --depth 1 --recursive-submodules -j8"
+  # https://stackoverflow.com/questions/3796927/how-do-i-git-clone-a-repo-including-its-submodules
+  git clone $@ --depth 1 --recursive-submodules -j8
 }
 
 alias "${_yogit_basic_prefix}sc"='yogit::shallowclone'
