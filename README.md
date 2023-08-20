@@ -31,6 +31,7 @@ make uninstall     -  require make dry-uninstall
                       2. mv $HOME/.config_back $HOME/.config
 make emacs         -  require make install
 make emacs-force   -  require make install
+make tmux          -  require make install
 make nvim          -  require make install
 make nvim-force    -  require make install
 make zsh           -  require make install
@@ -70,6 +71,16 @@ I sometimes use Alacritty or Kitty to test the compatibility of cli apps.
 ### Tmux
 
 I build the tmux from source to use its latest features as well as wezterm nightly. This is because my workflow in tmux based on `display-popup`, which is supported for Tmux >= 3.2.
+
+BTW, the tmux plugin manager `tpm` for tmux is required.
+
+You can install it with following command:
+
+```
+git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+```
+
+`make tmux` is equivalent to above command.
 
 ### Editor
 

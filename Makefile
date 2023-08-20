@@ -17,6 +17,7 @@ help:
 	@echo "make git           -  require make install"
 	@echo "make emacs         -  require make install"
 	@echo "make emacs-force   -  require make install"
+	@echo "make tmux          -  require make install"
 	@echo "make nvim          -  require make install"
 	@echo "make nvim-force    -  require make install"
 	@echo "make zsh           -  require make install"
@@ -62,6 +63,11 @@ emacs:
 	@echo "link emacs config"
 	ln -sv $(PWD)/emacs ~/.emacs.d
 .PHONY: emacs
+
+tmux:
+	@echo "install tpm for tmux"
+	git clone --depth=1 https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+.PHONY: tmux
 
 emacs-force:
 	@echo "force to link emacs config"
