@@ -318,9 +318,9 @@ if $is_macOS; then
   ## LuaJIT 2.1
   #PATH="/usr/local/opt/luajit-openresty/bin:$PATH"
   ## llvm
-  #PATH="/usr/local/opt/llvm/bin:$PATH"
-  ##export LDFLAGS="-L/usr/local/opt/llvm/lib"
-  ##export CPPFLAGS="-I/usr/local/opt/llvm/include"
+  PATH="/opt/homebrew/opt/llvm/bin:$PATH"
+  export LDFLAGS="-L/opt/homebrew/opt/llvm/lib"
+  export CPPFLAGS="-I/opt/homebrew/opt/llvm/include"
 
   ## ncurses
   #PATH="/usr/local/opt/ncurses/bin:$PATH"
