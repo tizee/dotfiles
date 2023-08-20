@@ -318,6 +318,8 @@ if $is_macOS; then
   ## LuaJIT 2.1
   #PATH="/usr/local/opt/luajit-openresty/bin:$PATH"
   ## llvm
+  # To use the bundled libc++ please add the following LDFLAGS:
+  # LDFLAGS="-L/opt/homebrew/opt/llvm/lib/c++ -Wl,-rpath,/opt/homebrew/opt/llvm/lib/c++"
   PATH="/opt/homebrew/opt/llvm/bin:$PATH"
   export LDFLAGS="-L/opt/homebrew/opt/llvm/lib"
   export CPPFLAGS="-I/opt/homebrew/opt/llvm/include"
