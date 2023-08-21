@@ -1,0 +1,29 @@
+#!/usr/bin/env zsh
+
+# idea from https://gist.github.com/skywind3000/563510347244a60f4e79a62b472db535
+
+function __cd_mark(){
+  MARK_DATA_PATH="${MARK_DATA_PATH:-$HOME/.local/share/marks}"
+  [ -d "$MARK_DATA_PATH" ] || mkdir -p -m 700 "$MARK_DATA_PATH" 2 > /dev/null
+  case "$1" in
+      +*) # save pwd to bookmark with given name
+        ln -snf "$(pwd)" "$MARK_DATA_PATH/${1:1}"
+        ;;
+      -*) # remove bookmark with given name
+        rm -i "$MARK_DATA_PATH/${1:1}"
+        ;;
+      /*) # search bookmark with given name
+        find "$MARK_DATA_PATH" -type l -name "*${1:1}*" | \
+          awk -F "/" '{print $NF}' | MARK_DATA_PATH="$MARK_DATA_PATH" xargs -I {} echo "{} ->" $(readlink "$MARK_DATA_PATH"/{})
+        ;;
+      "") # list all bookmarks
+        command ls -1 "$MARK_DATA_PATH/" | MARK_DATA_PATH="$MARK_DATA_PATH" xargs -I {} echo "{} ->" $(readlink "$MARK_DATA_PATH"/{})
+        ;;
+      *)
+        local dest="$(readlink $MARK_DATA_PATH/$1 2 > /dev/null)"
+        [ -d "$dest" ] && cd $dest || echo "No such bookmark: $1"
+        ;;
+  esac
+}
+
+__cd_mark "${@}"

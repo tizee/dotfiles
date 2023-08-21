@@ -1,0 +1,20 @@
+#!/usr/bin/env zsh
+
+function __open(){
+  case $(uname -s) in
+    Darwin*)
+      if [ -t 0 ]; then
+        /usr/bin/open $@
+      else
+        /usr/bin/open -$@
+      fi
+      ;;
+    *)
+      if $(uname -r | grep 'microsoft' > /dev/null); then
+        /mnt/c/Windows/explorer.exe $@
+      fi
+      ;;
+  esac
+}
+
+__open "${@}"
