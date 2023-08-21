@@ -191,7 +191,7 @@ if $is_macOS; then
   #PATH="$CARP_DIR/bin:$PATH"
 
   ## mac specific scripts
-  #PATH="$HOME/.config/mac_scripts:$PATH"
+  PATH="$HOME/.config/mac_scripts:$PATH"
   ## curl
   ## PATH="/usr/local/opt/curl/bin:$PATH"
   ## ruby

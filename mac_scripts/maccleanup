@@ -5,13 +5,15 @@
 function __cleanup_node_modules(){
   # Cleanup old node_modules
   case "$1" in
-    -dry)
-        find . -name "node_modules" -type d -mtime +30
+    -clean)
+      echo "Cleaning node_modules in projects older than 30 days"
+      find . -name "node_modules" -type d -mtime +30 -print0 | xargs -0 -I{} rm -rf {}
+      echo "Done cleaning node_modules"
       ;;
     *)
-      echo "Cleaning node_modules in projects older than 30 days"
-      # find . -name "node_modules" -type d -mtime +30 | xargs rm -rf
-      echo "Done cleaning node_modules"
+      echo "List node_modules under current folder older than 30 days"
+      # dry run by default
+      find . -name "node_modules" -type d -mtime +30 -print0 | xargs -0 du -chs
       ;;
   esac
 
@@ -20,13 +22,14 @@ function __cleanup_node_modules(){
 function __cleanup_rust(){
   # Cleanup old target
   case "$1" in
-    -dry)
-      find . -name "target" -type d -mtime +30
+    -clean)
+      echo "Cleaning target in projects older than 30 days"
+      find . -name "target" -type d -mtime +30 -print0 | xargs -0 -I{} rm -rf {}
+      echo "Done cleaning Cargo target"
       ;;
     *)
-      echo "Cleaning target in projects older than 30 days"
-      # find . -name "target" -type d -mtime +30 | xargs rm -rf
-      echo "Done cleaning Cargo target"
+      echo "List target in Rust projects older than 30 days"
+      find . -name "target" -type d -mtime +30 -print0 | xargs -0 du -chs
       ;;
   esac
 }
@@ -106,14 +109,14 @@ case "$1" in
   *)
     echo 'usage: maccleanup [-name]
 options
-    -rust [-dry]          clean Cargo target order than 30 days
-    -homebrew             clean homebrew
-    -node_modules [-dry]  clean node_modules older than 30 days
-    -gem                  invoke gem cleanup
-    -pod                  clean pod caches
-    -simulator            remove old Xcode simulators
-    -xcode                remove Xcode junk
-    -all                  cleanup all
+    -rust [-clean]         clean Cargo target order than 30 days (dry run by default)
+    -homebrew              clean homebrew
+    -node_modules [-clean] clean node_modules older than 30 days (dry run by default)
+    -gem                   invoke gem cleanup
+    -pod                   clean pod caches
+    -simulator             remove old Xcode simulators
+    -xcode                 remove Xcode junk
+    -all                   cleanup all
     ' 1>&2
     exit 1
     ;;
