@@ -19,6 +19,21 @@ function __cleanup_node_modules(){
 
 }
 
+function __cleanup_zig(){
+  # Cleanup old target
+  case "$1" in
+    -clean)
+      echo "Cleaning zig-cache in Zig projects older than 30 days"
+      find . -name "zig-cache" -type d -mtime +30 -print0 | xargs -0 -I{} rm -rf {}
+      echo "Done cleaning Zig zig-cache"
+      ;;
+    *)
+      echo "List zig-cache in Zig projects older than 30 days"
+      find . -name "zig-cache" -type d -mtime +30 -print0 | xargs -0 du -chs
+      ;;
+  esac
+}
+
 function __cleanup_rust(){
   # Cleanup old target
   case "$1" in
@@ -75,6 +90,10 @@ function __cleanup_xcode(){
 }
 
 case "$1" in
+  -zig)
+    shift
+    __cleanup_zig $@
+    ;;
   -rust)
     shift
     __cleanup_rust $@
@@ -105,11 +124,14 @@ case "$1" in
     __cleanup_pod
     __cleanup_simulators
     __cleanup_xcode
+    __cleanup_zig
+    __cleanup_rust
     ;;
   *)
     echo 'usage: maccleanup [-name]
 options
-    -rust [-clean]         clean Cargo target order than 30 days (dry run by default)
+    -zig [-clean]          clean Zig zig-cache folder order than 30 days (dry run by default)
+    -rust [-clean]         clean Cargo target folder order than 30 days (dry run by default)
     -homebrew              clean homebrew
     -node_modules [-clean] clean node_modules older than 30 days (dry run by default)
     -gem                   invoke gem cleanup
