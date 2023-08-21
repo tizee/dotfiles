@@ -14,10 +14,10 @@ function __cd_mark(){
         ;;
       /*) # search bookmark with given name
         find "$MARK_DATA_PATH" -type l -name "*${1:1}*" | \
-          awk -F "/" '{print $NF}' | MARK_DATA_PATH="$MARK_DATA_PATH" xargs -I {} echo "{} ->" $(readlink "$MARK_DATA_PATH"/{})
+          awk -F "/" '{print $NF}' | MARK_DATA_PATH="$MARK_DATA_PATH" xargs -I {} sh -c 'echo "{} ->" $(readlink "$MARK_DATA_PATH/{}")'
         ;;
       "") # list all bookmarks
-        command ls -1 "$MARK_DATA_PATH/" | MARK_DATA_PATH="$MARK_DATA_PATH" xargs -I {} echo "{} ->" $(readlink "$MARK_DATA_PATH"/{})
+        command ls -1 "$MARK_DATA_PATH/" | MARK_DATA_PATH="$MARK_DATA_PATH" xargs -I {} sh -c 'echo "{} ->" $(readlink "$MARK_DATA_PATH/{}")'
         ;;
       *)
         local dest="$(readlink $MARK_DATA_PATH/$1 2 > /dev/null)"
