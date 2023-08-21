@@ -56,7 +56,7 @@
       }
     },
     "zls": {
-      "command": "~/zls/zls",
+      "command": "~/.local/bin/zls",
       "filetypes": ["zig"]
     },
     "glsl": {
