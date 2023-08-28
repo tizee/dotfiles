@@ -3,6 +3,7 @@
 
 # for CI purpose
 CONFIG_DIR_NAME ?=.config
+USER ?=$$(whoami)
 
 help:
 	@echo "run make install first"
@@ -23,6 +24,7 @@ help:
 	@echo "make zsh           -  require make install"
 	@echo "make zsh-force     -  require make install"
 	@echo "make rm-zsh        -  require make install"
+	@echo "make sudoer        -  (macOS) sudoer setup"
 .PHONY: help
 
 cargo:
@@ -92,6 +94,13 @@ nvim-force:
 	# idea vim
 	ln -svf $(PWD)/nvim/vimrc.vim ~/.ideavimrc
 .PHONY: nvim-force
+
+# https://apple.stackexchange.com/questions/398656/sudoers-file-resets-with-every-macos-update/398669#398669
+# This enable me to skip password when sudo is required.
+sudoer:
+	@echo "add $$(whoami) to /private/etc/sudoers.d"
+	-echo "$$(whoami) ALL=(ALL) NOPASSWD:ALL" | sudo tee /private/etc/sudoers.d/$$(whoami)
+.PHONY: sudoer
 
 rm-zsh:
 	rm -v $(HOME)/.zlogin $(HOME)/.zprofile $(HOME)/.zshenv $(HOME)/.zshrc

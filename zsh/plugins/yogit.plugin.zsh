@@ -30,7 +30,7 @@ function yogit::help() {
   printf "--> basic usage\n"
   print "${_yogit_basic_prefix}htest     : ssh -T git@github.com"
   print "${_yogit_basic_prefix}st        : git status"
-  print "${_yogit_basic_prefix}sc        : git clone with --depth 1"
+  print "${_yogit_basic_prefix}sc        : git clone with depth 1 and shallow clone submodules with depth 1"
   print "${_yogit_basic_prefix}cob       : git checkout -b"
   print "${_yogit_basic_prefix}a         : git add"
   print "${_yogit_basic_prefix}c         : git commit -v"
@@ -124,9 +124,10 @@ alias "${_yogit_basic_prefix}st"='git status'
 
 # shallow clone with --depth 1
 function yogit::shallowclone(){
-  print "clone with --depth 1 --recurse-submodules -j8"
+  print "clone with --depth 1 --recurse-submodules -j8 --shallow-submodules"
   # https://stackoverflow.com/questions/3796927/how-do-i-git-clone-a-repo-including-its-submodules
-  git clone $@ --depth 1 --recurse-submodules -j8
+  # https://stackoverflow.com/questions/2144406/how-to-make-shallow-git-submodules
+  git clone $@ --depth 1 --recurse-submodules -j8 --shallow-submodules
 }
 
 alias "${_yogit_basic_prefix}sc"='yogit::shallowclone'
