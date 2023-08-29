@@ -260,4 +260,8 @@ alias rustc18="rustc --edition=2018"
 alias rustccfg="touch rust_toolchain.toml"
 # }}}
 
+# ========== pnpm ========== {{{
+alias pn="pnpm"
+# }}}
+
 # vim:ft=zsh:foldmarker={{{,}}}
