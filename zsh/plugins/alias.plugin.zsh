@@ -30,7 +30,7 @@ alias rm='rm -v'
 alias ln='ln -v'
 # }}}
 
-alias socks5="http_proxy=socks5://127.0.0.1:7890 https_proxy=socks5://127.0.0.1:7890 all_proxy=socks5://127.0.0.1:7890"
+alias proxy="http_proxy=socks5://127.0.0.1:7890 https_proxy=socks5://127.0.0.1:7890 all_proxy=socks5://127.0.0.1:7890"
 # print clang included header paths
 alias printclang="clang++ -E -x c++ - -v < /dev/null"
 alias printcc="cc -E -x c++ - -v < /dev/null"
@@ -103,6 +103,21 @@ if [ $is_macOS ];then
   alias printmaxfd="launchctl limit maxfiles"
   alias printsdk="xcrun --show-sdk-path"
   alias printosx="xcrun  --sdk macosx --show-sdk-path"
+  # show key code
+  alias showhex="xxd -psd"
+
+  # use trash instead of rm in macOS
+  alias rm="trash -v"
+
+
+  # ========== headless Chrome ========== {{{
+  # requires chrome >= 59
+  alias chrome="/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome"
+  # alias chrome="/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome"
+  # alias chrome-canary="/Applications/Google\ Chrome\ Canary.app/Contents/MacOS/Google\ Chrome\ Canary"
+  # alias chromium="/Applications/Chromium.app/Contents/MacOS/Chromium"
+  # }}}
+
 fi
 
 # }}}
@@ -110,17 +125,6 @@ fi
 # youtube-dl
 # ========== youtube-dl========== {{{
 alias ydl="youtube-dl"
-# }}}
-
-# show key code
-alias showhex="xxd -psd"
-
-# ========== headless Chrome ========== {{{
-# requires chrome >= 59
-alias chrome="/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome"
-# alias chrome="/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome"
-# alias chrome-canary="/Applications/Google\ Chrome\ Canary.app/Contents/MacOS/Google\ Chrome\ Canary"
-# alias chromium="/Applications/Chromium.app/Contents/MacOS/Chromium"
 # }}}
 
 # ========== cmake ========== {{{
