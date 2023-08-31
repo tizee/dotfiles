@@ -1,0 +1,48 @@
+#!/usr/bin/env zsh
+
+# idea from https://github.com/Hanaasagi/machine-uid/blob/92df06edf9b0ad19bce785c6a26184d84cba1975/src/lib.rs#L25-L51
+
+function __mac_machine_uuid() {
+  ioreg -rd1 -c IOPlatformExpertDevice | grep 'IOPlatformUUID' | awk '{print $3}' | awk -F '"' '{print $2}'
+}
+
+function __linux_machine_uuid() {
+  if [[ -e /var/lib/dbus/machine-id ]]; then
+    cat /var/lib/dbus/machine-id
+  elif [[ -e /etc/machine-id ]]; then
+    cat /etc/machine-id
+  else
+    echo "Failed to get machine id for $(uname -s)"
+    exit 1
+  fi
+}
+
+function __bsd_machine_uuid() {
+  if [[ -e /etc/hostid ]]; then
+    cat /etc/hostid
+  elif [[ -x "$(command -v kenv)" ]]; then
+    kenv -q smbios.system.uuid
+  else
+    echo "Failed to get machine id for $(uname -s)"
+    exit 1
+  fi
+}
+
+function __machine_uuid() {
+  case $(uname -s) in
+    Linux*)
+      __linux_machine_uuid
+      ;;
+    Darwin*)
+      __mac_machine_uuid
+      ;;
+    FreeBSD*)
+      __bsd_machine_uuid
+      ;;
+    OpenBSD*)
+      __bsd_machine_uuid
+      ;;
+  esac
+}
+
+__machine_uuid

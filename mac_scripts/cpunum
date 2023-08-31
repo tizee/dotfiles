@@ -3,4 +3,5 @@
 _(){
   sysctl hw.ncpu | sed 's/hw.ncpu: //'
 }
+
 _

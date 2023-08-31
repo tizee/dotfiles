@@ -163,7 +163,7 @@ alias cyarn="yarn --registry https://registry.npm.taobao.org"
 # }}}
 
 # ========== gun pacakge ========== {{{
-alias awk="gawk"
+# alias awk="gawk"
 # }}}
 
 # ========== ps ========== {{{
