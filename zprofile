@@ -210,10 +210,10 @@ if $is_macOS; then
   #export FLUTTER_INSTALL="$HOME/dev/grepo_dart/flutter"
   #export FLUTTER_ROOT="$HOME/dev/grepo_dart/flutter"
   ## golang modules
-  #export GOPATH="$HOME/dev/go_proj"
+  export GOPATH="$HOME/projcts/goroot"
+  export GOBIN="$HOME/projcts/goroot/bin"
   ## go modules
-  #export GO111MODULE="on"
-  #PATH=/usr/local/go/bin:$PATH
+  PATH=$HOME/projects/goroot/bin:$PATH
   ## mame
   #alias mamed='/usr/local/Cellar/mame/0.234/share/mame/mamed'
   ## emacs
