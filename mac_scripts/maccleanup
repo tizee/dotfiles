@@ -2,7 +2,7 @@
 # idea from: https://gist.github.com/Aidurber/7549d3f83b00052cee745a6c4dcf7b9d
 
 
-function __cleanup_node_modules(){
+function __cleanup_node_modules() {
   # Cleanup old node_modules
   case "$1" in
     -clean)
@@ -19,7 +19,7 @@ function __cleanup_node_modules(){
 
 }
 
-function __cleanup_zig(){
+function __cleanup_zig() {
   # Cleanup old target
   case "$1" in
     -clean)
@@ -34,7 +34,7 @@ function __cleanup_zig(){
   esac
 }
 
-function __cleanup_rust(){
+function __cleanup_rust() {
   # Cleanup old target
   case "$1" in
     -clean)
@@ -45,6 +45,20 @@ function __cleanup_rust(){
     *)
       echo "List target in Rust projects older than 7 days"
       find . -name "target" -type d -mtime +7 -print0 | xargs -0 du -chs
+      ;;
+  esac
+}
+
+function __cleanup_golang() {
+  # Cleanup old target
+  case "$1" in
+    -clean)
+      go clean -modcache
+      echo "Done cleaning go module cache"
+      ;;
+    *)
+      echo "go clean dry-run"
+      go clean -n -modcache
       ;;
   esac
 }
@@ -98,6 +112,10 @@ case "$1" in
     shift
     __cleanup_rust $@
     ;;
+  -go)
+    shift
+    __cleanup_golang $@
+    ;;
   -homebrew)
     __cleanup_homebrew
     ;;
@@ -126,12 +144,14 @@ case "$1" in
     __cleanup_xcode
     __cleanup_zig
     __cleanup_rust
+    __cleanup_golang
     ;;
   *)
     echo 'usage: maccleanup [-name]
 options
     -zig [-clean]          clean Zig zig-cache folder order than 7 days (dry run by default)
     -rust [-clean]         clean Cargo target folder order than 7 days (dry run by default)
+    -go [-clean]           clean golang module cache (dry run by default)
     -homebrew              clean homebrew
     -node_modules [-clean] clean node_modules older than 7 days (dry run by default)
     -gem                   invoke gem cleanup
