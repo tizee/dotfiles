@@ -135,7 +135,7 @@ function yogit::get_gh_repo_size() {
   if [[ $# > 0 ]]; then
     local organ=$(echo $1 | awk -F 'github.com' '{print $2}' | sed 's/\.git//' | awk -F '/|:' '{print $2}')
     local repo_name=$(echo $1 | awk -F 'github.com' '{print $2}' | sed 's/\.git//' | awk -F '/|:' '{print $3}')
-    local repo_size=$(curl -sL https://api.github.com/repos/${organ}/${repo_name} | grep '"size"' | awk -F ':|,' '{print $2}')
+    local repo_size=$(curl -sL https://api.github.com/repos/${organ}/${repo_name} | grep -m 1 '"size"' | awk -F ':|,' '{print $2}')
     # convert to human readable size
     printf "${organ}/${repo_name} size:\n $(( $repo_size / 1024 )) Mb $(( $repo_size % 1024 )) Kb\n"
   else
