@@ -41,6 +41,7 @@ function yogit::help() {
   print "${_yogit_basic_prefix}sst       : list staged and unstaged file names only"
   print "${_yogit_basic_prefix}open      : open/xdg-open repo url in browser"
   print "${_yogit_basic_prefix}url       : ${_yogit_basic_prefix}url <remote-name> to print remote url"
+  print "${_yogit_basic_prefix}rtags     : list remote tags with 'git ls-remote --tags'"
   # github repos
   print "${_yogit_basic_prefix}ghsize    : get size of github repo"
   print "${_yogit_basic_prefix}ghurl     : github repo worktree url of current commit"
@@ -65,6 +66,7 @@ function yogit::help() {
   print "${yogit_show:-${_yogit_interactive_prefix}sc}        :  select commit with fzf"
   print "${yogit_branch:-${_yogit_interactive_prefix}br}      :  select branch with fzf"
   print "${yogit_diff:-${_yogit_interactive_prefix}diff}      :  diff with fzf"
+  print "${_yogit_interactive_prefix}rtags    :  select a tag name with fzf"
 }
 
 alias "${yogit_help:-${_yogit_interactive_prefix}help}"='yogit::help'
@@ -96,6 +98,12 @@ function yogit::url() {
 function yogit::open() {
   _yogit_open $(yogit::url)
 }
+
+function yogit::list_remote_tags() {
+  git ls-remote --tags | awk -F '/tags\/' '{print $2}'
+}
+
+alias "${_yogit_basic_prefix}rtags"='yogit::list_remote_tags'
 
 function yogit::gh_commit_url() {
   local commit=$(git rev-parse --verify ${1:-HEAD})
@@ -300,6 +308,10 @@ function yogit::checkout() {
   git branch | fzf | git checkout
 }
 
+function yogit::select_remote_tag() {
+  yogit::list_remote_tags | fzf
+}
+
 if [[ -z "$DISABLE_YOGIT_INTERACTIVE" ]]; then
 # checkout with fzf
 alias "${yogit_checkout:-${_yogit_interactive_prefix}co}"='yogit::checkout'
@@ -307,5 +319,6 @@ alias "${yogit_cherry_pick:-${_yogit_interactive_prefix}cp}"='yogit::cherry_pick
 alias "${yogit_show:-${_yogit_interactive_prefix}sc}"='yogit::select::commit'
 alias "${yogit_branch:-${_yogit_interactive_prefix}br}"='yogit::branch'
 alias "${yogit_diff:-${_yogit_interactive_prefix}diff}"='yogit::diff'
+alias "${_yogit_interactive_prefix}rtags"='yogit::select_remote_tag'
 fi
 # }}}
