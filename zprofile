@@ -209,12 +209,14 @@ if $is_macOS; then
   #export FLUTTER_STORAGE_BASE_URL=https://storage.flutter-io.cn
   #export FLUTTER_INSTALL="$HOME/dev/grepo_dart/flutter"
   #export FLUTTER_ROOT="$HOME/dev/grepo_dart/flutter"
-  ## golang modules
+  ## golang env
   export GOARCH="arm64"
   export GOOS="darwin"
+  # https://go.dev/ref/mod#mod-commands
+  export GO111MODULE="auto"
   export GOPATH="$HOME/projcts/goroot"
   export GOBIN="$HOME/projcts/goroot/bin"
-  ## go modules
+  ## go bin
   PATH=$HOME/projects/goroot/bin:$PATH
   ## mame
   #alias mamed='/usr/local/Cellar/mame/0.234/share/mame/mamed'
