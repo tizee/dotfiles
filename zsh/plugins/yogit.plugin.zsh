@@ -42,6 +42,7 @@ function yogit::help() {
   print "${_yogit_basic_prefix}open      : open/xdg-open repo url in browser"
   print "${_yogit_basic_prefix}url       : ${_yogit_basic_prefix}url <remote-name> to print remote url"
   print "${_yogit_basic_prefix}rtags     : list remote tags with 'git ls-remote --tags'"
+  print "${_yogit_basic_prefix}ftag      : fetch a remote tag with 'git fetch origin refs/tags/<lname>:refs/tags<rname> --no-tags'"
   # github repos
   print "${_yogit_basic_prefix}ghsize    : get size of github repo"
   print "${_yogit_basic_prefix}ghurl     : github repo worktree url of current commit"
@@ -104,6 +105,13 @@ function yogit::list_remote_tags() {
 }
 
 alias "${_yogit_basic_prefix}rtags"='yogit::list_remote_tags'
+
+function yogit::fetch_remote_tag() {
+  # syntatic sugar: git fetch origin refs/tags/local-tag-name:refs/tags/remote-tag-name --no-tags
+  git fetch --depth=1 origin tag $1 --no-tags
+}
+
+alias "${_yogit_basic_prefix}ftag"='yogit::fetch_remote_tag'
 
 function yogit::gh_commit_url() {
   local commit=$(git rev-parse --verify ${1:-HEAD})
