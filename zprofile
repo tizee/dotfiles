@@ -210,6 +210,8 @@ if $is_macOS; then
   #export FLUTTER_INSTALL="$HOME/dev/grepo_dart/flutter"
   #export FLUTTER_ROOT="$HOME/dev/grepo_dart/flutter"
   ## golang modules
+  export GOARCH="arm64"
+  export GOOS="darwin"
   export GOPATH="$HOME/projcts/goroot"
   export GOBIN="$HOME/projcts/goroot/bin"
   ## go modules
