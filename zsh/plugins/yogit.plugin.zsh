@@ -41,8 +41,10 @@ function yogit::help() {
   print "${_yogit_basic_prefix}sst       : list staged and unstaged file names only"
   print "${_yogit_basic_prefix}open      : open/xdg-open repo url in browser"
   print "${_yogit_basic_prefix}url       : ${_yogit_basic_prefix}url <remote-name> to print remote url"
-  print "${_yogit_basic_prefix}ghurl     github repo worktree url of current commit"
-  print "${_yogit_basic_prefix}opengh    open github repo worktree url of current commit"
+  # github repos
+  print "${_yogit_basic_prefix}ghsize    : get size of github repo"
+  print "${_yogit_basic_prefix}ghurl     : github repo worktree url of current commit"
+  print "${_yogit_basic_prefix}opengh    : open github repo worktree url of current commit"
   print "${_yogit_basic_prefix}lr        : remote list"
   print "${_yogit_basic_prefix}ls        : git ls-files --others --exclude-standard"
   print "${_yogit_basic_prefix}pickclone : git clone --sparse --filter=blob:none --depth=1 --no-checkout"
@@ -108,6 +110,26 @@ function yogit::gh_commit_url() {
 # open Github's permanent url of given commit of a git worktree
 function yogit::open_gh_commit() {
   _yogit_open $(yogit::gh_commit_url $1)
+}
+
+alias "${_yogit_basic_prefix}ghsize"='yogit::get_gh_repo_size'
+
+# idea from https://stackoverflow.com/questions/2882620/is-it-possible-to-remote-count-object-and-size-of-git-repository
+function yogit::get_gh_repo_size() {
+  if [[ $# > 0 ]]; then
+    local organ=$(echo $1 | awk -F 'github.com' '{print $2}' | sed 's/.git//' | awk -F '/|:' '{print $2}')
+    local repo_name=$(echo $1 | awk -F 'github.com' '{print $2}' | sed 's/.git//' | awk -F '/|:' '{print $3}')
+    local repo_size=$(curl -sL https://api.github.com/repos/${organ}/${repo_name} | grep size | awk -F ':|,' '{print $2}')
+    # convert to human readable size
+    printf "${organ}/${repo_name} size:\n $(( $repo_size / 1024 )) Mb $(( $repo_size % 1024 )) Kb\n"
+  else
+    echo 'usage: [repo url]
+url format:
+    git@github.com:${organ}/${repo_name}.git
+    https://github.com/${organ}/${repo_name}.git
+    https://github.com/${organ}/${repo_name}
+    '
+  fi
 }
 
 alias "${_yogit_basic_prefix}ghurl"='yogit::gh_commit_url'
