@@ -213,9 +213,9 @@ if $is_macOS; then
   export GOARCH="arm64"
   export GOOS="darwin"
   # https://go.dev/ref/mod#mod-commands
-  export GO111MODULE="auto"
-  export GOPATH="$HOME/projcts/goroot"
-  export GOBIN="$HOME/projcts/goroot/bin"
+  export GO111MODULE="on"
+  export GOPATH="$HOME/projects/goroot"
+  export GOBIN="$HOME/projects/goroot/bin"
   ## go bin
   PATH=$HOME/projects/goroot/bin:$PATH
   ## mame
