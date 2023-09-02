@@ -214,10 +214,11 @@ if $is_macOS; then
   export GOOS="darwin"
   # https://go.dev/ref/mod#mod-commands
   export GO111MODULE="on"
-  export GOPATH="$HOME/projects/goroot"
-  export GOBIN="$HOME/projects/goroot/bin"
+  export GOPATH="$HOME/projects/gopath"
+  export GOBIN="$HOME/projects/gopath/bin"
   ## go bin
   PATH=$HOME/projects/goroot/bin:$PATH
+  PATH=$HOME/projects/gopath/bin:$PATH
   ## mame
   #alias mamed='/usr/local/Cellar/mame/0.234/share/mame/mamed'
   ## emacs
