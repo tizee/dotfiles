@@ -133,8 +133,8 @@ alias "${_yogit_basic_prefix}ghsize"='yogit::get_gh_repo_size'
 # idea from https://stackoverflow.com/questions/2882620/is-it-possible-to-remote-count-object-and-size-of-git-repository
 function yogit::get_gh_repo_size() {
   if [[ $# > 0 ]]; then
-    local organ=$(echo $1 | awk -F 'github.com' '{print $2}' | sed 's/\.git//' | awk -F '/|:' '{print $2}')
-    local repo_name=$(echo $1 | awk -F 'github.com' '{print $2}' | sed 's/\.git//' | awk -F '/|:' '{print $3}')
+    local organ=$(echo $1 | sed -nE 's#(https?://github.com/|git@github.com:)([^/]+)/([^/.]+)(\.git)?#\2#p')
+    local repo_name=$(echo $1 | sed -nE 's#(https?://github.com/|git@github.com:)([^/]+)/([^/.]+)(\.git)?#\3#p')
     local repo_size=$(curl -sL https://api.github.com/repos/${organ}/${repo_name} | grep -m 1 '"size"' | awk -F ':|,' '{print $2}')
     # convert to human readable size
     printf "${organ}/${repo_name} size:\n $(( $repo_size / 1024 )) Mb $(( $repo_size % 1024 )) Kb\n"
