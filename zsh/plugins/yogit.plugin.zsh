@@ -83,9 +83,9 @@ function yogit::is_git_repo(){
 
 function yogit::current_branch() {
   yogit::is_git_repo || return 1
-  local ref=$(git symbolic-ref --quiet HEAD 2> /dev/null)
+  local ref=$(git symbolic-ref --quiet HEAD 2> /dev/null | sed -E 's#refs/heads/(.*)#\1#')
   # TODO detached head
-  echo ${ref#refs/heads/}
+  echo ${ref}
 }
 # }}}
 

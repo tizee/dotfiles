@@ -10,7 +10,7 @@
   gpgsign=true
   template = ~/.config/git/commit.template
 [gpg]
-  program = /opt/homebrew/bin/gpg
+  program = /usr/local/bin/gpg
 
 [init]
   templateDir=~/.config/git/hooks
