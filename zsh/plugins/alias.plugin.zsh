@@ -122,9 +122,9 @@ fi
 
 # }}}
 
-# youtube-dl
+# youtube-dl or its alternative yt-dlp
 # ========== youtube-dl========== {{{
-alias ydl="youtube-dl"
+alias ydl="yt-dlp"
 # }}}
 
 # ========== cmake ========== {{{

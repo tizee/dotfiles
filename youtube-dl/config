@@ -1,2 +1,0 @@
---proxy "socks5://127.0.0.1:7890"
-# -o ~/Downloads/videos/%(title)s.%(ext)s
