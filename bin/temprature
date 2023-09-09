@@ -1,0 +1,31 @@
+#!/usr/bin/env zsh
+
+function _fahrenheit2celsius() {
+  local res=$(echo "scale = 2; $1 - 32" | bc)
+  echo "scale = 2; $res * 5 / 9" | bc
+}
+
+function _celsius2fahrenheit() {
+  echo "scale = 2; $1 * 9 / 5 + 32" | bc
+}
+
+function _temprature() {
+  case "$1" in
+    -f)
+      shift
+      _celsius2fahrenheit $@
+      ;;
+    -c)
+      shift
+      _fahrenheit2celsius $@
+      ;;
+    "")
+      echo "temperature -c <Fahrenheit>/ -f <Celsius>"
+      ;;
+    *)
+      _fahrenheit2celsius $@
+      ;;
+  esac
+}
+
+_temprature "${@}"
