@@ -41,7 +41,7 @@ function M:setup()
   }
 
   -- swap-ternary.nvim
-  vim.api.nvim_set_keymap('n', '<leader>s', ':lua require("swap-ternary").start()<CR>', { noremap = true, silent = true })
+  vim.api.nvim_set_keymap('n', '<leader>s', ':lua require("swap-ternary").swap()<CR>', { noremap = true, silent = true })
 
 end
 
