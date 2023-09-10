@@ -18,6 +18,7 @@ Plug 'amadeus/vim-convert-color-to'
 " eye candy
 if has('nvim')
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}  " We recommend updating the parsers on update
+Plug '~/projects/swap-ternary.nvim'
 endif
 " debugger
 Plug 'puremourning/vimspector'

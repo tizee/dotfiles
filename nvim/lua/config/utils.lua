@@ -10,6 +10,8 @@ function global:load_variables()
 	self.is_windows = os_name == 'Windows'
   self.path_sep = path_sep_comp
 	self.home = home
+  -- plug root
+  self.plugin_root = home .. path_sep_comp .. ".vim" .. path_sep_comp .. "plugged"
   self.nvim_config_path = home .. path_sep_comp .. '.config' .. path_sep_comp .. 'nvim' .. path_sep_comp
 end
 
