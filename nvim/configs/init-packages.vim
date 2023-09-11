@@ -108,6 +108,9 @@ Plug 'tizee/md-table.vim'
 " vista for tags
 " could use :CocOutline directly
 Plug 'liuchengxu/vista.vim'
+
+" editorconfig plugin
+Plug 'editorconfig/editorconfig-vim'
 " Leaderf
 " Plug 'Yggdroot/LeaderF',{ 'do': ':LeaderfInstallCExtension' }
 " }}}
