@@ -28,7 +28,7 @@ function M:setup()
 
       -- to disable slow treesitter highlight for large files
       disable = function(lang, buf)
-          local max_filesize = 1024 * 1024 -- 1 MB
+          local max_filesize = 5 * 1024 * 1024 -- 5 MB
           local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
           if ok and stats and stats.size > max_filesize then
               return true
@@ -41,7 +41,7 @@ function M:setup()
   }
 
   -- swap-ternary.nvim
-  vim.api.nvim_set_keymap('n', '<leader>s', ':lua require("swap-ternary").swap()<CR>', { noremap = true, silent = true })
+  vim.api.nvim_set_keymap('n', '<leader>S', ':lua require("swap-ternary").swap()<CR>', { noremap = true, silent = true })
 
 end
 

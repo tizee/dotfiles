@@ -11,9 +11,9 @@ set t_BE=
 
 " Normal Mode {{{
 
-" virmrc/init.vim
-" TODO: check existence
-nnoremap <leader>ev :tabe $MYVIMRC<cr>
+" virmrc/init.vim/init.lua
+nnoremap <leader>ev :tabe $HOME/.config/nvim/vimrc.vim<cr>
+nnoremap <leader>en :tabe $MYVIMRC<cr>
 nnoremap <leader>sv :source $MYVIMRC<cr>
 nnoremap <leader>n :set rnu!<CR>
 " disable arrow

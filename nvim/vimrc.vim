@@ -200,7 +200,7 @@ filetype on
 " shift indent
 " set tabstop=8
 " always use tab character
-set noexpandtab 
+set noexpandtab
 set shiftwidth=2
 set tabstop=2
 " set smartindent
@@ -285,22 +285,22 @@ if !exists("g:os")
   endif
 endif
 
-if !has("gui_running")
+if has("gui_running")
   " Spaces after a comma are ignored.  To include a comma in a font name
 	" precede it with a backslash.  Setting an option requires an extra
 	" backslash before a space and a backslash.  See also
 	" |option-backslash|.  For example: >
 	"     :set guifont=Screen15,\ 7x13,font\\,with\\,commas
   if g:os == "Darwin"
-    set guifont=JetBrainsMono\ Nerd\ Font\ Mono\:h16
+    set guifont=JetBrainsMono\ Nerd\ Font\:h16
     set guifontwide=LXGW\ WenKai\ Mono\:h16
     " enable python3 support for neovim
     " :echo has('python3')
     " 1: enable, 0: disable
-    let g:python3_host_prog="~/anaconda3/bin/python"
+    let g:python3_host_prog="/opt/homebrew/bin/python3"
     " set guifont=Fira\ Mono:h12
   elseif g:os == "Linux"
-    set guifont=JetBrainsMono\ Nerd\ Font\ Mono\ 16
+    set guifont=JetBrainsMono\ Nerd\ Font\ Mono\ 18
     " enable python3 support for neovim
     " :echo has('python3')
     " 1: enable, 0: disable
@@ -309,7 +309,7 @@ if !has("gui_running")
     " Linux only
     cmap w!! w !sudo tee > /dev/null %
   elseif g:os == "Windows"
-    set guifont=JetBrainsMono\ Nerd\ Font\ Mono\ 16
+    set guifont=JetBrainsMono\ Nerd\ Font\ Mono\ 18
   endif
 endif
 
