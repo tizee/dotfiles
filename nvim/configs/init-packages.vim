@@ -70,7 +70,7 @@ Plug 'tizee/unicode.vim'
 " Chinese format
 Plug 'hotoo/pangu.vim'
 " vifm
-Plug 'vifm/vifm.vim'
+" Plug 'vifm/vifm.vim'
 " ziglang
 Plug 'ziglang/zig.vim'
 " start screen
