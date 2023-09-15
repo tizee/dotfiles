@@ -1,11 +1,12 @@
--- message widget
+-- luacheck: globals hs
+-- a message widget
 local drawing = require 'hs.drawing'
 local screen = require 'hs.screen'
 local styledtext = require 'hs.styledtext'
 
 local statusmessage = {}
 statusmessage.new = function(messageText)
-  local buildParts = function(messageText)
+  local buildParts = function(msg)
     local frame = screen.primaryScreen():frame()
 
     local styledTextAttributes = {
@@ -13,7 +14,7 @@ statusmessage.new = function(messageText)
       color = { white = 1, alpha = 0.95}
     }
 
-    local styledText = styledtext.new('MODE ' .. messageText, styledTextAttributes)
+    local styledText = styledtext.new('MODE ' .. msg, styledTextAttributes)
 
     local styledTextSize = drawing.getTextDrawingSize(styledText)
     local textRect = {
@@ -40,10 +41,11 @@ statusmessage.new = function(messageText)
 
   return {
     _buildParts = buildParts,
+    msg = messageText,
     show = function(self)
       self:hide()
 
-      self.background, self.text = self._buildParts(messageText)
+      self.background, self.text = self._buildParts(self.msg)
       self.background:show()
       self.text:show()
     end,
@@ -58,9 +60,9 @@ statusmessage.new = function(messageText)
       end
     end,
     notify = function(self, seconds)
-      local seconds = seconds or 1
+      local secs = seconds or 1
       self:show()
-      hs.timer.delayed.new(seconds, function() self:hide() end):start()
+      hs.timer.delayed.new(secs, function() self:hide() end):start()
     end
   }
 end

@@ -30,15 +30,17 @@ return {
     showHelp  = true,
     trigger   = 't',
     mappings  = {
-      { {},         't', 'quickNavigation'},
+      { {},         'q', 'quickNavigation'},
       { {},         'i', 'showAppInfo'},
       { {},         'd', 'toggleDarkMode'},
       { {},         'r',  'reloadConfig' },
-      { {},         'h',      'Firefox'},
-      { {},         'j',      'OmniFocus'},
-      { {},         'l',      'Obsidian'},
-      { {},         'f',      'Finder'},
-      { {},         's',      'Telegram'},
+      { {},         'y',  'pasteBoardYoutubeURL' },
+      { {},         't',  'pasteBoardRemoveTrackers' },
+      { {},         'h',      'Arc'},
+      { {},         'j',      'Reeder'},
+      { {},         'k',      'Obsidian'},
+      { {},         'l',      'Telegram'},
+      { {},         'i',      'Obsidian'},
     },
   }
 }

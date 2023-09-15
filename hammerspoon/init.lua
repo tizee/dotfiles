@@ -1,26 +1,28 @@
--- hotkey debug
-require('hs.hotkey').setLogLevel("warning")
+-- luacheck: globals hs
 
 -- local var from hammerspoon
-local hotkey = require('hs.hotkey')
 local alert = require('hs.alert')
 local application = require('hs.application')
 local pathwatcher = require('hs.pathwatcher')
 local hints = require('hs.hints')
-local grid = require('hs.grid')
+local hotkey = require('hs.hotkey')
+-- hotkey debug
+hotkey.setLogLevel("warning")
+-- local grid = require('hs.grid')
 
 -- hyper key
 -- idea from https://github.com/jasonrudolph/keyboard
-local hyper = {"cmd","shift"}
+-- local hyper = {"cmd","shift"}
 local CONFIG_PATH = os.getenv("HOME") .. "/.hammerspoon/"
 
 -- config <-
-HS_Config = require('config')
+local HS_Config = require('config')
 
 -- no animation
 hs.window.animationDuration = 0.0
 
--- This controls the set of characters that will be used for window hints. They must be characters found in hs.keycodes.map
+-- This controls the set of characters that will be used for window hints.
+-- They must be characters found in hs.keycodes.map
 hints.hintChars = {"J","K","H","L","A","S","D","F"}
 hints.fontName = "JetBrainsMono Nerd Font"
 hints.fontSize = 24
@@ -38,6 +40,8 @@ alert.defaultStyle.textSize = 30
 
 -- keybindings <-
 
+require('safe-command-q')
+require('pasteboard-link-rewriter')
 require("window-layout-mode")
 require("quick-action-mode")
 require("switch-window-mode")
@@ -64,10 +68,10 @@ require("switch-window-mode")
 --     setCaffeineDisplay(hs.caffeinate.toggle("displayIdle"))
 -- end
 
-if caffeine then
-    caffeine:setClickCallback(caffeineClicked)
-    setCaffeineDisplay(hs.caffeinate.get("displayIdle"))
-end
+-- if caffeine then
+    -- caffeine:setClickCallback(caffeineClicked)
+    -- setCaffeineDisplay(hs.caffeinate.get("displayIdle"))
+-- end
 
 -- Bring Finder.app windows to front when focus
 local function applicationWatcher(appName, eventType, appObject)
@@ -83,8 +87,8 @@ finderWatcher:start()
 -- ->
 
 -- auto-reload config
+local doReload = false
 local function reloadConfig(files)
-    doReload = false
     for _,file in pairs(files) do
         if file:sub(-4) == ".lua" then
             doReload = true

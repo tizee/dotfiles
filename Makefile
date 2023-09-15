@@ -57,8 +57,7 @@ zsh-force:
 
 hammerspoon:
 	@echo "link hammerspoon config"
-	mkdir -p $(HOME)/.hammerspoon
-	ln -sv $(PWD)/hammerspoon/* $(HOME)/.hammerspoon
+	ln -sv $(PWD)/hammerspoon $(HOME)/.hammerspoon
 .PHONY: hammerspoon
 
 emacs:

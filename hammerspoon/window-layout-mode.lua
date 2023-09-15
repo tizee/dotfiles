@@ -1,4 +1,5 @@
-HS_Config = require('config')
+-- luacheck: globals hs
+local HS_Config = require('config')
 local mode_comp = require('mode')
 
 -- window layout utils
@@ -220,8 +221,8 @@ function wm_utils.nextScreen()
   local win = hs.window.focusedWindow()
   local currentScreen = win:screen()
   local allScreens = hs.screen.allScreens()
-  currentScreenIndex = hs.fnutils.indexOf(allScreens, currentScreen)
-  nextScreenIndex = currentScreenIndex + 1
+  local currentScreenIndex = hs.fnutils.indexOf(allScreens, currentScreen)
+  local nextScreenIndex = currentScreenIndex + 1
 
   if allScreens[nextScreenIndex] then
     win:moveToScreen(allScreens[nextScreenIndex])

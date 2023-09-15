@@ -1,4 +1,5 @@
-HS_Config = require('config')
+-- luacheck: globals hs mode config
+local HS_Config = require('config')
 local mode_comp = require('mode')
 local alert = require('hs.alert')
 local hints = require('hs.hints')
@@ -33,14 +34,14 @@ end
 local actions= {}
 -- action name to app name
 local app_names= {
- {"Firefox","Firefox Developer Edition"},
+ {"Arc","Arc"},
+ {"Reeder","Reeder"},
  {"OmniFocus","OmniFocus"},
  {"Obsidian","Obsidian"},
- {"Telegram","Telegram"},
- {"Finder","Finder"}}
+ {"Telegram","Telegram"},}
 
 
-for key,row in ipairs(app_names) do
+for _,row in ipairs(app_names) do
   local action, name = table.unpack(row)
   actions[action] = function ()
     toggle_app(name)
@@ -77,6 +78,16 @@ local function read_file_content(full_path)
   local data = file:read("*a")
   file:close()
   return data
+end
+
+function actions.pasteBoardRemoveTrackers()
+  local rewriter = require('pasteboard-link-rewriter')
+  rewriter.remove_link_tracker()
+end
+
+function actions.pasteBoardYoutubeURL()
+  local rewriter = require('pasteboard-link-rewriter')
+  rewriter.rewrite_youtube_link()
 end
 
 -- toggle dark mode

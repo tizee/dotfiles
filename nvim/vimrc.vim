@@ -200,7 +200,8 @@ filetype on
 " shift indent
 " set tabstop=8
 " always use tab character
-set noexpandtab
+" set noexpandtab
+set expandtab " always use space
 set shiftwidth=2
 set tabstop=2
 " set smartindent

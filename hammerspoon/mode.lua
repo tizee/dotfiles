@@ -1,5 +1,6 @@
+-- luacheck: globals hs
 -- Hammerspoon based mode component
-local log = hs.logger.new('mode','debug')
+-- local log = hs.logger.new('mode','debug')
 
 -- generic mode component
 local mode_comp = {}
@@ -92,7 +93,8 @@ end
 
 -- static mode component
 -- modeName: mode name
--- keycode: A string containing the name of a keyboard key (as found in hs.keycodes.map ), or a raw keycode number, usually this is an non-op keycode
+-- keycode: A string containing the name of a keyboard key (as found in hs.keycodes.map ),
+-- or a raw keycode number, usually this is an non-op keycode
 -- modeMappings: mapping configuration table
 -- opTable: table of operations
 mode_comp.new = function(modeName,keycode,modeConfig,opTable)
