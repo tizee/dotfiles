@@ -5,8 +5,6 @@ local M = {}
 local alert = require 'hs.alert'
 
 -- rewrite https://www.youtube.com/watch?v={video-hash-code} to https://youtu.be/{video-hash-code}
--- https://youtu.be/PHe0bXAIuk0?si=1YiGLQ9VI9O0A7nS
--- https://www.youtube.com/watch?v=PHe0bXAIuk0
 local function youtube(url)
   if url == nil then
     return nil
