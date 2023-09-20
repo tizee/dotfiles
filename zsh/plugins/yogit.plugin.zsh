@@ -163,7 +163,8 @@ alias "${_yogit_basic_prefix}htest"='ssh -T git@github.com'
 alias "${_yogit_basic_prefix}st"='git status'
 
 # shallow clone with --depth 1
-function yogit::shallowclone(){
+# supports self-hosted git repo url, github, gitlab and etc.
+function yogit::shallowclone() {
   print "clone with --depth 1 --recurse-submodules -j8 --shallow-submodules"
   # https://stackoverflow.com/questions/3796927/how-do-i-git-clone-a-repo-including-its-submodules
   # https://stackoverflow.com/questions/2144406/how-to-make-shallow-git-submodules
