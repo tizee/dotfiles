@@ -15,28 +15,28 @@ if [[ $(uname -s) = "Darwin" ]]; then
 
   # Miscellaneous {{{
   # Jump to the spot that's clicked on the scroll bar
-  defaults write -g "AppleScrollerPagingBehavior" -bool "true"
+  defaults write -g "AppleScrollerPagingBehavior" -bool true
 
   # Prefer tabs when opening documents
   defaults write -g "AppleWindowTabbingMode" -string "always"
   # Disable smart dash/period/quote substitutions
-  defaults write -g "NSAutomaticDashSubstitutionEnabled" -bool "false"
-  defaults write -g "NSAutomaticPeriodSubstitutionEnabled" -bool "false"
-  defaults write -g "NSAutomaticQuoteSubstitutionEnabled" -bool "false"
+  defaults write -g "NSAutomaticDashSubstitutionEnabled" -bool false
+  defaults write -g "NSAutomaticPeriodSubstitutionEnabled" -bool false
+  defaults write -g "NSAutomaticQuoteSubstitutionEnabled" -bool false
   # Disable automatic capitalization
-  defaults write -g "NSAutomaticCapitalizationEnabled" -bool "false"
+  defaults write -g "NSAutomaticCapitalizationEnabled" -bool false
   # speedup resizing for Cocoa applications
   defaults write -g "NSWindowResizeTime" -float 0.01
   # }}}
 
   # iCloud {{{
   # Save to disk (not to iCloud) by default
-  defaults write -g "NSDocumentSaveNewDocumentsToCloud" -bool "true"
+  defaults write -g "NSDocumentSaveNewDocumentsToCloud" -bool true
   # }}}
 
   # Time and Timezone {{{
   # do not use analog clock
-  defaults write com.apple.menuextra.clock "IsAnalog" -bool "false"
+  defaults write com.apple.menuextra.clock "IsAnalog" -bool false
   # Week Month day hour(12-hour format):minutes(leading-zero) AM/PM indicator
   defaults write com.apple.menuextra.clock "DateFormat" -string "EEE MMM d h:mm a"
 
@@ -45,8 +45,8 @@ if [[ $(uname -s) = "Darwin" ]]; then
   # }}}
 
   # Keyboard {{{
-  # disable press-and-hold
-  defaults write -g ApplePressAndHoldEnabled -bool false
+  # disable press-and-hold for displaying accents menu
+  defaults write -g "ApplePressAndHoldEnabled" -bool false
   # https://gist.github.com/hofmannsven/ff21749b0e6afc50da458bebbd9989c5
   # key repeat rate
   defaults write -g "InitialKeyRepeat" -int 10 # normal minimal is 15 (225ms)
@@ -57,44 +57,51 @@ if [[ $(uname -s) = "Darwin" ]]; then
   # 1 - enable keyboard acess for all controls
   # 2 - use Tab to navigate between UI elements
   # 3 - enable additional keyboard navigation features, including navigate dialog boxex and pop-up menus
-  defaults write NSGlobalDomain "AppleKeyboardUIMode" -int 3
+  defaults write -g "AppleKeyboardUIMode" -int 3
 
   # }}}
 
   # Dock {{{
+  # killall Dock to activate
+  # Dock position
+  # possible values: left, bottom, right
+  defaults write com.apple.dock "orientation" -string "right"
   # disable launch animation for saving a tad computing resources from eye candy
-  defaults write com.apple.dock "launchanim" -bool "false"
+  defaults write com.apple.dock "launchanim" -bool false
   # enable autohide
-  defaults write com.apple.dock "autohide" -bool "true"
+  defaults write com.apple.dock "autohide" -bool true
   # show dock in seconds
   # It would be weird if set it to 0
-  defaults write com.apple.dock "autohide-time-modifier" -float "0.1"
+  defaults write com.apple.dock "autohide-time-modifier" -float 0.1
   # autohide delay time in seconds
-  defaults write com.apple.dock "autohide-delay" -float "0"
+  defaults write com.apple.dock "autohide-delay" -float 0
   # minimize windows into their application’s icon
-  defaults write com.apple.dock "minimize-to-application" -bool "true"
+  defaults write com.apple.dock "minimize-to-application" -bool true
   # enable spring loading for all Dock items
-  defaults write com.apple.dock "enable-spring-load-actions-on-all-items" -bool "true"
+  defaults write com.apple.dock "enable-spring-load-actions-on-all-items" -bool true
   # show indicator lights for open applications in the Dock
-  defaults write com.apple.dock "show-process-indicators" -bool "true"
+  defaults write com.apple.dock "show-process-indicators" -bool true
   # make Dock icons of hidden applications translucent
-  defaults write com.apple.dock "showhidden" -bool "true"
+  defaults write com.apple.dock "showhidden" -bool true
   # don’t show recent applications in Dock
-  defaults write com.apple.dock "show-recents" -bool "false"
+  defaults write com.apple.dock "show-recents" -bool false
   # don’t automatically rearrange Spaces based on most recent use
-  defaults write com.apple.dock "mru-spaces" -bool "false"
+  defaults write com.apple.dock "mru-spaces" -bool false
   # speed up Mission Control animations
   defaults write com.apple.dock "expose-animation-duration" -float 0.1
   # group windows by application in Mission Control
-  defaults write com.apple.dock "expose-group-by-app" -bool "true"
+  defaults write com.apple.dock "expose-group-by-app" -bool true
 
   # }}}
 
   # Finder {{{
+  # killall Finder to activate
+  # display quit option
+  defaults write com.apple.finder "QuitMenuItem" -bool "true"
   # always display file path at the bottom of Finder window
-  defaults write com.apple.finder "ShowPathbar" -bool "true"
+  defaults write com.apple.finder "ShowPathbar" -bool true
   # always show hidden files (⌘ Command + ⇧ Shift + . to toggle)
-  defaults write com.apple.finder "AppleShowAllFiles" -bool "true"
+  defaults write com.apple.finder "AppleShowAllFiles" -bool true
   # use list view style by default
   # Possible values:
   # Nlsv - list view
@@ -103,7 +110,7 @@ if [[ $(uname -s) = "Darwin" ]]; then
   # icnv - Icon view
   defaults write com.apple.finder "FXPreferredViewStyle" -string "Nlsv"
   # Keep folders on top when sorted by name
-  defaults write com.apple.finder "_FXSortFoldersFirst" -bool "true"
+  defaults write com.apple.finder "_FXSortFoldersFirst" -bool true
   # Search scope
   # Possible values:
   # Sccf - search current folder
@@ -111,18 +118,18 @@ if [[ $(uname -s) = "Darwin" ]]; then
   # SCev - search this Mac
   defaults write com.apple.finder "FXDefaultSearchScope" -string "SCcf"
   # disable the warning when changing a file extension
-  defaults write com.apple.finder "FXEnableExtensionChangeWarning" -bool "false"
+  defaults write com.apple.finder "FXEnableExtensionChangeWarning" -bool false
 
   # }}}
 
   # Trackpad {{{
   # enable trackpad tap to click
-  defaults write com.apple.AppleMultitouchTrackpad "Clicking" -bool "true"
-  defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad "Clicking" -bool "true"
+  defaults write com.apple.AppleMultitouchTrackpad "Clicking" -bool true
+  defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad "Clicking" -bool true
 
   # enable 3-finger drag
-  defaults write com.apple.AppleMultitouchTrackpad "TrackpadThreeFingerDrag" -bool "true"
-  defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad "TrackpadThreeFingerDrag" -bool "true"
+  defaults write com.apple.AppleMultitouchTrackpad "TrackpadThreeFingerDrag" -bool true
+  defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad "TrackpadThreeFingerDrag" -bool true
   # }}}
 
   # Crash report {{{
@@ -139,36 +146,41 @@ if [[ $(uname -s) = "Darwin" ]]; then
 
   # Print {{{
   # always display expanded options when print
-  defaults write NSGlobalDomain "PMPrintingExpandedStateForPrint" -bool "true"
+  defaults write NSGlobalDomain "PMPrintingExpandedStateForPrint" -bool true
   # always display expanded options when save
-  defaults write NSGlobalDomain "NSNavPanelExpandedStateForSaveMode" -bool "true"
+  defaults write NSGlobalDomain "NSNavPanelExpandedStateForSaveMode" -bool true
   # }}}
 
   # Screenshot {{{
+  # killall SystemUIServer to activate
   # do not include date and time in screenshot files
-  defaults write com.apple.screencapture "include-date" -bool "false"
+  defaults write com.apple.screencapture "include-date" -bool false
   # disable shadow effect
-  defaults write com.apple.screencapture "disable-shadow" -bool "true"
+  defaults write com.apple.screencapture "disable-shadow" -bool true
+  # save location
+  defaults write com.apple.screencapture "location" -string "$HOME/Pictures/Screenshots"
+  # simulator screenshot location
+  defaults write com.apple.iphonesimulator "ScreenShotSaveLocation" -string "$HOME/Pictures/Screenshots"
   # }}}
 
   # Feedback assistant {{{
   # do not gather large files when submitting a report
-  defaults write com.apple.appleseed.FeedbackAssistant "Autogather" -bool "false"
+  defaults write com.apple.appleseed.FeedbackAssistant "Autogather" -bool false
   # }}}
 
   # XCode {{{
   # show build duration in XCode's toolbar
-  defaults write com.apple.dt.Xcode "ShowBuildOperationDuration" -bool "true"
+  defaults write com.apple.dt.Xcode "ShowBuildOperationDuration" -bool true
   # }}}
 
   # Email {{{
   # Copy addresses as `foo@example.com` instead of `Foo Bar <foo@example.com>`
-  defaults write com.apple.mail "AddressesIncludeNameOnPasteboard" -bool "false"
+  defaults write com.apple.mail "AddressesIncludeNameOnPasteboard" -bool false
   # Disable send and reply animations in Mail.app
-  defaults write com.apple.mail "DisableReplyAnimations" -bool "true"
-  defaults write com.apple.mail "DisableSendAnimations" -bool "true"
+  defaults write com.apple.mail "DisableReplyAnimations" -bool true
+  defaults write com.apple.mail "DisableSendAnimations" -bool true
   # Most recent first
-  defaults write com.apple.mail "ConversationViewSortDescending" -bool "true"
+  defaults write com.apple.mail "ConversationViewSortDescending" -bool true
   # }}}
 
   # Spotlight {{{
@@ -235,38 +247,41 @@ if [[ $(uname -s) = "Darwin" ]]; then
 
   # Deskstop Services {{{
   # avoid creating .DS_Store files on network or USB volumes
-  defaults write com.apple.desktopservices "DSDontWriteNetworkStores" -bool "true"
-  defaults write com.apple.desktopservices "DSDontWriteUSBStores" -bool "true"
+  defaults write com.apple.desktopservices "DSDontWriteNetworkStores" -bool true
+  defaults write com.apple.desktopservices "DSDontWriteUSBStores" -bool true
   # }}}
 
   # Safari {{{
   # For better privacy
-  defaults write com.apple.Safari "UniversalSearchEnabled" -bool "false"
-  defaults write com.apple.Safari "SuppressSearchSuggestions" -bool "true"
-  defaults write com.apple.Safari "SendDoNotTrackHTTPHeader" -bool "true"
+  defaults write com.apple.Safari "UniversalSearchEnabled" -bool false
+  defaults write com.apple.Safari "SuppressSearchSuggestions" -bool true
+  defaults write com.apple.Safari "SendDoNotTrackHTTPHeader" -bool true
 
   # Disable auto open downloads
-  defaults write com.apple.Safari "AutoOpenSafeDownloads" -bool "false"
+  defaults write com.apple.Safari "AutoOpenSafeDownloads" -bool false
 
   # Enable Develop Menu, Web Inspector
-  defaults write com.apple.Safari "IncludeDevelopMenu" -bool "true"
-  defaults write com.apple.Safari "IncludeInternalDebugMenu" -bool "true"
-  defaults write com.apple.Safari "WebKitDeveloperExtras" -bool "true"
-  defaults write com.apple.Safari 'WebKitDeveloperExtrasEnabledPreferenceKey' -bool "true"
-  defaults write com.apple.Safari "com.apple.Safari.ContentPageGroupIdentifier.WebKit2DeveloperExtrasEnabled" -bool "true"
+  defaults write com.apple.Safari "IncludeDevelopMenu" -bool true
+  defaults write com.apple.Safari "IncludeInternalDebugMenu" -bool true
+  defaults write com.apple.Safari "WebKitDeveloperExtras" -bool true
+  defaults write com.apple.Safari "WebKitDeveloperExtrasEnabledPreferenceKey" -bool true
+  defaults write com.apple.Safari "com.apple.Safari.ContentPageGroupIdentifier.WebKit2DeveloperExtrasEnabled" -bool true
   # }}}
 
   # Disable disk image verification {{{
-  defaults write com.apple.frameworks.diskimages "skip-verify" -bool "true"
-  defaults write com.apple.frameworks.diskimages "skip-verify-locked" -bool "true"
-  defaults write com.apple.frameworks.diskimages "skip-verify-remote" -bool "true"
+  defaults write com.apple.frameworks.diskimages "skip-verify" -bool true
+  defaults write com.apple.frameworks.diskimages "skip-verify-locked" -bool true
+  defaults write com.apple.frameworks.diskimages "skip-verify-remote" -bool true
   # }}}
 
   # Apple AdLib {{{
   # Disable personlized advertising
-  defaults com.apple.AdLib forceLimitAdTracking -bool true
-  defaults com.apple.AdLib allowApplePersonalizedAdvertising -bool false
-  defaults com.apple.AdLib allowIdentifierForAdvertising -bool false
+  defaults com.apple.AdLib "forceLimitAdTracking" -bool true
+  defaults com.apple.AdLib "allowApplePersonalizedAdvertising" -bool false
+  defaults com.apple.AdLib "allowIdentifierForAdvertising" -bool false
   # }}}
 
+  # enforce reloading system setttings
+  # https://apple.stackexchange.com/questions/405937/how-can-i-enable-keyboard-shortcut-preference-after-modifying-it-through-defaul/414836#414836
+  /System/Library/PrivateFrameworks/SystemAdministration.framework/Resources/activateSettings -u
 fi
