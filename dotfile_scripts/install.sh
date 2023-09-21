@@ -57,9 +57,131 @@ fi
 # clang for compiling backend
 # rust for writing good program
 # gtk for developing gui
-declare -a pkgs=(unzip git curl clang gdb vim neovim tmux python3 node pnpm "romkatv/gitstatus/gitstatus" fzf neofetch)
-declare -a brew_cask_apps=(wezterm karabiner-elements hammerspoon)
-declare -a cargo_pkgs=(git-delta difftastic exa bat)
+declare -a pkgs=(
+# decompression
+unzip
+brotli
+# code manager
+git
+# TUI git repo viewer
+tig
+# file downloader
+curl
+# make system
+cmake
+# programming language
+python3
+lua
+zig
+go
+
+# llvm ecosystem
+# this would also install llvm/cmake
+clang
+
+# lua manager
+luarocks
+
+# http client
+httpie
+
+# JavaScript ecosystem
+node
+pnpm
+# bun
+"oven-sh/bun/bun"
+
+# json tool
+jq
+
+# linter
+shellcheck
+
+# cli utilities
+# debug
+gdb
+# TUI session
+tmux
+# interactive search with fuzzy algorithm
+fzf
+# better grep
+ripgrep
+# better screenfetch for system info
+neofetch
+# better htop
+btop
+# git status widget
+"romkatv/gitstatus/gitstatus"
+# editor
+vim
+neovim
+# video encoder/decoder/downloader/editor
+ffmpeg
+# free lossless audio codec
+flac
+
+# library
+openssl@3
+lzo
+)
+
+declare -a brew_cask_apps=(
+# Terminal
+wezterm
+# Keyboard
+karabiner-elements
+# macos desktop automation
+hammerspoon
+# screenshot
+obs
+# social media
+telegram
+discord
+# note tool
+obsidian
+# bookmarks manager
+raindropio
+# eye candy GUI NeoVim editor
+# neovide
+# app uninstaller
+appcleaner
+)
+
+declare -a cargo_pkgs=(
+# better git diff
+git-delta
+difftastic
+# better ls
+exa
+# better cat
+bat
+# better xxd replacement - binary to hex
+ohx
+# cli benchmark tool
+hyperfine
+# tldr tool
+tealdeer
+# fast cp tool
+fcp
+# code count (better cloc)
+tokei
+)
+declare -a luarocks_pkgs=(
+# check
+luacheck
+)
+
+declare -a fonts=(
+# JetBrains Mono Nerd font
+font-jetbrains-mono-nerd-font
+# LXGW WenKai font
+font-lxgw-wenkai
+)
+
+declare -a macos_pkgs=(
+  # select default appss for documents and URL schemes
+  duti
+)
 linux_pkgs=()
 
 # }}}
@@ -70,11 +192,32 @@ linux_pkgs=()
 # {{{
 # helper to make sure packages have been installed
 function cli_has_installed() {
- command -v $@ > /dev/null 2>&1 && return
+ command -v "$@" > /dev/null 2>&1 && return
 }
 
 function pacman_package_has_installed() {
- cli_has_installed 'pacman' && pacman -Qi $@ > /dev/null 2>&1 && return
+ cli_has_installed 'pacman' && pacman -Qi "$@" > /dev/null 2>&1 && return
+}
+
+function __install_emacs() {
+  # TODO
+  # no-op
+  true
+}
+
+function __install_rust() {
+  # install Rust with rustup instead Homebrew
+  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+}
+
+function __install_fonts() {
+  for pkg in "${fonts[@]:0}"; do
+    if [[ $(uname -s) = "Darwin" ]]; then
+      brew tap homebrew/cask-fonts
+      echo -e " install font:${lightgreen} ${pkg}$reset_color"
+      $PM list "$pkg" 1>/dev/null 2>&1 || brew install --cask "$pkg" || echo -e "\n ${red}${pkg}${reset_color} failed" || exit 1
+    fi
+  done
 }
 
 function __install_pkgs() {
@@ -82,22 +225,22 @@ function __install_pkgs() {
   if cli_has_installed 'date'; then
     local start_time=$(date +%s)
   fi
-  # install Rust with rustup instead Homebrew
-  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-  for pkg in ${pkgs[@]:0}; do
+  __install_rust || echo -e "\n Install ${red}Rust${reset_color} failed" || exit 1
+  for pkg in "${pkgs[@]:0}"; do
     echo -e " install${lightgreen} ${pkg}$reset_color"
     if [[ $(uname -s) = "Darwin" ]]; then
-      $PM list $pkg 1>/dev/null 2>&1 || brew install $pkg || echo -e "\n ${red}${pkg}${reset_color} failed" || exit 1
+      $PM list "$pkg" 1>/dev/null 2>&1 || brew install "$pkg" || echo -e "\n ${red}${pkg}${reset_color} failed" || exit 1
+    __install_emacs || echo -e "\n Install ${red}Emacs${reset_color} failed" || exit 1
     elif [[ $(uname -s) = "Linux" ]]; then
-      pacman_package_has_installed $pkg && echo -e " has installled ${lightgreen}$pkg${reset_color}" && continue
-      sudo $PM -S $pkg 1>/dev/null 2>&1 || echo -e "\n ${red}${pkg}${reset_color} failed" || exit 1
+      pacman_package_has_installed "$pkg" && echo -e " has installled ${lightgreen}$pkg${reset_color}" && continue
+      sudo $PM -S "$pkg" 1>/dev/null 2>&1 || echo -e "\n ${red}${pkg}${reset_color} failed" || exit 1
     fi
   done
   # casks
-  for pkg in ${brew_cask_apps[@]:0}; do
+  for pkg in "${brew_cask_apps[@]:0}"; do
     if [[ $(uname -s) = "Darwin" ]]; then
       echo -e " install${lightgreen} ${pkg}$reset_color"
-      $PM list $pkg 1>/dev/null 2>&1 || brew install --cask $pkg || echo -e "\n ${red}${pkg}${reset_color} failed" || exit 1
+      $PM list "$pkg" 1>/dev/null 2>&1 || brew install --cask "$pkg" || echo -e "\n ${red}${pkg}${reset_color} failed" || exit 1
     fi
   done
   if cli_has_installed 'date'; then
@@ -107,10 +250,19 @@ function __install_pkgs() {
 }
 
 function __install_cargo_pkgs() {
-  for pkg in ${cargo_pkgs[@]:0}; do
+  for pkg in "${cargo_pkgs[@]:0}"; do
     echo -e " install${lightgreen} ${pkg}$reset_color"
     if [[ $(uname -s) = "Darwin" ]]; then
-      $PM list $pkg 1>/dev/null 2>&1 || cargo install "$pkg" || echo -e "\n ${red}${pkg}${reset_color} failed" || exit 1
+     $PM list "$pkg" 1>/dev/null 2>&1 || cargo install "$pkg" || echo -e "\n ${red}${pkg}${reset_color} failed" || exit 1
+    fi
+  done
+}
+
+function __install_lua_pkgs() {
+  for pkg in "${luarocks_pkgs[@]:0}"; do
+    echo -e " install${lightgreen} ${pkg}$reset_color"
+    if [[ $(uname -s) = "Darwin" ]]; then
+      cli_has_installed "$pkg" 1>/dev/null 2>&1 || luarocks install "$pkg" || echo -e "\n ${red}${pkg}${reset_color} failed" || exit 1
     fi
   done
 }
