@@ -89,6 +89,11 @@ local function tracker(url)
             "vd_source",
             -- youtube
             "si",
+            -- goodreads
+            "from_search",
+            "from_srp",
+            "qid",
+            "rank",
           }
   local base, query = string.match(url, "([^?]+)?(.*)")
 
