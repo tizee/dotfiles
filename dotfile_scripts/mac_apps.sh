@@ -22,6 +22,9 @@ hammerspoon
 # screenshot
 # obs
 
+# flash card
+anki
+
 # social media
 # telegram
 # discord
