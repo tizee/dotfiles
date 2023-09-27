@@ -1,0 +1,42 @@
+# scripts
+
+Here are my personal maintained scripts.
+
+- `ascii`
+    - shell script wrapper for `asciinema`
+- `bstr`
+    - python script - convert binary string to character string in given encoding and vice versa
+- `clip-ytb-video`
+    - shell script - clip youtube live stream video on demand
+- `dart_lsp_server`
+    - shell script - start dart lsp server
+- `findr`
+    - shell script - find in bottom up direction until /
+- `ggclonet`
+    - shell script - deprecated git clone using ssh tunnel
+- `git-sview`
+    - zx script - see `zx_scripts/git-sview.mjs`
+- `ip4to6`
+    - python script - convert ipv4 address to ipv6 address
+- `machineid`
+    - shell script - display machine id (windows, linux, macOS)
+- `mark`
+    - shell script - vim-like bookmark for path
+- `num2zh`
+    - python script - convert number to traditional Chinese
+- `open`
+    - shell script - a cross-platform `open` implementation for Windows WSL and macOS
+- `osccp`
+    - shell script - copy file via terminal OSC52 control sequence
+- `pbcopy`
+    - shell script - a cross-platform `pbcopy` implementation for Linux and MacOS
+- `pbpaste`
+    - shell script - a cross-platform `pbpaste` implementation for Linux and MacOS
+- `sshtunnel`
+    - shell script - setup github ssh tunnel using vps for `ggclonet`
+- `temperature`
+    - shell script - convert Celsius to Fahrenheit and vice versa
+- `truecolor`
+    - shell script - test the true color support for current terminal
+- `yearp`
+    - python script - display year progress
