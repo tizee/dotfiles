@@ -115,6 +115,9 @@ vnoremap <leader>p "+p
 vnoremap <leader>y "+y
 " quick sort
 vnoremap <leader>s :sort<CR>
+
+" reverse selected text
+vnoremap <leader>r c<C-O>:set revins<CR><C-R>"<Esc>:set norevins<CR>
 " }}}
 
 " Terminal Mode {{{

@@ -2,14 +2,16 @@
 
 function _fahrenheit2celsius() {
   local res=$(echo "scale = 2; $1 - 32" | bc)
+  echo "󰔅 -> 󰔄"
   echo "scale = 2; $res * 5 / 9" | bc
 }
 
 function _celsius2fahrenheit() {
+  echo "󰔄 -> 󰔅"
   echo "scale = 2; $1 * 9 / 5 + 32" | bc
 }
 
-function _temprature() {
+function _temperature() {
   case "$1" in
     -f)
       shift
@@ -28,4 +30,4 @@ function _temprature() {
   esac
 }
 
-_temprature "${@}"
+_temperature "${@}"

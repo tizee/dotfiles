@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+# Convert number to Tranditional Chinese
 import sys
 
 chars = {
@@ -21,7 +22,6 @@ chars = {
 
 def display(num,word):
     print(num," -> ",word)
-
 
 def test_script():
     print("convert number into Chinese characters")

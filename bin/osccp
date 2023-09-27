@@ -1,5 +1,5 @@
 #!/usr/bin/env zsh
-# copy via OSC 52
+# copy file via OSC 52
 osc_buf=$(cat "$@")
 osc_len=$(printf %s "$buf" | wc -c)
 osc_max=74994

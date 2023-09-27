@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+# Display year progress bar
+
 import datetime
 import math
 BLOCK = ['▓','░']

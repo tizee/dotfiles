@@ -24,7 +24,7 @@ endif
 Plug 'puremourning/vimspector'
 " Plug 'itchyny/lightline.vim'
 " my statusline plugin
-Plug 'tizee/moline.vim'
+Plug '~/projects/vim-projects/moline.vim'
 Plug 'ryanoasis/vim-devicons' " icons
 Plug 'airblade/vim-gitgutter' " git
 " key mapping helper

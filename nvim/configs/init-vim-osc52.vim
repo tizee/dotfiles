@@ -1,6 +1,6 @@
 " Use terminals that support oscyank
 if exists(":OSCYank") == 2
-  vmap <C-c> y:OSCYank<cr>
+  vnoremap <C-c> y:OSCYankVisual<cr>
 else
-  vmap <C-c> y:OSCYank<cr>
+  vnoremap <C-c> y:OSCYankVisual<cr>
 endif

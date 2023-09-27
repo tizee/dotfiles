@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+#vim: ft=python
 
 import sys
 try:
@@ -19,4 +20,3 @@ def main(argv):
 if __name__ == '__main__':
     main(sys.argv[1:])
 
-#vim: ft=python
