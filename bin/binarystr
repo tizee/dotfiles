@@ -15,14 +15,14 @@ import sys
 def main(argv = None):
     if len(argv) <= 1:
         # display help info
-        print("""usage: bstr [-]<encoding-format> [string]
+        print("""usage: {} [-]<encoding-format> [string]
     available formats:
     gbk
     utf-8
     ...
     and other formats of standard encodings
 
-    use -<format> to convert string to binary string""")
+    use -<format> to convert string to binary string""".format(argv[0]))
         return 0
     fmt = argv[1]
     if fmt[0] != '-':
