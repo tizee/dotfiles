@@ -31,7 +31,7 @@ return {
     trigger   = 't',
     mappings  = {
       { {},         'q', 'quickNavigation'},
-      { {},         'i', 'showAppInfo'},
+      { {},         'a', 'showAppInfo'},
       { {},         'd', 'toggleDarkMode'},
       { {},         'r',  'reloadConfig' },
       { {},         'y',  'pasteBoardYoutubeURL' },

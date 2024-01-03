@@ -10,8 +10,14 @@ function confirmModal:entered()
 end
 
 local function confirmQuit()
-    local app = hs.window.focusedWindow():application()
-    app:kill()
+    local win = hs.window.focusedWindow()
+    if win then
+      local app = win:application()
+      app:kill()
+    else
+      local app = hs.application.frontmostApplication()
+      app:kill()
+    end
 end
 
 confirmModal:bind('cmd', 'q', confirmQuit)
