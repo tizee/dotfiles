@@ -94,6 +94,9 @@ local function tracker(url)
             "from_srp",
             "qid",
             "rank",
+            -- the new york times,
+            "smtyp",
+            "smid",
           }
   local base, query = string.match(url, "([^?]+)?(.*)")
 
