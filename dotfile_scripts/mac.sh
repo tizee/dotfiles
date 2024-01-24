@@ -22,12 +22,13 @@ red='\033[38;5;196m'
 # {{{
 if [[ $(uname -s) = "Darwin" ]]; then
   echo -e "$lightyellow MacOS ${reset_color}setup start"
-  "$script_dir/helper.sh" -setup brew || echo -e " install$red homebrew$reset_color failed " || exit 1
+  "$script_dir/helper.sh" -setup brew || echo -e " $red install homebrew$reset_color" || exit 1
   eval "$(/opt/homebrew/bin/brew shellenv)"
-  "$script_dir/common_pkgs.sh" || echo -e " install$red packages$reset_color failed " || exit 1
-  "$script_dir/mac_apps.sh" || echo -e " install$red apps$reset_color failed " || exit 1
-  "$script_dir/helper.sh" -conf || echo -e " install$red dotfiles$reset_color failed " || exit 1
-  "$script_dir/mac_defaults.sh" || echo -e "setup sensibles$red macOS defaults$reset_color failed " || exit 1
+  "$script_dir/common_pkgs.sh" || echo -e " $red install packages$reset_color" || exit 1
+  "$script_dir/mac_apps.sh" || echo -e " $red install apps$reset_color" || exit 1
+  "$script_dir/helper.sh" -conf || echo -e " $red install dotfiles$reset_color" || exit 1
+  "$script_dir/helper.sh" -coc || echo -e " $red install nvim coc packages$reset_color" || exit 1
+  "$script_dir/mac_defaults.sh" || echo -e "$red setup sensibles macOS defaults$reset_color" || exit 1
   echo -e "$lightyellow MacOS ${reset_color}good to go ${lightgreen}✔$reset_color"
 fi
 # }}}

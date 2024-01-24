@@ -20,14 +20,14 @@ if [[ $(uname -s) = "Linux" ]]; then
     # Arch Linux
     # ====================
     echo -e "$lightyellow Arch Linux ${reset_color}setup"
-    "$script_dir/common_pkgs.sh" || echo -e " install$red packages$reset_color failed " || exit 1
-    "$script_dir/helper.sh" -conf || echo -e " install$red dotfiles$reset_color failed " || exit 1
+    "$script_dir/common_pkgs.sh" || echo -e " $red install packages$reset_color" || exit 1
+    "$script_dir/helper.sh" -conf || echo -e " $red install dotfiles$reset_color" || exit 1
   elif $(uname -r | grep 'microsoft' > /dev/null); then
     # ====================
     # Ubuntu WSL
     # ====================
     echo -e "$lightyellow WSL dotfiles ${reset_color}setup"
-    "$script_dir/common_pkgs.sh" || echo -e " install$red packages$reset_color failed " || exit 1
-    "$script_dir/helper.sh" -conf || echo -e " install$red dotfiles$reset_color failed " || exit 1
+    "$script_dir/common_pkgs.sh" || echo -e " $red install packages$reset_color" || exit 1
+    "$script_dir/helper.sh" -conf || echo -e " $red install dotfiles$reset_color" || exit 1
   fi
 fi

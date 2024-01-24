@@ -165,6 +165,25 @@ function __install_homebrew() {
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" 2>&1
 }
 
+function __install_nvim_coc_pkg() {
+  cli_has_installed "nvim" && return
+  echo -e "install $lightgreen nvim packages$reset_color now."
+  if cli_has_installed 'date'; then
+    local start_time=$(date +%s)
+  fi
+
+  for pkg in "${@}"; do
+      echo -e " install${lightgreen} ${pkg}$reset_color"
+      nvim -c "CocInstall $pkg" -c "qa!"
+  done
+
+  if cli_has_installed 'date'; then
+    local end_time=$(date +%s)
+    echo -e " ${lightgreen}${#@}${reset_color} packages installed in ${lightgreen}$[$end_time - $start_time]${reset_color} seconds"
+  fi
+}
+
+
 # }}}
 
 function __setup() {
@@ -195,6 +214,10 @@ case "$1" in
   -brew)
     shift
     __brew_pkgs "${@}"
+    ;;
+  -coc)
+    shift
+    __install_nvim_coc_pkg "${@}"
     ;;
   -conf)
     __install_dotfiles
