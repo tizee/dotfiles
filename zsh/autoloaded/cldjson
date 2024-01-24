@@ -1,5 +1,6 @@
 #!/usr/bin/env zsh
-cldjson(){
+#
+function cldjson() {
  local directory="build"
  if [[ -n $1 ]]; then
    echo "dir:" $1
@@ -24,4 +25,4 @@ else
  fi
 }
 
-cldjson $@
+cldjson "$@"

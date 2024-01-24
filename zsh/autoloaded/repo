@@ -1,16 +1,23 @@
 #!/usr/bin/env zsh
 
+DEV_PROJECTS=${MY_PROJECTS:-"$HOME/projects"}
+PROJECT_SUFFIX=${MY_PROJECT_SUFFIX:-"-projects"}
+
 function repo() {
-  if [ $SYSTEM = Darwin ]; then
-    if [[ -z $1 ]];then
-      local repo_name="$(fd . -t d -d 1 $HOME/projects --exec basename | fzf --preview "bat $HOME/projects/{+1}/README* 2>/dev/null || tree -L 1 $HOME/projects/{+1}")"
-      if [[ -n $repo_name ]];then
-        cd "$HOME/projects/$repo_name"
+    if [[ $# -eq 0 ]];then
+      if command -v tree >/dev/null 2>&1; then
+        local repo_name="$(fd . -t d -d 1 ${DEV_PROJECTS} --exec basename | fzf --preview="bat ${DEV_PROJECTS}/{+1}/README.md")"
+        if [[ -n $repo_name ]];then
+          cd "${DEV_PROJECTS}/$repo_name" || return 1
+          DEV_PROJECTS="${DEV_PROJECTS}/$repo_name" repo
+        fi
+      else
+        echo "tree is required!"
       fi
+    else
+      cd "${DEV_PROJECTS}/${1}${PROJECT_SUFFIX}" || return 1
+      DEV_PROJECTS="${DEV_PROJECTS}/${1}${PROJECT_SUFFIX}" repo
     fi
-  else
-    echo "Only works in macOS"
-  fi
 }
 
-repo $@
+repo "$@"

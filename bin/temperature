@@ -1,6 +1,7 @@
 #!/usr/bin/env zsh
 
 function _fahrenheit2celsius() {
+  # c = (f - 32) * 5 / 9
   local res=$(echo "scale = 2; $1 - 32" | bc)
   echo "󰔅 -> 󰔄"
   echo "scale = 2; $res * 5 / 9" | bc
@@ -8,6 +9,7 @@ function _fahrenheit2celsius() {
 
 function _celsius2fahrenheit() {
   echo "󰔄 -> 󰔅"
+  # f = (c * 9) / 5 + 32
   echo "scale = 2; $1 * 9 / 5 + 32" | bc
 }
 
@@ -29,5 +31,11 @@ function _temperature() {
       ;;
   esac
 }
+
+# test
+# water freezes at 32 F
+# temperature -f 0
+# water boils at 212 F
+# temperature -f 10
 
 _temperature "${@}"
