@@ -8,7 +8,7 @@ if exists('loaded_file_vim')
 endif
 let g:loaded_file_vim = 1
 
-let g:large_file_size = get(g:,"large_file_size", 1024 * 1024 * 5) " 5mb is a large file for me
+let g:large_file_size = get(g:,"large_file_size", 1024 * 1024 * 2) " 2Mb is a large file for me
 
 function! s:change_opts()
   setl binary
