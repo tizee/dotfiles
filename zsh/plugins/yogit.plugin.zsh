@@ -174,6 +174,13 @@ function yogit::shallowclone() {
 
 alias "${_yogit_basic_prefix}sc"='yogit::shallowclone'
 
+function yogit::shallowclone_without_submodules() {
+  # https://stackoverflow.com/questions/3796927/how-do-i-git-clone-a-repo-including-its-submodules
+  # https://stackoverflow.com/questions/2144406/how-to-make-shallow-git-submodules
+  git clone $@ --depth 1
+}
+alias "${_yogit_basic_prefix}sc!"='yogit::shallowclone_without_submodules'
+
 # git checkout
 alias "${_yogit_basic_prefix}cob"='git checkout -b'
 
@@ -274,7 +281,7 @@ alias "${_yogit_basic_prefix}prune"='git remote prune origin'
 
 function yogit::parse() {
   local object_name="${1:-HEAD}"
-  # always print short sha-1 of commit
+  # always print short 6-byte-long sha-1 of commit
   git rev-parse "$object_name" | cut -c 1-7
 }
 # print current commit
