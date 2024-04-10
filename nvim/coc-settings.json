@@ -16,9 +16,10 @@
   "diagnostic.errorSign": "✗",
   "diagnostic.warningSign": "!",
   // lua
-  "sumneko-lua.enable": true,
-  "sumneko-lua.enableNvimLuaDev": true,
-  "sumneko-lua.inlayHints.refreshOnInsertMode": false,
+  // coc-clangd
+  "clangd.path": "/opt/homebrew/opt/llvm/bin/clangd",
+  "clangd.enabled":true,
+  "clangd.checkUpdates": false,
   // codelens
   "codeLens.enable": true,
   "codeLens.separator": " ",
@@ -67,11 +68,11 @@
     //   "command": "texlab",
     //   "filetypes": ["tex"]
     // }
-    "clangd": {
-      "command": "clangd",
-      "rootPatterns": ["compile_flags.txt", "compile_commands.json"],
-      "filetypes": ["cpp", "c++", "objc", "objcpp"]
-    },
+    // "clangd": {
+    //   "command": "clangd",
+    //   "rootPatterns": ["compile_flags.txt", "compile_commands.json"],
+    //   "filetypes": ["cpp", "c++", "objc", "objcpp"]
+    // },
     "ccls": {
       "command": "ccls",
       "rootPatterns": ["compile_commands.json"],
@@ -137,7 +138,6 @@
   "python.pythonPath": "python3",
   // javascript
   "eslint.autoFixOnSave": true,
-  "suggest.snippetIndicator": "ﰴ",
   // snippets
   "snippets.extends": {
     "cpp": ["cpp"],
@@ -172,12 +172,14 @@
   "vetur.format.defaultFormatter.pug": "prettier",
   "vetur.format.defaultFormatter.less": "prettier",
   // eye candies - icons
+  // Nerdfont version 3.2.0
+  "suggest.snippetIndicator": "󰜶",
   "suggest.completionItemKindLabels": {
     "keyword": "",
     "variable": "",
     "function": "ƒ",
-    "reference": "渚",
-    "constant": "",
+    "reference": "",
+    "constant": "󰏿",
     "method": "",
     "class": "",
     "interface": "",
@@ -186,18 +188,17 @@
     "module": "",
     "color": "",
     "property": "",
-    "file": "",
+    "file": "󰈤",
     "folder": "",
     "snippet": "",
-    "typeParameter": "",
+    "typeParameter": "󰈩",
     "default": "",
     "text": "",
-    "struct": "פּ",
+    "struct": "󰙅",
     "unit": "",
-    "event": "鬒",
-    "field": "料"
+    "event": "󰗎",
+    "field": "󰒿"
   },
-  // json
   "json.enable": true,
   "json.schemaDownload.enable": true,
   "json.schemas": [

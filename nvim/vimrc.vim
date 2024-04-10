@@ -293,7 +293,7 @@ if has("gui_running")
 	" |option-backslash|.  For example: >
 	"     :set guifont=Screen15,\ 7x13,font\\,with\\,commas
   if g:os == "Darwin"
-    set guifont=JetBrainsMono\ Nerd\ Font\:h16
+    set guifont=JetBrainsMono\ Nerd\ Font\ Mono\:h16
     set guifontwide=LXGW\ WenKai\ Mono\:h16
     " enable python3 support for neovim
     " :echo has('python3')
