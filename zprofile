@@ -100,7 +100,7 @@ if $(uname -r | grep 'microsoft' > /dev/null); then
   # use ssh-key from smart-card
   # export SSH_AUTH_SOCK=$HOME/.gnupg/S.gpg-agent.ssh
 else
-  echo "macOS"
+  echo "macOS $(date)"
 fi
 
 # Preferred editor for local and remote sessions
