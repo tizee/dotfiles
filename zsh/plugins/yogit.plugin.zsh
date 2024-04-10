@@ -52,6 +52,7 @@ function yogit::help() {
   print "${_yogit_basic_prefix}pickclone : git clone --sparse --filter=blob:none --depth=1 --no-checkout"
   print "after setting up the sparse-checkout, use git read-tree -mu HEAD"
   print "${_yogit_basic_prefix}sub       : git submodule update --init --recursive"
+  print "${_yogit_basic_prefix}subu      : git submodule update --remote --merge"
   print "${_yogit_basic_prefix}br        : git branch -r"
   print "${_yogit_basic_prefix}parse     : git rev-parse [input] | cut -d 1-6"
   print "git branch -r --merged          : ${_yogit_basic_prefix}br --merged"
@@ -225,6 +226,7 @@ alias "${_yogit_basic_prefix}ls"='git ls-files --others --exclude-standard'
 alias "${_yogit_basic_prefix}pickclone"='git clone --sparse --filter=blob:none --depth=1 --no-checkout'
 
 alias "${_yogit_basic_prefix}sub"='git submodule update --init --recursive'
+alias "${_yogit_basic_prefix}subu"='git submodule update --remote --merge'
 
 # restore
 
