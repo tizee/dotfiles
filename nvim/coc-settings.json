@@ -27,10 +27,10 @@
   "tsserver.npm": "/usr/local/bin/npm",
   // lsp server without coc wrapper
   "languageserver": {
-    // "sourcekit-lsp": {
-    //   "filetypes": ["swift","objc","objcpp"],
-    //   "command": "sourcekit-lsp"
-    // },
+    "sourcekit-lsp": {
+      "filetypes": ["swift","objc","objcpp"],
+      "command": "sourcekit-lsp"
+    },
     // see https://github.com/iamcco/coc-flutter/issues/127
      // "dart": {
      //   "command": "dart_lsp_server",

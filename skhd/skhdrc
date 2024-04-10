@@ -77,22 +77,34 @@
 # ############################################################### #
 
 # focus window
-# alt - h : yabai -m window --focus west
+ctrl + cmd - h : yabai -m window --focus west
+ctrl + cmd - j : yabai -m window --focus south
+ctrl + cmd - k : yabai -m window --focus north
+ctrl + cmd - l : yabai -m window --focus east
+
+# flip windows along y-axis
+ctrl + cmd - y : yabai -m space --mirror y-axis
+
+# flip windows along x-axis
+ctrl + cmd - x : yabai -m space --mirror x-axis
+
+# rotate layout clockwise
+ctrl + cmd - r : yabai -m space --rotate 270
 
 # swap managed window
-shift + alt - h : yabai -m window --swap north
+ctrl + cmd - 1 : yabai -m window --swap east
 
 # move managed window
-# shift + cmd - h : yabai -m window --warp east
+ctrl + cmd - 2 : yabai -m window --warp south
 
 # balance size of windows
-shift + alt - 0 : yabai -m space --balance
+# shift + alt - 1 : yabai -m space --balance
 
 # make floating window fill screen
-shift + alt - up     : yabai -m window --grid 1:1:0:0:1:1
+# shift + alt - 2 : yabai -m window --grid 1:1:0:0:1:1
 
 # make floating window fill left-half of screen
-shift + alt - left   : yabai -m window --grid 1:2:0:0:1:1
+# shift + alt - 3 : yabai -m window --grid 1:2:0:0:1:1
 
 # create desktop, move window and follow focus - uses jq for parsing json (brew install jq)
 # shift + cmd - n : yabai -m space --create && \
@@ -101,8 +113,8 @@ shift + alt - left   : yabai -m window --grid 1:2:0:0:1:1
 #                   yabai -m space --focus "${index}"
 
 # fast focus desktop
-cmd + alt - x : yabai -m space --focus recent
-cmd + alt - 1 : yabai -m space --focus 1
+# cmd + alt - x : yabai -m space --focus recent
+# cmd + alt - 1 : yabai -m space --focus 1
 
 # send window to desktop and follow focus
 # shift + cmd - z : yabai -m window --space next; yabai -m space --focus next
@@ -139,18 +151,16 @@ cmd + alt - 1 : yabai -m space --focus 1
 # alt - e : yabai -m window --toggle split
 
 # float / unfloat window and center on screen
-# alt - t : yabai -m window --toggle float;\
-#           yabai -m window --grid 4:4:1:1:2:2
+ctrl + cmd - t : yabai -m window --toggle float --grid 8:8:1:1:6:6
 
 # toggle sticky(+float), topmost, picture-in-picture
 # alt - p : yabai -m window --toggle sticky;\
 #           yabai -m window --toggle topmost;\
 #           yabai -m window --toggle pip
 # prevents skhd from monitoring events for listed processes.
-.blacklist [
-    "terminal"
-    "alacritty"
-    "google chrome"
-]
+# .blacklist [
+# "wezterm"
+# "firefox developer edition"
+# ]
 
 cmd - return : open /Applications/WezTerm.app

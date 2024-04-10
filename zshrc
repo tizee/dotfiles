@@ -485,5 +485,16 @@ chpwd_functions=(${chpwd_functions[@]} "__cd_hook_list_files")
 # unset __conda_setup
 # <<< conda initialize <<<
 
+if [[ "$TERM_PROGRAM" = "WezTerm" ]]; then
+  if [[ -x "$(command -v tmux)" ]]; then
+    tmux has -t develop &> /dev/null
+    if [[ $? != 0 ]]; then
+      tmux new -s develop
+    else
+      tmux attach -t develop
+    fi
+  fi
+fi
+
 # zsh profiling end
 # zprof

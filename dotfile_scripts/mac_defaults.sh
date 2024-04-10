@@ -94,6 +94,12 @@ if [[ $(uname -s) = "Darwin" ]]; then
 
   # }}}
 
+  # Menu Bar {{{
+  # outdated
+  # defaults write -g _HIHideMenuBar -bool false
+  # }}}
+
+
   # Finder {{{
   # killall Finder to activate
   # display quit option
@@ -280,6 +286,9 @@ if [[ $(uname -s) = "Darwin" ]]; then
   defaults com.apple.AdLib "allowApplePersonalizedAdvertising" -bool false
   defaults com.apple.AdLib "allowIdentifierForAdvertising" -bool false
   # }}}
+
+  # enable debug menu from AppKit for all applications
+  defaults write -g _NS_4445425547 -bool true
 
   # enforce reloading system setttings
   # https://apple.stackexchange.com/questions/405937/how-can-i-enable-keyboard-shortcut-preference-after-modifying-it-through-defaul/414836#414836

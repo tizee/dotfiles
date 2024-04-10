@@ -352,7 +352,14 @@ return {
     -- {key="k", mods="LEADER", action=wezterm.action{ClearScrollback="ScrollbackOnly"}}
     -- Clears the scrollback and viewport leaving the prompt line the new first line.
     -- {key="K", mods="LEADER", action=wezterm.action{ClearScrollback="ScrollbackAndViewport"}}
-    {key="w", mods="LEADER", action=wezterm.action{ClearScrollback="ScrollbackOnly"}}
+    {key="w", mods="LEADER", action=wezterm.action{ClearScrollback="ScrollbackOnly"}},
+    {
+    key = 'u',
+    mods = 'LEADER',
+    action = wezterm.action.CharSelect {
+      copy_on_select = true,
+      copy_to = 'ClipboardAndPrimarySelection',}},
+
   },
   -- save memory
   -- lines pertained per tab

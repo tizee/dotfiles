@@ -1,12 +1,23 @@
 #!/usr/bin/env zsh
 
+# realpath based multiple copy/paste
+# gnu's reaplath with -e
+# macOS's reaplath with only -q
+
+function mhelp() {
+  print "mload:  load /tmp/mcopy.items or /tmp/mmove.items"
+  print "mcopy:  write paths of items to /tmp/mcopy.items"
+  print "mmove:  write paths of items to /tmp/mmove.items"
+  print "mpaste: move or copy items to given path"
+}
+
 function mload(){
  if [[ -e /tmp/mcopy.items ]]; then
    export MULTIPLE_COPY_ITEMS=($(</tmp/mcopy.items))
- fi 
+ fi
  if [[ -e /tmp/mmove.items ]]; then
    export MULTIPLE_MOVE_ITEMS=($(</tmp/mmove.items))
- fi 
+ fi
 }
 
 function mreset(){
@@ -35,16 +46,16 @@ function mprint() {
 # append to copy items
 function mcopy(){
   unset MULTIPLE_COPY_ITEMS
-  export MULTIPLE_COPY_ITEMS=($(realpath -e $@) ${MULTIPLE_COPY_ITEMS[@]})
+  export MULTIPLE_COPY_ITEMS=($(realpath $@) ${MULTIPLE_COPY_ITEMS[@]})
   # cross session
   echo $MULTIPLE_COPY_ITEMS > /tmp/mcopy.items
-  echo "Copied: " 
+  echo "Copied: "
   echo "${(@F)@}"
 }
 
 function mmove(){
   unset MULTIPLE_MOVE_ITEMS
-  export MULTIPLE_MOVE_ITEMS=($(realpath -e $@) ${MULTIPLE_COPY_ITEMS[@]})
+  export MULTIPLE_MOVE_ITEMS=($(realpath $@) ${MULTIPLE_COPY_ITEMS[@]})
   # cross session
   echo $MULTIPLE_MOVE_ITEMS > /tmp/mmove.items
   echo "Moved: "

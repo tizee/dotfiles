@@ -9,6 +9,7 @@ on:
     branches:
       - master
   schedule:
+      # run once each Monday
       - cron: '0 0 * * 0'
 jobs:
   build:
