@@ -99,7 +99,6 @@ if [[ $(uname -s) = "Darwin" ]]; then
   # defaults write -g _HIHideMenuBar -bool false
   # }}}
 
-
   # Finder {{{
   # killall Finder to activate
   # display quit option

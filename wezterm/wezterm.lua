@@ -283,13 +283,13 @@ return {
   font_size = 20,
   font = wezterm.font_with_fallback({
     {
-      family="JetBrains Mono",
+      family="JetBrainsMono Nerd Font Mono",
       weight="Regular",
       italic=false
     },
     {
-      family="JetBrainsMono Nerd Font",
-      weight="Bold"
+      family="JetBrainsMono Nerd Font Mono",
+      weight="Regular"
     },
     {
       family="LXGW WenKai Mono", -- for Chinese or Japanese

@@ -42,7 +42,8 @@ alert.defaultStyle.textSize = 30
 
 require('safe-command-q')
 require('pasteboard-link-rewriter')
-require("window-layout-mode")
+-- use yabai
+-- require("window-layout-mode")
 require("quick-action-mode")
 require("switch-window-mode")
 
