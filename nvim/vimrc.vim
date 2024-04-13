@@ -60,17 +60,16 @@ if has("gui_running")
   if g:os == "Darwin"
     set guifont=JetBrainsMono\ Nerd\ Font\ Mono\:h16
     set guifontwide=LXGW\ WenKai\ Mono\:h16
-    " enable python3 support for neovim
-    " :echo has('python3')
-    " 1: enable, 0: disable
-    let g:python3_host_prog="/opt/homebrew/bin/python3"
-    " set guifont=Fira\ Mono:h12
+    " neovim
+    if has('python3')
+      let g:python3_host_prog="/opt/homebrew/bin/python3"
+    endif
   elseif g:os == "Linux"
     set guifont=JetBrainsMono\ Nerd\ Font\ Mono\ 18
-    " enable python3 support for neovim
-    " :echo has('python3')
-    " 1: enable, 0: disable
-    let g:python3_host_prog=system("which python")
+    " neovim
+    if has('python3')
+      let g:python3_host_prog=system("which python")
+    endif
     " https://stackoverflow.com/questions/2600783/how-does-the-vim-write-with-sudo-trick-work
     " Linux only
     cmap w!! w !sudo tee > /dev/null %
