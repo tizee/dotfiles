@@ -1,16 +1,16 @@
-local utils = require 'config.utils'
-local options = require 'config.options'
-local lsp = require 'config.lsp'
+local utils = require("config.utils")
+local options = require("config.options")
 local cmd = vim.cmd
-vim.opt.packpath:append("~/.vim/plugged")
 
 local load = function()
-  -- vim compatible configurations
-  cmd('source ' .. utils.nvim_config_path .. utils.path_sep  .. 'vimrc.vim')
-  -- nvim only options
-  options:load_options()
-  -- nvim lsp
-  lsp:setup()
+	-- vim compatible configurations
+	cmd("source " .. utils.nvim_config_path .. utils.path_sep .. "vimrc.vim")
+	-- nvim only options
+	options:load_options()
+	-- plugins
+	-- nvim treesitter
+	local treesitter = require("config.plugins.nvim-treesitter")
+	treesitter:setup()
 end
 
 load()

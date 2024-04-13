@@ -12,9 +12,10 @@ function! s:stripNL(path)
 endfunction
 
 let g:meta_prefer_https=get(g:,'meta_prefer_https',1)
+
 function! s:ssh2https(url)
-  if g:meta_prefer_https
-    return system("echo " . l:url .  " | " . "sed -E 's\/^[^@]*@([^:\\\/]*)[:\\\/]\/https:\\\/\\\/\\1\\\/\/'")
+  if g:meta_prefer_https == 1
+    return system("echo " . a:url .  " | " . "sed -E 's\/^[^@]*@([^:\\\/]*)[:\\\/]\/https:\\\/\\\/\\1\\\/\/'")
   endif
 endfunction
 
@@ -31,10 +32,9 @@ function! g:MetaUserEmail()
 endfunction
 
 function! g:MetaGitRemoteUrl(remote)
-  let url = system("git config --get remote.". a:remote . "url")
-  let url = s:stripNL(url)
+  let url = s:stripNL(system("git config --get remote." . a:remote . ".url"))
   let url = s:ssh2https(url)
-  let url = s:stripSuffix('.git')
+  return s:stripSuffix(url, '.git')
 endfunction
 
 function! g:MetaGitOriginUrl()

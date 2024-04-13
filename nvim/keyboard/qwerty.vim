@@ -1,7 +1,8 @@
 " move between split windows
 nnoremap <C-h> <nop>
-nnoremap <C-j> <nop>
-nnoremap <C-k> <nop>
+" used with coc-snippets
+" nnoremap <C-j> <nop>
+" nnoremap <C-k> <nop>
 nnoremap <C-l> <nop>
 nnoremap <C-h> <C-w>h
 nnoremap <C-j> <C-w>j

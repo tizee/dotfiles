@@ -20,7 +20,7 @@ let s:astyle_config_fallback= get(g:,"astyle_config_fallback", "~/.config/global
 
 function! s:toggle_clang_formatter()
   let g:enable_my_clang_formatter = !g:enable_my_clang_formatter
-  echo "toggle clang formatter: " . g:enable_my_clang_formatter
+  echomsg "toggle clang formatter: " . g:enable_my_clang_formatter
 endfunction
 
 " clang-format based on https://clang.llvm.org/docs/ClangFormat.html#vim-integration
@@ -74,6 +74,7 @@ function! s:handle_c_based_lang_file(path) abort
 endfunction
 
 command! -nargs=0 ToggleClangFormatter call <SID>toggle_clang_formatter()
+" C/C++
 augroup C_BASED_LANG_FORMATTER_GROUP
   autocmd! BufWritePost *.{cc,m,mm,c,cpp,cxx,h,hpp} call <SID>handle_c_based_lang_file(expand("<afile>:p"))
 augroup END "file_vim

@@ -49,7 +49,7 @@ let $FZF_DEFAULT_OPTS .= ' --inline-info --reverse' " --bind ctrl-c:select-all
 "   'previous-history' instead of 'down' and 'up'.
 let g:fzf_history_dir = '~/.local/share/fzf-history'
 
-" send results to quickfix list from fzf result 
+" send results to quickfix list from fzf result
 " https://github.com/junegunn/fzf.vim/issues/185
 
 function! s:make_quickfix_list(lines)
@@ -411,7 +411,7 @@ if exists('g:plugs')
   command! PlugHelp call fzf#run(fzf#wrap({
     \ 'source': sort(keys(g:plugs)),
     \ 'sink': function('s:plug_help_sink')}))
-endif 
+endif
 " }}}
 
 " Quick edit oldfiles {{{
@@ -491,7 +491,7 @@ function! s:open_my_config_sink(line)
     let dir = resolve(stdpath('config')) . '/configs'
   else
     let dir = resolve('~/.config/nvim/configs')
-  endif 
+  endif
   let match = get(split(globpath(dir,a:line . '.vim'),"\n"),0,'')
   if len(match)
     " show in new tab
@@ -504,7 +504,8 @@ endfunction
 
 command! PlugConfig call fzf#run(fzf#wrap({
   \ 'source': s:list_my_configs(),
-  \ 'sink': {lines -> s:open_my_config_sink(lines)}
+  \ 'sink': {lines -> s:open_my_config_sink(lines)},
+  \ 'options': '--preview-window hidden'
   \ }))
 
 " }}}

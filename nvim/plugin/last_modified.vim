@@ -1,8 +1,7 @@
 " File: last_modified.vim
 " Author: tizee
 " Email: 33030965+tizee@users.noreply.github.com
-" Github: 
-" Description:
+" Description: update Last Modified with UltiSnips snippets
 " Last Modified: Fri 2022-04-29 18:01:33 (+0800)
 
 if exists('loaded_last_modified_vim') || &cp || v:version < 700
@@ -34,7 +33,8 @@ function! s:UpdateTime()
       call setpos('.', save_cursor)
 endfunction
 
-command! -bar UpdateMod call s:UpdateTime()
-noremap <unique> <script> <Plug>LastModifiedUpdate <SID>Update
+" -bar attribute enable | pipe
+command! -bar UpdateLastMod call s:UpdateTime()
+noremap <unique> <script> <Plug>LastModifiedUpdate <SID>LastUpdate
 
 let &cpo = s:save_cpo

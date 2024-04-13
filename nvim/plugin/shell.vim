@@ -18,5 +18,6 @@ function! s:read_shell_output() range
   " call setreg("s",old_val)
 endfunction
 
+" Run selected content as shell script
 command! -range=% -nargs=0 ZshExec :<line1>,<line2>call <SID>read_shell_output()
 command! -range=% -nargs=0 BashExec :<line1>,<line2>call <SID>read_shell_output()

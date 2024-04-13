@@ -2,9 +2,9 @@
   // coc
   "highlight.colors.enable": true,
   "coc.preferences.maxFileSize": "1MB",
-  "coc.preferences.messageLevel":"error",
-  "hover.autoHide":true,
-  "list.source.outline.defaultAction":" quickfix",
+  "coc.preferences.messageLevel": "error",
+  "hover.autoHide": true,
+  "list.source.outline.defaultAction": " quickfix",
   "coc.preferences.watchmanPath": "/usr/local/bin/watchman",
   // diagnostic
   "diagnostic.enable": true,
@@ -12,13 +12,19 @@
   "diagnostic.virtualTextCurrentLineOnly": false,
   "diagnostic.virtualTextLineSeparator": " . ",
   "diagnostic.messageTarget": "float",
+  "diagnostic.enableSign": true,
   "diagnostic.hintSign": "",
   "diagnostic.errorSign": "✗",
   "diagnostic.warningSign": "!",
+  // coc-git
+  "git.enableGutters": false,
   // lua
+  "stylua.styluaPath": "/Users/tizee/.cargo/bin/stylua",
+  "stylua.configPath": "/Users/tizee/.config/.stylua.toml",
+  "stylua.checkUpdate": false,
   // coc-clangd
   "clangd.path": "/opt/homebrew/opt/llvm/bin/clangd",
-  "clangd.enabled":true,
+  "clangd.enabled": true,
   "clangd.checkUpdates": false,
   // codelens
   "codeLens.enable": true,
@@ -29,14 +35,14 @@
   // lsp server without coc wrapper
   "languageserver": {
     "sourcekit-lsp": {
-      "filetypes": ["swift","objc","objcpp"],
+      "filetypes": ["swift", "objc", "objcpp"],
       "command": "sourcekit-lsp"
     },
     // see https://github.com/iamcco/coc-flutter/issues/127
-     // "dart": {
-     //   "command": "dart_lsp_server",
-     //   "filetypes": ["dart"]
-     // },
+    // "dart": {
+    //   "command": "dart_lsp_server",
+    //   "filetypes": ["dart"]
+    // },
     // "golang": {
     //   "command": "gopls",
     //   "rootPatterns": ["go.mod"],
@@ -48,7 +54,7 @@
     //    "filetypes": ["rust"],
     //    "rootPatterns": ["Cargo.toml"]
     // },
-    "cmake":{
+    "cmake": {
       "command": "cmake-language-server",
       "filetypes": ["cmake"],
       "rootPatterns": ["build/"],
@@ -83,12 +89,12 @@
   "texlab.path": "~/.cargo/bin/texlab",
   // rust
   "rust-analyzer.enable": true,
-  "rust-analyzer.procMacro.enable":false,
+  "rust-analyzer.procMacro.enable": false,
   "rust-analyzer.server.path": "~/.cargo/bin/rust-analyzer",
   "rust-analyzer.updates.channel": "stable",
   "rust-analyzer.inlayHints.enable": true,
   "rust-analyzer.inlayHints.typeHints": true,
-  "rust-analyzer.inlayHints.typeHintsSeparator": "‣" ,
+  "rust-analyzer.inlayHints.typeHintsSeparator": "‣",
   "rust-analyzer.inlayHints.chainingHints": true,
   "rust-analyzer.inlayHints.chainingHintsSeparator": "‣ ",
   "rust-analyzer.inlayHints.refreshOnInsertMode": false,
@@ -107,7 +113,8 @@
   // "clangd.inlayHints.sep": "‣",
   // "clangd.inlayHints.enable": true,
   // objective-c, swift, c++, c
-  "sourcekit.enable": true,
+  // "sourcekit.enable": true,
+  // "sourcekit.commandPath": "/usr/bin/sourcekit-lsp",
   // "sourcekit.objc": true,
   // "sourcekit.objcpp": true,
   // emoji
@@ -116,16 +123,7 @@
   "coc.source.emoji.triggerCharacters": [":"],
   "git.addGBlameToVirtualText": true,
   "git.addGBlameToBufferVar": true,
-  "coc.preferences.formatOnSaveFiletypes": [
-    "css",
-    "markdown",
-    "javascript",
-    // "typescript",
-    "typescrip.tsx",
-    "json",
-    "golang",
-    "dart"
-  ],
+  "coc.preferences.formatOnSave": true,
   "coc.preferences.jumpCommand": "vsplit",
   "emmet.includeLanguages": {
     "vue-html": "html",
@@ -143,12 +141,14 @@
     "cpp": ["cpp"],
     "javascriptreact": ["javascript"],
     "typescript": ["javascript"],
-    "typescriptreact":  ["javascript"]
+    "typescriptreact": ["javascript"]
   },
   // load vscode snippets
   "snippets.textmateSnippetsRoots": ["$HOME/.config/nvim/code_snippets"],
   // do not use snippets as ultisnips
-  "snippets.ultisnips.directories":["$HOME/.config/nvim/UltiSnips"],
+  "snippets.ultisnips.directories": ["$HOME/.config/nvim/UltiSnips"],
+  "snippets.ultisnips.trace": true,
+  "snippets.ultisnips.enable": true,
   // golang
   "go.goplsOptions": {
     "completeUnimported": true
@@ -204,18 +204,14 @@
   "json.schemas": [
     {
       "fileMatch": ["/clang-format.json"],
-      "url":"https://json-schema.org/draft/2019-09/schema"
+      "url": "https://json-schema.org/draft/2019-09/schema"
     },
     {
-      "fileMatch": [
-        "/.vimspector.json"
-      ],
+      "fileMatch": ["/.vimspector.json"],
       "url": "https://puremourning.github.io/vimspector/schema/vimspector.schema.json"
     },
     {
-      "fileMatch": [
-        "/.gadgets.json"
-      ],
+      "fileMatch": ["/.gadgets.json"],
       "url": "https://puremourning.github.io/vimspector/schema/gadgets.schema.json"
     }
   ],
@@ -227,10 +223,15 @@
   "yaml.validate": true,
   "yaml.schemaStore.enable": true,
   "yaml.format.bracketSpacing": true,
-  "yaml.schemas":{
+  "yaml.schemas": {
     "/Users/tizee/.config/local_json_schema/docker-compose-spec.json": "docker-compose.yml",
-    "/Users/tizee/.config/local_json_schema/gemrc.json": [".gemrc","gemrc"],
-    "https://json.schemastore.org/clang-format.json":[".clang-format","*.clang-format","clang-format.yml","clang-format.yaml"]
+    "/Users/tizee/.config/local_json_schema/gemrc.json": [".gemrc", "gemrc"],
+    "https://json.schemastore.org/clang-format.json": [
+      ".clang-format",
+      "*.clang-format",
+      "clang-format.yml",
+      "clang-format.yaml"
+    ]
     // "/Users/tizee/.config/local_json_schema/clang-format.json":[".clang-format","*.clang-format","clang-format.yml","clang-format.yaml"]
   },
   // ruby
@@ -243,11 +244,11 @@
   "solargraph.rename": true,
   // coc-sources
   "coc.source.word.enable": true,
-  "coc.source.word.filetypes": ["markdown","json","yaml"],
+  "coc.source.word.filetypes": ["markdown", "json", "yaml"],
   "coc.source.word.priority": -50,
   // dictionary
   "coc.source.dictionary.enable": true,
-  "coc.source.dictionary.filetypes": ["markdown","json","yaml"],
+  "coc.source.dictionary.filetypes": ["markdown", "json", "yaml"],
   "coc.source.dictionary.priority": -50,
   "snippets.ultisnips.pythonPrompt": false
 }

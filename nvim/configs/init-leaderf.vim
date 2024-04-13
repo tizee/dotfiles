@@ -7,6 +7,11 @@
 if exists('loaded_leaderf_conf') || &cp || v:version < 741
   finish
 endif
+
+if !exists("*LeaderF")
+  finish
+endif
+
 let g:loaded_leaderf_conf= 1
 
 " don't show the help in normal mode

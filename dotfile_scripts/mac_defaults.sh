@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# vim:foldmethod=marker
 # configure macOS system via defaults command
 
 if [[ $(uname -s) = "Darwin" ]]; then
@@ -293,3 +292,4 @@ if [[ $(uname -s) = "Darwin" ]]; then
   # https://apple.stackexchange.com/questions/405937/how-can-i-enable-keyboard-shortcut-preference-after-modifying-it-through-defaul/414836#414836
   /System/Library/PrivateFrameworks/SystemAdministration.framework/Resources/activateSettings -u
 fi
+# vim:foldmethod=marker

@@ -37,5 +37,5 @@ let g:vista#renderer#icons = {
 \   "variable": "\Uf021c",
 \  }
 
-nnoremap <C-o> :<C-U>Vista!!<CR>
+nnoremap <leader>o :<C-U>Vista!!<CR>
 

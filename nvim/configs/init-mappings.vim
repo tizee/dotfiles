@@ -49,7 +49,7 @@ endfunction
 nnoremap <leader>t :call<SID>create_terminal_panel()<CR>
 
 " enter command mode quickly
-nnoremap ; :
+" nnoremap ; :
 
 " copy to/paste from system clipboard
 nnoremap <leader>y "+y

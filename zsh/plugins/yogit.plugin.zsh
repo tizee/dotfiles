@@ -13,7 +13,7 @@
 _yogit_basic_prefix=$YOGIT_BASIC_PREFIX
 _yogit_interactive_prefix=$YOGIT_INTERACTIVE_PREFIX
 if [[ -z $YOGIT_BASIC_PREFIX  ]]; then
-_yogit_basic_prefix='ygg'
+_yogit_basic_prefix='yg'
 fi
 if [[ -z $YOGIT_INTERACTIVE_PREFIX ]]; then
 _yogit_interactive_prefix='ygi'
@@ -28,39 +28,42 @@ fi
 function yogit::help() {
   # basic
   printf "--> basic usage\n"
-  print "${_yogit_basic_prefix}htest     : ssh -T git@github.com"
-  print "${_yogit_basic_prefix}st        : git status"
-  print "${_yogit_basic_prefix}sc        : git clone with depth 1 and shallow clone submodules with depth 1"
-  print "${_yogit_basic_prefix}cob       : git checkout -b"
-  print "${_yogit_basic_prefix}a         : git add"
-  print "${_yogit_basic_prefix}c         : git commit -v"
-  print "${_yogit_basic_prefix}c!        : git commit --amend"
-  print "${_yogit_basic_prefix}cn!       : git commit --amend --no-edit"
-  print "${_yogit_basic_prefix}push      : git push origin current_branch"
-  print "${_yogit_basic_prefix}pull      : git pull origin current_branch"
-  print "${_yogit_basic_prefix}sst       : list staged and unstaged file names only"
-  print "${_yogit_basic_prefix}open      : open/xdg-open repo url in browser"
-  print "${_yogit_basic_prefix}url       : ${_yogit_basic_prefix}url <remote-name> to print remote url"
-  print "${_yogit_basic_prefix}rtags     : list remote tags with 'git ls-remote --tags'"
-  print "${_yogit_basic_prefix}ftag      : fetch a remote tag with 'git fetch origin refs/tags/<lname>:refs/tags<rname> --no-tags'"
+  print "${_yogit_basic_prefix}htest                                       : ssh -T git@github.com"
+  print "${_yogit_basic_prefix}st                                          : git status"
+  print "${_yogit_basic_prefix}ghsc                                        : git clone a github repo using <username>/<repo-name> with submodules"
+  print "${_yogit_basic_prefix}ghsc!                                       : git clone a github repo using <username>/<repo-name>"
+  print "${_yogit_basic_prefix}sc                                          : git clone with depth 1 and shallow clone submodules with depth 1"
+  print "${_yogit_basic_prefix}sc!                                         : git clone with depth 1"
+  print "${_yogit_basic_prefix}cob                                         : git checkout -b"
+  print "${_yogit_basic_prefix}a                                           : git add"
+  print "${_yogit_basic_prefix}c                                           : git commit -v"
+  print "${_yogit_basic_prefix}c!                                          : git commit --amend"
+  print "${_yogit_basic_prefix}cn!                                         : git commit --amend --no-edit"
+  print "${_yogit_basic_prefix}push                                        : git push origin current_branch"
+  print "${_yogit_basic_prefix}pull                                        : git pull origin current_branch"
+  print "${_yogit_basic_prefix}sst                                         : list staged and unstaged file names only"
+  print "${_yogit_basic_prefix}open                                        : open/xdg-open repo url in browser"
+  print "${_yogit_basic_prefix}url                                         : ${_yogit_basic_prefix}url <remote-name> to print remote url"
+  print "${_yogit_basic_prefix}rtags                                       : list remote tags with 'git ls-remote --tags'"
+  print "${_yogit_basic_prefix}ftag                                        : fetch a remote tag with 'git fetch origin refs/tags/<lname>           : refs/tags<rname> --no-tags'"
   # github repos
-  print "${_yogit_basic_prefix}ghsize    : get size of github repo"
-  print "${_yogit_basic_prefix}ghurl     : github repo worktree url of current commit"
-  print "${_yogit_basic_prefix}opengh    : open github repo worktree url of current commit"
-  print "${_yogit_basic_prefix}lr        : remote list"
-  print "${_yogit_basic_prefix}ls        : git ls-files --others --exclude-standard"
-  print "${_yogit_basic_prefix}pickclone : git clone --sparse --filter=blob:none --depth=1 --no-checkout"
+  print "${_yogit_basic_prefix}ghsize                                      : get size of github repo"
+  print "${_yogit_basic_prefix}ghurl                                       : github repo worktree url of current commit"
+  print "${_yogit_basic_prefix}opengh                                      : open github repo worktree url of current commit"
+  print "${_yogit_basic_prefix}lr                                          : remote list"
+  print "${_yogit_basic_prefix}ls                                          : git ls-files --others --exclude-standard"
+  print "${_yogit_basic_prefix}pickclone                                   : git clone --sparse --filter=blob:none --depth=1 --no-checkout"
   print "after setting up the sparse-checkout, use git read-tree -mu HEAD"
-  print "${_yogit_basic_prefix}sub       : git submodule update --init --recursive"
-  print "${_yogit_basic_prefix}subu      : git submodule update --remote --merge"
-  print "${_yogit_basic_prefix}br        : git branch -r"
-  print "${_yogit_basic_prefix}parse     : git rev-parse [input] | cut -d 1-6"
-  print "git branch -r --merged          : ${_yogit_basic_prefix}br --merged"
-  print "git branch --merged             : ${_yogit_basic_prefix}br --merged"
-  print "${_yogit_basic_prefix}br        : git branch -r"
-  print "${_yogit_basic_prefix}bru       : git branch -u <remote>/<branch> <local-branch> "
-  print "${_yogit_basic_prefix}prune     : git remote prune origin"
-  print "${_yogit_basic_prefix}bm        : rename branch and update its tracked origin branch"
+  print "${_yogit_basic_prefix}sub                                         : git submodule update --init --recursive"
+  print "${_yogit_basic_prefix}subu                                        : git submodule update --remote --merge"
+  print "${_yogit_basic_prefix}br                                          : git branch -r"
+  print "${_yogit_basic_prefix}parse                                       : git rev-parse [input] | cut -d 1-6"
+  print "git branch -r --merged                                            : ${_yogit_basic_prefix}br --merged"
+  print "git branch --merged                                               : ${_yogit_basic_prefix}br --merged"
+  print "${_yogit_basic_prefix}br                                          : git branch -r"
+  print "${_yogit_basic_prefix}bru                                         : git branch -u <remote>/<branch> <local-branch> "
+  print "${_yogit_basic_prefix}prune                                       : git remote prune origin"
+  print "${_yogit_basic_prefix}bm                                          : rename branch and update its tracked origin branch"
   print ""
   printf "--> interactive usage\n"
   print "${yogit_checkout:-${_yogit_interactive_prefix}co}    :  checkout with fzf"
@@ -180,6 +183,25 @@ function yogit::shallowclone_without_submodules() {
   git clone $@ --depth 1
 }
 alias "${_yogit_basic_prefix}sc!"='yogit::shallowclone_without_submodules'
+
+alias "${_yogit_basic_prefix}ghsc"='yogit::ghclone'
+
+function yogit::ghclone(){
+  local username=$(echo "$1" | sed -E 's/(.*)\/(.*)$/\1/')
+  local repo=$(echo "$1" | sed -E 's/(.*)\/(.*)$/\2/')
+  # remove the first parameter
+  shift
+  git clone --depth 1 --recurse-submodules -j8 --shallow-submodules "git@github.com:${username}/${repo}.git" $@
+}
+
+alias "${_yogit_basic_prefix}ghsc!"='yogit::ghclone_without_submodules'
+function yogit::ghclone_without_submodules(){
+  local username=$(echo "$1" | sed -E 's/(.*)\/(.*)$/\1/')
+  local repo=$(echo "$1" | sed -E 's/(.*)\/(.*)$/\2/')
+  # remove the first parameter
+  shift
+  git clone --depth 1 "git@github.com:${username}/${repo}.git" $@
+}
 
 # git checkout
 alias "${_yogit_basic_prefix}cob"='git checkout -b'

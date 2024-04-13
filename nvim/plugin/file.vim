@@ -13,7 +13,8 @@ let g:large_file_size = get(g:,"large_file_size", 1024 * 1024 * 2) " 2Mb is a la
 function! s:change_opts()
   setl binary
   setl ei=FileType " ignore FileType event
-  echo "You have opened a file LAREGER than " . (g:large_file_size / (1024 * 1024)) . " MB"
+  let l:msg="You have opened a file LAREGER than " . (g:large_file_size / (1024 * 1024)) . " MB"
+  echohl WarningMsg | echom l:msg | echohl None
 endfunction
 
 function! s:handle_largefile(file)

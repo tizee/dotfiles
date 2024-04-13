@@ -1,7 +1,7 @@
 " QWERTY to COLEMAK
-" 
+
 " maintain the same finger positions for both of QWERTY layout and COLEMAK
-" layout 
+" layout
 "
 " QWERTY:
 " q w e r t y u i o p
@@ -40,7 +40,7 @@
 " operate on the text that was moved over.  That is the text between the cursor
 " position before and after the motion.  Operators are generally used to delete
 " or change text.  The following operators are available:
-" 
+"
 " 	|c|	c	change
 " 	|d|	d	delete
 " 	|y|	y	yank into register (does not change the text)
@@ -57,7 +57,7 @@
 " 	|<|	<	shift left
 " 	|zf|	zf	define a fold
 " 	|g@|	g@	call function set with the 'operatorfunc' option
-" 
+"
 " }}}
 
 " if $COLEMAK_KEYBOARD == 0
@@ -97,16 +97,16 @@
   " Insert
   nnoremap s i
   nnoremap S I
-  
-  " Replace 
+
+  " Replace
   " nnoremap r r
-  
+
   " Append
   " nnoremap A A
-  
+
   " Change
   " nnoremap c c
-  
+
   " Copy
   " nnoremap f y
   " nnoremap F Y
@@ -116,16 +116,16 @@
   " Undo
   " nnoremap l u
   " nnoremap L U
-  " Redo 
+  " Redo
   " nnoremap Z <C-R>
 
   " Select (Normal Mode->Visual Mode)
-  
+
   " }}}
- 
+
   " Word motion {{{
   "
-  
+
   "
   " }}}
 

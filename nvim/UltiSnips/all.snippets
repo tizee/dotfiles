@@ -1,3 +1,9 @@
+# File: all.snippets
+# Author: tizee
+# Email: 33030965+tizee@users.noreply.github.com
+# Github: https://github.com/tizee/dotfiles
+
+# Description:
 # This file contains snippets that are always defined. I personally
 # have snippets for signatures and often needed texts
 
@@ -35,7 +41,7 @@ endsnippet
 # modeline form ('set') to work in languages with comment terminators
 # (/* like C */).
 snippet modeline "Vim modeline"
-vim`!v ':set '. (&expandtab ? printf('et sw=%i ts=%i', &sw, &ts) : printf('noet sts=%i sw=%i ts=%i', &sts, &sw, &ts)) . (&tw ? ' tw='. &tw : '') . ':'`
+vim`!v ':set '. (&expandtab ? printf('et sw=%i ts=%i tw=%i ft=%s:', &sw, &ts, &tw, &ft) : printf('noet sts=%i sw=%i ts=%i tw=%i ft=%s:', &sts, &sw,&ts, &tw, &ft))`
 endsnippet
 
 #########
@@ -69,4 +75,17 @@ endsnippet
 #  Misc  #
 ##########
 
+snippet filename "snippet of snippet"
+`!v expand("%")`
+endsnippet
+
+snippet docs "info for file" b
+# File: ${1:`!v g:UtilFilename('$1.vim', 'foo.vim')`}
+# Description: ${0}
+# Author: `!v g:MetaUserName()`
+# Email: `!v g:MetaUserEmail()`
+# Github: `!v g:MetaGitOriginUrl()`
+endsnippet
+
+# vim:set noet sts=2 sw=2 ts=2 tw=120:
 # vim:ft=snippets

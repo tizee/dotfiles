@@ -1,12 +1,13 @@
 priority 1000
 # ========= Useful Utils ========== {{{
 
+# plugin/meta.vim
 snippet docs "copyright etc for vimscript file" b
-	" File: ${1:`g:UtilFilename('$1.vim', 'foo.vim')`}
-	" Author: `g:MetaUserName()`
-	" Email: `g:MetaUserEmail()`
-	" Github: `g:MetaGitOriginUrlRepo()`
-	" Description: ${0}
+" File: ${1:`!v g:UtilFilename('$1.vim', 'foo.vim')`}
+" Description: ${0}
+" Author: `!v g:MetaUserName()`
+" Email: `!v g:MetaUserEmail()`
+" Github: `!v g:MetaGitOriginUrl()`
 endsnippet
 
 snippet redir "redirect messages" b
