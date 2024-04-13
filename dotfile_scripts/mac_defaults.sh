@@ -286,6 +286,8 @@ if [[ $(uname -s) = "Darwin" ]]; then
   # }}}
 
   # enable debug menu from AppKit for all applications
+  # see .config/bin/num2str
+  # 0x4445425547 in utf-8 encoding -> DEBUG
   defaults write -g _NS_4445425547 -bool true
 
   # enforce reloading system setttings

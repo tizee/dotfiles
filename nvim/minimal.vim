@@ -6,7 +6,7 @@
 let g:mapleader=" "
 
 " highlight text line of cursor
-set nocursorline
+set cursorline
 " highlight text column of cursor
 set nocursorcolumn
 
@@ -200,7 +200,7 @@ set number
 set numberwidth=4
 
 " show line number relative to current line where cursor is
-set relativenumber
+set norelativenumber
 
 " check filetype
 filetype on
@@ -248,9 +248,6 @@ set wildmenu
 
 " show cursor location
 set ruler
-
-" current line highlighting
-set cursorline
 
 " highlight searchs
 set hlsearch

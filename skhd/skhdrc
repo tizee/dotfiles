@@ -171,7 +171,6 @@ shift + alt - n : yabai -m space --create && \
                   yabai -m space --focus "${index}"
 # }}}
 
-
 # === Space Management === {{{
 
 # fast focus space
@@ -191,7 +190,7 @@ shift + alt - n : yabai -m space --create && \
 # ]
 # }}}
 
-# === Short cuts === {{{
+# === Shortcuts === {{{
 cmd - return : open /Applications/WezTerm.app
 ctrl + alt - r : yabai --restart-service; skhd --restart-service
 # }}}

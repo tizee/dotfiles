@@ -4,9 +4,9 @@ function _pbcopy(){
   case $(uname -s) in
     Darwin*)
       if [ -t 0 ]; then
-        /usr/bin/pbcopy $@
+        /usr/bin/pbcopy "$@"
       else
-        /usr/bin/pbcopy -$@
+        /usr/bin/pbcopy -"$@"
       fi
       ;;
     Linux*)

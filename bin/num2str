@@ -1,0 +1,114 @@
+#!/usr/bin/env python3
+#vim: ft=python
+# -*- coding: utf-8 -*-
+
+# Decode binary encoded string into string
+# Or encode string in given encoding binary string
+
+# It's useful to make these printed binary string less nerdy and more human
+# friendly.
+# Why not use encrypted binary string as an easter egg somewhere in your
+# codebase.
+
+import sys
+
+def main(argv = None):
+    if len(argv) <= 1:
+        # display help info
+        print("""usage: {} [-]<encoding-format> binary|hex [string]
+    available formats:
+    gbk
+    utf-8
+    ...
+    and other formats of standard encodings
+
+    use -<format> to convert string to binary string""".format(argv[0]))
+        return 0
+    fmt = argv[1]
+    num_format = argv[2]
+    to_str = fmt[0] != '-'
+    if fmt[0] != '-':
+        convert_fn = get_convert(num_format, to_str, fmt)
+        for byte in argv[3:]:
+            try:
+                print("{} in {} encoding -> {}".format(byte,fmt,convert_fn(byte)))
+            except UnicodeError:
+                print("error encoding" )
+                return 1
+            except LookupError:
+                print("format {} is not supported ".format(fmt))
+                return 1
+    else:
+        fmt = fmt[1:]
+        number_format = argv[2]
+        convert_fn = get_convert(num_format, to_str, fmt)
+        for words in argv[3:]:
+            try:
+                for word in words:
+                    print("{} in {} encoding in {} -> {}".format(word,fmt,
+                                                                 number_format,
+                                                                 convert_fn(word,fmt)))
+            except UnicodeError:
+                print("error encoding")
+                return 1
+            except LookupError:
+                print("format {} is not supported ".format(fmt))
+                return 1
+
+def get_convert(num_fmt, to_str = False, encoding = 'utf-8' ):
+    # binary string to character str
+    def hex2str(s, fmt=encoding):
+        return bytes.fromhex(hex(int(s,16))[2:]).decode(encoding=fmt)
+
+    def str2hex(s, fmt=encoding):
+        return '0x'+''.join('0x'.join(format(byte,'02x') for byte in bytes(word, fmt)) for word in s)
+
+    # binary string to character str
+    def binary2str(s, fmt=encoding):
+        return bytes.fromhex(hex(int(s,2))[2:]).decode(encoding=fmt)
+
+    def str2binary(s, fmt=encoding):
+        return '\n'.join(''.join(format(byte,'08b') for byte in bytes(word, fmt)) for word in s)
+
+    if num_fmt == "hex":
+        if to_str:
+            return hex2str
+        else:
+            return str2hex
+    else:
+        if to_str:
+            return binary2str
+        else:
+            return str2binary
+
+def test():
+    def expect(a,b):
+        assert a == b
+    # binary
+    b_str = '1100010011100011'
+    s_str = '你'
+    str2b = get_convert('binary', False)
+    b2str = get_convert('binary', True)
+    expect(b_str, str2b(s_str,'gbk'))
+    expect(s_str,b2str(b_str,'gbk'))
+    expect(b_str,str2b(s_str,'cp936'))
+    expect(s_str,b2str(b_str,'cp936'))
+    expect('111001001011110110100000',str2b(s_str,'utf-8'))
+    expect(s_str,b2str('111001001011110110100000','utf-8'))
+    # hex
+    hex_str = '0x4445425547'
+    s_str = 'DEBUG'
+    s2hex = get_convert('hex', False)
+    hex2s = get_convert('hex', True)
+    expect(hex_str, s2hex(s_str, 'utf-8'))
+    expect(s_str , hex2s(hex_str, 'utf-8'))
+    try:
+        expect('你',b2str('1100010011100011','unkown'))
+    except LookupError:
+        print("unkown format")
+        pass
+    print("test passed")
+
+if __name__ == '__main__':
+    # test()
+    main(sys.argv)

@@ -321,7 +321,7 @@ function yogit::branch(){
 # select abbrviation commit
 function yogit::select::commit(){
   if [[ -n $1 ]];then
-    git log $1 --pretty="%h %cn %s" | fzf --multi --preview 'git show {+1}' | awk '{print $1}' | sed  | 2>/dev/null
+    git log $1 --pretty="%h %cn %s" | fzf --multi --preview 'git show {+1}' | awk '{print $1}' 2>/dev/null
   else
     # Use current branch
     local branch=$(yogit::branch)

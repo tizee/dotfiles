@@ -30,7 +30,7 @@ anki
 # discord
 
 # note tool
-# obsidian
+obsidian
 
 # bookmarks manager
 # raindropio
@@ -43,7 +43,18 @@ appcleaner
 
 # credentials manager
 1password
+
+# Inspect application bundles
+apparency
+
+# Tool for digging into binary files
+archaeology
+
+# An Application for Inspecting macOS Installer Packages
+suspicious-package
 )
+
+# ln -s /Applications/Apparency.app/Contents/MacOS/appy $(brew --prefix)/bin
 
 "$script_dir/helper.sh" -brew "${mac_pkgs[@]}"
 "$script_dir/helper.sh" -cask "${brew_cask_apps[@]}"
