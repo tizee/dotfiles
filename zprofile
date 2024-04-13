@@ -238,22 +238,24 @@ if $is_macOS; then
   #export FREETYPE_CFLAGS="-I/usr/local/opt/freetype2/include"
   #export FREETYPE_LIBS="-L/usr/local/opt/freetype2/lib"
   ## ncurses
-  #PATH="/usr/local/opt/ncurses/bin:$PATH"
-  ## Need to link header and libs manually
-  #export LIBNCURSES_CFLAGS="-I/usr/local/opt/ncurses/include"
-  ## I've symbolically linked libncursers.dylib into /usr/local/lib
-  ## So gcc should searches via -lncurses to locate the installed one
-  ## instead of the system's outdated ncurses lib
-  #export LIBNCURSES_LIBS="-lncurses"
-  ## export LDFLAGS="-L/usr/local/opt/ncurses/lib"
-  ## export CPPFLAGS="-I/usr/local/opt/ncurses/include"
+  PATH="/opt/homebrew/opt/ncurses/bin:$PATH"
+  # Need to link header and libs manually
+  # build tmux from source in macOS: export PKG_CONFIG_PATH="/opt/homebrew/opt/ncurses/lib/pkgconfig" before ./configure
+  # export LIBNCURSES_CFLAGS="-I/opt/homebrew/opt/ncurses/include"
+  # it's possible to link libncursers.dylib into /usr/local/lib
+  # So gcc should searches via -lncurses to locate the installed one
+  # instead of the system's outdated ncurses lib
+  # export LIBNCURSES_LIBS="-lncurses"
+  # export LIBNCURSES_LIBS="-L/opt/homebrew/opt/ncurses/lib"
+  # export CPPFLAGS="-I/opt/homebrew/opt/ncurses/include"
+  # export LDFLAGS="-L/opt/homebrew/opt/ncurses/lib"
   ## libevent
-  ## export LIBEVENT_CFLAGS="-I/usr/local/opt/libevent/include"
-  ## export LIBEVENT_LIBS="-L/usr/local/opt/libevent/lib"
-  ## utf8proc
-  ## export LIBUTF8PROC_CFLAGS="-I/usr/local/opt/utf8proc/include"
-  ## export LIBUTF8PROC_LIBS="-L/usr/local/opt/utf8proc/lib"
-  ## haskell
+  # export LIBEVENT_CFLAGS="-I/usr/local/opt/libevent/include"
+  # export LIBEVENT_LIBS="-L/usr/local/opt/libevent/lib"
+  # utf8proc
+  # export LIBUTF8PROC_CFLAGS="-I/usr/local/opt/utf8proc/include"
+  # export LIBUTF8PROC_LIBS="-L/usr/local/opt/utf8proc/lib"
+  # haskell
   #[ -f "$HOME/.ghcup/env" ] && source "$HOME/.ghcup/env" # ghcup-env
   #PATH="$HOME/.cabal/bin:$HOME/.ghcup/bin:$PATH"
   ## riscv
