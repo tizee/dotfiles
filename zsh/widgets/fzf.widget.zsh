@@ -1,4 +1,4 @@
-#!/usr/bin/zsh
+#!/usr/bin/env zsh
 
 __fzfcmd() {
   [ -n "$TMUX_PANE" ] && { [ "${FZF_TMUX:-0}" != 0 ] || [ -n "$FZF_TMUX_OPTS" ]; } &&
@@ -6,14 +6,18 @@ __fzfcmd() {
 }
 
 # use fzf to kill proccesses
+# see ../plugins/fzf.plugin.zsh
 fzfkill_widget() {
-   (command -v fzf::kill_pid) && fzf::kill_pid
-   zle reset-prompt
+  () {
+    (command -v fzf::kill_pid) && fzf::kill_pid
+  }
+  zle reset-prompt
 }
 
 zle -N fzf-redraw-prompt
 zle -N fzfkill_widget
-bindkey '^k'  fzfkill_widget #ctrl+k
+# ctrl+k
+bindkey '^k'  fzfkill_widget
 
 # extract from fzf/shell/key-bindings.zsh
 fzfhistory_widget() {
@@ -31,6 +35,8 @@ fzfhistory_widget() {
   zle reset-prompt
   return $ret
 }
+
 zle     -N   fzfhistory_widget
+# ctrl+k
 bindkey '^R' fzfhistory_widget
 
