@@ -127,7 +127,7 @@ yabai -m rule --add app="^OBS$" manage=off
 borders_options=(
   active_color=0xff50fa7b
   inactive_color=0xc02c2e34
-  background_color=0x302c2e34
+  # background_color=0x302c2e34
   hidpi=on
   style=round
   width=6.0
