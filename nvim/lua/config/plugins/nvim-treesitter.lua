@@ -73,6 +73,7 @@ function M:setup()
 			},
 		},
 
+		-- nvim-treesitter-textobjects
 		textobjects = {
 			-- text object for selection
 			select = {
@@ -165,6 +166,35 @@ function M:setup()
 					["[I"] = { query = "@conditional.outer", desc = "Prev conditional end" },
 					["[L"] = { query = "@loop.outer", desc = "Prev loop end" },
 				},
+			},
+		},
+
+		-- nvim-treesitter-refactor
+		refactor = {
+			-- Highlights definition and usages of the current symbol under the cursor.
+			highlight_definitions = {
+				enable = true,
+				-- Set to false if you have an `updatetime` of ~100.
+				clear_on_cursor_move = false,
+			},
+
+			-- Highlights the block from the current scope where the cursor is.
+			highlight_current_scope = { enable = true },
+
+			-- Renames the symbol under the cursor within the current scope (and current file).
+			smart_rename = {
+				enable = true,
+				-- Assign keymaps to false to disable them, e.g. `smart_rename = false`.
+				keymaps = {
+					smart_rename = "grr",
+				},
+			},
+
+			-- Provides "go to definition" for the symbol under the cursor, and lists the definitions from the current file.
+			navigation = {
+				enable = false,
+				-- Assign keymaps to false to disable them, e.g. `goto_definition = false`.
+				keymaps = false,
 			},
 		},
 	})

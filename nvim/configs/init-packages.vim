@@ -12,6 +12,17 @@ let g:loaded_tz_packages= 1
 call plug#begin('~/.vim/plugged')
 " Plugin list {{{
 
+" ===> nvim plugin {{{
+if has('nvim')
+  " -- treesitter highlighter
+  Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
+  " treesitter-based textojbects
+  Plug 'nvim-treesitter/nvim-treesitter-textobjects'
+  " rename
+  Plug 'nvim-treesitter/nvim-treesitter-refactor'
+endif
+"  }}}
+
 " ===> Formatter/Linter {{{
 " Chinese formatter
 Plug 'hotoo/pangu.vim'
@@ -40,13 +51,6 @@ Plug 'ziglang/zig.vim'
 Plug 'nathangrigg/vim-beancount'
 " cmake
 Plug 'pboettch/vim-cmake-syntax'
-" -- nvim plugin
-if has('nvim')
-  " -- treesitter highlighter
-  Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}  " We recommend updating the parsers on update
-  " treesitter-based textojbects
-  Plug 'nvim-treesitter/nvim-treesitter-textobjects'
-endif
 " }}}
 
 " ===> Enhanced Editing Workflow {{{
@@ -101,7 +105,7 @@ Plug 'tizee/moline.vim'
 " -- tabline
 Plug 'tizee/tabline.vim'
 " -- Nerdfont icons
-Plug 'ryanoasis/vim-devicons'
+Plug 'tizee/vim-devicons'
 " -- colorscheme
 Plug 'tizee/gruvbox.vim'
 " -- start screen

@@ -44,12 +44,12 @@ let g:roman_slogan=[
 " complicated scripts.
 " TODO steps to generate following slogan
 " use a cli font viewer for rendering non-Latin characters
-let g:cjk_slogan=[
-\ '     ⣀⣀⣀⣤⡤  ',
-\ '       ⣿⢀   ',
-\ '     ⠈⠛⣿⠉⠁  ',
-\ '   ⠠⠤⠴⠖⠛⠒⠒⠚⠶',
-\]
+"let g:cjk_slogan=[
+"\ '     ⣀⣀⣀⣤⡤  ',
+"\ '       ⣿⢀   ',
+"\ '     ⠈⠛⣿⠉⠁  ',
+"\ '   ⠠⠤⠴⠖⠛⠒⠒⠚⠶',
+"\]
 
 " need to escape control sequence for Chinese qutoes
 " 杨花榆荚无才思，惟解漫天作雪飞。
@@ -65,12 +65,12 @@ function s:longest(l) abort
     let llen = strlen(line)
     if llen > l:max
       let l:max = llen
-    endif 
+    endif
   endfor
   return max
 endfunction
 
-let s:quote=system('fortune chinese | sed -r "s/.\[[0-9]*m//g"')
+let s:quote=system('fortune -n 78 | sed -r "s/.\[[0-9]*m//g"')
 let s:quote_lines=split(s:quote,"\n")
 let s:max_line=s:longest(s:quote_lines)
 let s:quote_lines=map(s:quote_lines,{_,val->s:padstr(val, s:max_line)})
