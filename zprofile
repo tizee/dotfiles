@@ -82,17 +82,27 @@ arch_setup() {
     [ -e "$HOME/.ssh/win_github_id_rsa" ] && $(ssh-add "$HOME/.ssh/mac_id_rsa" >/dev/null)
 }
 
-# WSL
-if $(uname -r | grep 'microsoft' > /dev/null); then
-  case $(lsb_release -d | awk '{print $2}') in
+if command -v lsb_release >/dev/null 2>&1; then
+  # Linux
+  local distro=$(lsb_release -d | awk '{print $2}')
+  export SYSTEM_DISTRO="$distro"
+  case $distro in
     Ubuntu)
       ubuntu_setup
       ;;
     Arch)
       arch_setup
       ;;
+    *) echo "no configure for $distro"
+      ;;
   esac
-  echo "WSL"
+else
+  export SYSTEM_DISTRO="Darwin"
+fi
+
+# WSL
+if $(uname -r | grep 'microsoft' > /dev/null); then
+  echo "WSL $USER at $(date) - $TTY"
   # always use host proxy
   source ~/.config/win_scripts/wsl2/wsl-proxy
   export PATH="$HOME/.config/win_scripts/wsl2:$PATH"
@@ -100,8 +110,7 @@ if $(uname -r | grep 'microsoft' > /dev/null); then
   # use ssh-key from smart-card
   # export SSH_AUTH_SOCK=$HOME/.gnupg/S.gpg-agent.ssh
 else
-  # TODO a script built with last command
-  echo "macOS $USER log in $(date) - $TTY"
+  echo "macOS $USER at $(date) - $TTY"
 fi
 
 # Preferred editor for local and remote sessions

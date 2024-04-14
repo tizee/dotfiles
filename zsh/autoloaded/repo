@@ -6,7 +6,7 @@ PROJECT_SUFFIX=${MY_PROJECT_SUFFIX:-"-projects"}
 function repo() {
     if [[ $# -eq 0 ]];then
       if command -v tree >/dev/null 2>&1; then
-        local repo_name="$(fd . -t d -d 1 ${DEV_PROJECTS} --exec basename | fzf --preview="bat ${DEV_PROJECTS}/{+1}/README.md")"
+        local repo_name="$(fd . -t d -d 1 ${DEV_PROJECTS} --exec basename | fzf --preview="tree -L 1 ${DEV_PROJECTS}/{+1}")"
         if [[ -n $repo_name ]];then
           cd "${DEV_PROJECTS}/$repo_name" || return 1
           DEV_PROJECTS="${DEV_PROJECTS}/$repo_name" repo

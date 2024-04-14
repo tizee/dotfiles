@@ -254,20 +254,31 @@ setopt no_prompt_bang prompt_percent prompt_subst
 
 local err_color="%(?.${limegreen}.${red})"
 local return_code="%(?..%?)"
-# local shell_symbol='ᐅ'
 local shell_symbol='$'
 local prompt_symbol="%(!.${shell_symbol}#.${shell_symbol})"
 local NEWLINE=$'\n'
 local invisible='%([BSUbfksu]|([FBK]|){*})'
 # only run once
-case $SYSTEM in
+case $SYSTEM_DISTRO in
   Darwin)
     local sys_icon=' '
     # sys_icon+=$(sw_vers -productVersion)
     ;;
+  Arch)
+    local sys_icon='󰣇 '
+    ;;
+  Ubuntu)
+    local sys_icon=' '
+    ;;
+  Dock)
+    local sys_icon='󰡨 '
+    ;;
   Linux)
-    local sys_icon=' '
+    local sys_icon=' '
     # sys_icon+=$(uname -r)
+    ;;
+  *)
+    local sys_icon=' '
     ;;
 esac
 
@@ -439,7 +450,7 @@ case $SYSTEM in
       compinit -C;
     fi
     ;;
-  Linux)
+  *)
     if [[ $(date +'%j') != $(date -r $HOME/.zcompdump +'%j') ]]; then
       # update
       compinit;
@@ -453,6 +464,7 @@ esac
 autoload -U +X bashcompinit && bashcompinit
 # }}}
 
+# python manager
 export PATH="$HOME/.poetry/bin:$PATH"
 
 # yubikey
@@ -500,6 +512,7 @@ fi
 # zprof
 
 # pnpm
+# https://pnpm.io/completion
 # tabtab source for packages
 # uninstall by removing these lines
 [[ -f ~/.config/tabtab/zsh/__tabtab.zsh ]] && . ~/.config/tabtab/zsh/__tabtab.zsh || true
