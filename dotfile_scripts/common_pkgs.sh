@@ -65,6 +65,12 @@ flac
 
 # library
 lzo
+
+#  -- Linter/Formatter -- {{{
+#  Swift Style
+swiftlint
+#  }}}
+#
 )
 
 declare -a brew_pkgs=(
