@@ -1,12 +1,4 @@
--- Load Lua configuartion
-require("config.core")
--- Load GUI configuration for NeoVide
-
--- neovim globals
-if vim.fn.has("gui_running") and vim.fn.has("nvim") then
-    vim.opt.guifont = { "JetBrainsMono Nerd Font Mono:h16" }
--- CJK characters
--- LXGW WenKai Mono for Chinese characters
--- Klee Medium for Japanese Kanji
-    vim.opt.guifontwide = { "Hiragino Mincho Pro:h16" }
-end
+-- fix treesitter parser missing issue
+vim.api.nvim_command('set runtimepath^=~/.vim/plugged/nvim-treesitter')
+vim.api.nvim_command('let &packpath = &runtimepath')
+require("tizee.core").setup()

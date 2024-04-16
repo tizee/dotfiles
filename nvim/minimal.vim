@@ -21,8 +21,11 @@ set fileencodings=utf-8,cp936
 set fileencoding=utf-8
 set encoding=utf8
 
-" spell check
-" set spell
+" backspace
+" see :help bs
+" Influences the working of <BS>, <Del>, CTRL-W and CTRL-U in Insert mode.
+set bs="indent,eol,start"
+
 
 " whether to use Python 2 or 3
 set pyx=3
@@ -136,6 +139,9 @@ if $SUDO_USER !=# '' && $USER !=# $SUDO_USER
   set viminfo="NONE"
  endif
 endif
+
+" disable swap file
+set noswapfile
 
 " Don't pass messages to |ins-completion-menu|.
 " set shortmess+=c

@@ -1,6 +1,6 @@
 local M = {}
 
-function M:setup()
+function M.setup()
 	-- nvim-treesitter
 	require("nvim-treesitter.configs").setup({
 		-- parser dir to package dir
