@@ -24,7 +24,7 @@ set encoding=utf8
 " backspace
 " see :help bs
 " Influences the working of <BS>, <Del>, CTRL-W and CTRL-U in Insert mode.
-set bs="indent,eol,start"
+set bs=indent,eol,start
 
 
 " whether to use Python 2 or 3
