@@ -117,6 +117,11 @@ yabai -m rule --add app="^DingTalk Lite$"  manage=off
 yabai -m rule --add app="^WeChat$" manage=off
 # screenshot
 yabai -m rule --add app="^OBS$" manage=off
+# Spotlight alternative
+yabai -m rule --add app="^Raycast$" manage=off sub-layer=above
+# Microsoft Remote Desktop
+yabai -m rule --add app="^Microsoft Remote Desktop$" manage=off sub-layer=above
+
 # }}}
 
 

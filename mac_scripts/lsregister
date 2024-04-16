@@ -1,12 +1,11 @@
 #!/usr/bin/env zsh
 
 # For example, lsregister -dump URLSchemeBinding
+# list all exisiting URLScheme in macOS
 function _lsregister(){
   if [[ -e /System/Library/Frameworks/CoreServices.framework/Versions/Current/Frameworks/LaunchServices.framework/Support/lsregister ]]; then
       if [ -t 0 ]; then
        /System/Library/Frameworks/CoreServices.framework/Versions/Current/Frameworks/LaunchServices.framework/Support/lsregister $@
-      else
-        /usr/bin/pbcopy -$@
       fi
   else
     # no-op
