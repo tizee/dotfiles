@@ -142,7 +142,7 @@ local function get_link()
 	if clipboardText == nil then
 		alert.show("empty clipboard")
 	end
-	return string.match(string, "^https?://.*")
+	return string.match(clipboardText, "^https?://.*")
 end
 
 M.rewrite_youtube_link = function()
