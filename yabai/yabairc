@@ -121,6 +121,12 @@ yabai -m rule --add app="^OBS$" manage=off
 yabai -m rule --add app="^Raycast$" manage=off sub-layer=above
 # Microsoft Remote Desktop
 yabai -m rule --add app="^Microsoft Remote Desktop$" manage=off sub-layer=above
+yabai -m rule --add app="^LookAway$" manage=off sub-layer=above
+yabai -m rule --add app="^Hammerspoon$" manage=off sub-layer=above
+yabai -m rule --add app="^Karabiner-Elements$" manage=off sub-layer=above
+yabai -m rule --add app="^Reeder$" manage=off sub-layer=above
+yabai -m rule --add app="^Neat$" manage=off sub-layer=above
+yabai -m rule --add app="^Bruno$" manage=off sub-layer=above
 
 # }}}
 
