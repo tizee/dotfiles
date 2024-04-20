@@ -21,18 +21,18 @@ local function tracker(url)
 	if url == nil then
 		return nil
 	end
-	-- function test_trakcer()
-	--   local url = 'https://www.unknown.com/'
-	--   for i, p in ipairs(parameters) do
-	--     if i == 1 then
-	--       url = url .. '?'
-	--     else
-	--       url = url .. '&valid=xxx&'
-	--     end
-	--     url = url .. p .. '=xxx'
-	--   end
-	--   return url
-	-- end
+	function test_trakcer()
+		local url = "https://www.unknown.com/"
+		for i, p in ipairs(parameters) do
+			if i == 1 then
+				url = url .. "?"
+			else
+				url = url .. "&valid=xxx&"
+			end
+			url = url .. p .. "=xxx"
+		end
+		return url
+	end
 	-- local url = test_trakcer()
 
 	-- Use tracker parameters
@@ -104,7 +104,11 @@ local function tracker(url)
 		"CMP",
 		-- douban
 		"from",
+		-- twitter
+		"s",
+		"t",
 	}
+
 	local base, query = string.match(url, "([^?]+)?(.*)")
 
 	local function isTrackerParameter(param)
