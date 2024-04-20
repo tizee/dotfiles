@@ -348,9 +348,8 @@ setopt share_history          # share command history data across zsh sessions
 setopt append_history         # append to history rather than overwrite
 # setopt inc_append_history # adds commands while typing commands instead of at shell exit.
 
-# use CTRL-R to search command history reversely
-# bindkey -v
-# bindkey '^R' history-incremental-search-backward
+# use CTRL-R to search command history reversely in vim mode
+# bindkey -v '^R' history-incremental-search-backward
 # }}}
 
 # enable diff color if possible.

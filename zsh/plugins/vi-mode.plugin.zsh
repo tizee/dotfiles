@@ -40,18 +40,27 @@ bindkey -M vicmd 'v' edit-command-line
 bindkey '^P' up-history
 bindkey '^N' down-history
 
-# allow ctrl-h, ctrl-w, ctrl-? for char and word deletion (standard behaviour)
+# allow ctrl-h, ctrl-w, backspace(^?) for char and word deletion (standard behaviour)
 bindkey '^?' backward-delete-char
 bindkey '^h' backward-delete-char
 bindkey '^w' backward-kill-word
+
+# ctrl+f delete char under the cursor
+bindkey '^f' delete-char
+# ctrl+b move backward one char
+bindkey '^b' backward-char
+
 
 # allow ctrl-r and ctrl-s to search the history
 bindkey '^r' history-incremental-search-backward
 bindkey '^s' history-incremental-search-forward
 
+bindkey -M vicmd 'gg' beginning-of-buffer-or-history
+bindkey -M vicmd 'G' end-of-buffer-or-history
+
 # allow ctrl-a and ctrl-e to move to beginning/end of line
-bindkey '^a' beginning-of-line
-bindkey '^e' end-of-line
+bindkey -M vicmd '0' beginning-of-line
+bindkey -M vicmd '$' end-of-line
 
 # if mode indicator wasn't setup by theme, define default
 if [[ "$MODE_INDICATOR" == "" ]]; then

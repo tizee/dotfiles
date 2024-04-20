@@ -26,3 +26,4 @@ case ${HIST_STAMPS-} in
   "") alias history='slim_zsh_history' ;;
   *) alias history="slim_zsh_history -t '$HIST_STAMPS'" ;;
 esac
+
