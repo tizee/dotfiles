@@ -20,8 +20,12 @@ function __cd_mark(){
         command ls -1 "$MARK_DATA_PATH/" | MARK_DATA_PATH="$MARK_DATA_PATH" xargs -I {} sh -c 'echo "{} ->" $(readlink "$MARK_DATA_PATH/{}")'
         ;;
       *)
-        local dest="$(readlink $MARK_DATA_PATH/$1 2 > /dev/null)"
-        [ -d "$dest" ] && cd $dest || echo "No such bookmark: $1"
+        local dest=$(command readlink "$MARK_DATA_PATH/$1")
+        if [[ -n "$dest" ]]; then
+          echo $dest && exit 0
+        else
+          echo "No such bookmark: $1" && exit 1
+        fi
         ;;
   esac
 }

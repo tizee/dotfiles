@@ -49,11 +49,11 @@
     //   "disableWorkspaceFolders": true,
     //   "filetypes": ["go"]
     // },
-    // "rust": {
-    //    "command": "rust-analyzer",
-    //    "filetypes": ["rust"],
-    //    "rootPatterns": ["Cargo.toml"]
-    // },
+    //"rust": {
+    //  "command": "rust-analyzer",
+    //  "filetypes": ["rust"],
+    //  "rootPatterns": ["Cargo.toml"]
+    //},
     "cmake": {
       "command": "cmake-language-server",
       "filetypes": ["cmake"],
@@ -91,23 +91,9 @@
   "rust-analyzer.enable": true,
   "rust-analyzer.procMacro.enable": false,
   "rust-analyzer.server.path": "~/.cargo/bin/rust-analyzer",
-  "rust-analyzer.updates.channel": "stable",
-  "rust-analyzer.inlayHints.enable": true,
-  "rust-analyzer.inlayHints.typeHints": true,
-  "rust-analyzer.inlayHints.typeHintsSeparator": "‣",
-  "rust-analyzer.inlayHints.chainingHints": true,
-  "rust-analyzer.inlayHints.chainingHintsSeparator": "‣ ",
-  "rust-analyzer.inlayHints.refreshOnInsertMode": false,
-  "rust-analyzer.hoverActions.enable": false,
   "rust-analyzer.lens.enable": true,
-  "rust-analyzer.lens.run": true,
-  "rust-analyzer.lens.methodReferences": true,
-  "rust-analyzer.lens.references": true,
-  "rust-analyzer.lens.implementations": true,
-  "rust-analyzer.debug.runtime": "vimspector",
-  "rust-analyzer.debug.vimspector.configuration.name": "rust lldb",
   "rust-analyzer.terminal.startinsert": true,
-  "rust-analyzer.checkOnSave.command": "clippy",
+  "rust-analyzer.checkOnSave": true,
   // c++/c
   // "clangd.enabled": true,
   // "clangd.inlayHints.sep": "‣",
