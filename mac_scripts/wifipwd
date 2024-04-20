@@ -1,0 +1,11 @@
+#!/usr/bin/env zsh
+
+function _wifipwd(){
+  if [[ -n "$1" ]]; then
+    security find-generic-password -wa "$1"
+  else
+    echo "Please input the wifi SSID name" && exit 1
+  fi
+}
+
+_wifipwd "$@"
