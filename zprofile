@@ -466,13 +466,14 @@ if $is_macOS; then
   # hard-coded values of /etc/zprofile
 
   # pypi
+  PATH="$HOME/Library/Python/3.12/bin:$PATH"
   if [[ -f $HOME/.config/python/pypi_personal ]]; then
     source $HOME/.config/python/pypi_personal
   fi
 
   # bun
-  # export BUN_INSTALL="/Users/tizee/.bun"
-  # PATH="$BUN_INSTALL/bin:$PATH"
+  export BUN_INSTALL="/Users/tizee/.bun"
+  PATH="$BUN_INSTALL/bin:$PATH"
 
   # clang address sanitizer
   export ASAN_OPTIONS=detect_leaks=1,symbolize=1

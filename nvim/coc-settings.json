@@ -35,10 +35,20 @@
   // lsp server without coc wrapper
   "languageserver": {
     "sourcekit-lsp": {
-      "filetypes": ["swift", "objc", "objcpp"],
+      "filetypes": [
+        "swift",
+        "objc",
+        "objcpp"
+      ],
       "command": "sourcekit-lsp"
     },
-    // see https://github.com/iamcco/coc-flutter/issues/127
+    "ruff-lsp": {
+      "command": "ruff-lsp",
+      "filetypes": [
+        "python"
+      ]
+    },
+    // see https://github.com/iamcco/coc-flutter/issues/127,
     // "dart": {
     //   "command": "dart_lsp_server",
     //   "filetypes": ["dart"]
@@ -56,19 +66,27 @@
     //},
     "cmake": {
       "command": "cmake-language-server",
-      "filetypes": ["cmake"],
-      "rootPatterns": ["build/"],
+      "filetypes": [
+        "cmake"
+      ],
+      "rootPatterns": [
+        "build/"
+      ],
       "initializationOptions": {
         "buildDirectory": "build"
       }
     },
     "zls": {
       "command": "~/.local/bin/zls",
-      "filetypes": ["zig"]
+      "filetypes": [
+        "zig"
+      ]
     },
     "glsl": {
       "command": "/usr/local/bin/glslls",
-      "filetypes": ["glsl"]
+      "filetypes": [
+        "glsl"
+      ]
     },
     // "texlab": {
     //   "command": "texlab",
@@ -81,8 +99,12 @@
     // },
     "ccls": {
       "command": "ccls",
-      "rootPatterns": ["compile_commands.json"],
-      "filetypes": ["c"]
+      "rootPatterns": [
+        "compile_commands.json"
+      ],
+      "filetypes": [
+        "c"
+      ]
     }
   },
   // tex
@@ -104,9 +126,15 @@
   // "sourcekit.objc": true,
   // "sourcekit.objcpp": true,
   // emoji
-  "coc.source.emoji.filetypes": ["markdown", "tmux", "vim"],
+  "coc.source.emoji.filetypes": [
+    "markdown",
+    "tmux",
+    "vim"
+  ],
   "coc.source.emoji.enable": true,
-  "coc.source.emoji.triggerCharacters": [":"],
+  "coc.source.emoji.triggerCharacters": [
+    ":"
+  ],
   "git.addGBlameToVirtualText": true,
   "git.addGBlameToBufferVar": true,
   "coc.preferences.formatOnSave": true,
@@ -124,21 +152,37 @@
   "eslint.autoFixOnSave": true,
   // snippets
   "snippets.extends": {
-    "cpp": ["cpp"],
-    "javascriptreact": ["javascript"],
-    "typescript": ["javascript"],
-    "typescriptreact": ["javascript"]
+    "cpp": [
+      "cpp"
+    ],
+    "javascriptreact": [
+      "javascript"
+    ],
+    "typescript": [
+      "javascript"
+    ],
+    "typescriptreact": [
+      "javascript"
+    ]
   },
   // load vscode snippets
-  "snippets.textmateSnippetsRoots": ["$HOME/.config/nvim/code_snippets"],
+  "snippets.textmateSnippetsRoots": [
+    "$HOME/.config/nvim/code_snippets"
+  ],
   // do not use snippets as ultisnips
-  "snippets.ultisnips.directories": ["$HOME/.config/nvim/UltiSnips"],
+  "snippets.ultisnips.directories": [
+    "$HOME/.config/nvim/UltiSnips"
+  ],
   "snippets.ultisnips.trace": true,
   "snippets.ultisnips.enable": true,
   // golang
   "go.goplsOptions": {
     "completeUnimported": true
   },
+  // formatter
+  "biome.enable": true,
+  "biome.bin": "/Users/tizee/Library/pnpm/biome",
+  "biome.requireConfiguration": true,
   // flutter
   "flutter.sdk.path": "~/dev/grepo_dart/flutter",
   "flutter.trace.server": "off",
@@ -154,9 +198,6 @@
   "dart.lineLength": 80,
   "flutter.enabled": true,
   // vue
-  "vetur.format.enable": true,
-  "vetur.format.defaultFormatter.pug": "prettier",
-  "vetur.format.defaultFormatter.less": "prettier",
   // eye candies - icons
   // Nerdfont version 3.2.0
   "suggest.snippetIndicator": "󰜶",
@@ -189,15 +230,21 @@
   "json.schemaDownload.enable": true,
   "json.schemas": [
     {
-      "fileMatch": ["/clang-format.json"],
+      "fileMatch": [
+        "/clang-format.json"
+      ],
       "url": "https://json-schema.org/draft/2019-09/schema"
     },
     {
-      "fileMatch": ["/.vimspector.json"],
+      "fileMatch": [
+        "/.vimspector.json"
+      ],
       "url": "https://puremourning.github.io/vimspector/schema/vimspector.schema.json"
     },
     {
-      "fileMatch": ["/.gadgets.json"],
+      "fileMatch": [
+        "/.gadgets.json"
+      ],
       "url": "https://puremourning.github.io/vimspector/schema/gadgets.schema.json"
     }
   ],
@@ -211,7 +258,10 @@
   "yaml.format.bracketSpacing": true,
   "yaml.schemas": {
     "/Users/tizee/.config/local_json_schema/docker-compose-spec.json": "docker-compose.yml",
-    "/Users/tizee/.config/local_json_schema/gemrc.json": [".gemrc", "gemrc"],
+    "/Users/tizee/.config/local_json_schema/gemrc.json": [
+      ".gemrc",
+      "gemrc"
+    ],
     "https://json.schemastore.org/clang-format.json": [
       ".clang-format",
       "*.clang-format",
@@ -230,11 +280,11 @@
   "solargraph.rename": true,
   // coc-sources
   "coc.source.word.enable": true,
-  "coc.source.word.filetypes": ["markdown", "json", "yaml"],
+  "coc.source.word.filetypes": [
+    "markdown",
+    "json",
+    "yaml"
+  ],
   "coc.source.word.priority": -50,
-  // dictionary
-  "coc.source.dictionary.enable": true,
-  "coc.source.dictionary.filetypes": ["markdown", "json", "yaml"],
-  "coc.source.dictionary.priority": -50,
   "snippets.ultisnips.pythonPrompt": false
 }

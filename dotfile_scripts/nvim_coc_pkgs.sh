@@ -20,7 +20,7 @@ coc-go
 coc-highlight
 coc-jedi
 coc-json
-coc-prettier
+coc-biome
 coc-python
 coc-rust-analyzer
 coc-sh
