@@ -40,3 +40,5 @@ Here are my personal maintained scripts.
     - shell script - test the true color support for current terminal
 - `yearp`
     - python script - display year progress
+- `bashfuck`
+  - from https://github.com/ProbiusOfficial/bashFuck
