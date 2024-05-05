@@ -231,8 +231,13 @@ if $is_macOS; then
   PATH=$HOME/projects/gopath/bin:$PATH
   ## mame
   #alias mamed='/usr/local/Cellar/mame/0.234/share/mame/mamed'
-  ## emacs
-  #PATH="/Applications/Emacs.app/Contents/MacOS/bin:$PATH"
+
+  ## emacs.app
+  PATH="/Applications/Emacs.app/Contents/MacOS/bin:$PATH"
+
+  ## Aseprite.app
+  PATH="/Applications/Aseprite.app/Contents/MacOS:$PATH"
+
   ## plan9port
   # export PLAN9=${PLAN9:-/usr/local/opt/plan9port/libexec}
   ## export PLAN9=$HOME/dev/plan9/plan9port
