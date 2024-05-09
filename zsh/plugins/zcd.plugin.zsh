@@ -46,7 +46,7 @@ function __zcd_z() {
 
 # query interactively
 function __zcd_zi(){
-    local __zcd_result="$(zcd list | fzf "$@" --preview="tree {} -L 1")" && __zcd_cd "$__zcd_result"
+  local __zcd_result="$(zcd list | fzf "$@" --preview="tree {} -L 1")" && __zcd_cd "$__zcd_result)"
 }
 
 # zsh hook

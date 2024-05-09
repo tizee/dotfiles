@@ -363,7 +363,8 @@ endfunction
   " }}}
   " markdown {{{
   augroup ft_md
-    autocmd FileType markdown setlocal tabstop=2 expandtab spell spelllang=en_us dictionary=/usr/share/dict/words
+    autocmd!         | " Deletes all auto-commands in the current group
+    autocmd FileType markdown setlocal tabstop=2 softtabstop=4 expandtab spell spelllang=en_us dictionary=/usr/share/dict/words
   augroup END
   " }}}
 

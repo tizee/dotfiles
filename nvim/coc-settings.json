@@ -42,6 +42,7 @@
       ],
       "command": "sourcekit-lsp"
     },
+    // python lsp/linter/formatter
     "ruff-lsp": {
       "command": "ruff-lsp",
       "filetypes": [
@@ -59,11 +60,21 @@
     //   "disableWorkspaceFolders": true,
     //   "filetypes": ["go"]
     // },
-    //"rust": {
-    //  "command": "rust-analyzer",
-    //  "filetypes": ["rust"],
-    //  "rootPatterns": ["Cargo.toml"]
-    //},
+    "lua": {
+      "command": "lua-language-server",
+      "filetypes": [
+        "lua"
+      ],
+    },
+    "rust": {
+      "command": "rust-analyzer",
+      "filetypes": [
+        "rust"
+      ],
+      "rootPatterns": [
+        "Cargo.toml"
+      ]
+    },
     "cmake": {
       "command": "cmake-language-server",
       "filetypes": [
@@ -107,8 +118,6 @@
       ]
     }
   },
-  // tex
-  "texlab.path": "~/.cargo/bin/texlab",
   // rust
   "rust-analyzer.enable": true,
   "rust-analyzer.procMacro.enable": false,
@@ -116,38 +125,15 @@
   "rust-analyzer.lens.enable": true,
   "rust-analyzer.terminal.startinsert": true,
   "rust-analyzer.checkOnSave": true,
-  // c++/c
-  // "clangd.enabled": true,
-  // "clangd.inlayHints.sep": "‣",
-  // "clangd.inlayHints.enable": true,
-  // objective-c, swift, c++, c
-  // "sourcekit.enable": true,
-  // "sourcekit.commandPath": "/usr/bin/sourcekit-lsp",
-  // "sourcekit.objc": true,
-  // "sourcekit.objcpp": true,
-  // emoji
-  "coc.source.emoji.filetypes": [
-    "markdown",
-    "tmux",
-    "vim"
-  ],
-  "coc.source.emoji.enable": true,
-  "coc.source.emoji.triggerCharacters": [
-    ":"
-  ],
   "git.addGBlameToVirtualText": true,
   "git.addGBlameToBufferVar": true,
-  "coc.preferences.formatOnSave": true,
+  "coc.preferences.formatOnSave": false,
   "coc.preferences.jumpCommand": "vsplit",
   "emmet.includeLanguages": {
     "vue-html": "html",
     "javascript": "javascriptreact"
   },
   "sh.enable": true,
-  // python
-  "python.jediPath": "/Users/tizee/anaconda3/lib/python3.7/site-packages ",
-  "python.linting.pylintPath": "/Users/tizee/anaconda3/bin/pylint",
-  "python.pythonPath": "python3",
   // javascript
   "eslint.autoFixOnSave": true,
   // snippets
