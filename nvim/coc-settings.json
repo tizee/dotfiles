@@ -103,20 +103,20 @@
     //   "command": "texlab",
     //   "filetypes": ["tex"]
     // }
-    // "clangd": {
-    //   "command": "clangd",
-    //   "rootPatterns": ["compile_flags.txt", "compile_commands.json"],
-    //   "filetypes": ["cpp", "c++", "objc", "objcpp"]
-    // },
-    "ccls": {
-      "command": "ccls",
-      "rootPatterns": [
-        "compile_commands.json"
-      ],
-      "filetypes": [
-        "c"
-      ]
-    }
+     "clangd": {
+       "command": "clangd",
+       "rootPatterns": ["compile_flags.txt", "compile_commands.json"],
+       "filetypes": ["c", "cpp", "c++", "objc", "objcpp"]
+     },
+    //"ccls": {
+    //  "command": "ccls",
+    //  "rootPatterns": [
+    //    "compile_commands.json"
+    //  ],
+    //  "filetypes": [
+    //    "c"
+    //  ]
+    //}
   },
   // rust
   "rust-analyzer.enable": true,

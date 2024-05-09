@@ -128,12 +128,14 @@ alias ydl="yt-dlp"
 # }}}
 
 # ========== cmake ========== {{{
-if [[ -e /usr/local/bin/cmake ]]; then
+if $(which cmake) >/dev/null; then
   # emit compile_commands.json for clangd
   # see https://clang.llvm.org/docs/JSONCompilationDatabase.html
   # and https://clangd.llvm.org/installation.html#project-setup
- alias cmakecld="cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 "
-  # update: please use bear to generate compile_commands.json for clangd!!!
+  # in build directory, then use `cmakecld ..`
+  alias cmakecld="cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1"
+  # it's also possible to use bear to generate compile_commands.json for clangd
+  # see: https://github.com/rizsotto/Bear/issues/273
 fi
 # }}}
 
