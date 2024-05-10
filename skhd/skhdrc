@@ -192,6 +192,7 @@ shift + alt - n : yabai -m space --create && \
 
 # === Shortcuts === {{{
 cmd - return : open /Applications/WezTerm.app
+# restart yabai and skhd
 ctrl + alt - r : yabai --restart-service; skhd --restart-service
 # }}}
 
