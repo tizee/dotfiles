@@ -127,6 +127,7 @@ yabai -m rule --add app="^Karabiner-Elements$" manage=off sub-layer=above
 yabai -m rule --add app="^Reeder$" manage=off sub-layer=above
 yabai -m rule --add app="^Neat$" manage=off sub-layer=above
 yabai -m rule --add app="^Bruno$" manage=off sub-layer=above
+yabai -m rule --add app="^DeepL$" manage=off sub-layer=above
 
 # }}}
 
