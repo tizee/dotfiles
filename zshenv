@@ -8,7 +8,7 @@ setopt noglobalrcs
 
 export SYSTEM=$(uname -s)
 # use $OSTYPE insteal of uname -s
-# export SYSTEM=$OSTYPE 
+# export SYSTEM=$OSTYPE
 
 export XDG_CONFIG_HOME=$HOME/.config
 export XDG_CONFIG_DIR=$XDG_CONFIG_HOME/.config
@@ -16,5 +16,5 @@ export XDG_CONFIG_DIR=$XDG_CONFIG_HOME/.config
 # Home-made scripts
 export PATH=$PATH:${HOME}/.bin
 
-# export PROLOGUE_LOGO=1
-# export PROLOGUE_FORTUNE=1
+export PROLOGUE_LOGO=1
+export PROLOGUE_FORTUNE=1

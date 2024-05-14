@@ -5,7 +5,7 @@
 
 # magicTmux message
 if [[ $PROLOGUE_LOGO ]]; then
-  echo "\033[94m Kilin is not kirlin"
+  echo "\033[94mHello, World!"
   echo '    ___       ___       ___       ___       ___'
   echo '   /\__\     /\  \     /\__\     /\  \     /\__\ '
   echo '  /:/ _/_   _\:\  \   /:/  /    _\:\  \   /:| _|_'
@@ -16,7 +16,7 @@ if [[ $PROLOGUE_LOGO ]]; then
   echo "\033[m"
 fi
 if [[ $PROLOGUE_FORTUNE ]]; then
-  fortune chinese
+  fortune -e mao-ze-dong-anthology mao-ze-dong-chronicle kk-99 song
 fi
 
 # Execute code in the background to not affect the current session
