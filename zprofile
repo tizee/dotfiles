@@ -29,15 +29,11 @@ esac
 
 # homebrew
 # gfw
-if [[ -n "$HOMEBREW_MIRROR_CN" ]]; then
-  if $is_Linux; then BREW_TYPE="linuxbrew" ;else BREW_TYPE="homebrew"; fi
-  export HOMEBREW_BREW_GIT_REMOTE="https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/brew.git"
-  # Since brew 4.0, homebrew fetch package infos via remote API for better user experience.
-  # see https://mirrors.tuna.tsinghua.edu.cn/help/homebrew/
-  export HOMEBREW_API_DOMAIN="https://mirrors.tuna.tsinghua.edu.cn/homebrew-bottles/api"
-  # export HOMEBREW_CORE_GIT_REMOTE="https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/${BREW_TYPE}-core.git"
-  # export HOMEBREW_BOTTLE_DOMAIN="https://mirrors.tuna.tsinghua.edu.cn/${BREW_TYPE}-bottles"
-fi
+if $is_Linux; then BREW_TYPE="linuxbrew" ;else BREW_TYPE="homebrew"; fi
+export HOMEBREW_BREW_GIT_REMOTE="https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/brew.git"
+# Since brew 4.0, homebrew fetch package infos via remote API for better user experience.
+# see https://mirrors.tuna.tsinghua.edu.cn/help/homebrew/
+export HOMEBREW_API_DOMAIN="https://mirrors.tuna.tsinghua.edu.cn/homebrew-bottles/api"
 
 ubuntu_setup() {
     # Ubuntu uses Linuxbrew
@@ -503,4 +499,6 @@ if $is_macOS; then
 
   # homebrew
   eval "$(/opt/homebrew/bin/brew shellenv)"
+  # zig lang
+  export PATH="$HOME/project-zig/zig/build/stage3/bin:$PATH"
 fi

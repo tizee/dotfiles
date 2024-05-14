@@ -1,10 +1,10 @@
 #!/usr/bin/env zsh
 
 DEV_PROJECTS=${MY_PROJECTS:-"$HOME/projects"}
-PROJECT_SUFFIX=${MY_PROJECT_SUFFIX:-"-projects"}
+PROJECT_PREFIX=${MY_PROJECT_PATTERN:-"project-"}
 
 function repo() {
-    if [[ $# -eq 0 ]];then
+    if [[ -z $1 ]];then
       if command -v tree >/dev/null 2>&1; then
         local repo_name="$(fd . -t d -d 1 ${DEV_PROJECTS} --exec basename | fzf --preview="tree -L 1 ${DEV_PROJECTS}/{+1}")"
         if [[ -n $repo_name ]];then
@@ -12,11 +12,11 @@ function repo() {
           DEV_PROJECTS="${DEV_PROJECTS}/$repo_name" repo
         fi
       else
-        echo "tree is required!"
+        echo "tree is required for visualization!"
       fi
     else
-      cd "${DEV_PROJECTS}/${1}${PROJECT_SUFFIX}" || return 1
-      DEV_PROJECTS="${DEV_PROJECTS}/${1}${PROJECT_SUFFIX}" repo
+      cd "${DEV_PROJECTS}/${PROJECT_PREFIX}${1}" || return 1
+      DEV_PROJECTS="${DEV_PROJECTS}/${PROJECT_PREFIX}${1}" repo
     fi
 }
 

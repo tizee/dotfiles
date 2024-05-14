@@ -70,7 +70,7 @@ function s:longest(l) abort
   return max
 endfunction
 
-let s:quote=system('fortune -n 78 | sed -r "s/.\[[0-9]*m//g"')
+let s:quote=system('fortune -e kk-99 mao-ze-dong-anthology mao-ze-dong-chronicle | sed -r "s/.\[[0-9]*m//g"')
 let s:quote_lines=split(s:quote,"\n")
 let s:max_line=s:longest(s:quote_lines)
 let s:quote_lines=map(s:quote_lines,{_,val->s:padstr(val, s:max_line)})

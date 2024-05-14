@@ -40,8 +40,6 @@ if $(uname -r | grep 'microsoft' > /dev/null); then
 else
   # macOS
   export GITSTATUS_DIR=${GITSTATUS_DIR:-"/opt/homebrew/opt/gitstatus"}
-  # zig lang
-  export PATH="$HOME/projects/zig/build/stage3/bin:$PATH"
 fi
 
 if [ -d $GITSTATUS_DIR ]; then

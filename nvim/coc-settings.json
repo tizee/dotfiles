@@ -42,7 +42,14 @@
       ],
       "command": "sourcekit-lsp"
     },
-    // python lsp/linter/formatter
+    // python lsp
+    "pylsp": {
+      "command": "pylsp",
+      "filetypes": [
+        "python"
+      ]
+    },
+    // python linter/formatter
     "ruff-lsp": {
       "command": "ruff-lsp",
       "filetypes": [
