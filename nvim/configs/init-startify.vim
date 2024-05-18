@@ -1,5 +1,4 @@
-" TODO: use figlet to generate hanzi slogan
-let g:default_slogan = [
+let s:default_slogan = [
 \ '     __    __      __  __            __                 ',
 \ '    /\ \  /\ \    /\ \/\ \          /\ \                ',
 \ '    \ `\`\\/ / ___\ \ \_\ \     __  \ \ \___     ___    ',
@@ -11,7 +10,7 @@ let g:default_slogan = [
 \ '',
 \ ]
 
-let g:colossal_slogan=[
+let s:colossal_slogan=[
       \'  888888                888   d8b ',
       \'   "88b                888   Y8P ',
       \'    888                888       ',
@@ -27,7 +26,7 @@ let g:colossal_slogan=[
 \ '',
       \]
 
-let g:roman_slogan=[
+let s:roman_slogan=[
       \'   oooo                         .    o8o  ',
       \'   `888                       .o8    `"`  ',
       \'    888  .ooooo.   .ooooo.  .o888oo oooo  ',
@@ -40,6 +39,7 @@ let g:roman_slogan=[
 \ '',
       \]
 
+" TODO: use figlet to generate hanzi slogan
 " TODO: use a morden figlet alternative program for cjk characters or
 " complicated scripts.
 " TODO steps to generate following slogan
@@ -51,9 +51,14 @@ let g:roman_slogan=[
 "\ '   ⠠⠤⠴⠖⠛⠒⠒⠚⠶',
 "\]
 
-" need to escape control sequence for Chinese qutoes
-" 杨花榆荚无才思，惟解漫天作雪飞。
-" [33m    -- 韩愈[32m《晚春》[m[m
+let s:logo=[
+      \'████████╗██╗███████╗███████╗███████╗',
+      \'╚══██╔══╝██║╚══███╔╝██╔════╝██╔════╝',
+      \'   ██║   ██║  ███╔╝ █████╗  █████╗  ',
+      \'   ██║   ██║ ███╔╝  ██╔══╝  ██╔══╝  ',
+      \'   ██║   ██║███████╗███████╗███████╗',
+      \'   ╚═╝   ╚═╝╚══════╝╚══════╝╚══════╝',
+      \]
 
 function! s:padstr(str,amt)
     return a:str . repeat(' ',a:amt - len(a:str))
@@ -70,11 +75,14 @@ function s:longest(l) abort
   return max
 endfunction
 
+" need to escape control sequence for Chinese qutoes
+" 杨花榆荚无才思，惟解漫天作雪飞。
+" [33m    -- 韩愈[32m《晚春》[m[m
 let s:quote=system('fortune -e kk-99 mao-ze-dong-anthology mao-ze-dong-chronicle | sed -r "s/.\[[0-9]*m//g"')
 let s:quote_lines=split(s:quote,"\n")
 let s:max_line=s:longest(s:quote_lines)
 let s:quote_lines=map(s:quote_lines,{_,val->s:padstr(val, s:max_line)})
-let g:startify_custom_header= startify#center(g:roman_slogan) +
+let g:startify_custom_header= startify#center(s:logo) +
       \ startify#pad(startify#center(s:quote_lines))
 
 let g:startify_bookmarks = [ {'c': '~/.vimrc'}, '~/.zshrc' ]
@@ -93,11 +101,14 @@ let g:startify_lists = [
       \ { 'type': 'commands',  'header': ['   Commands']       },
       \ ]
 
+function! s:open_nerdtree()
+    if !argc()
+      NERDTree
+      wincmd w
+    endif
+endfunction
+
 " Startup with NERDTree opened
-autocmd VimEnter *
-          \   if !argc()
-          \ |   NERDTree
-          \ |   wincmd w
-          \ | endif
+autocmd VimEnter * call <SID>open_nerdtree()
 
 " vim:ft=vim
