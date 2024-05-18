@@ -584,4 +584,9 @@ endfunction
 endsnippet
 # }}}
 
+snippet ifshell "if shell command exists" b
+if executable(${1:command})
+$0
+endif
+endsnippet
 # vim: ft=snippets foldmethod=marker

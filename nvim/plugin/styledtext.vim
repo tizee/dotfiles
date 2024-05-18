@@ -21,24 +21,24 @@ function! s:insert_after_cursor(text)
 endfunction
 
 function! s:styledtext_echo_doublestruck(msg)
-  call s:styledtext_echo(a:msg, "doublestruck")
+  call s:styledtext_echo(a:msg, "bold", "doublestruck")
 endfunction
 
 function! s:styledtext_echo_fraktur(msg)
-  call s:styledtext_echo(a:msg, "fraktur")
+  call s:styledtext_echo(a:msg, "bold", "fraktur")
 endfunction
 
 function! s:styledtext_echo_script(msg)
-  call s:styledtext_echo(a:msg, "script")
+  call s:styledtext_echo(a:msg, "bold", "script")
 endfunction
 
 function! s:styledtext_echo_mono(msg)
-  call s:styledtext_echo(a:msg, "monospace")
+  call s:styledtext_echo(a:msg, "normal", "monospace")
 endfunction
 
-function! s:styledtext_echo(msg, style)
+function! s:styledtext_echo(msg, style, type)
   if executable("styledtext")
-    let output=trim(system(["styledtext", "--letter-style", "bold", "--letter-type", a:style, a:msg]))
+    let output=trim(system(["styledtext", "--letter-style", a:style, "--letter-type", a:type, a:msg]))
     call s:insert_after_cursor(l:output)
   else
     echoerr "styledtext not found"
