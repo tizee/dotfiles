@@ -144,7 +144,8 @@
   },
   "sh.enable": true,
   // javascript
-  "eslint.autoFixOnSave": true,
+  "eslint.enable": false,
+  "eslint.autoFixOnSave": false,
   // snippets
   "snippets.extends": {
     "cpp": [

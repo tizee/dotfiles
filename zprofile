@@ -501,4 +501,6 @@ if $is_macOS; then
   eval "$(/opt/homebrew/bin/brew shellenv)"
   # zig lang
   export PATH="$HOME/project-zig/zig/build/stage3/bin:$PATH"
+  # figlet font
+  export FIGLET_FONTDIR="$HOME/projects/project-doc/figlet-fonts"
 fi
