@@ -310,6 +310,9 @@ function yogit::parse() {
 alias "${_yogit_basic_prefix}last"="git log -1 HEAD --pretty='%h'"
 # print the commit of given object
 alias "${_yogit_basic_prefix}parse"='yogit::parse'
+
+# cd to root path of a git repo
+alias "${_yogit_basic_prefix}rt"='cd "$(git rev-parse --show-toplevel)"'
 # }}}
 
 # Interactive commands aliases start with prefix gi {{{
