@@ -113,7 +113,7 @@ local function tracker(url)
 
 	local function isTrackerParameter(param)
 		for _, p in ipairs(parameters) do
-			if string.match(param, p) then
+			if param == p then
 				return true
 			end
 		end
