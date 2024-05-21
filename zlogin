@@ -12,7 +12,16 @@ if [[ $PROLOGUE_LOGO ]]; then
   echo "\033[m"
 fi
 if [[ $PROLOGUE_FORTUNE ]]; then
-  fortune -e mao-ze-dong-anthology mao-ze-dong-chronicle kk-99 song
+  local quotes=(
+    alan-kay
+    mao-ze-dong-anthology
+    mao-ze-dong-chronicle
+    kk-99
+    song
+    unix
+    learning
+  )
+  fortune "${quotes[@]}"
 fi
 
 # Execute code in the background to not affect the current session
