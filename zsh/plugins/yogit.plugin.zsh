@@ -37,6 +37,7 @@ function yogit::help() {
   print "${_yogit_basic_prefix}cob                                         : git checkout -b"
   print "${_yogit_basic_prefix}a                                           : git add"
   print "${_yogit_basic_prefix}c                                           : git commit -v"
+  print "${_yogit_basic_prefix}ct                                           : git commit -v --trailer sign --trailer coauthor"
   print "${_yogit_basic_prefix}c!                                          : git commit --amend"
   print "${_yogit_basic_prefix}cn!                                         : git commit --amend --no-edit"
   print "${_yogit_basic_prefix}push                                        : git push origin current_branch"
@@ -177,6 +178,20 @@ function yogit::shallowclone() {
 
 alias "${_yogit_basic_prefix}sc"='yogit::shallowclone'
 
+function yogit::shallowclone_github() {
+  local organ=$(echo $1 | sed -nE 's#(https?://github.com/|git@github.com:)([^/]+)/([^/]+)(\.git)?$#\2#p')
+  local repo_name=$(echo $1 | sed -nE 's#(https?://github.com/|git@github.com:)([^/]+)/([^/]+)(\.git)?$#\3#p' | sed -nE 's/\.git$//p')
+  print "clone with --depth 1 --recurse-submodules -j8 --shallow-submodules"
+  if [[ $# > 1 ]]; then
+    git clone $@ --depth 1 --recurse-submodules -j8 --shallow-submodules "${organ}-${repo_name}"
+  else
+    git clone $1 --depth 1 --recurse-submodules -j8 --shallow-submodules "${organ}-${repo_name}"
+  fi
+}
+
+# clone github repo
+alias "${_yogit_basic_prefix}sch"='yogit::shallowclone_github'
+
 function yogit::shallowclone_without_submodules() {
   # https://stackoverflow.com/questions/3796927/how-do-i-git-clone-a-repo-including-its-submodules
   # https://stackoverflow.com/questions/2144406/how-to-make-shallow-git-submodules
@@ -211,6 +226,10 @@ alias "${_yogit_basic_prefix}a"='git add'
 
 # commit
 alias "${_yogit_basic_prefix}c"='git commit -v'
+# Add Sign-off-by: ....
+# Add Co-authored-by: ....
+# predefined git-interpret-trailer key, see .config/git/common.gitconfig
+alias "${_yogit_basic_prefix}ct"='git commit -v --trailer sign --trailer coauthor'
 alias "${_yogit_basic_prefix}c!"='git commit --amend'
 alias "${_yogit_basic_prefix}cn!"='git commit --amend --no-edit'
 

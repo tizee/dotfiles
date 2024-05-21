@@ -1,13 +1,8 @@
 ### Describe what have you done in less than 50 words ###
-Subject:
+type(scope): info
 
 ### Some additional info etc. Motivation ###
+# Motivation: problem, reason, task
+# Note: special instructions etc.
 
-Motivation:
-# problem, reason, task
-
-Note:
-# special instructions etc.
-
-
-Co-authored-by: tizee <tizee@users.noreply.github.com>
+# footer - git trailers

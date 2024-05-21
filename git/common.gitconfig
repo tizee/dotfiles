@@ -1,10 +1,11 @@
+# vim:ft=gitconfig
 [user]
   name = tizee
   email = 33030965+tizee@users.noreply.github.com
   signingkey = 92180C1B273A7726
 
 [commit]
-  gpgsign=true
+  gpgsign = true
   template = ~/.config/git/commit.template
   # add the whole commit diff in text editor when writing a commit message
   # so we could remember what we've done so far.
@@ -14,7 +15,7 @@
   program = /usr/local/bin/gpg
 
 [init]
-  templateDir=~/.config/git/hooks
+  # templateDir=~/.config/git/hooks
   # github compatible
   defaultBranch=main
 
@@ -25,8 +26,10 @@
   # by default 90 days
   reflogExpire=never
   # we should use git reflog expire --expire=<time> to specify the time manually
+
 [hooks]
   allownonascii=true
+
 [core]
   editor=nvim
   attributeFile = ~/.config/git/common.gitattributes
@@ -42,7 +45,7 @@
   ignorecase=false
 
 # for work
-[includeIf "gitdir:~/dev/work/**"]
+[includeIf "gitdir:~/work/**"]
   path= ~/.config/git/work.gitconfig
 
 # hint message for rare actions
@@ -85,7 +88,7 @@
   fzff = !git ls-files --modified --others --exclude-standard | fzf -m --prompt 'ls-files> '
   fzfvi = !nvim $(git ls-files --modified --others --exclude-standard | fzf -m --prompt 'nvim> ')
   fzft = !git tag --list | fzf -m --prompt 'tag > '
-  fzfa = !git ls-files --modified --others --exclude-standard | fzf -m | xargs -I {} git add "{}"
+  fzfa = !git ls-files --modified --others --exclude-standard | fzf -m --preview-window=bottom,60% --preview 'bat --color=always --wrap=auto --diff {} 2> /dev/null' | xargs -I {} git add "{}"
   # select unstaged file to restore
   fzfr = !git restore $(git ls-files --modified --others --exclude-standard | fzf -m)
   fzfstagedr = !git diff --name-only --cached | fzf -m --prompt 'path> ' --print0 | xargs -0 -I {} git restore --staged {}
@@ -239,13 +242,28 @@ proxy = http://127.0.0.1:7890
   # submodule diff style
   submodule = log
 
-[difftool "sourcetree"]
-  cmd = opendiff \"$LOCAL\" \"$REMOTE\"
+; [difftool "sourcetree"]
+;   cmd = opendiff \"$LOCAL\" \"$REMOTE\"
 
-[mergetool "sourcetree"]
-  cmd = /Applications/Sourcetree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"
-  trustExitCode = true
+; [mergetool "sourcetree"]
+;   cmd = /Applications/Sourcetree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"
+;   trustExitCode = true
 [diff-so-fancy]
   stripLeadingSymbols = false
 
-# vim:ft=gitconfig
+# git interpret-trailers
+[trailer]
+  where = end
+
+[trailer "sign"]
+  key = Signed-off-by
+  ifmissing = add
+  ifexists = doNothing
+  cmd = echo \"$(git config user.name) <$(git config user.email)>\"
+
+[trailer "coauthor"]
+  key = Co-authored-by
+  ifmissing = add
+  ifexists = doNothing
+  cmd = echo \"$(git config user.name) <$(git config user.email)>\"
+
