@@ -1,5 +1,6 @@
 #!/bin/sh
 
+# checkout to the first commit in master branch
 # be careful to use this command
 first() {
   branch=refs/heads/master

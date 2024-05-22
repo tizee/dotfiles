@@ -88,7 +88,7 @@
   fzff = !git ls-files --modified --others --exclude-standard | fzf -m --prompt 'ls-files> '
   fzfvi = !nvim $(git ls-files --modified --others --exclude-standard | fzf -m --prompt 'nvim> ')
   fzft = !git tag --list | fzf -m --prompt 'tag > '
-  fzfa = !git ls-files --modified --others --exclude-standard | fzf -m --preview-window=bottom,60% --preview 'bat --color=always --wrap=auto --diff {} 2> /dev/null' | xargs -I {} git add "{}"
+  fzfa = !git ls-files --modified --others --exclude-standard | fzf -m --preview-window=right,60% --preview 'bat --color=always --wrap=auto --diff {} 2> /dev/null' | xargs -I {} git add "{}"
   # select unstaged file to restore
   fzfr = !git restore $(git ls-files --modified --others --exclude-standard | fzf -m)
   fzfstagedr = !git diff --name-only --cached | fzf -m --prompt 'path> ' --print0 | xargs -0 -I {} git restore --staged {}
@@ -253,17 +253,57 @@ proxy = http://127.0.0.1:7890
 
 # git interpret-trailers
 [trailer]
+  # use :, # as separators
+  separators = ":#"
   where = end
 
+# git commit --trailer sign
 [trailer "sign"]
   key = Signed-off-by
   ifmissing = add
   ifexists = doNothing
   cmd = echo \"$(git config user.name) <$(git config user.email)>\"
 
+# git commit --trailer coauthor
 [trailer "coauthor"]
   key = Co-authored-by
   ifmissing = add
   ifexists = doNothing
   cmd = echo \"$(git config user.name) <$(git config user.email)>\"
+
+# git commit --trailer review
+[trailer "review"]
+  key = Reviewed-by
+  ifmissing = add
+  ifexists = addIfDifferentNeighbor
+  cmd = echo \"$(git config user.name) <$(git config user.email)>\"
+
+# git commit --trailer "help:tizee"
+[trailer "help"]
+  key = Helped-by
+  ifmissing = add
+  ifexists = addIfDifferentNeighbor
+  cmd = $HOME/.config/git/bin/git-findauthor
+
+# git commit --trailer "fix:23"
+[trailer "fix"]
+  key = "Fix #"
+  ifmissing = add
+  ifexists = doNothing
+
+# git commit --trailer "see:<commit-obj>"
+# git commit --trailer "see:HEAD~2"
+[trailer "see"]
+  key = See-also:
+  ifmissing = add
+  ifexists = replace
+  cmd = $HOME/.config/git/bin/git-logsee
+
+# git commit --trailer "ref:<commit-msg>"
+# git commit --trailer "ref:feat(hammerpsoon)"
+[trailer "ref"]
+  key = Reference-to:
+  ifmissing = add
+  ifexists = replace
+  cmd = $HOME/.config/git/bin/git-logref
 

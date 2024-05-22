@@ -1,0 +1,2 @@
+#!/usr/bin/env zsh
+test -n "$1" && git log -1 --oneline --format="%h (%s)" --abbrev-commit --abbrev=14 -1 || true

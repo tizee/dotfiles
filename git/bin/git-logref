@@ -1,0 +1,2 @@
+#!/usr/bin/env zsh
+test -n "$1" && git log -1 --oneline --pretty=reference --abbrev-commit --abbrev=14 --grep "$1" || true

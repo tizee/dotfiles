@@ -1,7 +1,14 @@
 #!/usr/bin/env zsh
 
 function weeklog(){
-  local d=$(date +"%Y-%m-%d" -d "-6 day")
+  case $SYSTEM in
+    Darwin*)
+        local d=$(date -v -6d +"%Y-%m-%d" )
+      ;;
+    *)
+        local d=$(date +"%Y-%m-%d" -d "-6 day")
+      ;;
+  esac
   git log --pretty=format:'%Cred%h%Creset %Cgreen(%ad):%n%C(yellow)%d%Creset %s  %n%C(bold blue)<%an> %ae%Creset [%G?]%n' --stat --date=short --after=$d
 }
 

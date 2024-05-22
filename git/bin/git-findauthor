@@ -1,0 +1,2 @@
+#!/usr/bin/env zsh
+test -n "$1" && git log --pretty="%an <%ae>" -1 || true
