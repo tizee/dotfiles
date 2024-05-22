@@ -103,35 +103,40 @@ yabai -m config normal_window_opacity 0.9
 # ====================
 # App
 # ====================
-# rules {{{
-yabai -m rule --add app="^Mail$" space=2
+apps=(
+  "Mail"
+  "Books"
+  "calibre"
+  "E-book Viewer"
+  "Reeder"
+  "System Settings"
+  "Music"
+  "Finder"
+  "Dictionary"
+  "Stickies"
+  "Android Studio"
+  "DingTalk Lite"
+  "WeChat"
+  # screenshot
+  "OBS"
+  # Spotlight alternative
+  "Raycast"
+  # Microsoft Remote Desktop
+  "Microsoft Remote Desktop"
+  "Hammerspoon"
+  "Karabiner-Elements"
+  "Reeder"
+  "Bruno"
+  "DeepL"
+)
 
-# yeah, you all are free.
-yabai -m rule --add app="^System Settings$" manage=off sub-layer=above
-yabai -m rule --add app="^Music$" manage=off sub-layer=above
-yabai -m rule --add app="^Finder$" manage=off sub-layer=above
-yabai -m rule --add app="^Dictionary$" manage=off sub-layer=above
-yabai -m rule --add app="^Stickies$" manage=off
-yabai -m rule --add app="^Android Studio$"  manage=off
-yabai -m rule --add app="^DingTalk Lite$"  manage=off
-yabai -m rule --add app="^WeChat$" manage=off
-# screenshot
-yabai -m rule --add app="^OBS$" manage=off
-# Spotlight alternative
-yabai -m rule --add app="^Raycast$" manage=off sub-layer=above
-# Microsoft Remote Desktop
-yabai -m rule --add app="^Microsoft Remote Desktop$" manage=off sub-layer=above
-yabai -m rule --add app="^LookAway$" manage=off sub-layer=above
-yabai -m rule --add app="^Hammerspoon$" manage=off sub-layer=above
-yabai -m rule --add app="^Karabiner-Elements$" manage=off sub-layer=above
-yabai -m rule --add app="^Reeder$" manage=off sub-layer=above
-yabai -m rule --add app="^Neat$" manage=off sub-layer=above
-yabai -m rule --add app="^Bruno$" manage=off sub-layer=above
-yabai -m rule --add app="^DeepL$" manage=off sub-layer=above
+# disable management
+for item in "${apps[@]}"; do
+  yabai -m rule --add app="^${item}$" manage=off sub-layer=above
+done
 
-# }}}
-
-
+# --verbose to display
+echo "yabai configuration loaded.."
 # ====================
 # JankyBorders
 # ====================
@@ -145,8 +150,6 @@ borders_options=(
   width=6.0
 )
 
-borders "${borders_options[@]}" &
-
-echo "yabai configuration loaded.."
+# borders "${borders_options[@]}" &
 
 # vim marker
