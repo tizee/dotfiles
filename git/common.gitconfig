@@ -176,13 +176,14 @@
 [interactive]
   diffFilter = delta --color-only # git-delta
 
+# always use ssh
 [url "git@github.com:"]
   insteadOf = https://github.com/
-[url "ssh://git@gist.github.com/"]
-;     # only works for my gists
-;     pushInsteadOf = https://gist.github.com/tizee/
-;     # For gists cloned with official no-username URL:
-    pushInsteadOf = https://gist.github.com/
+[url "git@github.com:"]
+  # only works for my gists
+   pushInsteadOf = https://gist.github.com/tizee/
+  # For gists cloned with official no-username URL:
+  # pushInsteadOf = https://gist.github.com/
 
 #  see https://github.com/renovatebot/renovate/issues/13440
 [uploadpack]

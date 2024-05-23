@@ -273,8 +273,10 @@ if $is_macOS; then
   #PATH="$HOME/.cabal/bin:$HOME/.ghcup/bin:$PATH"
   ## riscv
   #PATH=$PATH:/usr/local/opt/riscv-gnu-toolchain/bin
-  ## git-bin
-  #PATH=$PATH:/Users/tizee/.config/git/bin
+
+  ## git subcommand
+  PATH=$PATH:$HOME/.config/git/bin
+
   ## sdkman
   #export SDKMAN_CANDIDATES_API=https://api.sdkman.io/2
   #export SDKMAN_CANDIDATES_DIR=/Users/tizee/.sdkman/candidates
@@ -503,4 +505,6 @@ if $is_macOS; then
   export PATH="$HOME/project-zig/zig/build/stage3/bin:$PATH"
   # figlet font
   export FIGLET_FONTDIR="$HOME/projects/project-doc/figlet-fonts"
+  # openFrameworks
+  export OF_ROOT="$HOME/projects/project-creative-art/openFrameworks"
 fi
