@@ -173,7 +173,7 @@ function yogit::shallowclone() {
   print "clone with --depth 1 --recurse-submodules -j8 --shallow-submodules"
   # https://stackoverflow.com/questions/3796927/how-do-i-git-clone-a-repo-including-its-submodules
   # https://stackoverflow.com/questions/2144406/how-to-make-shallow-git-submodules
-  git clone $@ --depth 1 --recurse-submodules -j8 --shallow-submodules
+  git clone --depth 1 --recurse-submodules -j8 --shallow-submodules $@
 }
 
 alias "${_yogit_basic_prefix}sc"='yogit::shallowclone'
@@ -183,9 +183,9 @@ function yogit::shallowclone_github() {
   local repo_name=$(echo $1 | sed -nE 's#(https?://github.com/|git@github.com:)([^/]+)/([^/]+)(\.git)?$#\3#p' | sed -nE 's/\.git$//p')
   print "clone with --depth 1 --recurse-submodules -j8 --shallow-submodules"
   if [[ $# > 1 ]]; then
-    git clone $@ --depth 1 --recurse-submodules -j8 --shallow-submodules "${organ}.${repo_name}"
+    git clone --depth 1 --recurse-submodules -j8 --shallow-submodules $@
   else
-    git clone $1 --depth 1 --recurse-submodules -j8 --shallow-submodules "${organ}.${repo_name}"
+    git clone $1 --depth 1 --recurse-submodules -j8 --shallow-submodules "${repo_name}.${organ}"
   fi
 }
 

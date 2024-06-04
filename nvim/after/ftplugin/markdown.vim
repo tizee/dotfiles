@@ -1,3 +1,8 @@
+set expandtab
+set cole=0
+set tabstop=2
+set softtabstop=4
+
 augroup ft_markdown
   autocmd! |
   " show all text
