@@ -33,5 +33,17 @@ snippet ept "export type" b
 export type ${1} = ${0}
 endsnippet
 
+snippet tampermonkey "Tampermonkey script boilerplate" b
+// ==UserScript==
+// @name         Tampermonkey script
+// @namespace    http://tampermonkey.net/
+// @version      1.0
+// @description  A tampermonkey script
+// @author       tizee
+// @match        *://domain.com/*
+// @icon         data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==
+// @grant        none
+// ==/UserScript==
+endsnippet
 
 # vim:ft=snippets:
