@@ -98,6 +98,19 @@ function __brew_cask_apps() {
     local start_time=$(date +%s)
   fi
 
+  taps=(
+    homebrew/services
+    # localsend
+    localsend/localsend
+    oven-sh/bun
+    romkatv/gitstatus
+    tizee/personal
+    wez/wezterm
+    )
+  for tap in "${taps[@]}"; do
+    brew tap "$tap"
+  done
+
   for pkg in "${@}"; do
       echo -e " install${lightgreen} ${pkg}$reset_color"
       brew list "$pkg" 1>/dev/null 2>&1 || brew install --cask "$pkg" || echo -e "\n ${red}${pkg}${reset_color} failed" || exit 1

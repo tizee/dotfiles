@@ -5,6 +5,8 @@ script_dir="$(dirname "$script_path")"
 set -e
 
 declare -a mac_pkgs=(
+  # cpu/memory monitor
+  mactop
   # select default appss for documents and URL schemes
   duti
 )
@@ -52,6 +54,9 @@ archaeology
 
 # An Application for Inspecting macOS Installer Packages
 suspicious-package
+
+# Share files to devices in the same network (text/files)
+localsend
 )
 
 # ln -s /Applications/Apparency.app/Contents/MacOS/appy $(brew --prefix)/bin

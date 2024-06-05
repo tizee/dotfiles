@@ -63,6 +63,9 @@ ffmpeg
 # free lossless audio codec
 flac
 
+# print system info
+fastfetch
+
 # library
 lzo
 
