@@ -128,6 +128,7 @@ apps=(
   "Reeder"
   "Bruno"
   "DeepL"
+  "Godot"
 )
 
 # disable management
