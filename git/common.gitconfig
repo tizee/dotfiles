@@ -44,6 +44,12 @@
   # prevent problems from changing case of a file
   ignorecase=false
 
+[includeIf "hasconfig:remote.*.url:https://gitlab.com/**"]
+  path = ~/.config/git/gitlab.gitconfig
+
+[includeIf "hasconfig:remote.*.url:https://github.com/**"]
+  path = ~/.config/git/github.gitconfig
+
 # for work
 [includeIf "gitdir:~/work/**"]
   path= ~/.config/git/work.gitconfig

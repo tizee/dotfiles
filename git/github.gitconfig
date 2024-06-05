@@ -1,0 +1,5 @@
+# vim:ft=gitconfig
+[user]
+  name = tizee
+  email = 33030965+tizee@users.noreply.github.com
+  signingkey = 92180C1B273A7726
