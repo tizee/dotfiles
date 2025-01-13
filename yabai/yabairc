@@ -129,6 +129,9 @@ apps=(
   "Bruno"
   "DeepL"
   "Godot"
+  "WezTerm"
+  "Ghostty"
+  "Sideloadly!"
 )
 
 # disable management
