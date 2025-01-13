@@ -57,6 +57,8 @@ Here are some packages why I choose to use.
 
 ### Terminal Emulator
 
+- Update: Use [Ghostty](https://github.com/ghostty-org/ghostty)
+
 I'd recommend [Wezterm](https://github.com/wez/wezterm) for:
 
 1. Font ligature

@@ -131,6 +131,7 @@ apps=(
   "Godot"
   "WezTerm"
   "Ghostty"
+  "App Store"
   "Sideloadly!"
 )
 
