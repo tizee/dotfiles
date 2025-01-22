@@ -1,0 +1,54 @@
+#!/bin/zsh
+
+# 启用严格模式，确保脚本在出错时退出
+set -euo pipefail
+
+# 定义颜色代码
+RED="\033[1;31m"
+GREEN="\033[1;32m"
+YELLOW="\033[1;33m"
+BLUE="\033[1;34m"
+RESET="\033[0m"
+
+# 函数：打印彩色消息
+print_color() {
+    local color=$1
+    local message=$2
+    echo -e "${color}${message}${RESET}"
+}
+
+# 函数：提示用户输入并验证输入是否为空
+prompt_input() {
+    local prompt_message=$1
+    local input_value
+
+    while true; do
+        read -r "input_value?$prompt_message: "
+        if [[ -n "$input_value" ]]; then
+            echo "$input_value"
+            break
+        else
+            print_color "$RED" "输入不能为空，请重新输入。"
+        fi
+    done
+}
+
+# 获取用户输入
+hostname=$(prompt_input "请输入 HostName（用于终端和网络标识）")
+computername=$(prompt_input "请输入 ComputerName（用于 GUI 显示的名称）")
+local_hostname=$(prompt_input "请输入 LocalHostName（用于 Bonjour 和本地网络标识）")
+
+# 使用 scutil 设置 HostName
+sudo scutil --set HostName "$hostname"
+
+# 使用 scutil 设置 ComputerName
+sudo scutil --set ComputerName "$computername"
+
+# 使用 scutil 设置 LocalHostName
+sudo scutil --set LocalHostName "$local_hostname"
+
+# 输出设置结果
+print_color "$GREEN" "设置完成！"
+print_color "$YELLOW" "HostName: $(scutil --get HostName)"
+print_color "$YELLOW" "ComputerName: $(scutil --get ComputerName)"
+print_color "$YELLOW" "LocalHostName: $(scutil --get LocalHostName)"
