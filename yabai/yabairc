@@ -155,6 +155,6 @@ borders_options=(
   width=6.0
 )
 
-# borders "${borders_options[@]}" &
+borders "${borders_options[@]}" &
 
 # vim marker

@@ -43,6 +43,7 @@
   precomposeUnicode=true
   # prevent problems from changing case of a file
   ignorecase=false
+	hooksPath = /Users/tizee/.config/git/git-hooks/hooks
 
 [includeIf "hasconfig:remote.*.url:https://gitlab.com/**"]
   path = ~/.config/git/gitlab.gitconfig
@@ -89,7 +90,6 @@
   logsince= log --since
   loguntil= log --until
   logh = log --pretty=%H
-  hhh=!$(echo hello)
   forcesafe=push --force-with-lease
   fzff = !git ls-files --modified --others --exclude-standard | fzf -m --prompt 'ls-files> '
   fzfvi = !nvim $(git ls-files --modified --others --exclude-standard | fzf -m --prompt 'nvim> ')

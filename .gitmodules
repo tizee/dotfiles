@@ -10,3 +10,7 @@
 	path = zsh/vendor/zsh-syntax-highlighting
 	url = git@github.com:zsh-users/zsh-syntax-highlighting.git
 	shallow = true
+[submodule "git/git-hooks"]
+	path = git/git-hooks
+	url = git@github.com:tizee/git-hooks
+	shallow = true

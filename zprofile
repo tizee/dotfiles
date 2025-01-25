@@ -507,4 +507,5 @@ if $is_macOS; then
   export FIGLET_FONTDIR="$HOME/projects/project-doc/figlet-fonts"
   # openFrameworks
   export OF_ROOT="$HOME/projects/project-creative-art/openFrameworks"
+  export LLM_USER_PATH="$HOME/.config/io.datasette.llm"
 fi
