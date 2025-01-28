@@ -156,6 +156,13 @@ Plug 'tizee/coc.nvim', {'branch': 'master', 'do': 'pnpm run install --frozen-loc
 Plug 'liuchengxu/vista.vim'
 " }}}
 
+" ===> AI {{{
+
+" simple inline AI chat
+Plug '~/projects/project-vim/tizee-plugins/llm.nvim'
+
+" }}}
+
 call plug#end()
 
 " vim: foldmarker={{{,}}}:foldmethod=marker
