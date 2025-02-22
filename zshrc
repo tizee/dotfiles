@@ -464,6 +464,15 @@ autoload -U +X bashcompinit && bashcompinit
 # python manager
 export PATH="$HOME/.poetry/bin:$PATH"
 
+# llm
+function toggleLLMCommit {
+  if [ -z "$SKIP_LLM_GITHOOK" ]; then
+    export SKIP_LLM_GITHOOK=1
+  else
+    unset SKIP_LLM_GITHOOK
+  fi
+}
+
 # yubikey
 # export SSH_AUTH_SOCK=$(gpgconf --list-dirs agent-ssh-socket)
 # gpgconf --launch gpg-agent
