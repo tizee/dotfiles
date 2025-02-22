@@ -508,4 +508,5 @@ if $is_macOS; then
   # openFrameworks
   export OF_ROOT="$HOME/projects/project-creative-art/openFrameworks"
   export LLM_USER_PATH="$HOME/.config/io.datasette.llm"
+  export LLM_PROGRAM="/opt/homebrew/bin/llm"
 fi
