@@ -16,11 +16,11 @@ yabai -m config debug_output off
 # bsp stands for
 yabai -m config layout bsp
 # Set all padding and gaps to 20pt (default: 0)
-yabai -m config top_padding    12
-yabai -m config bottom_padding 12
-yabai -m config left_padding   12
-yabai -m config right_padding  12
-yabai -m config window_gap     12
+yabai -m config top_padding    0
+yabai -m config bottom_padding 0
+yabai -m config left_padding   0
+yabai -m config right_padding  0
+yabai -m config window_gap     6
 
 # Override spaces setting
 # yabai -m config --space 2 layout stack
@@ -33,7 +33,7 @@ yabai -m config window_gap     12
 # Auto balance makes it so all windows always occupy the same space, independent of how deeply nested they are in the window tree. When a new window is inserted or a window is removed, the split ratios will be automatically adjusted
 yabai -m config auto_balance off
 # A value of 0.5 means that both old and new window occupy the same space; a value of 0.2 means that the old window occupies 20% of the available space and the new window occupies 80% of the available space.
-yabai -m config split_ratio 0.5
+yabai -m config split_ratio 0.2
 
 # ====================
 # Mouse support
@@ -133,6 +133,8 @@ apps=(
   "Ghostty"
   "App Store"
   "Sideloadly!"
+  "Cursor"
+  "Cherry Studio"
 )
 
 # disable management
