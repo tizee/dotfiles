@@ -17,7 +17,7 @@ if has('nvim')
   " For Neovim 0.1.3 and 0.1.4 < https://github.com/neovim/neovim/pull/2198 >
   let $NVIM_TUI_ENABLE_TRUE_COLOR=1
   " set runtimepath^=~/.vim runtimepath+=~/.vim/after
-  let g:python3_host_prog="/opt/homebrew/bin/python3"
+  let g:python3_host_prog="/opt/homebrew/bin/python3.11"
   set runtimepath^=~/.vim
   set runtimepath+=~/.vim/after
   " set runtimepath=~/.config/nvim
@@ -62,7 +62,7 @@ if has("gui_running")
     set guifontwide=LXGW\ WenKai\ Mono\:h16
     " neovim
     if has('python3')
-      let g:python3_host_prog="/opt/homebrew/bin/python3"
+      let g:python3_host_prog="/opt/homebrew/bin/python3.11"
     endif
   elseif g:os == "Linux"
     set guifont=JetBrainsMono\ Nerd\ Font\ Mono\ 18
