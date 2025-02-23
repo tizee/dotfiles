@@ -465,13 +465,30 @@ autoload -U +X bashcompinit && bashcompinit
 export PATH="$HOME/.poetry/bin:$PATH"
 
 # llm
+
+# prepare-commit-msg hook
 function toggleLLMCommit {
   if [ -z "$SKIP_LLM_GITHOOK" ]; then
     export SKIP_LLM_GITHOOK=1
+    echo "Disable LLM git commit generation"
   else
     unset SKIP_LLM_GITHOOK
+    echo "Enable LLM git commit generation"
   fi
 }
+
+# pre-commit hook
+# Function to enable or disable the secret scan pre-commit hook
+function toggleSecretScan {
+  if [ -z "$SKIP_SCAN_GITHOOK" ]; then
+    export SKIP_SCAN_GITHOOK=1
+    echo "Disable credential scan"
+  else
+    unset SKIP_SCAN_GITHOOK
+    echo "Enable credential scan"
+  fi
+}
+
 
 # yubikey
 # export SSH_AUTH_SOCK=$(gpgconf --list-dirs agent-ssh-socket)
