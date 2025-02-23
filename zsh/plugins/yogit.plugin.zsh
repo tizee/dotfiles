@@ -64,6 +64,7 @@ function yogit::help() {
   print "${_yogit_basic_prefix}br                                          : git branch -r"
   print "${_yogit_basic_prefix}bru                                         : git branch -u <remote>/<branch> <local-branch> "
   print "${_yogit_basic_prefix}prune                                       : git remote prune origin"
+  print "${_yogit_basic_prefix}seturl                                      : git remote set-url origin"
   print "${_yogit_basic_prefix}bm                                          : rename branch and update its tracked origin branch"
   print ""
   printf "--> interactive usage\n"
@@ -319,6 +320,7 @@ alias "${_yogit_basic_prefix}url"='yogit::url'
 alias "${_yogit_basic_prefix}lr"='git remote -v'
 # prune unused branches
 alias "${_yogit_basic_prefix}prune"='git remote prune origin'
+alias "${_yogit_basic_prefix}seturl"='git remote set-url origin'
 
 function yogit::parse() {
   local object_name="${1:-HEAD}"
