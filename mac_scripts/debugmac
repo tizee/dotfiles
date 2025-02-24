@@ -1,9 +1,22 @@
 #!/usr/bin/env zsh
-# Enable context menu in macOS system web view
-# credit: https://blog.jim-nielsen.com/2022/inspecting-web-views-in-macos/
-function __enable_context_menu() {
-  defaults write NSGlobalDomain WebKitDeveloperExtras -bool true
-  defaults write -g WebKitDeveloperExtras -bool YES
+function __toggle_mac_debug() {
+  if [ -z "$__DEBUG_MAC" ]; then
+    export __DEBUG_MAC=1
+    # context menu
+    # Enable context menu in macOS system web view
+    # credit: https://blog.jim-nielsen.com/2022/inspecting-web-views-in-macos/
+    defaults write NSGlobalDomain WebKitDeveloperExtras -bool true
+    defaults write -g WebKitDeveloperExtras -bool YES
+    # menubar debug icon
+    defaults write -g _NS_4445425547 -bool true
+    echo "Enable mac debugging"
+  else
+    unset __DEBUG_MAC
+    defaults write NSGlobalDomain WebKitDeveloperExtras -bool false
+    defaults write -g WebKitDeveloperExtras -bool NO
+    defaults write -g _NS_4445425547 -bool false
+    echo "Disable mac debugging"
+  fi
 }
 
-__enable_context_menu
+__toggle_mac_debug
