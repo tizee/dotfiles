@@ -191,7 +191,8 @@ shift + alt - n : yabai -m space --create && \
 # }}}
 
 # === Shortcuts === {{{
-cmd - return : open /Applications/Ghostty.app
+# Conflicts with Cursor
+cmd + alt - return : open /Applications/Ghostty.app
 # restart yabai and skhd
 ctrl + alt - r : yabai --restart-service; skhd --restart-service
 # }}}

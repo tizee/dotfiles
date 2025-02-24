@@ -5,4 +5,4 @@ max_age=5000
 datafile=~/.config/zcd/zcddata
 # Exclude dirs
 # eg. exclude_dirs=~/tmp,
-exclude_dirs=[]
+exclude_dirs=[/tmp,.git]
