@@ -108,10 +108,13 @@
   lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an> %ae %Creset' --abbrev-commit --date=relative
   lg-ascii = log --graph --pretty=format:'%h -%d %s (%cr) <%an>' --abbrev-commit
   lgg= log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %n%C(bold blue)<%an> %ae%Creset [%G?]%n' --abbrev-commit --date=relative --stat
-  adog = log --all --decorate --oneline --graph --date=relative --stat
-  adogs = log --all --decorate --oneline --graph --date=relative --stat --show-signature
-  adogr= log --all --decorate --oneline --reverse --date=relative --stat
-  adogrs = log --all --decorate --oneline --graph --date=relative --stat --show-signature
+  adog = log --all --decorate --graph --date=relative --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %n%C(bold blue)<%an> %ae%Creset [%G?]%n' --stat
+  # Date-inclusive signatures view (original adogs)
+  adogs = log --all --decorate --graph --date=relative --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %n%C(bold blue)<%an> %ae%Creset [%G?]%n' --stat --show-signature
+  # Reverse-order view (original adogr)
+  adogr = log --all --decorate --reverse --date=relative --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %n%C(bold blue)<%an> %ae%Creset [%G?]%n' --stat
+  # Graph + signatures + reverse (original adogrs)
+  adogrs = log --all --decorate --graph --date=relative --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %n%C(bold blue)<%an> %ae%Creset [%G?]%n' --stat --show-signature --reverse
   # pull rebase remote main by default
   sync= "!f(){git pull origin ${1-main} --rebase}; f"
   unstage= reset HEAD --
