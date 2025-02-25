@@ -489,7 +489,6 @@ function toggleSecretScan {
   fi
 }
 
-
 # yubikey
 # export SSH_AUTH_SOCK=$(gpgconf --list-dirs agent-ssh-socket)
 # gpgconf --launch gpg-agent
@@ -531,6 +530,30 @@ if [[ "$TERM_PROGRAM" = "ghostty" ]]; then
     fi
   fi
 fi
+
+__compress_path() {
+  local path="$1"
+  local compressed=""
+  local dir="${path%/*}"  # Extract directory (dirname)
+  local last="${path##*/}"  # Extract basename
+
+  # Handle root path case
+  if [[ "$dir" == "$path" ]]; then
+    dir=""
+  fi
+
+  # Compress parent directories
+  if [[ -n "$dir" ]]; then
+    for part in $(echo "$dir" | /usr/bin/tr "/" " "); do
+      compressed+="/${part:0:1}"
+    done
+  fi
+
+  # Append the last component
+  compressed+="/$last"
+
+  echo "$compressed"
+}
 
 # zsh profiling end
 # zprof
