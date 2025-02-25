@@ -9,14 +9,17 @@ function mhelp() {
   print "mcopy:  write paths of items to /tmp/mcopy.items"
   print "mmove:  write paths of items to /tmp/mmove.items"
   print "mpaste: move or copy items to given path"
+  print "mclear: clear related env"
 }
 
 function mload(){
  if [[ -e /tmp/mcopy.items ]]; then
    export MULTIPLE_COPY_ITEMS=($(</tmp/mcopy.items))
+   echo "load copy items to MULTIPLE_COPY_ITEMS" $MULTIPLE_COPY_ITEMS
  fi
  if [[ -e /tmp/mmove.items ]]; then
    export MULTIPLE_MOVE_ITEMS=($(</tmp/mmove.items))
+   echo "load items to MULTIPLE_MOVE_ITEMS" $MULTIPLE_COPY_ITEMS
  fi
 }
 

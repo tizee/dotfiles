@@ -16,3 +16,5 @@ clash
 sonic-pi.net
 zcd/zcddata
 raycast/extensions
+# cloudflare worker
+.wrangler
