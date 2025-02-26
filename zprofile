@@ -159,6 +159,7 @@ export DENO_INSTALL=$HOME/.deno
 PATH="$HOME/.cargo/bin:$PATH"
 export CARGO_HOME="$HOME/.cargo"
 export CARGO_NET_GIT_FETCH_WITH_CLI=true
+# export RUSTUP_TOOLCHAIN = "stable"
 # limit sccache on local disk
 export SCCACHE_DIR="/tmp/sccache/"
 export SCCACHE_CACHE_SIZE="2G"
