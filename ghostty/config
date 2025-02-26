@@ -356,7 +356,7 @@ freetype-load-flags = hinting,force-autohint,monochrome,autohint
 #
 #   - macOS: titlebar tabs style is not updated when switching themes.
 #
-theme = Dracula
+theme = Dracula+
 
 # Background color for the window.
 background = #282c34

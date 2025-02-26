@@ -1,13 +1,14 @@
+type(scope): info
 ### Describe what have you done in less than 50 words ###
 # === Conventional Commit ===
 # possible type values:
-#	feat:    - new feature
-#	perf:    - performance optimization
-#	doc:     - documentation/typo fix
-#	build:   - build workflow
-#	chore:   - cleanup
-#	fix:     - bug fix
-type(scope): info
+#	feat:     new feature
+#	perf:     performance optimization
+#	doc:      documentation/typo fix
+#	build:    build workflow
+#	chore:    cleanup
+#	fix:      bug fix
+#	refactor: refactor the codebase
 
 ### Some additional info etc. Motivation ###
 # Motivation: problem, reason, task

@@ -1,0 +1,27 @@
+#!/usr/bin/env zsh
+
+# Function to search keybindings in a specified tmux key table
+
+# Check if parameters are passed
+if [ $# -ne 2 ]; then
+    echo "Usage: search_tmux_binding <key_table> <keybinding>"
+    echo "Example key tables: prefix, root, session, window"
+    echo "Example keybindings: I, M-u, M-Left, C-p, etc."
+    echo "Example usage:"
+    echo "  search_tmux_binding 'prefix' 'I'"
+    echo "  search_tmux_binding 'root' 'M-u'"
+    return 1
+fi
+
+local table=$1
+local key=$2
+
+# Validate that the table is a valid tmux key table
+if ! tmux list-keys -T $table &>/dev/null; then
+    echo "Error: Invalid tmux key table '$table'."
+    return 1
+fi
+
+# Search for the keybinding in the given table
+tmux list-keys -T $table | awk -v key="$key" '{for(i=1;i<=NF;i++) if($i==table) if($(i+1) ~ key) print $0}' table="$table"
+
