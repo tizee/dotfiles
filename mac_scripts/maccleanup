@@ -1,166 +1,510 @@
 #!/usr/bin/env zsh
-# idea from: https://gist.github.com/Aidurber/7549d3f83b00052cee745a6c4dcf7b9d
+# MacOS System Cleanup Utility
+# A collection of functions to clean up development environments and system caches
+# Original idea from: https://gist.github.com/Aidurber/7549d3f83b00052cee745a6c4dcf7b9d
 
+# Configuration variables
+DEFAULT_AGE_DAYS=7
+YELLOW='\033[1;33m'
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
 
-function __cleanup_node_modules() {
-  # Cleanup old node_modules
-  case "$1" in
-    -clean)
-      echo "Cleaning node_modules in projects older than 7 days"
-      find . -name "node_modules" -type d -mtime +7 -print0 | xargs -0 -I{} rm -rf {}
-      echo "Done cleaning node_modules"
+# Check for available commands
+HAS_FD=$(command -v fd >/dev/null 2>&1 && echo true || echo false)
+
+# Common utility functions
+function print_header() {
+  # Prints a formatted header for operations
+  echo "${YELLOW}=== $1 ===${NC}"
+}
+
+function print_success() {
+  # Prints a formatted success message
+  echo "${GREEN}✓ $1${NC}"
+}
+
+function print_warning() {
+  # Prints a formatted warning message
+  echo "${RED}! $1${NC}"
+}
+
+function search_files() {
+  # Search for files/directories using the most efficient available method
+  # $1: Directory pattern to search for
+  # $2: Additional options for fd/find
+
+  if [ "$HAS_FD" = true ]; then
+    # Use fd if available (much faster)
+    fd --hidden --no-ignore "$1" $2
+  else
+    # Fallback to find
+    find . -name "$1" $2
+  fi
+}
+
+function count_directories() {
+  # Counts directories matching a pattern that are older than DEFAULT_AGE_DAYS
+  # $1: Directory name pattern to search for
+  # $2: Additional search parameters (optional)
+
+  if [ "$HAS_FD" = true ]; then
+    fd --hidden --no-ignore --type d --glob "$1" --changed-before "${DEFAULT_AGE_DAYS}days" $2 | wc -l | tr -d ' '
+  else
+    find . -name "$1" -type d -mtime +$DEFAULT_AGE_DAYS $2 | wc -l | tr -d ' '
+  fi
+}
+
+function calculate_space() {
+  # Calculates total space used by directories matching a pattern
+  # $1: Directory name pattern to search for
+  # $2: Additional search parameters (optional)
+  # Returns: Size in human-readable format
+
+  local total_size=0
+
+  if [ "$HAS_FD" = true ]; then
+    total_size=$(fd --hidden --no-ignore --type d --glob "$1" --changed-before "${DEFAULT_AGE_DAYS}days" $2 | xargs -I{} du -s {} 2>/dev/null | awk '{sum += $1} END {print sum}')
+  else
+    total_size=$(find . -name "$1" -type d -mtime +$DEFAULT_AGE_DAYS $2 -print0 | xargs -0 du -s 2>/dev/null | awk '{sum += $1} END {print sum}')
+  fi
+
+  # Convert to human-readable format
+  if [[ $total_size -ge 1048576 ]]; then
+    echo "$(($total_size / 1048576))GB"
+  elif [[ $total_size -ge 1024 ]]; then
+    echo "$(($total_size / 1024))MB"
+  else
+    echo "${total_size}KB"
+  fi
+}
+
+function list_directories() {
+  # Lists directories matching a pattern that are older than DEFAULT_AGE_DAYS
+  # $1: Directory name pattern to search for
+  # $2: Optional description for output message
+  # $3: Additional search parameters (optional)
+  local pattern=$1
+  local description=${2:-"folders"}
+  local extra_params=$3
+  local count=$(count_directories "$pattern" "$extra_params")
+  local space=$(calculate_space "$pattern" "$extra_params")
+
+  print_header "Analyzing $description"
+  echo "Found ${count} $description older than $DEFAULT_AGE_DAYS days"
+  echo "Total space used: ${space}"
+
+  if [[ $count -gt 0 ]]; then
+    echo "Listing $description:"
+
+    if [ "$HAS_FD" = true ]; then
+      fd --hidden --no-ignore --type d --glob "$pattern" --changed-before "${DEFAULT_AGE_DAYS}days" $extra_params | xargs -I{} du -hs {} | sort -hr | head -n 10
+    else
+      find . -name "$pattern" -type d -mtime +$DEFAULT_AGE_DAYS $extra_params -print0 | xargs -0 du -hs | sort -hr | head -n 10
+    fi
+
+    if [[ $count -gt 10 ]]; then
+      echo "... and more (showing top 10 by size)"
+    fi
+  fi
+}
+
+function confirm_operation() {
+  # Asks for user confirmation before proceeding
+  # $1: Confirmation message
+  # Returns: 0 for yes, 1 for no
+  read "response?${1} (y/n): "
+  case "$response" in
+    [yY]*)
+      return 0
       ;;
     *)
-      echo "List node_modules under current folder older than 7 days"
-      # dry run by default
-      find . -name "node_modules" -type d -mtime +7 -print0 | xargs -0 du -chs
+      return 1
+      ;;
+  esac
+}
+
+function clean_directories() {
+  # Removes directories matching a pattern that are older than DEFAULT_AGE_DAYS
+  # $1: Directory name pattern to search for
+  # $2: Optional description for output message
+  # $3: Additional search parameters (optional)
+  local pattern=$1
+  local description=${2:-"folders"}
+  local extra_params=$3
+  local count=$(count_directories "$pattern" "$extra_params")
+  local space=$(calculate_space "$pattern" "$extra_params")
+
+  print_header "Cleaning $description"
+  echo "Found ${count} $description older than $DEFAULT_AGE_DAYS days"
+  echo "Total space to be freed: ${space}"
+
+  if [[ $count -eq 0 ]]; then
+    print_success "No $description to clean"
+    return 0
+  fi
+
+  if confirm_operation "Proceed with cleaning ${count} $description (freeing ${space})?"; then
+    if [ "$HAS_FD" = true ]; then
+      fd --hidden --no-ignore --type d --glob "$pattern" --changed-before "${DEFAULT_AGE_DAYS}days" $extra_params | xargs -I{} rm -rf {}
+    else
+      find . -name "$pattern" -type d -mtime +$DEFAULT_AGE_DAYS $extra_params -print0 | xargs -0 -I{} rm -rf {}
+    fi
+    print_success "Cleaned ${count} $description, freed approximately ${space}"
+  else
+    print_warning "Operation cancelled by user"
+  fi
+}
+
+# Find all project directories that contain Rust target directories
+function find_rust_project_targets() {
+  local temp_file=$(mktemp)
+
+  # First, find all target directories
+  if [ "$HAS_FD" = true ]; then
+    fd --hidden --no-ignore --type d --glob "target" --changed-before "${DEFAULT_AGE_DAYS}days" > "$temp_file"
+  else
+    find . -name "target" -type d -mtime +$DEFAULT_AGE_DAYS > "$temp_file"
+  fi
+
+  cat "$temp_file"
+  rm "$temp_file"
+}
+
+# Language/tool specific cleanup functions
+function cleanup_node_modules() {
+  # Manages Node.js node_modules directories
+  # $1: Optional "-clean" flag to perform actual cleanup
+  case "$1" in
+    -clean)
+      clean_directories "node_modules" "node_modules directories"
+      ;;
+    *)
+      list_directories "node_modules" "node_modules directories"
+      ;;
+  esac
+}
+
+function cleanup_zig() {
+  # Manages Zig build cache directories
+  # $1: Optional "-clean" flag to perform actual cleanup
+  case "$1" in
+    -clean)
+      clean_directories "zig-cache" "zig-cache directories in Zig projects"
+      ;;
+    *)
+      list_directories "zig-cache" "zig-cache directories in Zig projects"
+      ;;
+  esac
+}
+
+function cleanup_rust() {
+  # Manages Rust target directories, avoiding nested duplicates
+  # $1: Optional "-clean" flag to perform actual cleanup
+
+  print_header "Analyzing Rust Project Targets"
+
+  # Get list of target directories, one per project
+  local targets_file=$(mktemp)
+  find_rust_project_targets > "$targets_file"
+  local count=$(wc -l < "$targets_file" | tr -d ' ')
+
+  # Calculate total space
+  local total_size=0
+  if [[ $count -gt 0 ]]; then
+    total_size=$(cat "$targets_file" | xargs -I{} du -s {} 2>/dev/null | awk '{sum += $1} END {print sum}')
+  fi
+
+  # Convert to human-readable format
+  local space=""
+  if [[ $total_size -ge 1048576 ]]; then
+    space="$(($total_size / 1048576))GB"
+  elif [[ $total_size -ge 1024 ]]; then
+    space="$(($total_size / 1024))MB"
+  else
+    space="${total_size}KB"
+  fi
+
+  echo "Found ${count} unique Rust project target directories older than $DEFAULT_AGE_DAYS days"
+  echo "Total space used: ${space}"
+
+  case "$1" in
+    -clean)
+      if [[ $count -eq 0 ]]; then
+        print_success "No target directories to clean"
+        rm "$targets_file"
+        return 0
+      fi
+
+      if [[ $count -gt 0 ]]; then
+        echo "Listing target directories:"
+        cat "$targets_file" | xargs -I{} du -hs {} | sort -hr | head -n 10
+
+        if [[ $count -gt 10 ]]; then
+          echo "... and more (showing top 10 by size)"
+        fi
+      fi
+
+      if confirm_operation "Proceed with cleaning ${count} target directories (freeing ${space})?"; then
+        cat "$targets_file" | xargs -I{} rm -rf {}
+        print_success "Cleaned ${count} target directories, freed approximately ${space}"
+      else
+        print_warning "Operation cancelled by user"
+      fi
+      ;;
+    *)
+      if [[ $count -gt 0 ]]; then
+        echo "Listing target directories:"
+        cat "$targets_file" | xargs -I{} du -hs {} | sort -hr | head -n 10
+
+        if [[ $count -gt 10 ]]; then
+          echo "... and more (showing top 10 by size)"
+        fi
+      fi
       ;;
   esac
 
+  rm "$targets_file"
 }
 
-function __cleanup_zig() {
-  # Cleanup old target
-  case "$1" in
-    -clean)
-      echo "Cleaning zig-cache in Zig projects older than 7 days"
-      find . -name "zig-cache" -type d -mtime +7 -print0 | xargs -0 -I{} rm -rf {}
-      echo "Done cleaning Zig zig-cache"
-      ;;
-    *)
-      echo "List zig-cache in Zig projects older than 7 days"
-      find . -name "zig-cache" -type d -mtime +7 -print0 | xargs -0 du -chs
-      ;;
-  esac
-}
+function cleanup_golang() {
+  # Cleans Go module cache
+  # $1: Optional "-clean" flag to perform actual cleanup
+  print_header "Go Module Cache"
 
-function __cleanup_rust() {
-  # Cleanup old target
   case "$1" in
     -clean)
-      echo "Cleaning target in projects older than 7 days"
-      find . -name "target" -type d -mtime +7 -print0 | xargs -0 -I{} rm -rf {}
-      echo "Done cleaning Cargo target"
+      if confirm_operation "Clean Go module cache?"; then
+        go clean -modcache
+        print_success "Go module cache cleaned"
+      else
+        print_warning "Operation cancelled by user"
+      fi
       ;;
     *)
-      echo "List target in Rust projects older than 7 days"
-      find . -name "target" -type d -mtime +7 -print0 | xargs -0 du -chs
-      ;;
-  esac
-}
-
-function __cleanup_golang() {
-  # Cleanup old target
-  case "$1" in
-    -clean)
-      go clean -modcache
-      echo "Done cleaning go module cache"
-      ;;
-    *)
-      echo "go clean dry-run"
+      echo "Go module cache cleanup (dry run):"
       go clean -n -modcache
       ;;
   esac
 }
 
-function __cleanup_homebrew(){
-  # Clean up homebrew
-  echo "Clean homebrew"
-  brew update && brew upgrade && brew cleanup
-  echo "Done cleaning homebrew"
+function cleanup_homebrew() {
+  # Updates and cleans Homebrew packages
+  print_header "Homebrew Cleanup"
+
+  # Get size before cleanup
+  local before_size=$(du -hs "$(brew --cache)" | cut -f1)
+
+  if confirm_operation "Clean Homebrew packages and cache (current size: ${before_size})?"; then
+    brew update && brew upgrade && brew cleanup
+
+    # Get size after cleanup
+    local after_size=$(du -hs "$(brew --cache)" | cut -f1)
+    print_success "Homebrew cleanup completed"
+    echo "Cache size before: ${before_size}"
+    echo "Cache size after: ${after_size}"
+  else
+    print_warning "Operation cancelled by user"
+  fi
 }
 
+function cleanup_gems() {
+  # Removes outdated Ruby gems
+  print_header "Ruby Gems Cleanup"
 
-function __cleanup_gems(){
-  # Clean up outdated gems
-  echo "Clean gems"
-  gem cleanup
-  echo "Done cleaning gems"
+  # List outdated gems and count them
+  local outdated_gems=$(gem outdated)
+  local gem_count=$(echo "$outdated_gems" | grep -c "^")
+
+  if [[ $gem_count -eq 0 ]]; then
+    print_success "No outdated gems to clean"
+    return 0
+  fi
+
+  echo "Found ${gem_count} outdated gems:"
+  echo "$outdated_gems" | head -n 10
+
+  if [[ $gem_count -gt 10 ]]; then
+    echo "... and more (showing first 10)"
+  fi
+
+  if confirm_operation "Clean ${gem_count} outdated gems?"; then
+    gem cleanup
+    print_success "Gems cleanup completed"
+  else
+    print_warning "Operation cancelled by user"
+  fi
 }
 
-function __cleanup_pod(){
-  # Clean up pod caches
-  echo "Clean up pod caches"
-  rm -rf "${HOME}/Library/Caches/CocoaPods"
-  echo "Done cleaning pod caches"
+function cleanup_pod() {
+  # Removes CocoaPods cache files
+  print_header "CocoaPods Cache Cleanup"
+
+  if [[ -d "${HOME}/Library/Caches/CocoaPods" ]]; then
+    local cache_size=$(du -hs "${HOME}/Library/Caches/CocoaPods" | cut -f1)
+
+    if confirm_operation "Clean CocoaPods cache (size: ${cache_size})?"; then
+      rm -rf "${HOME}/Library/Caches/CocoaPods"
+      print_success "CocoaPods cache cleaned (freed ${cache_size})"
+    else
+      print_warning "Operation cancelled by user"
+    fi
+  else
+    print_success "No CocoaPods cache found"
+  fi
 }
 
-function __cleanup_simulators(){
-  # Delete old XCode simulators
-  echo "Delete old XCode simulators"
-  xcrun simctl delete unavailable
-  echo "Done deleting old XCode simulators"
+function cleanup_simulators() {
+  # Removes unavailable Xcode simulators
+  print_header "Xcode Simulators Cleanup"
+
+  # Get list of unavailable simulators
+  local simulators=$(xcrun simctl list devices unavailable 2>/dev/null)
+  local sim_count=$(echo "$simulators" | grep -c "^    ")
+
+  if [[ $sim_count -eq 0 ]]; then
+    print_success "No unavailable simulators to clean"
+    return 0
+  fi
+
+  echo "Found ${sim_count} unavailable simulators:"
+  echo "$simulators"
+
+  if confirm_operation "Delete ${sim_count} unavailable simulators?"; then
+    xcrun simctl delete unavailable
+    print_success "Deleted ${sim_count} unavailable simulators"
+  else
+    print_warning "Operation cancelled by user"
+  fi
 }
 
-function __cleanup_xcode(){
-  # Clean up xcode junk
-  echo "Clean XCode junk"
+function cleanup_xcode() {
+  # Removes Xcode temporary files and caches
+  print_header "Xcode Artifacts Cleanup"
 
-  rm -rf ~/Library/Developer/Xcode/Archives
-  rm -rf ~/Library/Developer/Xcode/DerivedData
-  rm -rf ~/Library/Developer/Xcode/iOS Device Logs/
-  echo "Done cleaning XCode junk"
+  local archives_size="0B"
+  local derived_data_size="0B"
+  local logs_size="0B"
+  local total_size="0B"
 
+  # Calculate sizes if directories exist
+  if [[ -d ~/Library/Developer/Xcode/Archives ]]; then
+    archives_size=$(du -hs ~/Library/Developer/Xcode/Archives | cut -f1)
+  fi
+
+  if [[ -d ~/Library/Developer/Xcode/DerivedData ]]; then
+    derived_data_size=$(du -hs ~/Library/Developer/Xcode/DerivedData | cut -f1)
+  fi
+
+  if [[ -d ~/Library/Developer/Xcode/iOS\ Device\ Logs ]]; then
+    logs_size=$(du -hs ~/Library/Developer/Xcode/iOS\ Device\ Logs | cut -f1)
+  fi
+
+  echo "Xcode artifacts:"
+  echo "- Archives: ${archives_size}"
+  echo "- DerivedData: ${derived_data_size}"
+  echo "- iOS Device Logs: ${logs_size}"
+
+  if confirm_operation "Clean Xcode artifacts?"; then
+    rm -rf ~/Library/Developer/Xcode/Archives
+    rm -rf ~/Library/Developer/Xcode/DerivedData
+    rm -rf ~/Library/Developer/Xcode/iOS\ Device\ Logs/
+    print_success "Xcode artifacts cleaned"
+  else
+    print_warning "Operation cancelled by user"
+  fi
 }
 
+function cleanup_all() {
+  # Runs all cleanup operations with confirmation for each
+  print_header "Full System Cleanup"
+
+  echo "This will perform all available cleanup operations."
+  if confirm_operation "Continue with full system cleanup?"; then
+    cleanup_homebrew
+    cleanup_node_modules -clean
+    cleanup_gems
+    cleanup_pod
+    cleanup_simulators
+    cleanup_xcode
+    cleanup_zig -clean
+    cleanup_rust -clean
+    cleanup_golang -clean
+
+    print_success "Full system cleanup completed"
+  else
+    print_warning "Full system cleanup cancelled"
+  fi
+}
+
+function show_usage() {
+  # Displays usage instructions
+  echo "${YELLOW}macOS System Cleanup Utility${NC}"
+  echo ""
+  echo "Usage: maccleanup [-option]"
+  echo ""
+  echo "Options:"
+  echo "  -zig [-clean]          Analyze and optionally clean Zig cache folders older than ${DEFAULT_AGE_DAYS} days"
+  echo "  -rust [-clean]         Analyze and optionally clean Rust target folders (one per project) older than ${DEFAULT_AGE_DAYS} days"
+  echo "  -go [-clean]           Analyze and optionally clean Go module cache"
+  echo "  -homebrew              Clean Homebrew packages and cache"
+  echo "  -node_modules [-clean] Analyze and optionally clean node_modules older than ${DEFAULT_AGE_DAYS} days"
+  echo "  -gem                   Clean outdated Ruby gems"
+  echo "  -pod                   Clean CocoaPods cache"
+  echo "  -simulator             Clean unavailable Xcode simulators"
+  echo "  -xcode                 Clean Xcode artifacts (Archives, DerivedData, Device Logs)"
+  echo "  -all                   Run all cleanup operations with confirmation for each"
+  echo ""
+  echo "When run without the -clean flag, commands will only analyze and display information."
+  echo ""
+  if [ "$HAS_FD" = true ]; then
+    print_success "Using fd command for improved search performance"
+  else
+    print_warning "fd command not found, using standard find (slower)"
+    echo "For better performance, consider installing fd: brew install fd"
+  fi
+
+  exit 1
+}
+
+# Main command dispatcher
 case "$1" in
   -zig)
     shift
-    __cleanup_zig $@
+    cleanup_zig $@
     ;;
   -rust)
     shift
-    __cleanup_rust $@
+    cleanup_rust $@
     ;;
   -go)
     shift
-    __cleanup_golang $@
+    cleanup_golang $@
     ;;
   -homebrew)
-    __cleanup_homebrew
+    cleanup_homebrew
     ;;
   -node_modules)
     shift
-    __cleanup_node_modules $@
+    cleanup_node_modules $@
     ;;
   -gem)
-    __cleanup_gem
+    cleanup_gems
     ;;
   -pod)
-    __cleanup_pod
+    cleanup_pod
     ;;
   -simulator)
-    __cleanup_simulators
+    cleanup_simulators
     ;;
   -xcode)
-    __cleanup_xcode
+    cleanup_xcode
     ;;
   -all)
-    __cleanup_homebrew
-    __cleanup_node_modules
-    __cleanup_gem
-    __cleanup_pod
-    __cleanup_simulators
-    __cleanup_xcode
-    __cleanup_zig
-    __cleanup_rust
-    __cleanup_golang
+    cleanup_all
     ;;
   *)
-    echo 'usage: maccleanup [-name]
-options
-    -zig [-clean]          clean Zig zig-cache folder order than 7 days (dry run by default)
-    -rust [-clean]         clean Cargo target folder order than 7 days (dry run by default)
-    -go [-clean]           clean golang module cache (dry run by default)
-    -homebrew              clean homebrew
-    -node_modules [-clean] clean node_modules older than 7 days (dry run by default)
-    -gem                   invoke gem cleanup
-    -pod                   clean pod caches
-    -simulator             remove old Xcode simulators
-    -xcode                 remove Xcode junk
-    -all                   cleanup all
-    ' 1>&2
-    exit 1
+    show_usage
     ;;
 esac
 
