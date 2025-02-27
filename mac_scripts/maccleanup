@@ -29,84 +29,128 @@ function print_warning() {
   echo "${RED}! $1${NC}"
 }
 
-function search_files() {
-  # Search for files/directories using the most efficient available method
-  # $1: Directory pattern to search for
-  # $2: Additional options for fd/find
-
-  if [ "$HAS_FD" = true ]; then
-    # Use fd if available (much faster)
-    fd --hidden --no-ignore "$1" $2
-  else
-    # Fallback to find
-    find . -name "$1" $2
-  fi
-}
-
-function count_directories() {
-  # Counts directories matching a pattern that are older than DEFAULT_AGE_DAYS
+function get_unique_directories() {
+  # Gets unique directories matching a pattern that are older than DEFAULT_AGE_DAYS.
   # $1: Directory name pattern to search for
   # $2: Additional search parameters (optional)
+  # Returns: A file path containing unique directories
 
-  if [ "$HAS_FD" = true ]; then
-    fd --hidden --no-ignore --type d --glob "$1" --changed-before "${DEFAULT_AGE_DAYS}days" $2 | wc -l | tr -d ' '
-  else
-    find . -name "$1" -type d -mtime +$DEFAULT_AGE_DAYS $2 | wc -l | tr -d ' '
-  fi
+  local pattern=$1
+  local extra_params=$2
+  local temp_file=$(mktemp)
+
+  # Using find: once a directory matches, print it and prune (i.e. don't descend into it).
+  find . -type d -name "$pattern" -mtime +$DEFAULT_AGE_DAYS -print -prune $extra_params > "$temp_file"
+
+  # Sort by path length (shortest first) so that parent directories come before their children.
+  local filtered_file=$(mktemp)
+  awk '{ print length, $0 }' "$temp_file" | sort -n | cut -d' ' -f2- > "$filtered_file"
+
+  # Instead of reading/writing from a file as we filter nested directories, use an array.
+  local final_file=$(mktemp)
+  local -a final_paths=()
+
+  while IFS= read -r line; do
+    local is_subdirectory=false
+    for existing in "${final_paths[@]}"; do
+      if [[ "$line" == "$existing"/* ]]; then
+        is_subdirectory=true
+        break
+      fi
+    done
+    if [ "$is_subdirectory" = false ]; then
+      final_paths+=("$line")
+    fi
+  done < "$filtered_file"
+
+  # Write final (non-nested) directories to our final file.
+  for path in "${final_paths[@]}"; do
+    echo "$path" >> "$final_file"
+  done
+
+  /bin/rm "$temp_file"
+  /bin/rm "$filtered_file"
+
+  echo "$final_file"
 }
 
-function calculate_space() {
-  # Calculates total space used by directories matching a pattern
+function process_directories() {
+  # Common function for processing directories (listing or cleaning)
   # $1: Directory name pattern to search for
-  # $2: Additional search parameters (optional)
-  # Returns: Size in human-readable format
+  # $2: Operation type ("list" or "clean")
+  # $3: Optional description for output message
+  # $4: Additional search parameters (optional)
 
+  local pattern=$1
+  local operation=$2
+  local description=${3:-"folders"}
+  local extra_params=$4
+
+  # Get unique directories
+  local dirs_file=$(get_unique_directories "$pattern" "$extra_params")
+  local count=$(wc -l < "$dirs_file" | tr -d ' ')
+
+  # Calculate total space
   local total_size=0
-
-  if [ "$HAS_FD" = true ]; then
-    total_size=$(fd --hidden --no-ignore --type d --glob "$1" --changed-before "${DEFAULT_AGE_DAYS}days" $2 | xargs -I{} du -s {} 2>/dev/null | awk '{sum += $1} END {print sum}')
-  else
-    total_size=$(find . -name "$1" -type d -mtime +$DEFAULT_AGE_DAYS $2 -print0 | xargs -0 du -s 2>/dev/null | awk '{sum += $1} END {print sum}')
+  if [[ $count -gt 0 ]]; then
+    # du -k in 1-KB unit instead of 512-byte blocks
+    total_size=$(cat "$dirs_file" | xargs -I{} du -sk {} 2>/dev/null | awk '{sum += $1} END {print sum}')
   fi
 
   # Convert to human-readable format
+  local space=""
   if [[ $total_size -ge 1048576 ]]; then
-    echo "$(($total_size / 1048576))GB"
+    space="$(($total_size / 1048576))GB"
   elif [[ $total_size -ge 1024 ]]; then
-    echo "$(($total_size / 1024))MB"
+    space="$(($total_size / 1024))MB"
   else
-    echo "${total_size}KB"
+    space="${total_size}KB"
   fi
-}
 
-function list_directories() {
-  # Lists directories matching a pattern that are older than DEFAULT_AGE_DAYS
-  # $1: Directory name pattern to search for
-  # $2: Optional description for output message
-  # $3: Additional search parameters (optional)
-  local pattern=$1
-  local description=${2:-"folders"}
-  local extra_params=$3
-  local count=$(count_directories "$pattern" "$extra_params")
-  local space=$(calculate_space "$pattern" "$extra_params")
+  # Operation-specific header
+  if [[ "$operation" == "list" ]]; then
+    print_header "Analyzing $description"
+  else
+    print_header "Cleaning $description"
+  fi
 
-  print_header "Analyzing $description"
   echo "Found ${count} $description older than $DEFAULT_AGE_DAYS days"
-  echo "Total space used: ${space}"
 
+  if [[ "$operation" == "list" ]]; then
+    echo "Total space used: ${space}"
+  else
+    echo "Total space to be freed: ${space}"
+  fi
+
+  if [[ $count -eq 0 ]]; then
+    if [[ "$operation" == "clean" ]]; then
+      print_success "No $description to clean"
+    fi
+    rm "$dirs_file"
+    return 0
+  fi
+
+  # List top directories by size
   if [[ $count -gt 0 ]]; then
     echo "Listing $description:"
-
-    if [ "$HAS_FD" = true ]; then
-      fd --hidden --no-ignore --type d --glob "$pattern" --changed-before "${DEFAULT_AGE_DAYS}days" $extra_params | xargs -I{} du -hs {} | sort -hr | head -n 10
-    else
-      find . -name "$pattern" -type d -mtime +$DEFAULT_AGE_DAYS $extra_params -print0 | xargs -0 du -hs | sort -hr | head -n 10
-    fi
+    cat "$dirs_file" | xargs -I{} du -hs {} | sort -hr | head -n 10
 
     if [[ $count -gt 10 ]]; then
       echo "... and more (showing top 10 by size)"
     fi
   fi
+
+  # Clean if requested
+  if [[ "$operation" == "clean" ]]; then
+    if confirm_operation "Proceed with cleaning ${count} $description (freeing ${space})?"; then
+      cat "$dirs_file" | xargs -I{} rm -rf {}
+      print_success "Cleaned ${count} $description, freed approximately ${space}"
+    else
+      print_warning "Operation cancelled by user"
+    fi
+  fi
+
+  /bin/rm "$dirs_file"
 }
 
 function confirm_operation() {
@@ -124,147 +168,47 @@ function confirm_operation() {
   esac
 }
 
-function clean_directories() {
-  # Removes directories matching a pattern that are older than DEFAULT_AGE_DAYS
-  # $1: Directory name pattern to search for
-  # $2: Optional description for output message
-  # $3: Additional search parameters (optional)
-  local pattern=$1
-  local description=${2:-"folders"}
-  local extra_params=$3
-  local count=$(count_directories "$pattern" "$extra_params")
-  local space=$(calculate_space "$pattern" "$extra_params")
-
-  print_header "Cleaning $description"
-  echo "Found ${count} $description older than $DEFAULT_AGE_DAYS days"
-  echo "Total space to be freed: ${space}"
-
-  if [[ $count -eq 0 ]]; then
-    print_success "No $description to clean"
-    return 0
-  fi
-
-  if confirm_operation "Proceed with cleaning ${count} $description (freeing ${space})?"; then
-    if [ "$HAS_FD" = true ]; then
-      fd --hidden --no-ignore --type d --glob "$pattern" --changed-before "${DEFAULT_AGE_DAYS}days" $extra_params | xargs -I{} rm -rf {}
-    else
-      find . -name "$pattern" -type d -mtime +$DEFAULT_AGE_DAYS $extra_params -print0 | xargs -0 -I{} rm -rf {}
-    fi
-    print_success "Cleaned ${count} $description, freed approximately ${space}"
-  else
-    print_warning "Operation cancelled by user"
-  fi
-}
-
-# Find all project directories that contain Rust target directories
-function find_rust_project_targets() {
-  local temp_file=$(mktemp)
-
-  # First, find all target directories
-  if [ "$HAS_FD" = true ]; then
-    fd --hidden --no-ignore --type d --glob "target" --changed-before "${DEFAULT_AGE_DAYS}days" > "$temp_file"
-  else
-    find . -name "target" -type d -mtime +$DEFAULT_AGE_DAYS > "$temp_file"
-  fi
-
-  cat "$temp_file"
-  rm "$temp_file"
-}
-
 # Language/tool specific cleanup functions
 function cleanup_node_modules() {
   # Manages Node.js node_modules directories
   # $1: Optional "-clean" flag to perform actual cleanup
+  local operation="list"
+
   case "$1" in
     -clean)
-      clean_directories "node_modules" "node_modules directories"
-      ;;
-    *)
-      list_directories "node_modules" "node_modules directories"
+      operation="clean"
       ;;
   esac
+
+  process_directories "node_modules" "$operation" "node_modules directories"
 }
 
 function cleanup_zig() {
   # Manages Zig build cache directories
   # $1: Optional "-clean" flag to perform actual cleanup
+  local operation="list"
+
   case "$1" in
     -clean)
-      clean_directories "zig-cache" "zig-cache directories in Zig projects"
-      ;;
-    *)
-      list_directories "zig-cache" "zig-cache directories in Zig projects"
+      operation="clean"
       ;;
   esac
+
+  process_directories "zig-cache" "$operation" "zig-cache directories in Zig projects"
 }
 
 function cleanup_rust() {
-  # Manages Rust target directories, avoiding nested duplicates
+  # Manages Rust target directories
   # $1: Optional "-clean" flag to perform actual cleanup
-
-  print_header "Analyzing Rust Project Targets"
-
-  # Get list of target directories, one per project
-  local targets_file=$(mktemp)
-  find_rust_project_targets > "$targets_file"
-  local count=$(wc -l < "$targets_file" | tr -d ' ')
-
-  # Calculate total space
-  local total_size=0
-  if [[ $count -gt 0 ]]; then
-    total_size=$(cat "$targets_file" | xargs -I{} du -s {} 2>/dev/null | awk '{sum += $1} END {print sum}')
-  fi
-
-  # Convert to human-readable format
-  local space=""
-  if [[ $total_size -ge 1048576 ]]; then
-    space="$(($total_size / 1048576))GB"
-  elif [[ $total_size -ge 1024 ]]; then
-    space="$(($total_size / 1024))MB"
-  else
-    space="${total_size}KB"
-  fi
-
-  echo "Found ${count} unique Rust project target directories older than $DEFAULT_AGE_DAYS days"
-  echo "Total space used: ${space}"
+  local operation="list"
 
   case "$1" in
     -clean)
-      if [[ $count -eq 0 ]]; then
-        print_success "No target directories to clean"
-        rm "$targets_file"
-        return 0
-      fi
-
-      if [[ $count -gt 0 ]]; then
-        echo "Listing target directories:"
-        cat "$targets_file" | xargs -I{} du -hs {} | sort -hr | head -n 10
-
-        if [[ $count -gt 10 ]]; then
-          echo "... and more (showing top 10 by size)"
-        fi
-      fi
-
-      if confirm_operation "Proceed with cleaning ${count} target directories (freeing ${space})?"; then
-        cat "$targets_file" | xargs -I{} rm -rf {}
-        print_success "Cleaned ${count} target directories, freed approximately ${space}"
-      else
-        print_warning "Operation cancelled by user"
-      fi
-      ;;
-    *)
-      if [[ $count -gt 0 ]]; then
-        echo "Listing target directories:"
-        cat "$targets_file" | xargs -I{} du -hs {} | sort -hr | head -n 10
-
-        if [[ $count -gt 10 ]]; then
-          echo "... and more (showing top 10 by size)"
-        fi
-      fi
+      operation="clean"
       ;;
   esac
 
-  rm "$targets_file"
+  process_directories "target" "$operation" "Rust project target directories"
 }
 
 function cleanup_golang() {
@@ -445,7 +389,7 @@ function show_usage() {
   echo ""
   echo "Options:"
   echo "  -zig [-clean]          Analyze and optionally clean Zig cache folders older than ${DEFAULT_AGE_DAYS} days"
-  echo "  -rust [-clean]         Analyze and optionally clean Rust target folders (one per project) older than ${DEFAULT_AGE_DAYS} days"
+  echo "  -rust [-clean]         Analyze and optionally clean Rust target folders older than ${DEFAULT_AGE_DAYS} days"
   echo "  -go [-clean]           Analyze and optionally clean Go module cache"
   echo "  -homebrew              Clean Homebrew packages and cache"
   echo "  -node_modules [-clean] Analyze and optionally clean node_modules older than ${DEFAULT_AGE_DAYS} days"
