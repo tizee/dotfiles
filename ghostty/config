@@ -49,9 +49,9 @@
 #
 # Changing this configuration at runtime will only affect new terminals, i.e.
 # new windows, tabs, etc.
-font-family = JetBrainsMono Nerd Font, Lantinghei TC
+font-family = JetBrainsMono Nerd Font, LXGW WenKai Mono, Lantinghei TC
 
-font-family-bold =
+font-family-bold = JetBrainsMono Nerd Font, LXGW WenKai Mono, Lantinghei TC
 font-family-italic =
 font-family-bold-italic =
 # The named font style to use for each of the requested terminal font styles.
@@ -133,7 +133,7 @@ font-feature = calt, liga, dlig
 # depending on your `window-inherit-font-size` setting. If that setting is
 # true, only the first window will be affected by this change since all
 # subsequent windows will inherit the font size of the previous window.
-font-size = 16
+font-size = 20
 
 # A repeatable configuration to set one or more font variations values for
 # a variable font. A variable font is a single font, usually with a filename
@@ -356,13 +356,13 @@ freetype-load-flags = hinting,force-autohint,monochrome,autohint
 #
 #   - macOS: titlebar tabs style is not updated when switching themes.
 #
-theme = Dracula+
+theme = dark:Dracula,light:Dracula
 
 # Background color for the window.
-background = #282c34
+background =
 
 # Foreground color for the window.
-foreground = #ffffff
+foreground =
 
 # The foreground and background color for selection. If this is not set, then
 # the selection color is just the inverted window background and foreground

@@ -103,44 +103,19 @@ yabai -m config normal_window_opacity 0.9
 # ====================
 # App
 # ====================
-apps=(
-  "Mail"
-  "Books"
-  "calibre"
-  "E-book Viewer"
-  "Reeder"
-  "System Settings"
-  "Music"
-  "Finder"
-  "Dictionary"
-  "Stickies"
-  "Android Studio"
-  "DingTalk Lite"
-  "WeChat"
-  # screenshot
-  "OBS"
-  # Spotlight alternative
-  "Raycast"
-  # Microsoft Remote Desktop
-  "Microsoft Remote Desktop"
-  "Hammerspoon"
-  "Karabiner-Elements"
-  "Reeder"
-  "Bruno"
-  "DeepL"
-  "Godot"
+# Default rule: disable management for all applications
+yabai -m rule --add app=".*" manage=off sub-layer=above
+
+# Apps that should be managed by yabai
+managed_apps=(
   "WezTerm"
   "Ghostty"
-  "App Store"
-  "Sideloadly!"
-  "Cursor"
-  "Cherry Studio"
-  "V2rayN"
+  "Firefox Developer Edition"
 )
 
-# disable management
-for item in "${apps[@]}"; do
-  yabai -m rule --add app="^${item}$" manage=off sub-layer=above
+# Enable management only for specified apps
+for item in "${managed_apps[@]}"; do
+  yabai -m rule --add app="^${item}$" manage=on sub-layer=below
 done
 
 # --verbose to display
@@ -149,15 +124,16 @@ echo "yabai configuration loaded.."
 # JankyBorders
 # ====================
 
-borders_options=(
-  active_color=0xff50fa7b
-  inactive_color=0x0000000
-  # background_color=0x302c2e34
-  hidpi=on
-  style=round
-  width=4.0
-)
+# borders_options=(
+#   active_color=0xff50fa7b
+#   inactive_color=0x0000000
+#   # background_color=0x302c2e34
+#   hidpi=on
+#   style=round
+#   width=4.0
+# )
 
-borders "${borders_options[@]}" &
+# cause system laggy
+# borders "${borders_options[@]}" &
 
 # vim marker

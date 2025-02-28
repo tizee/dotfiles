@@ -1,0 +1,371 @@
+#!/usr/bin/env zsh
+# macOS Proxy Manager - 管理系统级代理设置
+
+# 终端颜色
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
+MAGENTA='\033[0;35m'
+CYAN='\033[0;36m'
+NC='\033[0m' # 无颜色
+
+# 默认值（如果环境变量未设置）
+DEFAULT_HTTP_PROXY_HOST="127.0.0.1"
+DEFAULT_HTTP_PROXY_PORT="1087"
+DEFAULT_SOCKS_PROXY_HOST="127.0.0.1"
+DEFAULT_SOCKS_PROXY_PORT="1080"
+
+# 获取当前活跃的网络服务
+get_active_network_service() {
+  # 获取所有网络服务
+  local all_services=$(networksetup -listallnetworkservices | sed '1d')
+
+  # 检查Wi-Fi是否可用且未禁用
+  if echo "$all_services" | grep -q "Wi-Fi" && ! echo "$all_services" | grep -q "^\*.*Wi-Fi"; then
+    echo "Wi-Fi"
+    return
+  fi
+
+  # 否则，获取第一个未禁用的服务
+  local first_active=$(echo "$all_services" | grep -v "^\*" | head -1)
+  echo "$first_active"
+}
+
+# 从代理URL中提取主机
+extract_host() {
+  local proxy_url=$1
+  if [[ -z "$proxy_url" ]]; then
+    return
+  fi
+
+  # 去除协议前缀
+  local host_port=${proxy_url#*://}
+  # 如果没有协议前缀，使用整个URL
+  if [[ "$host_port" == "$proxy_url" ]]; then
+    host_port=$proxy_url
+  fi
+
+  # 提取主机部分（去除端口）
+  local host=${host_port%:*}
+  # 如果没有端口，host 和 host_port 相同
+  if [[ "$host" == "$host_port" ]]; then
+    # 检查是否有用户名密码
+    if [[ "$host" == *"@"* ]]; then
+      host=${host#*@}
+    fi
+  else
+    # 检查是否有用户名密码
+    if [[ "$host" == *"@"* ]]; then
+      host=${host#*@}
+    fi
+  fi
+
+  echo "$host"
+}
+
+# 从代理URL中提取端口
+extract_port() {
+  local proxy_url=$1
+  if [[ -z "$proxy_url" ]]; then
+    return
+  fi
+
+  # 尝试查找端口号
+  if [[ "$proxy_url" == *":"*"/"* ]]; then
+    # 如果URL有路径，先去除路径
+    local without_path=${proxy_url%/*}
+    echo ${without_path##*:}
+  elif [[ "$proxy_url" == *":"* ]]; then
+    # 直接提取端口
+    echo ${proxy_url##*:}
+  fi
+}
+
+# 从环境变量中获取HTTP代理设置
+get_http_proxy_host() {
+  local host=""
+
+  # 优先使用 http_proxy 环境变量
+  if [[ -n "$http_proxy" ]]; then
+    host=$(extract_host "$http_proxy")
+  elif [[ -n "$HTTP_PROXY" ]]; then
+    host=$(extract_host "$HTTP_PROXY")
+  elif [[ -n "$all_proxy" ]]; then
+    host=$(extract_host "$all_proxy")
+  elif [[ -n "$ALL_PROXY" ]]; then
+    host=$(extract_host "$ALL_PROXY")
+  fi
+
+  # 如果没有设置，使用默认值
+  if [[ -z "$host" ]]; then
+    host="$DEFAULT_HTTP_PROXY_HOST"
+  fi
+
+  echo "$host"
+}
+
+get_http_proxy_port() {
+  local port=""
+
+  # 优先使用 http_proxy 环境变量
+  if [[ -n "$http_proxy" ]]; then
+    port=$(extract_port "$http_proxy")
+  elif [[ -n "$HTTP_PROXY" ]]; then
+    port=$(extract_port "$HTTP_PROXY")
+  elif [[ -n "$all_proxy" ]]; then
+    port=$(extract_port "$all_proxy")
+  elif [[ -n "$ALL_PROXY" ]]; then
+    port=$(extract_port "$ALL_PROXY")
+  fi
+
+  # 如果没有设置，使用默认值
+  if [[ -z "$port" ]]; then
+    port="$DEFAULT_HTTP_PROXY_PORT"
+  fi
+
+  echo "$port"
+}
+
+# 从环境变量中获取SOCKS代理设置
+get_socks_proxy_host() {
+  local host=""
+
+  # 检查是否有专门的SOCKS代理设置
+  if [[ -n "$socks_proxy" ]]; then
+    host=$(extract_host "$socks_proxy")
+  elif [[ -n "$SOCKS_PROXY" ]]; then
+    host=$(extract_host "$SOCKS_PROXY")
+  # 如果 all_proxy 以 socks 开头，优先使用它
+  elif [[ -n "$all_proxy" && "$all_proxy" == socks* ]]; then
+    host=$(extract_host "$all_proxy")
+  elif [[ -n "$ALL_PROXY" && "$ALL_PROXY" == socks* ]]; then
+    host=$(extract_host "$ALL_PROXY")
+  # 否则尝试使用 http_proxy
+  elif [[ -n "$http_proxy" ]]; then
+    host=$(extract_host "$http_proxy")
+  elif [[ -n "$HTTP_PROXY" ]]; then
+    host=$(extract_host "$HTTP_PROXY")
+  elif [[ -n "$all_proxy" ]]; then
+    host=$(extract_host "$all_proxy")
+  fi
+
+  # 如果没有设置，使用默认值
+  if [[ -z "$host" ]]; then
+    host="$DEFAULT_SOCKS_PROXY_HOST"
+  fi
+
+  echo "$host"
+}
+
+get_socks_proxy_port() {
+  local port=""
+
+  # 检查是否有专门的SOCKS代理设置
+  if [[ -n "$socks_proxy" ]]; then
+    port=$(extract_port "$socks_proxy")
+  elif [[ -n "$SOCKS_PROXY" ]]; then
+    port=$(extract_port "$SOCKS_PROXY")
+  # 如果 all_proxy 以 socks 开头，优先使用它
+  elif [[ -n "$all_proxy" && "$all_proxy" == socks* ]]; then
+    port=$(extract_port "$all_proxy")
+  elif [[ -n "$ALL_PROXY" && "$ALL_PROXY" == socks* ]]; then
+    port=$(extract_port "$ALL_PROXY")
+  # 否则尝试使用 http_proxy
+  elif [[ -n "$http_proxy" ]]; then
+    port=$(extract_port "$http_proxy")
+  elif [[ -n "$HTTP_PROXY" ]]; then
+    port=$(extract_port "$HTTP_PROXY")
+  elif [[ -n "$all_proxy" ]]; then
+    port=$(extract_port "$all_proxy")
+  fi
+
+  # 如果没有设置，使用默认值
+  if [[ -z "$port" ]]; then
+    port="$DEFAULT_SOCKS_PROXY_PORT"
+  fi
+
+  echo "$port"
+}
+
+# 从系统获取当前HTTP代理设置
+get_system_http_proxy() {
+  local service=$1
+  local info=$(networksetup -getwebproxy "$service")
+  local enabled=$(echo "$info" | grep "Enabled: Yes" >/dev/null && echo "已启用" || echo "已禁用")
+  local server=$(echo "$info" | grep "Server:" | awk '{print $2}')
+  local port=$(echo "$info" | grep "Port:" | awk '{print $2}')
+
+  echo "HTTP代理: $enabled ($server:$port)"
+}
+
+# 从系统获取当前HTTPS代理设置
+get_system_https_proxy() {
+  local service=$1
+  local info=$(networksetup -getsecurewebproxy "$service")
+  local enabled=$(echo "$info" | grep "Enabled: Yes" >/dev/null && echo "已启用" || echo "已禁用")
+  local server=$(echo "$info" | grep "Server:" | awk '{print $2}')
+  local port=$(echo "$info" | grep "Port:" | awk '{print $2}')
+
+  echo "HTTPS代理: $enabled ($server:$port)"
+}
+
+# 从系统获取当前SOCKS代理设置
+get_system_socks_proxy() {
+  local service=$1
+  local info=$(networksetup -getsocksfirewallproxy "$service")
+  local enabled=$(echo "$info" | grep "Enabled: Yes" >/dev/null && echo "已启用" || echo "已禁用")
+  local server=$(echo "$info" | grep "Server:" | awk '{print $2}')
+  local port=$(echo "$info" | grep "Port:" | awk '{print $2}')
+
+  echo "SOCKS代理: $enabled ($server:$port)"
+}
+
+# 检查代理状态
+check_proxy_status() {
+  local service=$1
+  echo "${MAGENTA}===== 代理状态 ($service) =====${NC}"
+
+  # 检查HTTP代理
+  echo "\n${CYAN}HTTP代理:${NC}"
+  networksetup -getwebproxy "$service"
+
+  # 检查HTTPS代理
+  echo "\n${CYAN}HTTPS代理:${NC}"
+  networksetup -getsecurewebproxy "$service"
+
+  # 检查SOCKS代理
+  echo "\n${CYAN}SOCKS代理:${NC}"
+  networksetup -getsocksfirewallproxy "$service"
+
+  # 检查绕过域名
+  echo "\n${CYAN}绕过域名:${NC}"
+  networksetup -getproxybypassdomains "$service"
+
+  # 简洁总结
+  local http_enabled=$(networksetup -getwebproxy "$service" | grep "Enabled: Yes" >/dev/null && echo "已启用" || echo "已禁用")
+  local https_enabled=$(networksetup -getsecurewebproxy "$service" | grep "Enabled: Yes" >/dev/null && echo "已启用" || echo "已禁用")
+  local socks_enabled=$(networksetup -getsocksfirewallproxy "$service" | grep "Enabled: Yes" >/dev/null && echo "已启用" || echo "已禁用")
+
+  echo "\n${YELLOW}总结:${NC}"
+  echo "HTTP代理: ${http_enabled}"
+  echo "HTTPS代理: ${https_enabled}"
+  echo "SOCKS代理: ${socks_enabled}"
+
+  # 显示环境变量设置与实际系统设置的对比
+  echo "\n${YELLOW}环境变量解析结果 vs 系统当前设置:${NC}"
+  echo "环境变量HTTP代理: $(get_http_proxy_host):$(get_http_proxy_port)"
+  echo "环境变量SOCKS代理: $(get_socks_proxy_host):$(get_socks_proxy_port)"
+}
+
+# 显示当前环境变量设置
+show_env_settings() {
+  local service=$(get_active_network_service)
+
+  echo "${YELLOW}当前环境变量设置:${NC}"
+  echo "http_proxy=${http_proxy:-未设置}"
+  echo "https_proxy=${https_proxy:-未设置}"
+  echo "all_proxy=${all_proxy:-未设置}"
+  echo "socks_proxy=${socks_proxy:-未设置}"
+
+  echo "\n${YELLOW}解析后的代理信息:${NC}"
+  echo "HTTP代理: $(get_http_proxy_host):$(get_http_proxy_port)"
+  echo "SOCKS代理: $(get_socks_proxy_host):$(get_socks_proxy_port)"
+
+  echo "\n${YELLOW}系统当前设置 ($service):${NC}"
+  get_system_http_proxy "$service"
+  get_system_https_proxy "$service"
+  get_system_socks_proxy "$service"
+}
+
+# 启用代理
+enable_proxy() {
+  local service=$1
+  local http_host=$(get_http_proxy_host)
+  local http_port=$(get_http_proxy_port)
+  local socks_host=$(get_socks_proxy_host)
+  local socks_port=$(get_socks_proxy_port)
+
+  echo "${MAGENTA}===== 启用代理 ($service) =====${NC}"
+  show_env_settings
+
+  # 设置HTTP代理
+  networksetup -setwebproxy "$service" "$http_host" "$http_port"
+
+  # 设置HTTPS代理
+  networksetup -setsecurewebproxy "$service" "$http_host" "$http_port"
+
+  # 设置SOCKS代理
+  networksetup -setsocksfirewallproxy "$service" "$socks_host" "$socks_port"
+
+  echo "${GREEN}✓ 成功启用代理${NC}"
+}
+
+# 禁用代理
+disable_proxy() {
+  local service=$1
+
+  echo "${MAGENTA}===== 禁用代理 ($service) =====${NC}"
+
+  # 禁用HTTP代理
+  networksetup -setwebproxystate "$service" off
+
+  # 禁用HTTPS代理
+  networksetup -setsecurewebproxystate "$service" off
+
+  # 禁用SOCKS代理
+  networksetup -setsocksfirewallproxystate "$service" off
+
+  echo "${GREEN}✓ 成功禁用代理${NC}"
+}
+
+# 显示使用帮助
+show_usage() {
+  echo "${CYAN}使用方法:${NC}"
+  echo "  $0 ${GREEN}status${NC}          - 检查当前代理状态"
+  echo "  $0 ${GREEN}on${NC}              - 启用系统代理"
+  echo "  $0 ${GREEN}off${NC}             - 禁用系统代理"
+  echo "  $0 ${GREEN}env${NC}             - 显示当前环境变量设置"
+  echo "  $0 ${GREEN}help${NC}            - 显示此帮助信息"
+  echo
+  echo "${YELLOW}支持的环境变量:${NC}"
+  echo "  http_proxy / HTTP_PROXY   - HTTP代理 (例如: http://127.0.0.1:7890)"
+  echo "  https_proxy / HTTPS_PROXY - HTTPS代理 (例如: http://127.0.0.1:7890)"
+  echo "  all_proxy / ALL_PROXY     - 所有协议的代理 (例如: http://127.0.0.1:7890)"
+  echo "  socks_proxy / SOCKS_PROXY - SOCKS代理 (例如: socks5://127.0.0.1:1080)"
+  echo
+  echo "${YELLOW}默认值:${NC}"
+  echo "  HTTP代理: $DEFAULT_HTTP_PROXY_HOST:$DEFAULT_HTTP_PROXY_PORT"
+  echo "  SOCKS代理: $DEFAULT_SOCKS_PROXY_HOST:$DEFAULT_SOCKS_PROXY_PORT"
+}
+
+# 主函数
+main() {
+  local network_service=$(get_active_network_service)
+
+  case "$1" in
+    status)
+      check_proxy_status "$network_service"
+      ;;
+    on)
+      enable_proxy "$network_service"
+      ;;
+    off)
+      disable_proxy "$network_service"
+      ;;
+    env)
+      show_env_settings
+      ;;
+    help|--help|-h)
+      show_usage
+      ;;
+    *)
+      echo "${RED}错误: 未知命令 '$1'${NC}" >&2
+      show_usage
+      exit 1
+      ;;
+  esac
+}
+
+# 执行主函数
+main "$@"

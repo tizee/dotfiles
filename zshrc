@@ -277,7 +277,7 @@ setopt no_prompt_bang prompt_percent prompt_subst
 
 local err_color="%(?.${limegreen}.${red})"
 local return_code="%(?..%?)"
-local shell_symbol='$'
+local shell_symbol='➜'
 local prompt_symbol="%(!.${shell_symbol}#.${shell_symbol})"
 local NEWLINE=$'\n'
 local invisible='%([BSUbfksu]|([FBK]|){*})'
@@ -316,7 +316,9 @@ function __update_tz_prompt() {
 
   # Calculate space available for path
   # Other prompt elements (estimate their length without formatting)
-  local sys_part="%(!,[ROOT],) ${sys_icon}"
+  local sys_part="%(!,[ROOT],)"
+  # Only include sys_icon if not in TMUX
+  [[ -z "$TMUX" ]] && sys_part+=" ${sys_icon}"
   local sys_part_len=${#${(S)sys_part//$~invisible}}
 
   local git_part="${GITSTATUS_PROMPT:+ $GITSTATUS_PROMPT}"
@@ -342,7 +344,12 @@ function __update_tz_prompt() {
 
   # Build the prompt components
   prompt_top_left="%(!,[ROOT],)"
-  prompt_top_left+="%{$grey%}% ${sys_icon}%f "
+  # Only add sys_icon when not in TMUX
+  if [[ -z "$TMUX" ]]; then
+    prompt_top_left+="%{$grey%}% ${sys_icon}%f "
+  else
+    prompt_top_left+="%{$grey%}% %f "
+  fi
   prompt_top_left+="%{$cyan%}${path_display}%f"
 
   prompt_top_right="%B${GITSTATUS_PROMPT:+ $GITSTATUS_PROMPT}%f "
