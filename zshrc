@@ -72,17 +72,17 @@ fi
 #      ?42  42 untracked files
 
 # Dracula color scheme
-# Background	59
-# Current Line	60
-# Foreground	231
-# Comment	103
-# Cyan	159
-# Green	120
-# Orange	222
-# Pink	212
-# Purple	183
-# Red	210
-# Yellow	229
+# Background  59
+# Current Line  60
+# Foreground  231
+# Comment  103
+# Cyan  159
+# Green  120
+# Orange  222
+# Pink  212
+# Purple  183
+# Red  210
+# Yellow  229
 
 #use extended color palette if available
 if [[ $TERM = *256color* || $TERM = *rxvt* ]]; then
@@ -204,15 +204,40 @@ function prompt_preexec() {
 
 add-zsh-hook preexec prompt_preexec
 
+
+function __compress_path() {
+  local path="$1"
+  local compressed=""
+  local dir="${path%/*}"  # Extract directory (dirname)
+  local last="${path##*/}"  # Extract basename
+
+  # Handle root path case
+  if [[ "$dir" == "$path" ]]; then
+    dir=""
+  fi
+
+  # Compress parent directories
+  if [[ -n "$dir" ]]; then
+    for part in $(echo "$dir" | /usr/bin/tr "/" " "); do
+      compressed+="/${part:0:1}"
+    done
+  fi
+
+  # Append the last component
+  compressed+="/$last"
+
+  echo "$compressed"
+}
+
 function human_time() {
-	local human total_seconds=$1 var=$2
-	local -ri days=$(( total_seconds / 60 / 60 / 24 ))
-	local -ri hours=$(( total_seconds / 60 / 60 % 24 ))
-	local -ri minutes=$(( total_seconds / 60 % 60 ))
-	local -rF seconds=$(( total_seconds % 60 ))
-	(( days > 0 )) && human+="${days}d "
-	(( hours > 0 )) && human+="${hours}h "
-	(( minutes > 0 )) && human+="${minutes}m "
+  local human total_seconds=$1 var=$2
+  local -ri days=$(( total_seconds / 60 / 60 / 24 ))
+  local -ri hours=$(( total_seconds / 60 / 60 % 24 ))
+  local -ri minutes=$(( total_seconds / 60 % 60 ))
+  local -rF seconds=$(( total_seconds % 60 ))
+  (( days > 0 )) && human+="${days}d "
+  (( hours > 0 )) && human+="${hours}h "
+  (( minutes > 0 )) && human+="${minutes}m "
   if (( seconds >= 1 )); then
     local human_sec
     printf -v human_sec '%.3fs' ${seconds}
@@ -222,21 +247,21 @@ function human_time() {
     printf -v human_ms '%ims' $(( seconds * 1000 ))
     human+="$human_ms"
   fi
-	# Store human readable time in a variable as specified by the caller
-	typeset -g "${var}"="${human}"
+  # Store human readable time in a variable as specified by the caller
+  typeset -g "${var}"="${human}"
 }
 
 function prompt_check_cmd_exec_time() {
-	local -F elapsed
+  local -F elapsed
   (( elapsed = EPOCHREALTIME - ${prompt_cmd_timestamp:-$EPOCHREALTIME} ))
-	typeset -g prompt_cmd_exec_time=
+  typeset -g prompt_cmd_exec_time=
   # show execution time when larger than 50ms
   (( elapsed * 1000 > ${CMD_MAX_EXEC_TIME:-50} )) && {
-		human_time $elapsed "prompt_cmd_exec_time"
-	}
+    human_time $elapsed "prompt_cmd_exec_time"
+  }
 }
 
-  # Execution time
+# Execution time
 function cmd_exec_time_helper() {
   prompt_check_cmd_exec_time
   unset prompt_cmd_timestamp
@@ -285,20 +310,54 @@ esac
 # $COLUMNS terminal width
 function __update_tz_prompt() {
   typeset -g PROMPT_ZLE_MODE="%{%F{159}%}[insert]%f"
-  prompt_path="%$COLUMNS<…<%6~%<<"
-  prompt_top_left="%(!,[ROOT],)%1n@%1M "
+
+  # Get current directory
+  local current_dir="${PWD/#$HOME/~}"
+
+  # Calculate space available for path
+  # Other prompt elements (estimate their length without formatting)
+  local sys_part="%(!,[ROOT],) ${sys_icon}"
+  local sys_part_len=${#${(S)sys_part//$~invisible}}
+
+  local git_part="${GITSTATUS_PROMPT:+ $GITSTATUS_PROMPT}"
+  local git_part_len=${#${(S)git_part//$~invisible}}
+
+  local mode_part="[insert] "
+  local mode_part_len=${#mode_part}
+
+  local time_part=""
+  [[ -n $prompt_cmd_exec_time ]] && time_part=" ${prompt_cmd_exec_time} "
+  local time_part_len=${#time_part}
+
+  # Calculate available space for path
+  local available_width=$(( COLUMNS - sys_part_len - git_part_len - mode_part_len - time_part_len - 5 )) # 5 for safety margin
+
+  # Decide whether to compress path
+  local path_display
+  if (( ${#current_dir} > available_width )); then
+    path_display="$(__compress_path "$current_dir")"
+  else
+    path_display="$current_dir"
+  fi
+
+  # Build the prompt components
+  prompt_top_left="%(!,[ROOT],)"
   prompt_top_left+="%{$grey%}% ${sys_icon}%f "
-  prompt_top_left+="%{$cyan%}${prompt_path}%f"
+  prompt_top_left+="%{$cyan%}${path_display}%f"
+
   prompt_top_right="%B${GITSTATUS_PROMPT:+ $GITSTATUS_PROMPT}%f "
+
+  # Include command time at the end of the prompt line
+  [[ -n $prompt_cmd_exec_time ]] && prompt_top_right+="%F{229} ${prompt_cmd_exec_time}%f "
+
   left=${(S)prompt_top_left//$~invisible}
   right=${(S)prompt_top_right//$~invisible}
   (( prompt_top_len=${#left}+${#right}))
+
   prompt_input_line="$NEWLINE%b$err_color$prompt_symbol%f "
-  prompt_command_time="%F{229} ${prompt_cmd_exec_time}%f"
-    PROMPT='${prompt_top_left}${prompt_top_right}${PROMPT_ZLE_MODE}${prompt_input_line}'
+
+  PROMPT='${prompt_top_left}${prompt_top_right}${PROMPT_ZLE_MODE}${prompt_input_line}'
   RPROMPT="$err_color${return_code}%f "
-  #RPROMPT=${(%):-'%B[%D{%L:%M:%S %p}]%f'}
-  [[ -n $prompt_cmd_exec_time ]] && RPROMPT+=$prompt_command_time" "
 }
 
 # trick from 2007!
@@ -530,30 +589,6 @@ if [[ "$TERM_PROGRAM" = "ghostty" ]]; then
     fi
   fi
 fi
-
-__compress_path() {
-  local path="$1"
-  local compressed=""
-  local dir="${path%/*}"  # Extract directory (dirname)
-  local last="${path##*/}"  # Extract basename
-
-  # Handle root path case
-  if [[ "$dir" == "$path" ]]; then
-    dir=""
-  fi
-
-  # Compress parent directories
-  if [[ -n "$dir" ]]; then
-    for part in $(echo "$dir" | /usr/bin/tr "/" " "); do
-      compressed+="/${part:0:1}"
-    done
-  fi
-
-  # Append the last component
-  compressed+="/$last"
-
-  echo "$compressed"
-}
 
 # zsh profiling end
 # zprof
