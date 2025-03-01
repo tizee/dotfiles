@@ -43,6 +43,8 @@ Plug 'cespare/vim-toml'
 Plug 'tikhomirov/vim-glsl' " OpenGL shader language
 " -- colored parentheses
 Plug 'luochen1990/rainbow'
+" -- json
+Plug 'elzr/vim-json'
 " -- jsonc
 Plug 'kevinoid/vim-jsonc'
 " ziglang
