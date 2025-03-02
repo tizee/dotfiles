@@ -1,39 +1,133 @@
 #!/bin/zsh
 
+# Define color codes
+C_RESET="\033[0m"
+C_RED="\033[31m"
+C_GREEN="\033[32m"
+C_YELLOW="\033[33m"
+C_BLUE="\033[36m"
+C_BOLD="\033[1m"
+
 # Define download URLs
 [ -z "$GEOIP_URL" ] && GEOIP_URL="https://github.com/v2fly/geoip/releases/latest/download/geoip.dat"
 [ -z "$GEOSITE_URL" ] && GEOSITE_URL="https://github.com/v2fly/domain-list-community/releases/latest/download/dlc.dat"
 
+# Function for info messages
+print_info() {
+  echo "${C_BLUE}[INFO]${C_RESET} $1"
+}
+
+# Function for success messages
+print_success() {
+  echo "${C_GREEN}[SUCCESS]${C_RESET} $1"
+}
+
+# Function for warning messages
+print_warning() {
+  echo "${C_YELLOW}[WARNING]${C_RESET} $1"
+}
+
+# Function for error messages
+print_error() {
+  echo "${C_RED}[ERROR]${C_RESET} $1"
+}
+
 # Try to get xray location from Homebrew first
 if xray_prefix=$(brew --prefix xray 2>/dev/null); then
   target_dir="${xray_prefix}/share/xray"
+  print_info "Found Homebrew installation of Xray"
 else
   # Check if xray is installed manually
   xray_path=$(which xray 2>/dev/null)
   if [ -z "$xray_path" ]; then
-    echo "Error: xray is not installed. Please install it first."
+    print_error "Xray is not installed. Please install it first."
     exit 1
   fi
 
   # Check if XRAY_LOCATION_ASSET environment variable is set
   if [ -n "$XRAY_LOCATION_ASSET" ]; then
     target_dir="$XRAY_LOCATION_ASSET"
+    print_info "Using XRAY_LOCATION_ASSET environment variable"
   else
     # Default to the directory where xray is located
     xray_dir=$(dirname "$xray_path")
     target_dir="$xray_dir"
+    print_info "Using manual installation directory"
   fi
 fi
 
-echo "Using target directory: ${target_dir}"
+print_info "Target directory: ${C_BOLD}${target_dir}${C_RESET}"
 
 # Create the target directory if it doesn't exist
 mkdir -p "${target_dir}"
 
-echo "Downloading geoip.dat from ${GEOIP_URL}..."
-curl -L -o "${target_dir}/geoip.dat" "${GEOIP_URL}"
+# Function to check and update a file
+check_and_update_file() {
+  local file_name=$1
+  local remote_url=$2
+  local target_path="${target_dir}/${file_name}"
+  local checksum_url="${remote_url}.sha256sum"
+  local temp_dir=$(mktemp -d)
 
-echo "Downloading dlc.dat (geosite) from ${GEOSITE_URL}..."
-curl -L -o "${target_dir}/geosite.dat" "${GEOSITE_URL}"
+  print_info "Checking for updates to ${C_BOLD}${file_name}${C_RESET}..."
 
-echo "Geo data files have been updated successfully in ${target_dir}"
+  # Download the checksum file
+  curl -L -s -o "${temp_dir}/remote.sha256sum" "${checksum_url}"
+  if [ $? -ne 0 ]; then
+    print_error "Failed to download checksum file for ${file_name}"
+    rm -rf "${temp_dir}"
+    return 1
+  fi
+
+  # Extract just the hash from the checksum file (in case it includes filename)
+  remote_checksum=$(cat "${temp_dir}/remote.sha256sum" | awk '{print $1}')
+
+  # Check if local file exists and calculate its checksum
+  if [ -f "${target_path}" ]; then
+    local_checksum=$(shasum -a 256 "${target_path}" | awk '{print $1}')
+
+    # Compare checksums
+    if [ "${local_checksum}" = "${remote_checksum}" ]; then
+      print_success "${file_name} is already up to date. ${C_YELLOW}[${local_checksum:0:8}...]${C_RESET}"
+      rm -rf "${temp_dir}"
+      return 0
+    else
+      print_warning "Local ${file_name} checksum ${C_YELLOW}[${local_checksum:0:8}...]${C_RESET} differs from remote ${C_YELLOW}[${remote_checksum:0:8}...]${C_RESET}"
+    fi
+  else
+    print_warning "Local ${file_name} does not exist"
+  fi
+
+  # Checksums don't match or file doesn't exist, download the new file
+  print_info "Downloading ${C_BOLD}${file_name}${C_RESET} from ${remote_url}..."
+  curl -L -o "${target_path}" "${remote_url}"
+  if [ $? -ne 0 ]; then
+    print_error "Failed to download ${file_name}"
+    rm -rf "${temp_dir}"
+    return 1
+  fi
+
+  # Verify the downloaded file
+  local new_checksum=$(shasum -a 256 "${target_path}" | awk '{print $1}')
+  if [ "${new_checksum}" = "${remote_checksum}" ]; then
+    print_success "${file_name} has been updated successfully. ${C_YELLOW}[${new_checksum:0:8}...]${C_RESET}"
+  else
+    print_error "Checksum verification failed for ${file_name}"
+    print_error "Expected: ${remote_checksum}"
+    print_error "Got: ${new_checksum}"
+  fi
+
+  rm -rf "${temp_dir}"
+  return 0
+}
+
+# Print header
+echo "\n${C_BOLD}=== Xray Geo Data Update Tool ===${C_RESET}\n"
+
+# Check and update geoip.dat
+check_and_update_file "geoip.dat" "${GEOIP_URL}"
+
+# Check and update geosite.dat (from dlc.dat)
+check_and_update_file "geosite.dat" "${GEOSITE_URL}"
+
+echo "\n${C_GREEN}${C_BOLD}✓ Geo data files check completed in ${target_dir}${C_RESET}\n"
