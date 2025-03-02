@@ -1,4 +1,4 @@
-# Env Variables
+## Env Variables
 
 - `XRAY_LOCATION_CONFIG`
     - directory for `config.json`
@@ -6,3 +6,7 @@
     - directory for `geoip.dat` and `geosite.dat`
 - `XRAY_LOCATION_CONFDIR`
     - directory for multiple configuration files
+
+## Scripts
+
+- `update_geodata` download latest `geoip.dat` and `geosite.dat` for `xray`

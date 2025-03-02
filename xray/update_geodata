@@ -1,0 +1,39 @@
+#!/bin/zsh
+
+# Define download URLs
+[ -z "$GEOIP_URL" ] && GEOIP_URL="https://github.com/v2fly/geoip/releases/latest/download/geoip.dat"
+[ -z "$GEOSITE_URL" ] && GEOSITE_URL="https://github.com/v2fly/domain-list-community/releases/latest/download/dlc.dat"
+
+# Try to get xray location from Homebrew first
+if xray_prefix=$(brew --prefix xray 2>/dev/null); then
+  target_dir="${xray_prefix}/share/xray"
+else
+  # Check if xray is installed manually
+  xray_path=$(which xray 2>/dev/null)
+  if [ -z "$xray_path" ]; then
+    echo "Error: xray is not installed. Please install it first."
+    exit 1
+  fi
+
+  # Check if XRAY_LOCATION_ASSET environment variable is set
+  if [ -n "$XRAY_LOCATION_ASSET" ]; then
+    target_dir="$XRAY_LOCATION_ASSET"
+  else
+    # Default to the directory where xray is located
+    xray_dir=$(dirname "$xray_path")
+    target_dir="$xray_dir"
+  fi
+fi
+
+echo "Using target directory: ${target_dir}"
+
+# Create the target directory if it doesn't exist
+mkdir -p "${target_dir}"
+
+echo "Downloading geoip.dat from ${GEOIP_URL}..."
+curl -L -o "${target_dir}/geoip.dat" "${GEOIP_URL}"
+
+echo "Downloading dlc.dat (geosite) from ${GEOSITE_URL}..."
+curl -L -o "${target_dir}/geosite.dat" "${GEOSITE_URL}"
+
+echo "Geo data files have been updated successfully in ${target_dir}"
