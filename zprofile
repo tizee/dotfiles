@@ -508,6 +508,10 @@ if $is_macOS; then
   export FIGLET_FONTDIR="$HOME/projects/project-doc/figlet-fonts"
   # openFrameworks
   export OF_ROOT="$HOME/projects/project-creative-art/openFrameworks"
+  # python llm cli
   export LLM_USER_PATH="$HOME/.config/io.datasette.llm"
   export LLM_PROGRAM="/opt/homebrew/bin/llm"
+
+  # xray-core
+  # export XRAY_LOCATION_CONFDIR="$HOME/.config/xray/conf"
 fi
