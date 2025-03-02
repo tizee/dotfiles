@@ -1,0 +1,167 @@
+#!/usr/bin/env python3
+"""
+vless2xray - Convert VLESS links to Xray outbound configuration
+Usage:
+    vless2xray --tag <tag> <vless_link>
+Example:
+    vless2xray --tag proxy "vless://..."
+"""
+import argparse
+import json
+import re
+import urllib.parse
+import sys
+
+def parse_vless_link(vless_link):
+    """Parse a VLESS link and extract its components."""
+    # Regular expression to match VLESS link format
+    vless_pattern = r'vless://([^@]+)@([^:]+):(\d+)\?(.*?)(?:#(.*?))?$'
+    match = re.match(vless_pattern, vless_link)
+
+    if not match:
+        raise ValueError("Invalid VLESS link format")
+
+    user_id, address, port, query_str, remark = match.groups()
+
+    # Parse query parameters
+    query_params = dict(urllib.parse.parse_qsl(query_str))
+
+    return {
+        'user_id': user_id,
+        'address': address,
+        'port': int(port),
+        'params': query_params,
+        'remark': remark or ""
+    }
+
+def generate_outbound_config(vless_data, tag):
+    """Generate Xray outbound configuration from parsed VLESS data."""
+    # Begin constructing the outbound config
+    outbound = {
+        "tag": tag,
+        "protocol": "vless",
+        "settings": {
+            "vnext": [
+                {
+                    "address": vless_data['address'],
+                    "port": vless_data['port'],
+                    "users": [
+                        {
+                            "id": vless_data['user_id'],
+                            "email": "t@t.tt",
+                            "security": "auto",
+                            "encryption": vless_data['params'].get('encryption', 'none'),
+                        }
+                    ]
+                }
+            ]
+        },
+        "streamSettings": {
+            "network": vless_data['params'].get('type', 'tcp'),
+            "security": vless_data['params'].get('security', 'none'),
+        },
+        "mux": {
+            "enabled": False,
+            "concurrency": -1
+        }
+    }
+
+    # Add flow if present
+    if 'flow' in vless_data['params']:
+        outbound['settings']['vnext'][0]['users'][0]['flow'] = vless_data['params']['flow']
+
+    # Configure network-specific settings
+    network = vless_data['params'].get('type', 'tcp')
+
+    # Handle grpc network
+    if network == 'grpc':
+        outbound["streamSettings"]["grpcSettings"] = {
+            "serviceName": vless_data['params'].get('serviceName', ''),
+            "multiMode": False
+        }
+
+    # Handle xhttp network specifically
+    elif network == 'xhttp':
+        outbound["streamSettings"]["xhttpSettings"] = {
+            "path": vless_data['params'].get('path', '/')
+        }
+
+    # Handle http network
+    elif network == 'http':
+        outbound["streamSettings"]["httpSettings"] = {
+            "host": [vless_data['params'].get('host', vless_data['address'])],
+            "path": vless_data['params'].get('path', '/')
+        }
+
+    # Handle tcp network
+    elif network == 'tcp':
+        # If headerType is provided and not 'none', add tcpSettings
+        header_type = vless_data['params'].get('headerType', 'none')
+        if header_type != 'none':
+            outbound["streamSettings"]["tcpSettings"] = {
+                "header": {
+                    "type": header_type
+                }
+            }
+            # If host is provided, add it to the header
+            if 'host' in vless_data['params']:
+                outbound["streamSettings"]["tcpSettings"]["header"]["request"] = {
+                    "version": "1.1",
+                    "method": "GET",
+                    "path": [vless_data['params'].get('path', '/')],
+                    "headers": {
+                        "Host": [vless_data['params']['host']],
+                        "User-Agent": [
+                            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+                        ],
+                        "Accept-Encoding": ["gzip, deflate"],
+                        "Connection": ["keep-alive"],
+                        "Pragma": "no-cache"
+                    }
+                }
+
+    # Handle security-specific settings
+    security = vless_data['params'].get('security', 'none')
+
+    # Handle reality security
+    if security == 'reality':
+        outbound["streamSettings"]["realitySettings"] = {
+            "serverName": vless_data['params'].get('sni', ''),
+            "fingerprint": vless_data['params'].get('fp', 'chrome'),
+            "show": False,
+            "publicKey": vless_data['params'].get('pbk', ''),
+            "shortId": vless_data['params'].get('sid', ''),
+            "spiderX": ""
+        }
+
+    # Handle TLS security
+    elif security == 'tls':
+        outbound["streamSettings"]["tlsSettings"] = {
+            "serverName": vless_data['params'].get('sni', ''),
+            "alpn": ["h2", "http/1.1"],
+            "fingerprint": vless_data['params'].get('fp', 'chrome'),
+        }
+
+    return outbound
+
+def main():
+    """Main entry point for the script."""
+    parser = argparse.ArgumentParser(description='Convert VLESS link to Xray outbound config')
+    parser.add_argument('--tag', type=str, required=True, help='Tag for the outbound')
+    parser.add_argument('vless_link', type=str, help='VLESS link to convert')
+
+    args = parser.parse_args()
+
+    try:
+        vless_data = parse_vless_link(args.vless_link)
+        outbound_config = generate_outbound_config(vless_data, args.tag)
+
+        # Print the JSON config
+        print(json.dumps(outbound_config, indent=6))
+
+    except Exception as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main()
