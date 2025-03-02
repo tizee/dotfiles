@@ -1,0 +1,272 @@
+{
+  "log": {
+    "access": "",
+    "error": "",
+    "loglevel": "info"
+  },
+  "inbounds": [
+    {
+      "protocol": "socks",
+      "port": "1080",
+      "listen": "127.0.0.1",
+      "settings": {
+        "udp": true,
+        "auth": "noauth"
+      }
+    },
+    {
+      "listen": "127.0.0.1",
+      "protocol": "http",
+      "port": "1087",
+      "settings": {
+        "timeout": 360
+      }
+    }
+  ],
+  "outbounds": [
+    {
+      "tag": "tw01"
+      // ....
+    },
+    {
+      "tag": "tw02"
+      // ....
+    },
+    {
+      "tag": "sg01"
+      // ....
+    },
+    {
+      "tag": "sg02"
+      // ....
+    },
+    {
+      "settings": {
+        "userLevel": 0,
+        "domainStrategy": "UseIP"
+      },
+      "tag": "direct",
+      "protocol": "freedom"
+    },
+    {
+      "settings": {
+        "response": {
+          "type": "none"
+        }
+      },
+      "tag": "block",
+      "protocol": "blackhole"
+    }
+  ],
+  "dns": {
+    "hosts": {
+      "dns.google": "8.8.8.8",
+      "proxy.example.com": "127.0.0.1",
+      "geosite:category-ads-all": "127.0.0.1"
+    },
+    "servers": [
+      {
+        "address": "1.1.1.1",
+        "domains": [
+          "geosite:geolocation-!cn"
+        ],
+        "expectIPs": [
+          "geoip:!cn"
+        ]
+      },
+      {
+        "address": "223.5.5.5",
+        "domains": [
+          "geosite:cn"
+        ],
+        "expectIPs": [
+          "geoip:cn"
+        ]
+      },
+      "8.8.8.8",
+      "https://dns.google/dns-query"
+    ]
+  },
+  "routing": {
+    "domainStrategy": "IPIfNonMatch",
+    "rules": [
+      {
+        "type": "field",
+        "port": "443",
+        "network": "udp",
+        "outboundTag": "block"
+      },
+      {
+        "type": "field",
+        "outboundTag": "block",
+        "domain": [
+          "geosite:category-ads-all"
+        ]
+      },
+      {
+        "type": "field",
+        "outboundTag": "direct",
+        "ip": [
+          "geoip:private"
+        ]
+      },
+      {
+        "type": "field",
+        "outboundTag": "direct",
+        "ip": [
+          "geosite:private"
+        ]
+      },
+      {
+        "type": "field",
+        "outboundTag": "direct",
+        "ip": [
+          "223.5.5.5",
+          "223.6.6.6",
+          "2400:3200::1",
+          "2400:3200:baba::1",
+          "119.29.29.29",
+          "1.12.12.12",
+          "120.53.53.53",
+          "2402:4e00::",
+          "2402:4e00:1::",
+          "180.76.76.76",
+          "2400:da00::6666",
+          "114.114.114.114",
+          "114.114.115.115",
+          "114.114.114.119",
+          "114.114.115.119",
+          "114.114.114.110",
+          "114.114.115.110",
+          "180.184.1.1",
+          "180.184.2.2",
+          "101.226.4.6",
+          "218.30.118.6",
+          "123.125.81.6",
+          "140.207.198.6",
+          "1.2.4.8",
+          "210.2.4.8",
+          "52.80.66.66",
+          "117.50.22.22",
+          "2400:7fc0:849e:200::4",
+          "2404:c2c0:85d8:901::4",
+          "117.50.10.10",
+          "52.80.52.52",
+          "2400:7fc0:849e:200::8",
+          "2404:c2c0:85d8:901::8",
+          "117.50.60.30",
+          "52.80.60.30"
+        ]
+      },
+      {
+        "type": "field",
+        "outboundTag": "direct",
+        "domain": [
+          "geoip:cn"
+        ]
+      },
+      {
+        "type": "field",
+        "outboundTag": "direct",
+        "domain": [
+          "geosite:cn"
+        ]
+      },
+      {
+        "type": "field",
+        "outboundTag": "direct",
+        "domain": [
+          "domain:doh.pub",
+          "domain:dot.pub",
+          "domain:360.cn",
+          "domain:onedns.net"
+        ]
+      },
+      {
+        "type": "field",
+        "outboundTag": "direct",
+        "domain": [
+          "domain:codeberg.org"
+        ]
+      },
+      {
+        "type": "field",
+        "outboundTag": "round",
+        "domain": [
+          "domain:googleapis.cn",
+          "domain:gstatic.com"
+        ]
+      },
+      {
+        "type": "field",
+        "outboundTag": "round",
+        "domain": [
+          "geosite:github",
+          "domain:github.com",
+          "domain:githubusercontent.com",
+          "domain:githubassets.com"
+        ]
+      },
+      {
+        "type": "field",
+        "domain": [
+          "geosite:openai",
+          "domain:openai.com",
+          "domain:ai.com",
+          "domain:chatgpt.com",
+          "domain:oaistatic.com",
+          "domain:oaiusercontent.com",
+          "domain:auth0.openai.com",
+          "domain:platform.openai.com",
+          "domain:api.openai.com"
+        ],
+        "outboundTag": "vps"
+      },
+      {
+        "type": "field",
+        "domain": [
+          "geosite:claude",
+          "domain:claude.ai",
+          "domain:anthropic.com",
+          "domain:cdn.usefathom.com"
+        ],
+        "outboundTag": "round"
+      },
+      {
+        "type": "field",
+        "network": "tcp,udp",
+        "outboundTag": "round"
+      }
+    ],
+    "balancers": [
+      {
+        "selector": [
+          "tw",
+          "sg"
+        ],
+        "strategy": {
+          "type": "leastLoad",
+          "settings": {
+            "expected": 2,
+            "maxRTT": "1s",
+            "tolerance": 0.01,
+            "baselines": [
+              "1s"
+            ],
+            "costs": []
+          }
+        },
+        "tag": "round"
+      }
+    ]
+  },
+  "observatory": {
+    "subjectSelector": [
+      "tw",
+      "sg"
+    ],
+    "probeUrl": "https://www.google.com/generate_204",
+    "probeInterval": "10s",
+    "enableConcurrency": false
+  }
+}
