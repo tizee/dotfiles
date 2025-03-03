@@ -38,33 +38,6 @@ function yogit::check_dependencies() {
 }
 yogit::check_dependencies
 
-# Loading spinner animation for async operations
-# Loading spinner animation for async operations
-function yogit::spinner() {
-  local pid=$1
-  local message="${2:-Loading...}"
-  local spin=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')  # Unicode spinner characters
-  local i=0
-
-  # Make sure output is going to a terminal before trying to animate
-  if [[ -t 1 ]]; then
-    tput civis  # Hide cursor
-    while kill -0 $pid 2>/dev/null; do
-      printf "\r${_yogit_color_blue}${message} ${spin[$i]}${_yogit_color_reset}"
-      i=$(( (i+1) % ${#spin[@]} ))
-      sleep 0.1
-    done
-    printf "\r${_yogit_color_green}${message} Done!${_yogit_color_reset}       \n"
-    tput cnorm  # Restore cursor
-  else
-    # Non-interactive mode
-    while kill -0 $pid 2>/dev/null; do
-      sleep 0.5
-    done
-    printf "${_yogit_color_green}${message} Done!${_yogit_color_reset}\n"
-  fi
-}
-
 # Improved error handling
 function yogit::error() {
   printf "${_yogit_color_red}Error: $1${_yogit_color_reset}\n" >&2
@@ -301,14 +274,11 @@ function yogit::get_gh_repo_size() {
     printf "Organization: ${_yogit_color_green}${organ}${_yogit_color_reset}\n"
     printf "Repository  : ${_yogit_color_green}${repo_name}${_yogit_color_reset}\n"
 
-    # Run curl in the background and show spinner
-    curl -sL "https://api.github.com/repos/${organ}/${repo_name}" > /tmp/yogit_repo_size.$$ &
-    local curl_pid=$!
-    yogit::spinner $curl_pid "Fetching repository information"
-
+    # Run curl directly without background process
+    local response=$(curl -sL "https://api.github.com/repos/${organ}/${repo_name}")
+    
     # Process the results
-    local repo_size=$(cat /tmp/yogit_repo_size.$$ | grep -m 1 '"size"' | awk -F ':|,' '{print $2}')
-    rm -f /tmp/yogit_repo_size.$$
+    local repo_size=$(echo "$response" | grep -m 1 '"size"' | awk -F ':|,' '{print $2}')
 
     if [[ -z "$repo_size" ]]; then
       yogit::error "Failed to retrieve repository size. Check the repository URL."
@@ -349,20 +319,14 @@ function yogit::shallowclone() {
     return 1
   fi
 
-  # Starting the clone process in background to show a spinner
-  git clone --depth 1 --recurse-submodules -j8 --shallow-submodules "$@" &>/tmp/yogit_clone_log.$$ &
-  local clone_pid=$!
-  yogit::spinner $clone_pid "Cloning repository"
-
-  # Check for errors
-  if grep -q "fatal:" /tmp/yogit_clone_log.$$; then
-    cat /tmp/yogit_clone_log.$$
-    rm -f /tmp/yogit_clone_log.$$
+  yogit::info "Starting clone operation..."
+  git clone --depth 1 --recurse-submodules -j8 --shallow-submodules "$@"
+  
+  if [[ $? -ne 0 ]]; then
     yogit::error "Clone failed"
     return 1
   fi
 
-  rm -f /tmp/yogit_clone_log.$$
   yogit::success "Clone completed successfully!"
 }
 
@@ -383,28 +347,22 @@ function yogit::shallowclone_github_gitlab() {
   fi
 
   yogit::info "Cloning with --depth 1 --recurse-submodules -j8 --shallow-submodules"
+  yogit::info "Cloning ${organ}/${repo_name}..."
 
   local dest_dir="${repo_name}.${organ}"
   if [[ $# -gt 1 ]]; then
     # Use provided destination
-    git clone --depth 1 --recurse-submodules -j8 --shallow-submodules "$@" &>/tmp/yogit_clone_log.$$ &
+    git clone --depth 1 --recurse-submodules -j8 --shallow-submodules "$@"
   else
     # Use default destination
-    git clone $1 --depth 1 --recurse-submodules -j8 --shallow-submodules "$dest_dir" &>/tmp/yogit_clone_log.$$ &
+    git clone $1 --depth 1 --recurse-submodules -j8 --shallow-submodules "$dest_dir"
   fi
 
-  local clone_pid=$!
-  yogit::spinner $clone_pid "Cloning ${organ}/${repo_name}"
-
-  # Check for errors
-  if grep -q "fatal:" /tmp/yogit_clone_log.$$; then
-    cat /tmp/yogit_clone_log.$$
-    rm -f /tmp/yogit_clone_log.$$
+  if [[ $? -ne 0 ]]; then
     yogit::error "Clone failed"
     return 1
   fi
 
-  rm -f /tmp/yogit_clone_log.$$
   yogit::success "Clone completed successfully!"
 }
 
@@ -418,21 +376,15 @@ function yogit::shallowclone_without_submodules() {
   fi
 
   yogit::info "Cloning with --depth 1 (without submodules)"
+  yogit::info "Starting clone operation..."
 
-  # Starting the clone process in background to show a spinner
-  git clone --depth 1 "$@" &>/tmp/yogit_clone_log.$$ &
-  local clone_pid=$!
-  yogit::spinner $clone_pid "Cloning repository"
-
-  # Check for errors
-  if grep -q "fatal:" /tmp/yogit_clone_log.$$; then
-    cat /tmp/yogit_clone_log.$$
-    rm -f /tmp/yogit_clone_log.$$
+  git clone --depth 1 "$@"
+  
+  if [[ $? -ne 0 ]]; then
     yogit::error "Clone failed"
     return 1
   fi
 
-  rm -f /tmp/yogit_clone_log.$$
   yogit::success "Clone completed successfully!"
 }
 
@@ -459,20 +411,13 @@ function yogit::ghclone(){
 
   yogit::info "Cloning github.com:${username}/${repo}.git with submodules..."
 
-  # Starting the clone process in background to show a spinner
-  git clone --depth 1 --recurse-submodules -j8 --shallow-submodules "git@github.com:${username}/${repo}.git" "$@" &>/tmp/yogit_clone_log.$$ &
-  local clone_pid=$!
-  yogit::spinner $clone_pid "Cloning ${username}/${repo}"
-
-  # Check for errors
-  if grep -q "fatal:" /tmp/yogit_clone_log.$$; then
-    cat /tmp/yogit_clone_log.$$
-    rm -f /tmp/yogit_clone_log.$$
+  git clone --depth 1 --recurse-submodules -j8 --shallow-submodules "git@github.com:${username}/${repo}.git" "$@"
+  
+  if [[ $? -ne 0 ]]; then
     yogit::error "Clone failed"
     return 1
   fi
 
-  rm -f /tmp/yogit_clone_log.$$
   yogit::success "Clone completed successfully!"
 }
 
@@ -497,20 +442,13 @@ function yogit::ghclone_without_submodules(){
 
   yogit::info "Cloning github.com:${username}/${repo}.git (without submodules)..."
 
-  # Starting the clone process in background to show a spinner
-  git clone --depth 1 "git@github.com:${username}/${repo}.git" "$@" &>/tmp/yogit_clone_log.$$ &
-  local clone_pid=$!
-  yogit::spinner $clone_pid "Cloning ${username}/${repo}"
-
-  # Check for errors
-  if grep -q "fatal:" /tmp/yogit_clone_log.$$; then
-    cat /tmp/yogit_clone_log.$$
-    rm -f /tmp/yogit_clone_log.$$
+  git clone --depth 1 "git@github.com:${username}/${repo}.git" "$@"
+  
+  if [[ $? -ne 0 ]]; then
     yogit::error "Clone failed"
     return 1
   fi
 
-  rm -f /tmp/yogit_clone_log.$$
   yogit::success "Clone completed successfully!"
 }
 
@@ -662,19 +600,13 @@ function yogit::pickclone() {
   yogit::info "Performing optimized sparse clone..."
   yogit::info "After cloning, set up sparse-checkout and use 'git read-tree -mu HEAD'"
 
-  git clone --sparse --filter=blob:none --depth=1 --no-checkout "$@" &>/tmp/yogit_clone_log.$$ &
-  local clone_pid=$!
-  yogit::spinner $clone_pid "Cloning repository with sparse options"
-
-  # Check for errors
-  if grep -q "fatal:" /tmp/yogit_clone_log.$$; then
-    cat /tmp/yogit_clone_log.$$
-    rm -f /tmp/yogit_clone_log.$$
+  git clone --sparse --filter=blob:none --depth=1 --no-checkout "$@"
+  
+  if [[ $? -ne 0 ]]; then
     yogit::error "Clone failed"
     return 1
   fi
 
-  rm -f /tmp/yogit_clone_log.$$
   yogit::success "Sparse clone completed successfully!"
 }
 alias "${_yogit_basic_prefix}pickclone"='yogit::pickclone'
@@ -683,19 +615,13 @@ function yogit::submodule_update() {
   yogit::is_git_repo || return 1
   yogit::info "Updating submodules..."
 
-  git submodule update --init --recursive &>/tmp/yogit_submodule_log.$$ &
-  local submodule_pid=$!
-  yogit::spinner $submodule_pid "Updating submodules"
-
-  # Check for errors
-  if grep -q "fatal:" /tmp/yogit_submodule_log.$$; then
-    cat /tmp/yogit_submodule_log.$$
-    rm -f /tmp/yogit_submodule_log.$$
+  git submodule update --init --recursive
+  
+  if [[ $? -ne 0 ]]; then
     yogit::error "Submodule update failed"
     return 1
   fi
 
-  rm -f /tmp/yogit_submodule_log.$$
   yogit::success "Submodules updated successfully!"
 }
 alias "${_yogit_basic_prefix}sub"='yogit::submodule_update'
@@ -704,19 +630,13 @@ function yogit::submodule_update_remote() {
   yogit::is_git_repo || return 1
   yogit::info "Updating submodules from remote..."
 
-  git submodule update --remote --merge &>/tmp/yogit_submodule_log.$$ &
-  local submodule_pid=$!
-  yogit::spinner $submodule_pid "Updating submodules from remote"
-
-  # Check for errors
-  if grep -q "fatal:" /tmp/yogit_submodule_log.$$; then
-    cat /tmp/yogit_submodule_log.$$
-    rm -f /tmp/yogit_submodule_log.$$
+  git submodule update --remote --merge
+  
+  if [[ $? -ne 0 ]]; then
     yogit::error "Submodule remote update failed"
     return 1
   fi
 
-  rm -f /tmp/yogit_submodule_log.$$
   yogit::success "Submodules updated from remote successfully!"
 }
 alias "${_yogit_basic_prefix}subu"='yogit::submodule_update_remote'
