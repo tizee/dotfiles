@@ -39,18 +39,30 @@ function yogit::check_dependencies() {
 yogit::check_dependencies
 
 # Loading spinner animation for async operations
+# Loading spinner animation for async operations
 function yogit::spinner() {
   local pid=$1
   local message="${2:-Loading...}"
-  local spin=('-' '\' '|' '/')
+  local spin=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')  # Unicode spinner characters
   local i=0
 
-  while kill -0 $pid 2>/dev/null; do
-    printf "\r${_yogit_color_blue}${message} ${spin[$i]}${_yogit_color_reset}"
-    i=$(( (i+1) % 4 ))
-    sleep 0.1
-  done
-  printf "\r${_yogit_color_green}${message} Done!${_yogit_color_reset}       \n"
+  # Make sure output is going to a terminal before trying to animate
+  if [[ -t 1 ]]; then
+    tput civis  # Hide cursor
+    while kill -0 $pid 2>/dev/null; do
+      printf "\r${_yogit_color_blue}${message} ${spin[$i]}${_yogit_color_reset}"
+      i=$(( (i+1) % ${#spin[@]} ))
+      sleep 0.1
+    done
+    printf "\r${_yogit_color_green}${message} Done!${_yogit_color_reset}       \n"
+    tput cnorm  # Restore cursor
+  else
+    # Non-interactive mode
+    while kill -0 $pid 2>/dev/null; do
+      sleep 0.5
+    done
+    printf "${_yogit_color_green}${message} Done!${_yogit_color_reset}\n"
+  fi
 }
 
 # Improved error handling
