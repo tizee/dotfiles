@@ -201,13 +201,13 @@
   allowfilter = true
 
 [https]
-proxy = http://127.0.0.1:1087
+proxy = socks5h://127.0.0.1:1080
 ;   vpn may cause ssl issues
- sslVerify = false
+; sslVerify = false
 [http]
-proxy = http://127.0.0.1:1087
+proxy = socks5h://127.0.0.1:1080
 ;   vpn may cause ssl issues
- sslVerify = false
+; sslVerify = false
 
 # CVE-2022-24765
 ; [safe]

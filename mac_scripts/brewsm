@@ -1,0 +1,417 @@
+#!/usr/bin/env zsh
+#
+# brewsm - Brew Services Manager
+# A user-friendly wrapper for brew services commands
+#
+
+# Terminal colors
+RESET="\033[0m"
+BOLD="\033[1m"
+RED="\033[31m"
+GREEN="\033[32m"
+YELLOW="\033[33m"
+BLUE="\033[34m"
+MAGENTA="\033[35m"
+CYAN="\033[36m"
+GRAY="\033[90m"
+
+# Spinner animation frames
+SPINNER=("⠋" "⠙" "⠹" "⠸" "⠼" "⠴" "⠦" "⠧" "⠇" "⠏")
+
+# Error handling
+set -o pipefail
+trap 'echo -e "${RED}${BOLD}✖ Operation aborted${RESET}"; exit 1' INT TERM
+
+# Print error message and exit
+error() {
+  echo -e "${RED}${BOLD}✖ ERROR:${RESET} $1" >&2
+  exit 1
+}
+
+# Print warning message
+warning() {
+  echo -e "${YELLOW}${BOLD}⚠ WARNING:${RESET} $1" >&2
+}
+
+# Print info message
+info() {
+  echo -e "${BLUE}${BOLD}ℹ${RESET} $1"
+}
+
+# Print success message
+success() {
+  echo -e "${GREEN}${BOLD}✓${RESET} $1"
+}
+
+# Show spinner animation while command runs
+spinner() {
+  local pid=$1
+  local message=$2
+  local i=0
+
+  echo -ne "${GRAY}"
+  while kill -0 $pid 2>/dev/null; do
+    echo -ne "\r${SPINNER[$i]} $message"
+    i=$(( (i+1) % ${#SPINNER[@]} ))
+    sleep 0.1
+  done
+  echo -ne "\r\033[K${RESET}"
+}
+
+# Check if brew is installed
+check_brew() {
+  if ! command -v brew >/dev/null 2>&1; then
+    error "Homebrew is not installed. Please install it first."
+  fi
+}
+
+# List all available services
+list_services() {
+  local json=$1
+  local debug=$2
+  local args=()
+
+  [[ "$json" == "true" ]] && args+=(--json)
+  [[ "$debug" == "true" ]] && args+=(--debug)
+
+  echo -e "${BOLD}${CYAN}Brew Services Status${RESET}\n"
+
+  if [[ "${#args[@]}" -gt 0 ]]; then
+    brew services list "${args[@]}"
+  else
+    # Custom formatted output
+    brew services list | awk 'NR==1{print "\033[1m" $0 "\033[0m"; next}
+    {if($2=="started") status="\033[32m●\033[0m";
+     else if($2=="stopped") status="\033[90m○\033[0m";
+     else status="\033[33m◌\033[0m";
+     printf "%-20s %s %-15s %-20s %s\n", $1, status, $2, $3, $4}'
+  fi
+}
+
+# Show service info
+show_service_info() {
+  local service=$1
+  local json=$2
+  local args=()
+
+  [[ "$json" == "true" ]] && args+=(--json)
+
+  if [[ "$service" == "all" ]]; then
+    brew services info --all "${args[@]}"
+  else
+    brew services info "$service" "${args[@]}"
+  fi
+}
+
+# Run a service without registering it
+run_service() {
+  local service=$1
+  local sudo_flag=$2
+  local cmd="brew services run"
+
+  [[ "$sudo_flag" == "true" ]] && cmd="sudo $cmd"
+
+  if [[ "$service" == "all" ]]; then
+    warning "Running all services without registering them"
+    $cmd --all &
+    local pid=$!
+    spinner $pid "Running all services..."
+    wait $pid
+    success "All services are now running (without being registered at login)"
+  else
+    info "Running $service without registering it"
+    $cmd "$service" &
+    local pid=$!
+    spinner $pid "Running $service..."
+    wait $pid
+    success "$service is now running (without being registered at login)"
+  fi
+}
+
+# Start a service
+start_service() {
+  local service=$1
+  local sudo_flag=$2
+  local file=$3
+  local cmd="brew services start"
+  local args=()
+
+  [[ "$sudo_flag" == "true" ]] && cmd="sudo $cmd"
+  [[ -n "$file" ]] && args+=(--file="$file")
+
+  if [[ "$service" == "all" ]]; then
+    warning "Starting all services"
+    $cmd --all "${args[@]}" &
+    local pid=$!
+    spinner $pid "Starting all services..."
+    wait $pid
+    success "All services are now started and registered"
+  else
+    info "Starting $service"
+    $cmd "$service" "${args[@]}" &
+    local pid=$!
+    spinner $pid "Starting $service..."
+    wait $pid
+    success "$service is now started and registered"
+  fi
+}
+
+# Stop a service
+stop_service() {
+  local service=$1
+  local sudo_flag=$2
+  local max_wait=$3
+  local no_wait=$4
+  local cmd="brew services stop"
+  local args=()
+
+  [[ "$sudo_flag" == "true" ]] && cmd="sudo $cmd"
+  [[ -n "$max_wait" ]] && args+=(--max-wait="$max_wait")
+  [[ "$no_wait" == "true" ]] && args+=(--no-wait)
+
+  if [[ "$service" == "all" ]]; then
+    warning "Stopping all services"
+    $cmd --all "${args[@]}" &
+    local pid=$!
+    spinner $pid "Stopping all services..."
+    wait $pid
+    success "All services are now stopped and unregistered"
+  else
+    info "Stopping $service"
+    $cmd "$service" "${args[@]}" &
+    local pid=$!
+    spinner $pid "Stopping $service..."
+    wait $pid
+    success "$service is now stopped and unregistered"
+  fi
+}
+
+# Kill a service (stop without unregistering)
+kill_service() {
+  local service=$1
+  local sudo_flag=$2
+  local cmd="brew services kill"
+
+  [[ "$sudo_flag" == "true" ]] && cmd="sudo $cmd"
+
+  if [[ "$service" == "all" ]]; then
+    warning "Killing all services (they will remain registered)"
+    $cmd --all &
+    local pid=$!
+    spinner $pid "Killing all services..."
+    wait $pid
+    success "All services are now stopped (but still registered)"
+  else
+    info "Killing $service"
+    $cmd "$service" &
+    local pid=$!
+    spinner $pid "Killing $service..."
+    wait $pid
+    success "$service is now stopped (but still registered)"
+  fi
+}
+
+# Restart a service
+restart_service() {
+  local service=$1
+  local sudo_flag=$2
+  local cmd="brew services restart"
+
+  [[ "$sudo_flag" == "true" ]] && cmd="sudo $cmd"
+
+  if [[ "$service" == "all" ]]; then
+    warning "Restarting all services"
+    $cmd --all &
+    local pid=$!
+    spinner $pid "Restarting all services..."
+    wait $pid
+    success "All services have been restarted"
+  else
+    info "Restarting $service"
+    $cmd "$service" &
+    local pid=$!
+    spinner $pid "Restarting $service..."
+    wait $pid
+    success "$service has been restarted"
+  fi
+}
+
+# Cleanup unused services
+cleanup_services() {
+  local sudo_flag=$1
+  local cmd="brew services cleanup"
+
+  [[ "$sudo_flag" == "true" ]] && cmd="sudo $cmd"
+
+  info "Cleaning up unused services"
+  $cmd &
+  local pid=$!
+  spinner $pid "Cleaning up unused services..."
+  wait $pid
+  success "Unused services have been cleaned up"
+}
+
+# Display help
+show_help() {
+  echo -e "${BOLD}${CYAN}brewsm${RESET} - Brew Services Manager"
+  echo -e "A user-friendly wrapper for brew services commands\n"
+  echo -e "${BOLD}Usage:${RESET}"
+  echo -e "  ${BOLD}brewsm${RESET} ${MAGENTA}[command]${RESET} ${YELLOW}[service]${RESET} ${GRAY}[options]${RESET}\n"
+  echo -e "${BOLD}Commands:${RESET}"
+  echo -e "  ${MAGENTA}ls, list${RESET}            List all services and their status"
+  echo -e "  ${MAGENTA}info${RESET}                Show information about a service"
+  echo -e "  ${MAGENTA}run${RESET}                 Run service without registering it"
+  echo -e "  ${MAGENTA}start${RESET}               Start service and register it"
+  echo -e "  ${MAGENTA}stop${RESET}                Stop service and unregister it"
+  echo -e "  ${MAGENTA}kill${RESET}                Stop service but keep it registered"
+  echo -e "  ${MAGENTA}restart, r${RESET}          Restart service"
+  echo -e "  ${MAGENTA}cleanup${RESET}             Remove unused services"
+  echo -e "  ${MAGENTA}help${RESET}                Show this help message\n"
+  echo -e "${BOLD}Options:${RESET}"
+  echo -e "  ${YELLOW}--all${RESET}                Apply command to all services"
+  echo -e "  ${YELLOW}--sudo${RESET}               Run with sudo (system-wide)"
+  echo -e "  ${YELLOW}--file=PATH${RESET}          Use service file from PATH (for start)"
+  echo -e "  ${YELLOW}--max-wait=SEC${RESET}       Wait at most SEC seconds for stop"
+  echo -e "  ${YELLOW}--no-wait${RESET}            Don't wait for stop to finish"
+  echo -e "  ${YELLOW}--json${RESET}               Output as JSON (for list and info)"
+  echo -e "  ${YELLOW}--debug${RESET}              Display debugging information\n"
+  echo -e "${BOLD}Examples:${RESET}"
+  echo -e "  ${GRAY}brewsm ls${RESET}              List all services"
+  echo -e "  ${GRAY}brewsm start mysql${RESET}     Start MySQL service"
+  echo -e "  ${GRAY}brewsm r nginx${RESET}         Restart Nginx service"
+  echo -e "  ${GRAY}brewsm stop --all${RESET}      Stop all services"
+}
+
+# Parse arguments
+main() {
+  check_brew
+
+  # Default values
+  local command=""
+  local service=""
+  local sudo_flag="false"
+  local json="false"
+  local debug="false"
+  local file=""
+  local max_wait=""
+  local no_wait="false"
+
+  # No arguments provided
+  if [[ $# -eq 0 ]]; then
+    list_services "$json" "$debug"
+    return
+  fi
+
+  # Get command (first argument)
+  command="$1"
+  shift
+
+  # Parse remaining arguments
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --all)
+        service="all"
+        shift
+        ;;
+      --sudo)
+        sudo_flag="true"
+        shift
+        ;;
+      --json)
+        json="true"
+        shift
+        ;;
+      --debug)
+        debug="true"
+        shift
+        ;;
+      --file=*)
+        file="${1#*=}"
+        shift
+        ;;
+      --max-wait=*)
+        max_wait="${1#*=}"
+        shift
+        ;;
+      --no-wait)
+        no_wait="true"
+        shift
+        ;;
+      -h|--help)
+        show_help
+        return
+        ;;
+      -*)
+        error "Unknown option: $1"
+        ;;
+      *)
+        if [[ -z "$service" ]]; then
+          service="$1"
+        else
+          error "Too many arguments: $1"
+        fi
+        shift
+        ;;
+    esac
+  done
+
+  # Execute command
+  case "$command" in
+    ls|list)
+      list_services "$json" "$debug"
+      ;;
+    info)
+      if [[ -z "$service" && "$service" != "all" ]]; then
+        error "Service name or --all is required for info command"
+      fi
+      show_service_info "$service" "$json"
+      ;;
+    run)
+      if [[ -z "$service" ]]; then
+        error "Service name or --all is required for run command"
+      fi
+      run_service "$service" "$sudo_flag"
+      ;;
+    start)
+      if [[ -z "$service" ]]; then
+        error "Service name or --all is required for start command"
+      fi
+      start_service "$service" "$sudo_flag" "$file"
+      ;;
+    stop)
+      if [[ -z "$service" ]]; then
+        error "Service name or --all is required for stop command"
+      fi
+      stop_service "$service" "$sudo_flag" "$max_wait" "$no_wait"
+      ;;
+    kill)
+      if [[ -z "$service" ]]; then
+        error "Service name or --all is required for kill command"
+      fi
+      kill_service "$service" "$sudo_flag"
+      ;;
+    restart|r)
+      if [[ -z "$service" ]]; then
+        error "Service name or --all is required for restart command"
+      fi
+      restart_service "$service" "$sudo_flag"
+      ;;
+    cleanup)
+      cleanup_services "$sudo_flag"
+      ;;
+    help)
+      show_help
+      ;;
+    *)
+      # If command looks like a service name, assume restart
+      if [[ -n "$command" && -z "$service" ]]; then
+        service="$command"
+        restart_service "$service" "$sudo_flag"
+      else
+        error "Unknown command: $command"
+      fi
+      ;;
+  esac
+}
+
+main "$@"

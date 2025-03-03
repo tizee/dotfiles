@@ -49,7 +49,30 @@
       "command": "pylsp",
       "filetypes": [
         "python"
-      ]
+      ],
+        "plugins": {
+          "ruff": {
+            "enabled": true,
+            "formatEnabled": true,
+            "executable": "/opt/homebrew/bin/ruff",
+            "extendSelect": [ "I" ],
+            "extendIgnore": [ "C90"],
+            "format": [ "I" ],
+            "severities": {
+              "D212": "I"
+            },
+            "unsafeFixes": false,
+            "lineLength": 88,
+            "exclude": ["__about__.py"],
+            "select": ["F"],
+            "ignore": ["D210"],
+            "perFileIgnores": {
+              "__init__.py": "CPY001"
+            },
+            "preview": false,
+            "targetVersion": "py310"
+        }
+      }
     },
     // python linter/formatter
     "ruff-lsp": {
