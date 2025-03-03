@@ -34,11 +34,10 @@ end
 local actions = {}
 -- action name to app name
 local app_names = {
-	{ "Arc", "Arc" },
-	{ "Reeder", "Reeder" },
-	{ "OmniFocus", "OmniFocus" },
+	{ "Claude", "Claude" },
+	{ "ChatGPT", "ChatGPT" },
 	{ "Obsidian", "Obsidian" },
-	{ "Telegram", "Telegram" },
+	{ "Cherry Studio", "Cherry Studio" }
 }
 
 for _, row in ipairs(app_names) do
@@ -57,7 +56,7 @@ end
 function actions.showAppInfo()
 	alert.show(
 		string.format(
-			"App path:      %s\nApp name:      %s\nIM source id:  %s\nWindow Size: width:%s height:%s",
+			"App path:      %s\nBundler Id:      %s\nIM source id:  %s\nWindow Size: width:%s height:%s",
 			hs.window.focusedWindow():application():path(),
 			hs.window.focusedWindow():application():name(),
 			hs.keycodes.currentSourceID(),

@@ -390,4 +390,9 @@ endfunction
 call SetupCommandAbbrs('C', 'CocConfig')
 " }}}
 
+" DEBUG {{{
+" create a temporary buffer for list :messages
+command! MsgBuffer execute 'new' | execute 'setlocal buftype=nofile bufhidden=wipe noswapfile' | put =execute('messages')
+" }}}
+
 " vim: set foldmethod=marker foldlevel=0 nomodeline:
