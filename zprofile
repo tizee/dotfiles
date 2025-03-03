@@ -156,7 +156,7 @@ fi
 export DENO_INSTALL=$HOME/.deno
 
 # rust cargo
-PATH="$HOME/.cargo/bin:$PATH"
+export PATH="$HOME/.cargo/bin:$PATH"
 export CARGO_HOME="$HOME/.cargo"
 export CARGO_NET_GIT_FETCH_WITH_CLI=true
 # export RUSTUP_TOOLCHAIN = "stable"
@@ -168,7 +168,7 @@ export SCCACHE_CACHE_SIZE="2G"
 # export RUSTC_WRAPPER=$(which sccache)
 
 # my shellscripts
-PATH="$HOME/.config/bin:$PATH"
+export PATH="$HOME/.config/bin:$PATH"
 # PATH="$HOME/.config/work_bin:$PATH" # work related scripts
 # source $HOME/.config/work_bin/work_alias
 # terminal

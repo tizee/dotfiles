@@ -97,7 +97,7 @@ Plug 'airblade/vim-gitgutter' " git
 
 " ===> Snippets {{{
 " -- ultisnips
-Plug 'SirVer/ultisnips'
+" Plug 'SirVer/ultisnips'
 " }}}
 
 " ===> UI {{{
