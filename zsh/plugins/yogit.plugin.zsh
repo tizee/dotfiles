@@ -10,70 +10,147 @@
 # Have fun ;-)
 # Note that this plugin is conflicted with fzf-tab.
 
+# Color definitions for better output
+_yogit_color_reset="\033[0m"
+_yogit_color_green="\033[0;32m"
+_yogit_color_yellow="\033[0;33m"
+_yogit_color_blue="\033[0;34m"
+_yogit_color_red="\033[0;31m"
+_yogit_color_cyan="\033[0;36m"
+_yogit_color_magenta="\033[0;35m"
+_yogit_color_bold="\033[1m"
+
+# Check for required commands
+function yogit::check_dependencies() {
+  local missing_deps=()
+  for cmd in git fzf; do
+    if ! command -v $cmd &>/dev/null; then
+      missing_deps+=($cmd)
+    fi
+  done
+
+  if [[ ${#missing_deps[@]} -gt 0 ]]; then
+    printf "${_yogit_color_yellow}Warning: Missing dependencies: ${missing_deps[*]}${_yogit_color_reset}\n"
+    printf "Install them for full functionality.\n"
+    [[ " ${missing_deps[@]} " =~ " git " ]] && return 1
+  fi
+  return 0
+}
+yogit::check_dependencies
+
+# Loading spinner animation for async operations
+function yogit::spinner() {
+  local pid=$1
+  local message="${2:-Loading...}"
+  local spin=('-' '\' '|' '/')
+  local i=0
+
+  while kill -0 $pid 2>/dev/null; do
+    printf "\r${_yogit_color_blue}${message} ${spin[$i]}${_yogit_color_reset}"
+    i=$(( (i+1) % 4 ))
+    sleep 0.1
+  done
+  printf "\r${_yogit_color_green}${message} Done!${_yogit_color_reset}       \n"
+}
+
+# Improved error handling
+function yogit::error() {
+  printf "${_yogit_color_red}Error: $1${_yogit_color_reset}\n" >&2
+  return 1
+}
+
+function yogit::success() {
+  printf "${_yogit_color_green}✓ $1${_yogit_color_reset}\n"
+}
+
+function yogit::info() {
+  printf "${_yogit_color_blue}$1${_yogit_color_reset}\n"
+}
+
+function yogit::warning() {
+  printf "${_yogit_color_yellow}Warning: $1${_yogit_color_reset}\n" >&2
+}
+
 _yogit_basic_prefix=$YOGIT_BASIC_PREFIX
 _yogit_interactive_prefix=$YOGIT_INTERACTIVE_PREFIX
 if [[ -z $YOGIT_BASIC_PREFIX  ]]; then
-_yogit_basic_prefix='yg'
+  _yogit_basic_prefix='yg'
 fi
 if [[ -z $YOGIT_INTERACTIVE_PREFIX ]]; then
-_yogit_interactive_prefix='ygi'
+  _yogit_interactive_prefix='ygi'
 fi
 
-if [ $SYSTEM = Darwin ]; then
+# System detection with fallback
+if [[ -z $SYSTEM ]]; then
+  SYSTEM=$(uname -s)
+fi
+
+if [[ $SYSTEM == Darwin ]]; then
   alias _yogit_open='open'
-elif [ $SYSTEM = Linux ]; then
+elif [[ $SYSTEM == Linux ]]; then
   alias _yogit_open='xdg-open'
+else
+  # Fallback detection for other systems
+  if command -v xdg-open &>/dev/null; then
+    alias _yogit_open='xdg-open'
+  elif command -v open &>/dev/null; then
+    alias _yogit_open='open'
+  else
+    function _yogit_open() {
+      yogit::error "Could not find a suitable 'open' command for your system"
+      echo "URL: $1" # At least show the URL
+    }
+  fi
 fi
 
 function yogit::help() {
   # basic
-  printf "--> basic usage\n"
-  print "${_yogit_basic_prefix}htest                                       : ssh -T git@github.com"
-  print "${_yogit_basic_prefix}st                                          : git status"
-  print "${_yogit_basic_prefix}ghsc                                        : git clone a github repo using <username>/<repo-name> with submodules"
-  print "${_yogit_basic_prefix}ghsc!                                       : git clone a github repo using <username>/<repo-name>"
-  print "${_yogit_basic_prefix}sc                                          : git clone with depth 1 and shallow clone submodules with depth 1"
-  print "${_yogit_basic_prefix}sc!                                         : git clone with depth 1"
-  print "${_yogit_basic_prefix}cob                                         : git checkout -b"
-  print "${_yogit_basic_prefix}a                                           : git add"
-  print "${_yogit_basic_prefix}c                                           : git commit -v"
-  print "${_yogit_basic_prefix}ct                                           : git commit -v --trailer sign --trailer coauthor"
-  print "${_yogit_basic_prefix}c!                                          : git commit --amend"
-  print "${_yogit_basic_prefix}cn!                                         : git commit --amend --no-edit"
-  print "${_yogit_basic_prefix}push                                        : git push origin current_branch"
-  print "${_yogit_basic_prefix}pull                                        : git pull origin current_branch"
-  print "${_yogit_basic_prefix}sst                                         : list staged and unstaged file names only"
-  print "${_yogit_basic_prefix}open                                        : open/xdg-open repo url in browser"
-  print "${_yogit_basic_prefix}url                                         : ${_yogit_basic_prefix}url <remote-name> to print remote url"
-  print "${_yogit_basic_prefix}rtags                                       : list remote tags with 'git ls-remote --tags'"
-  print "${_yogit_basic_prefix}ftag                                        : fetch a remote tag with 'git fetch origin refs/tags/<lname>           : refs/tags<rname> --no-tags'"
+  printf "${_yogit_color_cyan}${_yogit_color_bold}--> basic usage${_yogit_color_reset}\n"
+  printf "${_yogit_color_green}${_yogit_basic_prefix}htest${_yogit_color_reset}                                       : ssh -T git@github.com\n"
+  printf "${_yogit_color_green}${_yogit_basic_prefix}st${_yogit_color_reset}                                          : git status\n"
+  printf "${_yogit_color_green}${_yogit_basic_prefix}ghsc${_yogit_color_reset}                                        : git clone a github repo using <username>/<repo-name> with submodules\n"
+  printf "${_yogit_color_green}${_yogit_basic_prefix}ghsc!${_yogit_color_reset}                                       : git clone a github repo using <username>/<repo-name>\n"
+  printf "${_yogit_color_green}${_yogit_basic_prefix}sc${_yogit_color_reset}                                          : git clone with depth 1 and shallow clone submodules with depth 1\n"
+  printf "${_yogit_color_green}${_yogit_basic_prefix}sc!${_yogit_color_reset}                                         : git clone with depth 1\n"
+  printf "${_yogit_color_green}${_yogit_basic_prefix}cob${_yogit_color_reset}                                         : git checkout -b\n"
+  printf "${_yogit_color_green}${_yogit_basic_prefix}a${_yogit_color_reset}                                           : git add\n"
+  printf "${_yogit_color_green}${_yogit_basic_prefix}c${_yogit_color_reset}                                           : git commit -v\n"
+  printf "${_yogit_color_green}${_yogit_basic_prefix}ct${_yogit_color_reset}                                          : git commit -v --trailer sign --trailer coauthor\n"
+  printf "${_yogit_color_green}${_yogit_basic_prefix}c!${_yogit_color_reset}                                          : git commit --amend\n"
+  printf "${_yogit_color_green}${_yogit_basic_prefix}cn!${_yogit_color_reset}                                         : git commit --amend --no-edit\n"
+  printf "${_yogit_color_green}${_yogit_basic_prefix}push${_yogit_color_reset}                                        : git push origin current_branch\n"
+  printf "${_yogit_color_green}${_yogit_basic_prefix}pull${_yogit_color_reset}                                        : git pull origin current_branch\n"
+  printf "${_yogit_color_green}${_yogit_basic_prefix}sst${_yogit_color_reset}                                         : list staged and unstaged file names only\n"
+  printf "${_yogit_color_green}${_yogit_basic_prefix}open${_yogit_color_reset}                                        : open/xdg-open repo url in browser\n"
+  printf "${_yogit_color_green}${_yogit_basic_prefix}url${_yogit_color_reset}                                         : ${_yogit_basic_prefix}url <remote-name> to print remote url\n"
+  printf "${_yogit_color_green}${_yogit_basic_prefix}rtags${_yogit_color_reset}                                       : list remote tags with 'git ls-remote --tags'\n"
+  printf "${_yogit_color_green}${_yogit_basic_prefix}ftag${_yogit_color_reset}                                        : fetch a remote tag with 'git fetch origin refs/tags/<lname> : refs/tags<rname> --no-tags'\n"
   # github repos
-  print "${_yogit_basic_prefix}ghsize                                      : get size of github repo"
-  print "${_yogit_basic_prefix}ghurl                                       : github repo worktree url of current commit"
-  print "${_yogit_basic_prefix}opengh                                      : open github repo worktree url of current commit"
-  print "${_yogit_basic_prefix}lr                                          : remote list"
-  print "${_yogit_basic_prefix}ls                                          : git ls-files --others --exclude-standard"
-  print "${_yogit_basic_prefix}pickclone                                   : git clone --sparse --filter=blob:none --depth=1 --no-checkout"
-  print "after setting up the sparse-checkout, use git read-tree -mu HEAD"
-  print "${_yogit_basic_prefix}sub                                         : git submodule update --init --recursive"
-  print "${_yogit_basic_prefix}subu                                        : git submodule update --remote --merge"
-  print "${_yogit_basic_prefix}br                                          : git branch -r"
-  print "${_yogit_basic_prefix}parse                                       : git rev-parse [input] | cut -d 1-6"
-  print "git branch -r --merged                                            : ${_yogit_basic_prefix}br --merged"
-  print "git branch --merged                                               : ${_yogit_basic_prefix}br --merged"
-  print "${_yogit_basic_prefix}br                                          : git branch -r"
-  print "${_yogit_basic_prefix}bru                                         : git branch -u <remote>/<branch> <local-branch> "
-  print "${_yogit_basic_prefix}prune                                       : git remote prune origin"
-  print "${_yogit_basic_prefix}seturl                                      : git remote set-url origin"
-  print "${_yogit_basic_prefix}bm                                          : rename branch and update its tracked origin branch"
-  print ""
-  printf "--> interactive usage\n"
-  print "${yogit_checkout:-${_yogit_interactive_prefix}co}    :  checkout with fzf"
-  print "${yogit_cherry_pick:-${_yogit_interactive_prefix}cp} :  cherry pick with fzf"
-  print "${yogit_show:-${_yogit_interactive_prefix}sc}        :  select commit with fzf"
-  print "${yogit_branch:-${_yogit_interactive_prefix}br}      :  select branch with fzf"
-  print "${yogit_diff:-${_yogit_interactive_prefix}diff}      :  diff with fzf"
-  print "${_yogit_interactive_prefix}rtags    :  select a tag name with fzf"
+  printf "${_yogit_color_green}${_yogit_basic_prefix}ghsize${_yogit_color_reset}                                      : get size of github repo\n"
+  printf "${_yogit_color_green}${_yogit_basic_prefix}ghurl${_yogit_color_reset}                                       : github repo worktree url of current commit\n"
+  printf "${_yogit_color_green}${_yogit_basic_prefix}opengh${_yogit_color_reset}                                      : open github repo worktree url of current commit\n"
+  printf "${_yogit_color_green}${_yogit_basic_prefix}lr${_yogit_color_reset}                                          : remote list\n"
+  printf "${_yogit_color_green}${_yogit_basic_prefix}ls${_yogit_color_reset}                                          : git ls-files --others --exclude-standard\n"
+  printf "${_yogit_color_green}${_yogit_basic_prefix}pickclone${_yogit_color_reset}                                   : git clone --sparse --filter=blob:none --depth=1 --no-checkout\n"
+  printf "${_yogit_color_blue}after setting up the sparse-checkout, use git read-tree -mu HEAD${_yogit_color_reset}\n"
+  printf "${_yogit_color_green}${_yogit_basic_prefix}sub${_yogit_color_reset}                                         : git submodule update --init --recursive\n"
+  printf "${_yogit_color_green}${_yogit_basic_prefix}subu${_yogit_color_reset}                                        : git submodule update --remote --merge\n"
+  printf "${_yogit_color_green}${_yogit_basic_prefix}br${_yogit_color_reset}                                          : git branch -r\n"
+  printf "${_yogit_color_green}${_yogit_basic_prefix}parse${_yogit_color_reset}                                       : git rev-parse [input] | cut -d 1-6\n"
+  printf "${_yogit_color_green}git branch -r --merged${_yogit_color_reset}                                            : ${_yogit_basic_prefix}br --merged\n"
+  printf "${_yogit_color_green}git branch --merged${_yogit_color_reset}                                               : ${_yogit_basic_prefix}br --merged\n"
+  printf "${_yogit_color_green}${_yogit_basic_prefix}bru${_yogit_color_reset}                                         : git branch -u <remote>/<branch> <local-branch>\n"
+  printf "${_yogit_color_green}${_yogit_basic_prefix}prune${_yogit_color_reset}                                       : git remote prune origin\n"
+  printf "${_yogit_color_green}${_yogit_basic_prefix}seturl${_yogit_color_reset}                                      : git remote set-url origin\n"
+  printf "${_yogit_color_green}${_yogit_basic_prefix}bm${_yogit_color_reset}                                          : rename branch and update its tracked origin branch\n"
+  printf "\n"
+  printf "${_yogit_color_cyan}${_yogit_color_bold}--> interactive usage${_yogit_color_reset}\n"
+  printf "${_yogit_color_green}${yogit_checkout:-${_yogit_interactive_prefix}co}${_yogit_color_reset}    :  checkout with fzf\n"
+  printf "${_yogit_color_green}${yogit_cherry_pick:-${_yogit_interactive_prefix}cp}${_yogit_color_reset} :  cherry pick with fzf\n"
+  printf "${_yogit_color_green}${yogit_show:-${_yogit_interactive_prefix}sc}${_yogit_color_reset}        :  select commit with fzf\n"
+  printf "${_yogit_color_green}${yogit_branch:-${_yogit_interactive_prefix}br}${_yogit_color_reset}      :  select branch with fzf\n"
+  printf "${_yogit_color_green}${yogit_diff:-${_yogit_interactive_prefix}diff}${_yogit_color_reset}      :  diff with fzf\n"
+  printf "${_yogit_color_green}${_yogit_interactive_prefix}rtags${_yogit_color_reset}    :  select a tag name with fzf\n"
 }
 
 alias "${yogit_help:-${_yogit_interactive_prefix}help}"='yogit::help'
@@ -84,14 +161,23 @@ alias "${yogit_help:-${_yogit_basic_prefix}help}"='yogit::help'
 # fallback to git if not found
 
 function yogit::is_git_repo(){
-  git rev-parse --is-inside-work-tree 2>&1 >/dev/null
+  if ! git rev-parse --is-inside-work-tree &>/dev/null; then
+    yogit::error "Not inside a git repository"
+    return 1
+  fi
+  return 0
 }
 
 function yogit::current_branch() {
   yogit::is_git_repo || return 1
-  local ref=$(git symbolic-ref --quiet HEAD 2> /dev/null | sed -E 's#refs/heads/(.*)#\1#')
-  # TODO detached head
-  echo ${ref}
+  local ref=$(git symbolic-ref --quiet HEAD 2>/dev/null)
+  if [[ $? -ne 0 ]]; then
+    # Handle detached HEAD state
+    ref=$(git rev-parse --short HEAD 2>/dev/null) || return 1
+    echo "(detached:$ref)"
+    return 0
+  fi
+  echo ${ref#refs/heads/}
 }
 # }}}
 
@@ -99,60 +185,133 @@ function yogit::current_branch() {
 
 function yogit::url() {
   local remote_name="${1:-origin}"
+  if ! git config --get remote.$remote_name.url &>/dev/null; then
+    yogit::error "Remote '$remote_name' not found"
+    return 1
+  fi
   git config --get remote.$remote_name.url | sed -E 's/^[^@]*@([^:\/]*)[:\/]/https:\/\/\1\//' | sed 's/\.git//'
 }
 
 function yogit::open() {
-  _yogit_open $(yogit::url)
+  yogit::is_git_repo || return 1
+  local url=$(yogit::url "$@")
+  if [[ $? -ne 0 ]]; then
+    return 1
+  fi
+  yogit::info "Opening $url in browser..."
+  _yogit_open "$url"
 }
 
 function yogit::list_remote_tags() {
-  git ls-remote --tags | awk -F '/tags\/' '{print $2}'
+  yogit::is_git_repo || return 1
+
+  yogit::info "Fetching remote tags..."
+  git ls-remote --tags 2>/dev/null | awk -F '/tags\/' '{print $2}' | grep -v '\^{}$'
+
+  if [[ $? -ne 0 ]]; then
+    yogit::error "Failed to fetch remote tags"
+    return 1
+  fi
 }
 
 alias "${_yogit_basic_prefix}rtags"='yogit::list_remote_tags'
 
 function yogit::fetch_remote_tag() {
+  if [[ -z "$1" ]]; then
+    yogit::error "Usage: ${_yogit_basic_prefix}ftag <tag-name>"
+    return 1
+  fi
+
+  yogit::is_git_repo || return 1
+  yogit::info "Fetching tag $1..."
   # syntatic sugar: git fetch origin refs/tags/local-tag-name:refs/tags/remote-tag-name --no-tags
-  git fetch --depth=1 origin tag $1 --no-tags
+  git fetch --depth=1 origin tag "$1" --no-tags
+
+  if [[ $? -eq 0 ]]; then
+    yogit::success "Tag $1 fetched successfully"
+  else
+    yogit::error "Failed to fetch tag $1"
+    return 1
+  fi
 }
 
 alias "${_yogit_basic_prefix}ftag"='yogit::fetch_remote_tag'
 
 function yogit::gh_commit_url() {
-  local commit=$(git rev-parse --verify ${1:-HEAD})
+  yogit::is_git_repo || return 1
+
+  local commit=$(git rev-parse --verify ${1:-HEAD} 2>/dev/null)
+  if [[ $? -ne 0 ]]; then
+    yogit::error "Invalid commit reference: ${1:-HEAD}"
+    return 1
+  fi
+
   local base_url=$(yogit::url)
+  if [[ $? -ne 0 ]]; then
+    return 1
+  fi
+
   if [[ "$base_url" =~ .*"github".* ]]; then
     echo "${base_url}/tree/${commit}"
   else
-    echo "Remote isn't not a Github repository" && exit 1
+    yogit::error "Remote isn't a GitHub repository"
+    return 1
   fi
 }
 
 # open Github's permanent url of given commit of a git worktree
 function yogit::open_gh_commit() {
-  _yogit_open $(yogit::gh_commit_url $1)
+  yogit::is_git_repo || return 1
+
+  local url=$(yogit::gh_commit_url "$1")
+  if [[ $? -ne 0 ]]; then
+    return 1
+  fi
+
+  yogit::info "Opening GitHub commit URL: $url"
+  _yogit_open "$url"
 }
 
 alias "${_yogit_basic_prefix}ghsize"='yogit::get_gh_repo_size'
 
 # idea from https://stackoverflow.com/questions/2882620/is-it-possible-to-remote-count-object-and-size-of-git-repository
 function yogit::get_gh_repo_size() {
-  if [[ $# > 0 ]]; then
+  if [[ $# -gt 0 ]]; then
     local organ=$(echo $1 | sed -nE 's#(https?://github.com/|git@github.com:)([^/]+)/([^/]+)(\.git)?$#\2#p')
-		local repo_name=$(echo $1 | sed -nE 's#(https?://github.com/|git@github.com:)([^/]+)/([^/]+)(\.git)?$#\3#p' | sed -nE 's/\.git$//p')
-		printf "organization: ${organ}\n"
-		printf "name        : ${repo_name}\n"
-    local repo_size=$(curl -sL https://api.github.com/repos/${organ}/${repo_name} | grep -m 1 '"size"' | awk -F ':|,' '{print $2}')
+    local repo_name=$(echo $1 | sed -nE 's#(https?://github.com/|git@github.com:)([^/]+)/([^/]+)(\.git)?$#\3#p' | sed -nE 's/\.git$//p')
+
+    if [[ -z "$organ" || -z "$repo_name" ]]; then
+      yogit::error "Invalid GitHub repo URL format"
+      return 1
+    fi
+
+    yogit::info "Fetching repository size..."
+    printf "Organization: ${_yogit_color_green}${organ}${_yogit_color_reset}\n"
+    printf "Repository  : ${_yogit_color_green}${repo_name}${_yogit_color_reset}\n"
+
+    # Run curl in the background and show spinner
+    curl -sL "https://api.github.com/repos/${organ}/${repo_name}" > /tmp/yogit_repo_size.$$ &
+    local curl_pid=$!
+    yogit::spinner $curl_pid "Fetching repository information"
+
+    # Process the results
+    local repo_size=$(cat /tmp/yogit_repo_size.$$ | grep -m 1 '"size"' | awk -F ':|,' '{print $2}')
+    rm -f /tmp/yogit_repo_size.$$
+
+    if [[ -z "$repo_size" ]]; then
+      yogit::error "Failed to retrieve repository size. Check the repository URL."
+      return 1
+    fi
+
     # convert to human readable size
-    printf "${organ}/${repo_name} size:\n $(( $repo_size / 1024 )) Mb $(( $repo_size % 1024 )) Kb\n"
+    printf "${_yogit_color_cyan}${organ}/${repo_name} size:${_yogit_color_reset}\n"
+    printf " ${_yogit_color_green}$(( $repo_size / 1024 )) MB $(( $repo_size % 1024 )) KB${_yogit_color_reset}\n"
   else
-    echo 'usage: [repo url]
-url format:
-    git@github.com:${organ}/${repo_name}.git
-    https://github.com/${organ}/${repo_name}.git
-    https://github.com/${organ}/${repo_name}
-    '
+    printf "${_yogit_color_blue}Usage:${_yogit_color_reset} ${_yogit_basic_prefix}ghsize [repo url]\n"
+    printf "${_yogit_color_yellow}URL format:${_yogit_color_reset}\n"
+    printf "    git@github.com:\${organ}/\${repo_name}.git\n"
+    printf "    https://github.com/\${organ}/\${repo_name}.git\n"
+    printf "    https://github.com/\${organ}/\${repo_name}\n"
   fi
 }
 
@@ -171,52 +330,176 @@ alias "${_yogit_basic_prefix}st"='git status'
 # shallow clone with --depth 1
 # supports self-hosted git repo url, github, gitlab and etc.
 function yogit::shallowclone() {
-  print "clone with --depth 1 --recurse-submodules -j8 --shallow-submodules"
-  # https://stackoverflow.com/questions/3796927/how-do-i-git-clone-a-repo-including-its-submodules
-  # https://stackoverflow.com/questions/2144406/how-to-make-shallow-git-submodules
-  git clone --depth 1 --recurse-submodules -j8 --shallow-submodules $@
+  yogit::info "Cloning with --depth 1 --recurse-submodules -j8 --shallow-submodules"
+
+  if [[ $# -lt 1 ]]; then
+    yogit::error "Usage: ${_yogit_basic_prefix}sc <repo-url> [destination-dir]"
+    return 1
+  fi
+
+  # Starting the clone process in background to show a spinner
+  git clone --depth 1 --recurse-submodules -j8 --shallow-submodules "$@" &>/tmp/yogit_clone_log.$$ &
+  local clone_pid=$!
+  yogit::spinner $clone_pid "Cloning repository"
+
+  # Check for errors
+  if grep -q "fatal:" /tmp/yogit_clone_log.$$; then
+    cat /tmp/yogit_clone_log.$$
+    rm -f /tmp/yogit_clone_log.$$
+    yogit::error "Clone failed"
+    return 1
+  fi
+
+  rm -f /tmp/yogit_clone_log.$$
+  yogit::success "Clone completed successfully!"
 }
 
 alias "${_yogit_basic_prefix}sc"='yogit::shallowclone'
 
 function yogit::shallowclone_github_gitlab() {
+  if [[ $# -lt 1 ]]; then
+    yogit::error "Usage: ${_yogit_basic_prefix}sch <repo-url> [destination-dir]"
+    return 1
+  fi
+
   local organ=$(echo $1 | sed -nE 's#(https?://github.com/|git@github.com:|https://gitlab.com/|git@gitlab.com:)([^/]+)/([^/]+)(\.git)?$#\2#p')
   local repo_name=$(echo $1 | sed -nE 's#(https?://github.com/|git@github.com:|https://gitlab.com/|git@gitlab.com:)([^/]+)/([^/]+)(\.git)?$#\3#p' | sed -nE 's/\.git$//p')
-  print "clone with --depth 1 --recurse-submodules -j8 --shallow-submodules"
-  if [[ $# > 1 ]]; then
-    git clone --depth 1 --recurse-submodules -j8 --shallow-submodules $@
-  else
-    git clone $1 --depth 1 --recurse-submodules -j8 --shallow-submodules "${repo_name}.${organ}"
+
+  if [[ -z "$organ" || -z "$repo_name" ]]; then
+    yogit::error "Invalid repository URL format"
+    return 1
   fi
+
+  yogit::info "Cloning with --depth 1 --recurse-submodules -j8 --shallow-submodules"
+
+  local dest_dir="${repo_name}.${organ}"
+  if [[ $# -gt 1 ]]; then
+    # Use provided destination
+    git clone --depth 1 --recurse-submodules -j8 --shallow-submodules "$@" &>/tmp/yogit_clone_log.$$ &
+  else
+    # Use default destination
+    git clone $1 --depth 1 --recurse-submodules -j8 --shallow-submodules "$dest_dir" &>/tmp/yogit_clone_log.$$ &
+  fi
+
+  local clone_pid=$!
+  yogit::spinner $clone_pid "Cloning ${organ}/${repo_name}"
+
+  # Check for errors
+  if grep -q "fatal:" /tmp/yogit_clone_log.$$; then
+    cat /tmp/yogit_clone_log.$$
+    rm -f /tmp/yogit_clone_log.$$
+    yogit::error "Clone failed"
+    return 1
+  fi
+
+  rm -f /tmp/yogit_clone_log.$$
+  yogit::success "Clone completed successfully!"
 }
 
 # clone github repo
 alias "${_yogit_basic_prefix}sch"='yogit::shallowclone_github_gitlab'
 
 function yogit::shallowclone_without_submodules() {
-  # https://stackoverflow.com/questions/3796927/how-do-i-git-clone-a-repo-including-its-submodules
-  # https://stackoverflow.com/questions/2144406/how-to-make-shallow-git-submodules
-  git clone $@ --depth 1
+  if [[ $# -lt 1 ]]; then
+    yogit::error "Usage: ${_yogit_basic_prefix}sc! <repo-url> [destination-dir]"
+    return 1
+  fi
+
+  yogit::info "Cloning with --depth 1 (without submodules)"
+
+  # Starting the clone process in background to show a spinner
+  git clone --depth 1 "$@" &>/tmp/yogit_clone_log.$$ &
+  local clone_pid=$!
+  yogit::spinner $clone_pid "Cloning repository"
+
+  # Check for errors
+  if grep -q "fatal:" /tmp/yogit_clone_log.$$; then
+    cat /tmp/yogit_clone_log.$$
+    rm -f /tmp/yogit_clone_log.$$
+    yogit::error "Clone failed"
+    return 1
+  fi
+
+  rm -f /tmp/yogit_clone_log.$$
+  yogit::success "Clone completed successfully!"
 }
+
 alias "${_yogit_basic_prefix}sc!"='yogit::shallowclone_without_submodules'
 
 alias "${_yogit_basic_prefix}ghsc"='yogit::ghclone'
 
 function yogit::ghclone(){
+  if [[ $# -lt 1 ]]; then
+    yogit::error "Usage: ${_yogit_basic_prefix}ghsc <username>/<repo> [destination-dir]"
+    return 1
+  fi
+
   local username=$(echo "$1" | sed -E 's/(.*)\/(.*)$/\1/')
   local repo=$(echo "$1" | sed -E 's/(.*)\/(.*)$/\2/')
+
+  if [[ -z "$username" || -z "$repo" ]]; then
+    yogit::error "Invalid format. Use <username>/<repo>"
+    return 1
+  fi
+
   # remove the first parameter
   shift
-  git clone --depth 1 --recurse-submodules -j8 --shallow-submodules "git@github.com:${username}/${repo}.git" $@
+
+  yogit::info "Cloning github.com:${username}/${repo}.git with submodules..."
+
+  # Starting the clone process in background to show a spinner
+  git clone --depth 1 --recurse-submodules -j8 --shallow-submodules "git@github.com:${username}/${repo}.git" "$@" &>/tmp/yogit_clone_log.$$ &
+  local clone_pid=$!
+  yogit::spinner $clone_pid "Cloning ${username}/${repo}"
+
+  # Check for errors
+  if grep -q "fatal:" /tmp/yogit_clone_log.$$; then
+    cat /tmp/yogit_clone_log.$$
+    rm -f /tmp/yogit_clone_log.$$
+    yogit::error "Clone failed"
+    return 1
+  fi
+
+  rm -f /tmp/yogit_clone_log.$$
+  yogit::success "Clone completed successfully!"
 }
 
 alias "${_yogit_basic_prefix}ghsc!"='yogit::ghclone_without_submodules'
+
 function yogit::ghclone_without_submodules(){
+  if [[ $# -lt 1 ]]; then
+    yogit::error "Usage: ${_yogit_basic_prefix}ghsc! <username>/<repo> [destination-dir]"
+    return 1
+  fi
+
   local username=$(echo "$1" | sed -E 's/(.*)\/(.*)$/\1/')
   local repo=$(echo "$1" | sed -E 's/(.*)\/(.*)$/\2/')
+
+  if [[ -z "$username" || -z "$repo" ]]; then
+    yogit::error "Invalid format. Use <username>/<repo>"
+    return 1
+  fi
+
   # remove the first parameter
   shift
-  git clone --depth 1 "git@github.com:${username}/${repo}.git" $@
+
+  yogit::info "Cloning github.com:${username}/${repo}.git (without submodules)..."
+
+  # Starting the clone process in background to show a spinner
+  git clone --depth 1 "git@github.com:${username}/${repo}.git" "$@" &>/tmp/yogit_clone_log.$$ &
+  local clone_pid=$!
+  yogit::spinner $clone_pid "Cloning ${username}/${repo}"
+
+  # Check for errors
+  if grep -q "fatal:" /tmp/yogit_clone_log.$$; then
+    cat /tmp/yogit_clone_log.$$
+    rm -f /tmp/yogit_clone_log.$$
+    yogit::error "Clone failed"
+    return 1
+  fi
+
+  rm -f /tmp/yogit_clone_log.$$
+  yogit::success "Clone completed successfully!"
 }
 
 # git checkout
@@ -235,56 +518,203 @@ alias "${_yogit_basic_prefix}c!"='git commit --amend'
 alias "${_yogit_basic_prefix}cn!"='git commit --amend --no-edit'
 
 # push
-alias "${_yogit_basic_prefix}push"='git push origin "$(yogit::current_branch)"'
+function yogit::push() {
+  yogit::is_git_repo || return 1
+
+  local branch=$(yogit::current_branch)
+  if [[ $? -ne 0 ]]; then
+    return 1
+  fi
+
+  yogit::info "Pushing to origin/${branch}..."
+  git push origin "$branch" "$@"
+
+  if [[ $? -eq 0 ]]; then
+    yogit::success "Push completed"
+  else
+    yogit::error "Push failed"
+    return 1
+  fi
+}
+alias "${_yogit_basic_prefix}push"='yogit::push'
 
 # pull
-alias "${_yogit_basic_prefix}pull"='git pull origin "$(yogit::current_branch)"'
+function yogit::pull() {
+  yogit::is_git_repo || return 1
+
+  local branch=$(yogit::current_branch)
+  if [[ $? -ne 0 ]]; then
+    return 1
+  fi
+
+  yogit::info "Pulling from origin/${branch}..."
+  git pull origin "$branch" "$@"
+
+  if [[ $? -eq 0 ]]; then
+    yogit::success "Pull completed"
+  else
+    yogit::error "Pull failed"
+    return 1
+  fi
+}
+alias "${_yogit_basic_prefix}pull"='yogit::pull'
 
 # change remote branch that current branch tracked
 alias "${_yogit_basic_prefix}bru"='yogit::change_current_tracked'
 
 function yogit::change_current_tracked(){
-  git branch -u $1 $(yogit::current_branch)
+  if [[ $# -lt 1 ]]; then
+    yogit::error "Usage: ${_yogit_basic_prefix}bru <remote>/<branch>"
+    return 1
+  fi
+
+  yogit::is_git_repo || return 1
+
+  local branch=$(yogit::current_branch)
+  if [[ $? -ne 0 ]]; then
+    return 1
+  fi
+
+  yogit::info "Changing tracked branch for ${branch} to $1..."
+  git branch -u "$1" "$branch"
+
+  if [[ $? -eq 0 ]]; then
+    yogit::success "Tracked branch updated"
+  else
+    yogit::error "Failed to update tracked branch"
+    return 1
+  fi
 }
 
 # rename and change tracked branch of origin
 alias "${_yogit_basic_prefix}bm"='yogit::rename_for_remote_origin_branch'
+
 function yogit::rename_for_remote_origin_branch(){
-  git branch -m $1 $2
-  git branch -u origin/$2 $2
-  print "1. git fetch origin"
-  print "2. git remote set-head -a"
+  if [[ $# -ne 2 ]]; then
+    yogit::error "Usage: ${_yogit_basic_prefix}bm <old-branch-name> <new-branch-name>"
+    return 1
+  fi
+
+  local current_branch=$(yogit::current_branch)
+  if [[ "$current_branch" != "$1" ]]; then
+    printf "${_yogit_color_yellow}Warning: You're not on branch '$1'. Do you want to continue? [y/N]: ${_yogit_color_reset}"
+    read -r response
+    if [[ ! "$response" =~ ^[yY]$ ]]; then
+      printf "${_yogit_color_blue}Operation cancelled${_yogit_color_reset}\n"
+      return 0
+    fi
+  fi
+
+  git branch -m "$1" "$2" || return 1
+  yogit::success "Branch renamed from '$1' to '$2'"
+
+  # Check if the remote branch exists before setting upstream
+  if git ls-remote --heads origin "$2" &>/dev/null; then
+    git branch -u "origin/$2" "$2" && \
+    yogit::success "Upstream set to origin/$2"
+  else
+    yogit::warning "Remote branch 'origin/$2' doesn't exist yet."
+    yogit::info "Next steps:"
+    printf "1. ${_yogit_color_green}git push -u origin $2${_yogit_color_reset} (to create the remote branch)\n"
+    printf "2. ${_yogit_color_green}git fetch origin${_yogit_color_reset}\n"
+    printf "3. ${_yogit_color_green}git remote set-head -a origin${_yogit_color_reset}\n"
+  fi
 }
 
 function yogit::staged_and_unstaged(){
+  yogit::is_git_repo || return 1
   git status --porcelain | sed 's/^...//'
 }
+
 # list both unstaged and staged files
 alias "${_yogit_basic_prefix}sst"='yogit::staged_and_unstaged'
-# only diff modifled files
-# alias "${_yogit_basic_prefix}stdiffm"='yogit::staged_and_unstaged | xargs git diff'
-# diff all files that git status given
-# alias "${_yogit_basic_prefix}stdiff"='yogit::staged_and_unstaged | xargs git diff'
+
 # list only untracked files
-alias "${_yogit_basic_prefix}ls"='git ls-files --others --exclude-standard'
+function yogit::list_untracked_files() {
+  yogit::is_git_repo || return 1
+  yogit::info "Listing untracked files..."
+  git ls-files --others --exclude-standard
+}
+alias "${_yogit_basic_prefix}ls"='yogit::list_untracked_files'
 
 # --sparse initializes the sparse-checkout file so the working directory starts only with the files in the root directory
 # --filter=blob:none will exclude files so we could fetch them when needed
 # --depth=1 truncate commit history to leave only the latest commit(may cause problems)
 # --no-checkout further accelerates the clone
-alias "${_yogit_basic_prefix}pickclone"='git clone --sparse --filter=blob:none --depth=1 --no-checkout'
+function yogit::pickclone() {
+  if [[ $# -lt 1 ]]; then
+    yogit::error "Usage: ${_yogit_basic_prefix}pickclone <repo-url> [destination-dir]"
+    return 1
+  fi
 
-alias "${_yogit_basic_prefix}sub"='git submodule update --init --recursive'
-alias "${_yogit_basic_prefix}subu"='git submodule update --remote --merge'
+  yogit::info "Performing optimized sparse clone..."
+  yogit::info "After cloning, set up sparse-checkout and use 'git read-tree -mu HEAD'"
 
-# restore
+  git clone --sparse --filter=blob:none --depth=1 --no-checkout "$@" &>/tmp/yogit_clone_log.$$ &
+  local clone_pid=$!
+  yogit::spinner $clone_pid "Cloning repository with sparse options"
+
+  # Check for errors
+  if grep -q "fatal:" /tmp/yogit_clone_log.$$; then
+    cat /tmp/yogit_clone_log.$$
+    rm -f /tmp/yogit_clone_log.$$
+    yogit::error "Clone failed"
+    return 1
+  fi
+
+  rm -f /tmp/yogit_clone_log.$$
+  yogit::success "Sparse clone completed successfully!"
+}
+alias "${_yogit_basic_prefix}pickclone"='yogit::pickclone'
+
+function yogit::submodule_update() {
+  yogit::is_git_repo || return 1
+  yogit::info "Updating submodules..."
+
+  git submodule update --init --recursive &>/tmp/yogit_submodule_log.$$ &
+  local submodule_pid=$!
+  yogit::spinner $submodule_pid "Updating submodules"
+
+  # Check for errors
+  if grep -q "fatal:" /tmp/yogit_submodule_log.$$; then
+    cat /tmp/yogit_submodule_log.$$
+    rm -f /tmp/yogit_submodule_log.$$
+    yogit::error "Submodule update failed"
+    return 1
+  fi
+
+  rm -f /tmp/yogit_submodule_log.$$
+  yogit::success "Submodules updated successfully!"
+}
+alias "${_yogit_basic_prefix}sub"='yogit::submodule_update'
+
+function yogit::submodule_update_remote() {
+  yogit::is_git_repo || return 1
+  yogit::info "Updating submodules from remote..."
+
+  git submodule update --remote --merge &>/tmp/yogit_submodule_log.$$ &
+  local submodule_pid=$!
+  yogit::spinner $submodule_pid "Updating submodules from remote"
+
+  # Check for errors
+  if grep -q "fatal:" /tmp/yogit_submodule_log.$$; then
+    cat /tmp/yogit_submodule_log.$$
+    rm -f /tmp/yogit_submodule_log.$$
+    yogit::error "Submodule remote update failed"
+    return 1
+  fi
+
+  rm -f /tmp/yogit_submodule_log.$$
+  yogit::success "Submodules updated from remote successfully!"
+}
+alias "${_yogit_basic_prefix}subu"='yogit::submodule_update_remote'
 
 # bisect
 alias "${_yogit_basic_prefix}bs"="git bisect"
 alias "${_yogit_basic_prefix}bsr"="git bisect reset"
 alias "${_yogit_basic_prefix}bss"="git bisect start"
 alias "${_yogit_basic_prefix}bsg"="git bisect good"
-alias "${_yogit_basic_prefix}bsg"="git bisect bad"
+alias "${_yogit_basic_prefix}bsb"="git bisect bad"  # Fixed alias name from bsg to bsb
 
 # cherry-pick
 alias "${_yogit_basic_prefix}cp"="git cherry-pick"
@@ -292,14 +722,57 @@ alias "${_yogit_basic_prefix}cpa"="git cherry-pick --abort"
 alias "${_yogit_basic_prefix}cpc"="git cherry-pick --continue"
 
 # stash
-alias "${_yogit_basic_prefix}sta"='git stash push'
-alias "${_yogit_basic_prefix}staclear"='git stash clear'
+function yogit::stash_push() {
+  yogit::is_git_repo || return 1
+  yogit::info "Stashing changes..."
+
+  if [[ $# -gt 0 ]]; then
+    git stash push -m "$*"
+  else
+    git stash push
+  fi
+
+  if [[ $? -eq 0 ]]; then
+    yogit::success "Changes stashed successfully"
+  else
+    yogit::warning "No changes to stash or stash failed"
+  fi
+}
+alias "${_yogit_basic_prefix}sta"='yogit::stash_push'
+
+function yogit::stash_clear() {
+  yogit::is_git_repo || return 1
+
+  # Confirm before clearing
+  printf "${_yogit_color_yellow}Warning: This will clear all stashed changes. Continue? [y/N]: ${_yogit_color_reset}"
+  read -r response
+  if [[ ! "$response" =~ ^[yY]$ ]]; then
+    yogit::info "Operation cancelled"
+    return 0
+  fi
+
+  yogit::info "Clearing all stashes..."
+  git stash clear
+  yogit::success "All stashes cleared"
+}
+alias "${_yogit_basic_prefix}staclear"='yogit::stash_clear'
 
 # diff
 # diff unstaged files
-alias "${_yogit_basic_prefix}dn"='git diff --name-only'
+function yogit::diff_names_only() {
+  yogit::is_git_repo || return 1
+  yogit::info "Listing changed file names:"
+  git diff --name-only "$@"
+}
+alias "${_yogit_basic_prefix}dn"='yogit::diff_names_only'
+
 # diff only staged files
-alias "${_yogit_basic_prefix}dns"="git diff --name-only --staged"
+function yogit::diff_names_staged() {
+  yogit::is_git_repo || return 1
+  yogit::info "Listing staged file names:"
+  git diff --name-only --staged "$@"
+}
+alias "${_yogit_basic_prefix}dns"='yogit::diff_names_staged'
 
 # rebase
 alias "${_yogit_basic_prefix}b"='git rebase'
@@ -308,23 +781,125 @@ alias "${_yogit_basic_prefix}bc"='git rebase --continue'
 
 # reset
 # reset head
-alias "${_yogit_basic_prefix}rh"="git reset"
-alias "${_yogit_basic_prefix}rhh"="git reset --hard"
+function yogit::reset_head() {
+  yogit::is_git_repo || return 1
+
+  if [[ $# -eq 0 ]]; then
+    yogit::info "Resetting HEAD (soft reset)"
+    git reset
+  else
+    yogit::info "Resetting HEAD to $*"
+    git reset "$@"
+  fi
+
+  if [[ $? -eq 0 ]]; then
+    yogit::success "Reset completed"
+  else
+    yogit::error "Reset failed"
+    return 1
+  fi
+}
+alias "${_yogit_basic_prefix}rh"='yogit::reset_head'
+
+function yogit::reset_hard() {
+  yogit::is_git_repo || return 1
+
+  # Confirm before hard reset
+  printf "${_yogit_color_yellow}Warning: Hard reset will discard all changes. Continue? [y/N]: ${_yogit_color_reset}"
+  read -r response
+  if [[ ! "$response" =~ ^[yY]$ ]]; then
+    yogit::info "Operation cancelled"
+    return 0
+  fi
+
+  if [[ $# -eq 0 ]]; then
+    yogit::info "Performing hard reset to HEAD"
+    git reset --hard
+  else
+    yogit::info "Performing hard reset to $*"
+    git reset --hard "$@"
+  fi
+
+  if [[ $? -eq 0 ]]; then
+    yogit::success "Hard reset completed"
+  else
+    yogit::error "Hard reset failed"
+    return 1
+  fi
+}
+alias "${_yogit_basic_prefix}rhh"='yogit::reset_hard'
 
 # remote
 # list remote branch
-alias "${_yogit_basic_prefix}br"='git branch -r'
+function yogit::list_remote_branches() {
+  yogit::is_git_repo || return 1
+  yogit::info "Listing remote branches:"
+  git branch -r "$@"
+}
+alias "${_yogit_basic_prefix}br"='yogit::list_remote_branches'
+
 # print current remote url
 alias "${_yogit_basic_prefix}url"='yogit::url'
+
 # list remote
-alias "${_yogit_basic_prefix}lr"='git remote -v'
+function yogit::list_remotes() {
+  yogit::is_git_repo || return 1
+  yogit::info "Listing remotes:"
+  git remote -v
+}
+alias "${_yogit_basic_prefix}lr"='yogit::list_remotes'
+
 # prune unused branches
-alias "${_yogit_basic_prefix}prune"='git remote prune origin'
-alias "${_yogit_basic_prefix}seturl"='git remote set-url origin'
+function yogit::prune_origin() {
+  yogit::is_git_repo || return 1
+
+  yogit::info "Pruning deleted remote branches..."
+  git remote prune origin
+
+  if [[ $? -eq 0 ]]; then
+    yogit::success "Prune completed"
+  else
+    yogit::error "Prune failed"
+    return 1
+  fi
+}
+alias "${_yogit_basic_prefix}prune"='yogit::prune_origin'
+
+function yogit::set_remote_url() {
+  if [[ $# -lt 1 ]]; then
+    yogit::error "Usage: ${_yogit_basic_prefix}seturl <new-url>"
+    return 1
+  fi
+
+  yogit::is_git_repo || return 1
+
+  local old_url=$(git config --get remote.origin.url)
+  yogit::info "Changing remote origin URL:"
+  printf "  From: ${_yogit_color_yellow}${old_url}${_yogit_color_reset}\n"
+  printf "  To:   ${_yogit_color_green}$1${_yogit_color_reset}\n"
+
+  git remote set-url origin "$1"
+
+  if [[ $? -eq 0 ]]; then
+    yogit::success "Remote URL updated"
+  else
+    yogit::error "Failed to update remote URL"
+    return 1
+  fi
+}
+alias "${_yogit_basic_prefix}seturl"='yogit::set_remote_url'
 
 function yogit::parse() {
   local object_name="${1:-HEAD}"
-  # always print short 6-byte-long sha-1 of commit
+  yogit::is_git_repo || return 1
+
+  # Check if the object exists
+  if ! git rev-parse --verify "$object_name" &>/dev/null; then
+    yogit::error "Invalid git object: $object_name"
+    return 1
+  fi
+
+  # always print short 7-byte-long sha-1 of commit
   git rev-parse "$object_name" | cut -c 1-7
 }
 # print current commit
@@ -333,23 +908,44 @@ alias "${_yogit_basic_prefix}last"="git log -1 HEAD --pretty='%h'"
 alias "${_yogit_basic_prefix}parse"='yogit::parse'
 
 # cd to root path of a git repo
-alias "${_yogit_basic_prefix}rt"='cd "$(git rev-parse --show-toplevel)"'
+function yogit::cd_to_root() {
+  yogit::is_git_repo || return 1
+
+  local root_path=$(git rev-parse --show-toplevel)
+  yogit::info "Changing directory to git repository root: $root_path"
+  cd "$root_path" || return 1
+}
+alias "${_yogit_basic_prefix}rt"='yogit::cd_to_root'
 # }}}
 
 # Interactive commands aliases start with prefix gi {{{
 # could use forgit as alternate
 function yogit::branch(){
-  git branch | sed -E 's/\*//'| fzf | sed -E 's/ //g'
+  yogit::is_git_repo || return 1
+
+  yogit::info "Select a branch:"
+  git branch | sed -E 's/\*//' | fzf --height 40% --border --ansi \
+    --preview 'git log --oneline --graph --date=short --color=always --pretty="format:%C(auto)%cd %h%d %s" {1} | head -200' | \
+    sed -E 's/ //g'
 }
 
-# select abbrviation commit
+# select abbreviation commit
 function yogit::select::commit(){
-  if [[ -n $1 ]];then
+  yogit::is_git_repo || return 1
+
+  if [[ -n $1 ]]; then
+    if ! git rev-parse --verify "$1" &>/dev/null; then
+      yogit::error "Invalid branch or reference: $1"
+      return 1
+    fi
+
+    yogit::info "Select commit from $1:"
     git log $1 --pretty="%h %cn %s" | fzf --multi --preview 'git show {+1}' | awk '{print $1}' 2>/dev/null
   else
     # Use current branch
     local branch=$(yogit::branch)
     if [[ -n $branch ]]; then
+      yogit::info "Select commit from $branch:"
       git log $branch --pretty="%h %cn %s" | fzf --multi --preview 'git show {+1}' | awk '{print $1}' 2>/dev/null
     fi
   fi
@@ -357,34 +953,78 @@ function yogit::select::commit(){
 
 # git cherry-pick with fzf
 function yogit::cherry_pick(){
-  if [ -n $1 ];then
-    git cherry-pick -e $(yogit::show $1)
+  yogit::is_git_repo || return 1
+
+  local commit=""
+  if [[ -n $1 ]]; then
+    commit=$(yogit::select::commit $1)
   else
-    git cherry-pick -e $(yogit::show)
+    commit=$(yogit::select::commit)
+  fi
+
+  if [[ -n $commit ]]; then
+    yogit::info "Cherry-picking commit: $commit"
+    git cherry-pick -e $commit
+
+    if [[ $? -eq 0 ]]; then
+      yogit::success "Cherry-pick completed"
+    else
+      yogit::error "Cherry-pick failed or conflicts occurred"
+      return 1
+    fi
+  else
+    yogit::warning "No commit selected"
+    return 1
   fi
 }
 
 # git diff with fzf
 function yogit::diff() {
+  yogit::is_git_repo || return 1
+
+  yogit::info "Select files to diff:"
   preview="git diff $@ --color=always -- {-1}"
-  git diff $@ --name-only | fzf -m --ansi --preview $preview
+  git diff $@ --name-only | fzf -m --ansi --preview "$preview"
 }
 
 function yogit::checkout() {
-  git branch | fzf | git checkout
+  yogit::is_git_repo || return 1
+
+  yogit::info "Select branch to checkout:"
+  local branch=$(git branch | fzf --height 40% --border --ansi \
+    --preview 'git log --oneline --graph --date=short --color=always --pretty="format:%C(auto)%cd %h%d %s" {1} | head -200' | \
+    sed -E 's/^[ *]+//')
+
+  if [[ -n $branch ]]; then
+    yogit::info "Checking out branch: $branch"
+    git checkout "$branch"
+
+    if [[ $? -eq 0 ]]; then
+      yogit::success "Checkout successful"
+    else
+      yogit::error "Checkout failed"
+      return 1
+    fi
+  else
+    yogit::warning "No branch selected"
+    return 1
+  fi
 }
 
 function yogit::select_remote_tag() {
-  yogit::list_remote_tags | fzf
+  yogit::is_git_repo || return 1
+
+  yogit::info "Select a remote tag:"
+  yogit::list_remote_tags | fzf --height 40% --border --ansi
 }
 
 if [[ -z "$DISABLE_YOGIT_INTERACTIVE" ]]; then
-# checkout with fzf
-alias "${yogit_checkout:-${_yogit_interactive_prefix}co}"='yogit::checkout'
-alias "${yogit_cherry_pick:-${_yogit_interactive_prefix}cp}"='yogit::cherry_pick'
-alias "${yogit_show:-${_yogit_interactive_prefix}sc}"='yogit::select::commit'
-alias "${yogit_branch:-${_yogit_interactive_prefix}br}"='yogit::branch'
-alias "${yogit_diff:-${_yogit_interactive_prefix}diff}"='yogit::diff'
-alias "${_yogit_interactive_prefix}rtags"='yogit::select_remote_tag'
+  # checkout with fzf
+  alias "${yogit_checkout:-${_yogit_interactive_prefix}co}"='yogit::checkout'
+  alias "${yogit_cherry_pick:-${_yogit_interactive_prefix}cp}"='yogit::cherry_pick'
+  alias "${yogit_show:-${_yogit_interactive_prefix}sc}"='yogit::select::commit'
+  alias "${yogit_branch:-${_yogit_interactive_prefix}br}"='yogit::branch'
+  alias "${yogit_diff:-${_yogit_interactive_prefix}diff}"='yogit::diff'
+  alias "${_yogit_interactive_prefix}rtags"='yogit::select_remote_tag'
 fi
 # }}}
