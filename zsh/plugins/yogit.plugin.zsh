@@ -385,9 +385,9 @@ function yogit::shallowclone_github_gitlab() {
         printf "Topics: ${_yogit_color_green}${tags[*]}${_yogit_color_reset}\n"
 
         # Add to mangit with tags
-        mangit add "$dest_dir" --tags "${tags[@]}"
+        mangit add "$dest_dir" --tags "${(j:,:)tags}"
         if [[ $? -eq 0 ]]; then
-          yogit::success "${repo_name}.${organ} added to mangit with topics as ${tags[*]}"
+          yogit::success "${repo_name}.${organ} added to mangit with topics as ${tags}"
         else
           yogit::warning "Failed to add repository to mangit"
         fi
