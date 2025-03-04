@@ -1,0 +1,82 @@
+#!/usr/bin/env python3
+# /// script
+# requires-python = ">=3.7"
+# dependencies = []
+# ///
+
+import sys
+import textwrap
+from typing import List, Tuple
+
+
+def create_bubble(text: str, max_width: int = 40) -> List[str]:
+    """
+    Creates a text bubble with the provided text.
+
+    Args:
+        text: The text to put in the bubble
+        max_width: Maximum width of the bubble content
+
+    Returns:
+        List of strings representing the bubble
+    """
+    # Wrap the text to fit within the maximum width
+    wrapped_lines = textwrap.wrap(text, max_width)
+
+    # Find the longest line to determine bubble width
+    if wrapped_lines:
+        max_line_length = max(len(line) for line in wrapped_lines)
+    else:
+        max_line_length = 0
+
+    # Create the bubble
+    bubble = []
+
+    # Top border - the +2 accounts for the spaces on each side
+    bubble.append('|￣' + '￣' * (max_line_length + 2) + '|')
+
+    # Content lines
+    for line in wrapped_lines:
+        padding = ' ' * (max_line_length + 2)
+        bubble.append(f'|　{line}{padding}　|')
+
+    # Bottom border - the +2 accounts for the spaces on each side
+    bubble.append('|＿' + '＿' * (max_line_length + 2) + '|')
+
+    return bubble
+
+
+def create_bunny() -> List[str]:
+    """
+    Creates an ASCII art bunny.
+
+    Returns:
+        List of strings representing the bunny
+    """
+    return [
+        '(\\__/) ||',
+        '(•ㅅ•) ||',
+        '/   づ'
+    ]
+
+def main():
+    # Get user input
+    if len(sys.argv) > 1:
+        # Use command line arguments if provided
+        user_text = ' '.join(sys.argv[1:])
+    else:
+        # Otherwise, prompt for input
+        user_text = input("Enter text for the bubble: ")
+
+    # Create the bubble and bunny
+    bubble = create_bubble(user_text)
+    bunny = create_bunny()
+
+    # Print the result
+    for line in bubble:
+        print(line)
+    for line in bunny:
+        print(line)
+
+if __name__ == "__main__":
+    main()
