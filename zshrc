@@ -586,7 +586,7 @@ chpwd_functions=(${chpwd_functions[@]} "__cd_hook_list_files")
 # <<< conda initialize <<<
 
 export TMUX_CONF="$HOME/.config/tmux/tmux.conf"
-if [[ "$TERM_PROGRAM" = "ghostty" ]]; then
+if [[ "$TERM_PROGRAM" = "wezterm" ]]; then
   if [[ -x "$(command -v tmux)" ]]; then
     tmux has -t develop &> /dev/null
     if [[ $? != 0 ]]; then
