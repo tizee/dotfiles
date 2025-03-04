@@ -31,11 +31,17 @@ function mgcd() {
 
 # Function to interactively add a repository with tags
 function mgadd() {
-    local repo_path="$1"
+    local input_path="$1"
+    local repo_path
     local tags
 
     # Default to current directory if no path provided
-    [[ -z "$repo_path" ]] && repo_path="$(pwd)"
+    if [[ -z "$input_path" ]]; then
+        repo_path="$(pwd)"
+    else
+        # Convert relative path to absolute path
+        repo_path="$(realpath "$input_path")"
+    fi
 
     # Verify it's a git repository
     if [[ ! -d "$repo_path/.git" ]]; then
@@ -43,13 +49,73 @@ function mgadd() {
         return 1
     fi
 
-    # Prompt for tags
-    echo "Enter tags for repository (comma-separated):"
-    read -r tags
+    # Check if it's a GitHub repository and fetch topics
+    if command -v jq &>/dev/null; then
+        # Get remote URL
+        local remote_url=$(git -C "$repo_path" config --get remote.origin.url)
+
+        # Extract organ and repo_name using the improved approach
+        local organ=$(echo "$remote_url" | sed -nE 's#(https?://github.com/|git@github.com:|github.com:)([^/]+)/([^/]+)(\.git)?$#\2#p')
+        local repo_name=$(echo "$remote_url" | sed -nE 's#(https?://github.com/|git@github.com:|github.com:)([^/]+)/([^/]+)(\.git)?$#\3#p' | sed 's/\.git$//')
+
+                # Check if we successfully extracted the organization and repository name
+        if [[ -n "$organ" && -n "$repo_name" ]]; then
+            echo "GitHub repository detected: $organ/$repo_name"
+            echo "Fetching repository topics..."
+
+            local response=$(curl -sL "https://api.github.com/repos/${organ}/${repo_name}")
+            local github_topics=$(echo "$response" | jq -r '.topics | join(",")' 2>/dev/null)
+
+            if [[ -n "$github_topics" ]]; then
+                echo "GitHub topics found: $github_topics"
+
+                # Ask if user wants to use GitHub topics
+                echo "Use GitHub topics as tags? (y/n/a)"
+                echo "  y: Use only GitHub topics"
+                echo "  n: Enter custom tags manually"
+                echo "  a: Use GitHub topics AND add custom tags"
+                read -r use_topics
+
+                case "$use_topics" in
+                    y|Y)
+                        tags="$github_topics"
+                        ;;
+                    n|N)
+                        echo "Enter tags for repository (comma-separated):"
+                        read -r tags
+                        ;;
+                    a|A)
+                        echo "Enter additional tags for repository (comma-separated):"
+                        read -r additional_tags
+                        tags="$github_topics,$additional_tags"
+                        ;;
+                    *)
+                        echo "Invalid choice. Using GitHub topics."
+                        tags="$github_topics"
+                        ;;
+                esac
+            else
+                echo "No GitHub topics found."
+                echo "Enter tags for repository (comma-separated):"
+                read -r tags
+            fi
+        else
+            # Not a GitHub repository, prompt for tags
+            echo "Not a GitHub repository or cannot parse remote URL."
+            echo "Enter tags for repository (comma-separated):"
+            read -r tags
+        fi
+    else
+        # jq not available, prompt for tags
+        echo "jq not installed. Cannot fetch GitHub topics."
+        echo "Enter tags for repository (comma-separated):"
+        read -r tags
+    fi
 
     # Add the repository
     mangit add "$repo_path" --tags "$tags"
     echo "Repository added/updated: $repo_path"
+    echo "Tags: $tags"
 }
 
 # Tab completion for mangit

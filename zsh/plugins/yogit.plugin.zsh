@@ -276,7 +276,7 @@ function yogit::get_gh_repo_size() {
 
     # Run curl directly without background process
     local response=$(curl -sL "https://api.github.com/repos/${organ}/${repo_name}")
-    
+
     # Process the results
     local repo_size=$(echo "$response" | grep -m 1 '"size"' | awk -F ':|,' '{print $2}')
 
@@ -321,7 +321,7 @@ function yogit::shallowclone() {
 
   yogit::info "Starting clone operation..."
   git clone --depth 1 --recurse-submodules -j8 --shallow-submodules "$@"
-  
+
   if [[ $? -ne 0 ]]; then
     yogit::error "Clone failed"
     return 1
@@ -364,6 +364,38 @@ function yogit::shallowclone_github_gitlab() {
   fi
 
   yogit::success "Clone completed successfully!"
+
+  # Check if both jq and mangit exist before attempting to add tags
+  if command -v jq &>/dev/null && command -v mangit &>/dev/null; then
+    # Only process GitHub repos
+    if [[ "$1" =~ "github.com" ]]; then
+      yogit::info "Fetching repository topics..."
+
+      local response=$(curl -sL "https://api.github.com/repos/${organ}/${repo_name}")
+      local topics=$(echo "$response" | jq -r '.topics[]' 2>/dev/null)
+
+      if [[ -n "$topics" ]]; then
+        # Convert topics to tags format
+        local tags=()
+        while IFS= read -r topic; do
+          tags+=("$topic")
+        done <<< "$topics"
+
+        yogit::info "Adding repository to mangit with topics as tags..."
+        printf "Topics: ${_yogit_color_green}${tags[*]}${_yogit_color_reset}\n"
+
+        # Add to mangit with tags
+        mangit add "$dest_dir" --tags "${tags[@]}"
+        if [[ $? -eq 0 ]]; then
+          yogit::success "${repo_name}.${organ} added to mangit with topics as ${tags[*]}"
+        else
+          yogit::warning "Failed to add repository to mangit"
+        fi
+      else
+        yogit::info "No topics found for this repository"
+      fi
+    fi
+  fi
 }
 
 # clone github repo
@@ -379,7 +411,7 @@ function yogit::shallowclone_without_submodules() {
   yogit::info "Starting clone operation..."
 
   git clone --depth 1 "$@"
-  
+
   if [[ $? -ne 0 ]]; then
     yogit::error "Clone failed"
     return 1
@@ -412,7 +444,7 @@ function yogit::ghclone(){
   yogit::info "Cloning github.com:${username}/${repo}.git with submodules..."
 
   git clone --depth 1 --recurse-submodules -j8 --shallow-submodules "git@github.com:${username}/${repo}.git" "$@"
-  
+
   if [[ $? -ne 0 ]]; then
     yogit::error "Clone failed"
     return 1
@@ -443,7 +475,7 @@ function yogit::ghclone_without_submodules(){
   yogit::info "Cloning github.com:${username}/${repo}.git (without submodules)..."
 
   git clone --depth 1 "git@github.com:${username}/${repo}.git" "$@"
-  
+
   if [[ $? -ne 0 ]]; then
     yogit::error "Clone failed"
     return 1
@@ -601,7 +633,7 @@ function yogit::pickclone() {
   yogit::info "After cloning, set up sparse-checkout and use 'git read-tree -mu HEAD'"
 
   git clone --sparse --filter=blob:none --depth=1 --no-checkout "$@"
-  
+
   if [[ $? -ne 0 ]]; then
     yogit::error "Clone failed"
     return 1
@@ -616,7 +648,7 @@ function yogit::submodule_update() {
   yogit::info "Updating submodules..."
 
   git submodule update --init --recursive
-  
+
   if [[ $? -ne 0 ]]; then
     yogit::error "Submodule update failed"
     return 1
@@ -631,7 +663,7 @@ function yogit::submodule_update_remote() {
   yogit::info "Updating submodules from remote..."
 
   git submodule update --remote --merge
-  
+
   if [[ $? -ne 0 ]]; then
     yogit::error "Submodule remote update failed"
     return 1
