@@ -1,6 +1,6 @@
 {
   // proxy
-  "http.proxy": "http://127.0.0.1:7890",
+  "http.proxy": "http://127.0.0.1:1087",
   // coc
   "highlight.colors.enable": true,
   "coc.preferences.maxFileSize": "1MB",
@@ -50,7 +50,7 @@
       "filetypes": [
         "python"
       ],
-        "plugins": {
+       "plugins": {
           "ruff": {
             "enabled": true,
             "formatEnabled": true,
