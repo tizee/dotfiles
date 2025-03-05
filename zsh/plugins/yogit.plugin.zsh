@@ -19,6 +19,14 @@ _yogit_color_red="\033[0;31m"
 _yogit_color_cyan="\033[0;36m"
 _yogit_color_magenta="\033[0;35m"
 _yogit_color_bold="\033[1m"
+# Detect the number of CPU cores
+if command -v nproc >/dev/null 2>&1; then
+    CORES=$(nproc)  # Linux
+elif command -v sysctl >/dev/null 2>&1; then
+    CORES=$(sysctl -n hw.ncpu)  # macOS
+else
+    CORES=8  # Fallback to 8 if detection fails
+fi
 
 # Check for required commands
 function yogit::check_dependencies() {
@@ -312,7 +320,7 @@ alias "${_yogit_basic_prefix}st"='git status'
 # shallow clone with --depth 1
 # supports self-hosted git repo url, github, gitlab and etc.
 function yogit::shallowclone() {
-  yogit::info "Cloning with --depth 1 --recurse-submodules -j8 --shallow-submodules"
+  yogit::info "Cloning with --depth 1 --recurse-submodules -j${CORES} --shallow-submodules"
 
   if [[ $# -lt 1 ]]; then
     yogit::error "Usage: ${_yogit_basic_prefix}sc <repo-url> [destination-dir]"
@@ -320,7 +328,7 @@ function yogit::shallowclone() {
   fi
 
   yogit::info "Starting clone operation..."
-  git clone --depth 1 --recurse-submodules -j8 --shallow-submodules "$@"
+  git clone --depth 1 --recurse-submodules -j${CORES} --shallow-submodules "$@"
 
   if [[ $? -ne 0 ]]; then
     yogit::error "Clone failed"
@@ -346,16 +354,16 @@ function yogit::shallowclone_github_gitlab() {
     return 1
   fi
 
-  yogit::info "Cloning with --depth 1 --recurse-submodules -j8 --shallow-submodules"
+  yogit::info "Cloning with --depth 1 --recurse-submodules -j${CORES} --shallow-submodules"
   yogit::info "Cloning ${organ}/${repo_name}..."
 
   local dest_dir="${repo_name}.${organ}"
   if [[ $# -gt 1 ]]; then
     # Use provided destination
-    git clone --depth 1 --recurse-submodules -j8 --shallow-submodules "$@"
+    git clone --depth 1 --recurse-submodules -j${CORES} --shallow-submodules "$@"
   else
     # Use default destination
-    git clone $1 --depth 1 --recurse-submodules -j8 --shallow-submodules "$dest_dir"
+    git clone $1 --depth 1 --recurse-submodules -j${CORES} --shallow-submodules "$dest_dir"
   fi
 
   if [[ $? -ne 0 ]]; then
@@ -443,7 +451,7 @@ function yogit::ghclone(){
 
   yogit::info "Cloning github.com:${username}/${repo}.git with submodules..."
 
-  git clone --depth 1 --recurse-submodules -j8 --shallow-submodules "git@github.com:${username}/${repo}.git" "$@"
+  git clone --depth 1 --recurse-submodules -j${CORES} --shallow-submodules "git@github.com:${username}/${repo}.git" "$@"
 
   if [[ $? -ne 0 ]]; then
     yogit::error "Clone failed"
