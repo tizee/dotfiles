@@ -323,9 +323,107 @@ render_subtitle() {
     fi
 }
 
+# Function to clip an audio file
+clip_audio() {
+    if [[ $# -lt 3 ]]; then
+        echo "Usage: clip_audio input_file output_file start_time [duration]"
+        echo "  input_file: Path to the input audio file"
+        echo "  output_file: Path to the output audio file"
+        echo "  start_time: Start time in seconds or in HH:MM:SS format"
+        echo "  duration: (Optional) Duration in seconds or in HH:MM:SS format"
+        echo "            If not provided, will clip from start_time to the end of the file"
+        return 1
+    fi
+
+    local input_file="$1"
+    local output_file="$2"
+    local start_time="$3"
+    local duration="$4"
+
+    # Check if input file exists
+    if [[ ! -f "$input_file" ]]; then
+        echo "Error: Input file '$input_file' does not exist"
+        return 1
+    fi
+
+    # Get total duration of the input file
+    local total_duration=$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$input_file")
+    if [[ -z "$total_duration" ]]; then
+        echo "Error: Could not determine the duration of the input file"
+        return 1
+    fi
+
+    # Convert start_time to seconds if in HH:MM:SS format
+    if [[ "$start_time" == *":"* ]]; then
+        local h m s
+        IFS=: read -r h m s <<< "$start_time"
+        start_time=$(( 10#$h * 3600 + 10#$m * 60 + 10#$s ))
+    fi
+
+    # Handle start time overflow
+    if (( $(echo "$start_time > $total_duration" | bc -l) )); then
+        echo "Error: Start time ($start_time seconds) exceeds the total duration of the file ($total_duration seconds)"
+        return 1
+    fi
+
+    # Handle duration
+    local end_flag=""
+    if [[ -n "$duration" ]]; then
+        # Convert duration to seconds if in HH:MM:SS format
+        if [[ "$duration" == *":"* ]]; then
+            local h m s
+            IFS=: read -r h m s <<< "$duration"
+            duration=$(( 10#$h * 3600 + 10#$m * 60 + 10#$s ))
+        fi
+
+        # Calculate end time
+        local end_time=$(echo "$start_time + $duration" | bc -l)
+
+        # Handle duration overflow
+        if (( $(echo "$end_time > $total_duration" | bc -l) )); then
+            echo "Warning: Requested end time ($end_time seconds) exceeds the total duration of the file ($total_duration seconds)"
+            echo "Clipping from $start_time seconds to the end of the file"
+        else
+            end_flag="-t $duration"
+        fi
+    fi
+
+    # Check if output file already exists
+    if [[ -f "$output_file" ]]; then
+        echo -n "Output file '$output_file' already exists. Do you want to overwrite it? (Y/N): "
+        read -r overwrite
+        if [[ "$overwrite" != "Y" && "$overwrite" != "y" ]]; then
+            echo "Operation cancelled. File exists and overwrite denied."
+            return 1
+        fi
+    fi
+
+    echo "Clipping audio from $start_time seconds ${duration:+for $duration seconds }to '$output_file'"
+
+    # Perform the clip
+    local command="ffmpeg -i \"$input_file\" -ss $start_time $end_flag -c copy \"$output_file\""
+    echo "Command: $command"
+
+    if eval $command; then
+        echo "Successfully clipped to: $output_file"
+    else
+        echo "Warning: Fast copy failed. Trying with re-encoding."
+        # If copy codec fails, try with re-encoding
+        command="ffmpeg -i \"$input_file\" -ss $start_time $end_flag \"$output_file\""
+        echo "Command: $command"
+        if eval $command; then
+            echo "Successfully clipped to: $output_file"
+        else
+            echo "Error: Failed to clip audio file"
+            return 1
+        fi
+    fi
+}
+
 # Usage examples
 # extract_video_audio "input.mp4" "output"
 # get_video_codec "input.mp4"
 # convert_video "input.mp4" "output.mp4" "h264" "medium"
 # compress_video "input.mp4" "output.mp4" "medium"
 # render_subtitle "input.mp4" "en.srt" "fr.srt" "output.mp4" 1920 1080 "medium"
+# clip_audio "input.mp3" "output.mp3" "00:01:30" "00:02:00"
