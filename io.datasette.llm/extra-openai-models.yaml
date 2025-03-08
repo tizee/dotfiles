@@ -28,3 +28,8 @@
   api_base: "https://api.hyperbolic.xyz/v1"
   can_stream: true
   api_key_name: hyperbolic
+- model_id: qwen-2.5-32b
+  model_name: qwen-2.5-32b
+  api_base: "https://api.groq.com/openai/v1"
+  can_stream: true
+  api_key_name: groq
