@@ -11,6 +11,9 @@ if [[ $(uname -s) = "Darwin" ]]; then
   chflags nohidden "$HOME/Library"
 
   if csrutil status | grep 'disabled' > /dev/null; then
+    # Disable the sound effects on boot
+    sudo nvram SystemAudioVolume=" "
+    sudo nvram StartupMute=%01
     # Disable swap memory
     #VM_PAGER_COMPRESSOR_NO_SWAP 0x2 /* Active in-core compressor only. */
     #VM_PAGER_COMPRESSOR_WITH_SWAP 0x4 /* Active in-core compressor + swap backend. */
@@ -146,7 +149,7 @@ if [[ $(uname -s) = "Darwin" ]]; then
 
   # Crash report {{{
   # Disable crash reporter
-  # defaults write com.apple.CrashReporter DialogType -string none
+  defaults write com.apple.CrashReporter DialogType -string "none"
   # }}}
 
   # Screensaver {{{
@@ -299,9 +302,6 @@ if [[ $(uname -s) = "Darwin" ]]; then
   # see .config/bin/num2str
   # 0x4445425547 in utf-8 encoding -> DEBUG
   defaults write -g _NS_4445425547 -bool true
-
-  # Disable crash reporter
-  defaults write com.apple.CrashReporter DialogType -string "none"
 
   # enforce reloading system setttings
   # https://apple.stackexchange.com/questions/405937/how-can-i-enable-keyboard-shortcut-preference-after-modifying-it-through-defaul/414836#414836
