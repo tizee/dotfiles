@@ -6,8 +6,16 @@ if [[ $(uname -s) = "Darwin" ]]; then
   now=$(date -u "+%Y-%m-%d-%H%M%s")
   defaults read > "$HOME/Documents/defaults-$now.txt"
 
+  osascript -e 'tell application "System Preferences" to quit'
   # display ~/Library
-  chflags nohidden $HOME/Library
+  chflags nohidden "$HOME/Library"
+
+  if csrutil status | grep 'disabled' > /dev/null; then
+    # Disable swap memory
+    #VM_PAGER_COMPRESSOR_NO_SWAP 0x2 /* Active in-core compressor only. */
+    #VM_PAGER_COMPRESSOR_WITH_SWAP 0x4 /* Active in-core compressor + swap backend. */
+    sudo nvram boot-args="vm_compressor=2"
+  fi
 
   # Allow apps download from anywhere to be opened
   # sudo spctl - master-disable
@@ -25,7 +33,7 @@ if [[ $(uname -s) = "Darwin" ]]; then
   # Disable automatic capitalization
   defaults write -g "NSAutomaticCapitalizationEnabled" -bool false
   # speedup resizing for Cocoa applications
-  defaults write -g "NSWindowResizeTime" -float 0.01
+  defaults write -g "NSWindowResizeTime" -float 0.001
   # }}}
 
   # iCloud {{{
@@ -153,6 +161,8 @@ if [[ $(uname -s) = "Darwin" ]]; then
   defaults write NSGlobalDomain "PMPrintingExpandedStateForPrint" -bool true
   # always display expanded options when save
   defaults write NSGlobalDomain "NSNavPanelExpandedStateForSaveMode" -bool true
+  # Exit on finish
+  defaults write com.apple.print.PrintingPrefs "Quit When Finished" -bool true
   # }}}
 
   # Screenshot {{{
@@ -289,6 +299,9 @@ if [[ $(uname -s) = "Darwin" ]]; then
   # see .config/bin/num2str
   # 0x4445425547 in utf-8 encoding -> DEBUG
   defaults write -g _NS_4445425547 -bool true
+
+  # Disable crash reporter
+  defaults write com.apple.CrashReporter DialogType -string "none"
 
   # enforce reloading system setttings
   # https://apple.stackexchange.com/questions/405937/how-can-i-enable-keyboard-shortcut-preference-after-modifying-it-through-defaul/414836#414836
