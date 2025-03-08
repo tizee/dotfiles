@@ -31,6 +31,26 @@ alias ln='ln -v'
 # }}}
 
 alias proxy="http_proxy=http://127.0.0.1:1087 https_proxy=http://127.0.0.1:1087 socks5_proxy=socks5://127.0.0.1:1080 all_proxy=socks5://127.0.0.1:1080"
+# Add this to your ~/.bashrc or ~/.zshrc
+
+proxy_toggle() {
+  if [ -z "$http_proxy" ]; then
+    # Enable proxies
+    export http_proxy=http://127.0.0.1:1087
+    export https_proxy=http://127.0.0.1:1087
+    export socks5_proxy=socks5://127.0.0.1:1080
+    export all_proxy=socks5://127.0.0.1:1080
+    echo "Proxy enabled"
+  else
+    # Disable proxies
+    unset http_proxy
+    unset https_proxy
+    unset socks5_proxy
+    unset all_proxy
+    echo "Proxy disabled"
+  fi
+}
+
 # print clang included header paths
 alias printclang="clang++ -E -x c++ - -v < /dev/null"
 alias printcc="cc -E -x c++ - -v < /dev/null"

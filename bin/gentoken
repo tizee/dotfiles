@@ -1,0 +1,56 @@
+#!/usr/bin/env python3
+# /// script
+# requires-python = ">=3.8"
+# dependencies = [
+#   "secrets",
+#   "uuid",
+# ]
+# ///
+
+import secrets
+import uuid
+import argparse
+from datetime import datetime
+
+def generate_token(prefix="sk", length=32):
+    """
+    Generate an OAuth Bearer token in the format: prefix-hexstring
+
+    Args:
+        prefix (str): Token prefix (default: "sk")
+        length (int): Length of the hex string (default: 32)
+
+    Returns:
+        str: Generated token in format like sk-xxxxxx
+    """
+    # Generate a random hex string of desired length
+    # Using secrets module for cryptographically strong random numbers
+    token_hex = secrets.token_hex(length // 2)
+
+    # Alternative method using UUID
+    # token_hex = uuid.uuid4().hex[:length]
+
+    # Format the token with the prefix
+    token = f"{prefix}-{token_hex}"
+
+    return token
+
+def main():
+    parser = argparse.ArgumentParser(description="Generate OAuth Bearer tokens")
+    parser.add_argument("--prefix", type=str, default="sk", help="Token prefix (default: sk)")
+    parser.add_argument("--length", type=int, default=32, help="Token hex length (default: 32)")
+    parser.add_argument("--count", type=int, default=1, help="Number of tokens to generate (default: 1)")
+    parser.add_argument("--timestamp", action="store_true", help="Add timestamp to output")
+
+    args = parser.parse_args()
+    for i in range(args.count):
+        token = generate_token(args.prefix, args.length)
+
+        if args.timestamp:
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            print(f"[{timestamp}] {token}")
+        else:
+            print(token)
+
+if __name__ == "__main__":
+    main()
