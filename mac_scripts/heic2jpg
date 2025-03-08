@@ -1,0 +1,17 @@
+#!/usr/bin/env zsh
+# This script converts a HEIC image file to a JPEG image file using the built-in sips tool on macOS.
+
+# Validate input: requires exactly two arguments
+if [ "$#" -ne 2 ]; then
+    echo "Usage: $0 input.heic output.jpg"
+    exit 1
+fi
+
+# Assign arguments to descriptive variables
+input_file="$1"
+output_file="$2"
+
+# Convert the HEIC file to JPEG format
+sips -s format jpeg "$input_file" --out "$output_file"
+
+echo "Conversion complete: $output_file"
