@@ -134,7 +134,16 @@ if [[ $(uname -s) = "Darwin" ]]; then
   defaults write com.apple.finder "FXDefaultSearchScope" -string "SCcf"
   # disable the warning when changing a file extension
   defaults write com.apple.finder "FXEnableExtensionChangeWarning" -bool false
-
+  # show all filename extensions
+  defaults write NSGlobalDomain AppleShowAllExtensions -bool true
+  # show status bar
+  defaults write com.apple.finder ShowStatusBar -bool true
+  # show path bar
+  defaults write com.apple.finder ShowPathbar -bool true
+  # Display full POSIX path as Finder window title
+  defaults write com.apple.finder _FXShowPosixPathInTitle -bool true
+  # Keep folders on top when sorting by name
+  defaults write com.apple.finder _FXSortFoldersFirst -bool true
   # }}}
 
   # Trackpad {{{
