@@ -1,0 +1,51 @@
+{
+  "globalShortcut": "Alt+Space",
+  "mcpServers": {
+    "unix-manual": {
+      "command": "/opt/homebrew/bin/uv",
+      "args": [
+        "--directory",
+        "/Users/tizee/projects/project-ai/mcp/tizee-mcp/unix-manual-server",
+        "run",
+        "unix_manual_server.py"
+      ]
+    },
+    "fetch": {
+      "command": "/opt/homebrew/bin/uv",
+      "args": [
+        "--directory",
+        "/Users/tizee/projects/project-AI/mcp/servers.modelcontextprotocol/src/fetch",
+        "run",
+        "mcp-server-fetch",
+        "--ignore-robots-txt"
+      ]
+    },
+    "ietf-doc": {
+      "command": "/opt/homebrew/bin/uv",
+      "args": [
+        "--directory",
+        "/Users/tizee/projects/project-AI/mcp/tizee-mcp/mcp-server-ietf",
+        "run",
+        "mcp-server-ietf"
+      ]
+    },
+    "llmstxt-doc": {
+      "command": "/opt/homebrew/bin/uv",
+      "args": [
+        "--directory",
+        "/Users/tizee/projects/project-AI/mcp/tizee-mcp/llms-txt-server",
+        "run",
+        "llms-txt-server"
+      ]
+    },
+    "search-book": {
+      "command": "/opt/homebrew/bin/uv",
+      "args": [
+        "--directory",
+        "/Users/tizee/projects/project-AI/mcp/tizee-mcp/mcp-server-book-search",
+        "run",
+        "mcp-server-book-search"
+      ]
+    }
+  }
+}
