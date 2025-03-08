@@ -1,0 +1,17 @@
+#!/usr/bin/env zsh
+
+# Check if input is provided
+if [ $# -eq 0 ]; then
+    # No command line arguments, read from stdin
+    read -r input
+else
+    # Use first command line argument
+    input="$1"
+fi
+
+# Convert the string to URI-encoded format using Python (which is usually preinstalled)
+encoded=$(python3 -c "import urllib.parse; print(urllib.parse.quote('$input'))")
+
+# Print the encoded string
+echo "$encoded"
+
