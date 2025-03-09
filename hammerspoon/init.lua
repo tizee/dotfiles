@@ -46,6 +46,7 @@ require('pasteboard-link-rewriter')
 -- require("window-layout-mode")
 require("quick-action-mode")
 require("switch-window-mode")
+require("keyboard-mode")
 
 
 -- menubar item

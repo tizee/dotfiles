@@ -1,1 +1,1 @@
-qwen-2.5-32b
+siliconflow-v3
