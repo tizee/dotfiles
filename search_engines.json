@@ -357,7 +357,7 @@
     "s": "GoodReads",
     "sc": "Books",
     "t": "goodreads",
-    "u": "http://www.goodreads.com/search/search?search_type=books&search[query]={{{s}}}"
+    "u": "https://www.goodreads.com/search?q={{{s}}}"
   },
   {
     "c": "Online Services",
