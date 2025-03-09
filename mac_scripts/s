@@ -200,7 +200,7 @@ def search(query, json_file_path="~/.config/search_engines.json"):
 
 # Example usage
 if __name__ == "__main__":
-    # Example: search("!g python programming")
+    # Example: search("g python programming")
     import sys
     if len(sys.argv) > 1:
         search(" ".join(sys.argv[1:]))
