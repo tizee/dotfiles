@@ -107,20 +107,26 @@ show_service_info() {
 run_service() {
   local service=$1
   local sudo_flag=$2
-  local cmd="brew services run"
-
-  [[ "$sudo_flag" == "true" ]] && cmd="sudo $cmd"
+  local cmd="brew"
 
   if [[ "$service" == "all" ]]; then
     warning "Running all services without registering them"
-    $cmd --all &
+    if [[ "$sudo_flag" == "true" ]]; then
+      sudo $cmd services run --all &
+    else
+      $cmd services run --all &
+    fi
     local pid=$!
     spinner $pid "Running all services..."
     wait $pid
     success "All services are now running (without being registered at login)"
   else
     info "Running $service without registering it"
-    $cmd "$service" &
+    if [[ "$sudo_flag" == "true" ]]; then
+      sudo $cmd services run "$service" &
+    else
+      $cmd services run "$service" &
+    fi
     local pid=$!
     spinner $pid "Running $service..."
     wait $pid
@@ -133,22 +139,29 @@ start_service() {
   local service=$1
   local sudo_flag=$2
   local file=$3
-  local cmd="brew services start"
+  local cmd="brew"
   local args=()
 
-  [[ "$sudo_flag" == "true" ]] && cmd="sudo $cmd"
   [[ -n "$file" ]] && args+=(--file="$file")
 
   if [[ "$service" == "all" ]]; then
     warning "Starting all services"
-    $cmd --all "${args[@]}" &
+    if [[ "$sudo_flag" == "true" ]]; then
+      sudo $cmd services start --all "${args[@]}" &
+    else
+      $cmd services start --all "${args[@]}" &
+    fi
     local pid=$!
     spinner $pid "Starting all services..."
     wait $pid
     success "All services are now started and registered"
   else
     info "Starting $service"
-    $cmd "$service" "${args[@]}" &
+    if [[ "$sudo_flag" == "true" ]]; then
+      sudo $cmd services start "$service" "${args[@]}" &
+    else
+      $cmd services start "$service" "${args[@]}" &
+    fi
     local pid=$!
     spinner $pid "Starting $service..."
     wait $pid
@@ -162,23 +175,30 @@ stop_service() {
   local sudo_flag=$2
   local max_wait=$3
   local no_wait=$4
-  local cmd="brew services stop"
+  local cmd="brew"
   local args=()
 
-  [[ "$sudo_flag" == "true" ]] && cmd="sudo $cmd"
   [[ -n "$max_wait" ]] && args+=(--max-wait="$max_wait")
   [[ "$no_wait" == "true" ]] && args+=(--no-wait)
 
   if [[ "$service" == "all" ]]; then
     warning "Stopping all services"
-    $cmd --all "${args[@]}" &
+    if [[ "$sudo_flag" == "true" ]]; then
+      sudo $cmd services stop --all "${args[@]}" &
+    else
+      $cmd services stop --all "${args[@]}" &
+    fi
     local pid=$!
     spinner $pid "Stopping all services..."
     wait $pid
     success "All services are now stopped and unregistered"
   else
     info "Stopping $service"
-    $cmd "$service" "${args[@]}" &
+    if [[ "$sudo_flag" == "true" ]]; then
+      sudo $cmd services stop "$service" "${args[@]}" &
+    else
+      $cmd services stop "$service" "${args[@]}" &
+    fi
     local pid=$!
     spinner $pid "Stopping $service..."
     wait $pid
@@ -190,20 +210,26 @@ stop_service() {
 kill_service() {
   local service=$1
   local sudo_flag=$2
-  local cmd="brew services kill"
-
-  [[ "$sudo_flag" == "true" ]] && cmd="sudo $cmd"
+  local cmd="brew"
 
   if [[ "$service" == "all" ]]; then
     warning "Killing all services (they will remain registered)"
-    $cmd --all &
+    if [[ "$sudo_flag" == "true" ]]; then
+      sudo $cmd services kill --all &
+    else
+      $cmd services kill --all &
+    fi
     local pid=$!
     spinner $pid "Killing all services..."
     wait $pid
     success "All services are now stopped (but still registered)"
   else
     info "Killing $service"
-    $cmd "$service" &
+    if [[ "$sudo_flag" == "true" ]]; then
+      sudo $cmd services kill "$service" &
+    else
+      $cmd services kill "$service" &
+    fi
     local pid=$!
     spinner $pid "Killing $service..."
     wait $pid
@@ -215,20 +241,26 @@ kill_service() {
 restart_service() {
   local service=$1
   local sudo_flag=$2
-  local cmd="brew services restart"
-
-  [[ "$sudo_flag" == "true" ]] && cmd="sudo $cmd"
+  local cmd="brew"
 
   if [[ "$service" == "all" ]]; then
     warning "Restarting all services"
-    $cmd --all &
+    if [[ "$sudo_flag" == "true" ]]; then
+      sudo $cmd services restart --all &
+    else
+      $cmd services restart --all &
+    fi
     local pid=$!
     spinner $pid "Restarting all services..."
     wait $pid
     success "All services have been restarted"
   else
     info "Restarting $service"
-    $cmd "$service" &
+    if [[ "$sudo_flag" == "true" ]]; then
+      sudo $cmd services restart "$service" &
+    else
+      $cmd services restart "$service" &
+    fi
     local pid=$!
     spinner $pid "Restarting $service..."
     wait $pid
@@ -239,12 +271,14 @@ restart_service() {
 # Cleanup unused services
 cleanup_services() {
   local sudo_flag=$1
-  local cmd="brew services cleanup"
-
-  [[ "$sudo_flag" == "true" ]] && cmd="sudo $cmd"
+  local cmd="brew"
 
   info "Cleaning up unused services"
-  $cmd &
+  if [[ "$sudo_flag" == "true" ]]; then
+    sudo $cmd services cleanup &
+  else
+    $cmd services cleanup &
+  fi
   local pid=$!
   spinner $pid "Cleaning up unused services..."
   wait $pid
@@ -403,10 +437,10 @@ main() {
       show_help
       ;;
     *)
-      # If command looks like a service name, assume restart
-      if [[ -n "$command" && -z "$service" ]]; then
-        service="$command"
-        restart_service "$service" "$sudo_flag"
+      # Check if the command might be a service name and it exists in brew services
+      if brew services list | grep -q "^$command"; then
+        info "Restarting $command"
+        restart_service "$command" "$sudo_flag"
       else
         error "Unknown command: $command"
       fi
