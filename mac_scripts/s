@@ -1,0 +1,209 @@
+#!/usr/bin/env python3
+import json
+import os
+import re
+import urllib.parse
+import subprocess
+import platform
+from datetime import datetime
+
+class Cache:
+    def __init__(self, namespace="search_engine_cache"):
+        self.namespace = namespace
+        self.cache_dir = os.path.join(os.path.expanduser("~"), ".cache", namespace)
+        os.makedirs(self.cache_dir, exist_ok=True)
+
+    def get(self, key):
+        cache_file = os.path.join(self.cache_dir, f"{key}.json")
+        if os.path.exists(cache_file):
+            try:
+                with open(cache_file, 'r') as f:
+                    return json.load(f)
+            except json.JSONDecodeError:
+                return None
+        return None
+
+    def set(self, key, value):
+        cache_file = os.path.join(self.cache_dir, f"{key}.json")
+        with open(cache_file, 'w') as f:
+            json.dump(value, f)
+
+class SearchEngine:
+    def __init__(self, t, s, u, c=None, d=None, r=None, sc=None):
+        """
+         Initialize a search engine object with its properties.
+
+        Parameters:
+        -----------
+        t : str
+            The short tag/identifier for the search engine (e.g., 'g' for Google)
+        s : str
+            The full name/title of the search engine (e.g., 'Google')
+        u : str
+            The URL template with {{{s}}} placeholder for the search query
+        c : str, optional
+            The category of the search engine (e.g., 'General', 'Tech')
+        d : str, optional
+            The domain/website of the search engine (e.g., 'www.google.com')
+        r : int, optional
+            The ranking or priority of the search engine
+        sc : str, optional
+            The subcategory or additional classification of the search engine
+        """
+        self.t = t
+        self.s = s
+        self.u = u
+        self.c = c
+        self.d = d
+        self.r = r
+        self.sc = sc
+
+    def to_dict(self):
+        return {
+            "t": self.t,
+            "s": self.s,
+            "u": self.u,
+            "c": self.c,
+            "d": self.d,
+            "r": self.r,
+            "sc": self.sc
+        }
+
+    @classmethod
+    def from_dict(cls, data):
+        return cls(
+            t=data.get("t"),
+            s=data.get("s"),
+            u=data.get("u"),
+            c=data.get("c"),
+            d=data.get("d"),
+            r=data.get("r"),
+            sc=data.get("sc")
+        )
+
+class SearchEngineManager:
+    def __init__(self, json_file_path):
+        self.json_file_path = json_file_path
+        self.cache = Cache()
+        self.search_engines = []
+        self.default_engine_key = "g"  # Default to Google
+        self.last_loaded = None
+        self._load_engines()
+
+    def _load_engines(self):
+        # Check if we have cached engines and they're still fresh (under 1 day old)
+        cached_data = self.cache.get("search_engines")
+        if cached_data and "timestamp" in cached_data:
+            cached_time = datetime.fromisoformat(cached_data["timestamp"])
+            now = datetime.now()
+            # Use cache if it's less than 1 day old
+            if (now - cached_time).days < 1:
+                self.search_engines = [SearchEngine.from_dict(engine) for engine in cached_data["engines"]]
+                self.last_loaded = cached_time
+                return
+
+        # Load from file if cache is outdated or doesn't exist
+        try:
+            with open(self.json_file_path, 'r') as f:
+                data = json.load(f)
+                self.search_engines = [SearchEngine.from_dict(engine) for engine in data]
+
+                # Cache the loaded engines
+                self.cache.set("search_engines", {
+                    "timestamp": datetime.now().isoformat(),
+                    "engines": [engine.to_dict() for engine in self.search_engines]
+                })
+                self.last_loaded = datetime.now()
+        except (json.JSONDecodeError, FileNotFoundError) as e:
+            print(f"Error loading search engines: {e}")
+            # Fallback to a basic Google search engine if file loading fails
+            self.search_engines = [
+                SearchEngine(
+                    t="duck",
+                    s="DuckduckGo",
+                    u="https://www.duckduckgo.com/?q={{{s}}}",
+                    c="General",
+                    d="www.google.com",
+                    r=0,
+                    sc="Search"
+                )
+            ]
+
+    def get_default_search_engine(self):
+        # Try to get from cache first
+        cached_default = self.cache.get("defaultSearchEngine")
+        if cached_default:
+            return SearchEngine.from_dict(cached_default)
+
+        # Otherwise find in the loaded engines
+        default_engine = next((engine for engine in self.search_engines if engine.t == self.default_engine_key), None)
+        if not default_engine and self.search_engines:
+            default_engine = self.search_engines[0]  # Fallback to first engine
+
+        return default_engine
+
+    def set_default_search_engine(self, engine_key):
+        engine = next((engine for engine in self.search_engines if engine.t == engine_key), None)
+        if engine:
+            self.default_engine_key = engine_key
+            self.cache.set("defaultSearchEngine", engine.to_dict())
+            return True
+        return False
+
+    def find_engine_by_key(self, key):
+        return next((engine for engine in self.search_engines if engine.t == key), None)
+
+def search(query, json_file_path="~/.config/search_engines.json"):
+    # Initialize the search engine manager
+    json_path = os.path.expanduser(json_file_path)
+    manager = SearchEngineManager(json_path)
+
+    # Check if a specific search engine is specified
+    match = re.search(r'(\S+)', query.strip())
+    search_engine_key = match[1].lower() if match else None
+    print(f"query: {query.strip()}")
+    print(f"key: {search_engine_key}")
+
+    # Find the search engine to use
+    search_engine = None
+    if search_engine_key:
+        search_engine = manager.find_engine_by_key(search_engine_key)
+
+    # If no specific engine found or specified, use default
+    if not search_engine:
+        search_engine = manager.get_default_search_engine()
+
+    if not search_engine:
+        print("No search engine available")
+        return
+
+    # Clean the query by removing the search engine specifier
+    clean_query = re.sub(r'^\S+\s*', '', query, flags=re.IGNORECASE).strip()
+
+    # Build the search URL
+    clean_query = clean_query.strip()
+    search_url = search_engine.u.replace("{{{s}}}",
+                                         urllib.parse.quote(clean_query).replace('%2F', '/').strip())
+    print(f"search engine: {search_engine.d}")
+    print(f"search url: {search_url}")
+
+    # Open the URL in the default browser
+    try:
+        if platform.system() == 'Darwin':  # macOS
+            subprocess.run(['open', search_url])
+        elif platform.system() == 'Linux':
+            subprocess.run(['xdg-open', search_url])
+        elif platform.system() == 'Windows':
+            subprocess.run(['start', search_url], shell=True)
+    except Exception as e:
+        print(f"Error opening URL: {e}")
+
+# Example usage
+if __name__ == "__main__":
+    # Example: search("!g python programming")
+    import sys
+    if len(sys.argv) > 1:
+        search(" ".join(sys.argv[1:]))
+    else:
+        print("Usage: s [search query]")
+
