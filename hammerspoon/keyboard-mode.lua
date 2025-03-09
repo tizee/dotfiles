@@ -5,11 +5,14 @@ local mode_comp = require('mode')
 -- IME utils
 local ime_utils= {}
 
+
 function ime_utils.currentSourceID()
   alert.show(
   string.format(
-   "%s",
-   hs.keycodes.currentSourceID()
+   "Source: %s\nMethod: %s\nLayout: %s",
+   hs.keycodes.currentSourceID(),
+   hs.keycodes.currentMethod(),
+   hs.keycodes.currentLayout()
   )
  )
 
@@ -32,8 +35,10 @@ function ime_utils.English()
     --     alert.show("Switched to English")
     -- end
     -- Set input method to English (Romaji)
-    hs.keycodes.currentSourceID("com.apple.inputmethod.Kotoeri.RomanjiTyping.Roman")
-    alert.show("Switched to English (Romaji)")
+    local okay = hs.keycodes.currentSourceID("com.apple.inputmethod.Kotoeri.RomajiTyping.Roman")
+    if okay then
+      alert.show("Switched to English (Romaji)")
+    end
 end
 
 function ime_utils.ChineseTraditional()

@@ -8,9 +8,9 @@ return {
 		trigger = "s",
 		mappings = {
 			{ {}, "i", "currentSourceID"},
-			{ {}, "h", "ChineseSimplified"},
+			{ {}, "h", "ChineseTraditional"},
 			{ {}, "j", "English"},
-			{ {}, "k", "ChineseTraditional"},
+			{ {}, "k", "ChineseSimplified"},
 			{ {}, "l", "JapaneseHiragana"},
 			{ {}, "o", "JapaneseKatakana"},
 		}
