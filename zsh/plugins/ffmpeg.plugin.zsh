@@ -227,14 +227,14 @@ compress_video() {
     echo "Processing file: $file"
 
     # Try with VideoToolbox hardware acceleration
-    local command="ffmpeg -i \"$file\" -tag:v avc1 -c:v h264_videotoolbox -movflags +faststart -preset $quality -crf 30 -c:a copy \"$output\""
+    local command="ffmpeg -i \"$file\" -movflags +faststart -preset $quality -crf 30 -r 30 -c:a copy \"$output\""
     echo "Command: $command"
 
     if eval $command; then
         echo "Output file: $output"
     else
         echo "Hardware encoding failed. Falling back to software encoding."
-        command="ffmpeg -i \"$file\" -tag:v avc1 -c:v libx264 -movflags +faststart -preset $quality -crf 30 -c:a copy \"$output\""
+        command="ffmpeg -i \"$file\" -movflags +faststart -preset $quality -crf 30 -r 30 -c:a copy \"$output\""
         echo "Command: $command"
         eval $command
         echo "Output file: $output"
