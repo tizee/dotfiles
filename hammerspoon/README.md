@@ -18,3 +18,5 @@
     - Please use `AltTab.app` [AltTab - Windows alt-tab on macOS](https://alt-tab-macos.netlify.app/) since hammerspoon can only get app windows in current focused screen.
 - `window-layout-mode.lua`
     - A window manager replacement. Since `yabai` has messed up the screen, I've decided to manage windows manually.
+- `keyboard-mode.lua`
+    - Switch input source (IME)
