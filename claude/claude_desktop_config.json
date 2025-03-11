@@ -46,6 +46,15 @@
         "run",
         "mcp-server-book-search"
       ]
+    },
+    "think-with-deepseek-r1": {
+      "command": "/opt/homebrew/bin/uv",
+      "args": [
+        "--directory",
+        "/Users/tizee/projects/project-AI/mcp/tizee-mcp/mcp-server-deepseek",
+        "run",
+        "mcp-server-deepseek"
+      ]
     }
   }
 }

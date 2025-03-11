@@ -307,9 +307,13 @@ if [[ $(uname -s) = "Darwin" ]]; then
   defaults com.apple.AdLib "allowIdentifierForAdvertising" -bool false
   # }}}
 
-  # Quit App on last window closed {{{
+  # Window Quit Behavior {{{
   defaults write com.apple.Preview NSQuitAlwaysKeepsWindows -bool false
   defaults write com.apple.ActivityMonitor NSQuitAlwaysKeepsWindows -bool false
+  # }}}
+  # App Store {{{
+  # Use US Region for searching Apps with mas cli (Why? Apple is a US company.XD)
+  defaults write NSGlobalDomain AppleLocale -string en_US
   # }}}
 
   # enable debug menu from AppKit for all applications
