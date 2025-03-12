@@ -145,6 +145,70 @@ fi
 # youtube-dl or its alternative yt-dlp
 # ========== youtube-dl========== {{{
 alias ydl="yt-dlp"
+#!/usr/bin/env zsh
+
+###############################################################################
+# Options:
+#   -u, --url         Specify the YouTube video or playlist URL.
+#   -p, --playlist    Indicate that the URL is a playlist.
+#   -h, --help        Show this help message.
+###############################################################################
+
+function download-ytb {
+  local VIDEO_URL=""
+  local PLAYLIST=""
+
+  # Parse arguments
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -u|--url)
+        VIDEO_URL="$2"
+        shift 2
+        ;;
+      -p|--playlist)
+        PLAYLIST="true"
+        shift
+        ;;
+      -h|--help)
+        echo "Usage: $0 -u <VIDEO_URL> [-b <BROWSER>] [-p]"
+        echo
+        echo "  -u, --url       YouTube video or playlist URL."
+        echo "  -p, --playlist  Indicates the URL is for a playlist."
+        echo "  -h, --help      Show this help message."
+        exit 0
+        ;;
+      *)
+        echo "Unknown parameter: $1"
+        exit 1
+        ;;
+    esac
+  done
+
+  # Verify we have a URL
+  if [[ -z "$VIDEO_URL" ]]; then
+    echo "Error: No URL provided. Use -u or --url."
+    exit 1
+  fi
+
+  # Check if yt-dlp is installed
+  if command -v yt-dlp &>/dev/null; then
+    local PLAYLIST_ARG=""
+    if [[ -n "$PLAYLIST" ]]; then
+      PLAYLIST_ARG="--yes-playlist"
+    fi
+
+    # Construct and run yt-dlp command
+    yt-dlp --no-mtime \
+           $PLAYLIST_ARG \
+           --audio-format best \
+           --format "bestvideo[height=1080]+bestaudio/best[height<=1080]/best" \
+           --merge-output-format mp4 \
+           "$VIDEO_URL"
+  else
+    echo "Error: yt-dlp is not installed. Please install it first."
+    exit 1
+  fi
+}
 # }}}
 
 # ========== cmake ========== {{{
