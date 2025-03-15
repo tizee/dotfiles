@@ -104,7 +104,7 @@ yabai -m config normal_window_opacity 0.9
 # App
 # ====================
 # Default rule: disable management for all applications
-yabai -m rule --add app=".*" manage=off sub-layer=above
+# yabai -m rule --add app=".*" manage=off sub-layer=above
 
 # Apps that should be managed by yabai
 managed_apps=(
@@ -115,7 +115,7 @@ managed_apps=(
 
 # Enable management only for specified apps
 for item in "${managed_apps[@]}"; do
-  yabai -m rule --add app="^${item}$" manage=on sub-layer=below
+  yabai -m rule --add app="^${item}$" manage=on sub-layer=above
 done
 
 # --verbose to display

@@ -1,0 +1,30 @@
+#!/usr/bin/env zsh
+set -euo pipefail
+
+# 检查参数是否正确传入
+if [ "$#" -ne 1 ]; then
+  echo "Usage: $0 <codebase-directory>"
+  exit 1
+fi
+
+CODEBASE="$1"
+
+# 进入代码库目录，方便获得相对路径
+cd "$CODEBASE" || exit 1
+
+# 仅列举当前目录下的一层文件，并使用 fzf 进行多选（可选预览命令）
+selected=$(find . -maxdepth 1 -type f | fzf --multi --preview 'bat --style=numbers --color=always {}')
+if [ -z "$selected" ]; then
+  echo "没有选择任何文件."
+  exit 1
+fi
+
+# 去除前缀 "./"，并用逗号拼接所有选择的文件
+files=$(echo "$selected" | sed 's|^\./||' | paste -sd ',' -)
+
+# 构造并执行 code2prompt 命令：-i 后的文件以逗号分隔
+code2prompt -i "$files" "$CODEBASE"
+
+# 回到原目录（可选）
+cd - >/dev/null
+
