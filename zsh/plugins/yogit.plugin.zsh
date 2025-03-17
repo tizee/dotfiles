@@ -100,6 +100,7 @@ function yogit::help() {
   # basic
   printf "${_yogit_color_cyan}${_yogit_color_bold}--> basic usage${_yogit_color_reset}\n"
   printf "${_yogit_color_green}${_yogit_basic_prefix}htest${_yogit_color_reset}                                       : ssh -T git@github.com\n"
+  printf "${_yogit_color_green}${_yogit_basic_prefix}resetupdate${_yogit_color_reset}                                          : git fetch --depth=1 then reset to FETCH_HEAD\n"
   printf "${_yogit_color_green}${_yogit_basic_prefix}st${_yogit_color_reset}                                          : git status\n"
   printf "${_yogit_color_green}${_yogit_basic_prefix}ghsc${_yogit_color_reset}                                        : git clone a github repo using <username>/<repo-name> with submodules\n"
   printf "${_yogit_color_green}${_yogit_basic_prefix}ghsc!${_yogit_color_reset}                                       : git clone a github repo using <username>/<repo-name>\n"
@@ -888,6 +889,14 @@ function yogit::cd_to_root() {
   cd "$root_path" || return 1
 }
 alias "${_yogit_basic_prefix}rt"='yogit::cd_to_root'
+
+function yogit::reset_update() {
+  yogit::is_git_repo || return 1
+
+  local branch=$(yogit::current_branch)
+  git fetch --depth=1 origin "$branch" && git reset --hard FETCH_HEAD
+}
+alias "${_yogit_basic_prefix}resetupdate"='yogit::resetupdate'
 # }}}
 
 # Interactive commands aliases start with prefix gi {{{
