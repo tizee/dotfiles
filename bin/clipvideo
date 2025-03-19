@@ -1,0 +1,26 @@
+#!/bin/zsh
+
+# 参数检查
+if [ $# -lt 4 ]; then
+    echo "用法: $0 输入文件 开始时间(秒) 结束时间(秒) 输出文件"
+    echo "示例: $0 input.mp4 10 20 output.mp4"
+    exit 1
+fi
+
+INPUT="$1"
+START="$2"
+END="$3"
+OUTPUT="$4"
+
+# 获取视频总时长
+DURATION=$(ffprobe -v error -select_streams v:0 -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$INPUT")
+
+echo "视频长度: $DURATION 秒"
+echo "删除区间: $START - $END 秒"
+
+# FFmpeg命令 - 截取前段和后段，然后拼接
+ffmpeg -i "$INPUT" -filter_complex \
+"[0:v]trim=0:$START,setpts=PTS-STARTPTS[first]; \
+ [0:v]trim=$END:$DURATION,setpts=PTS-STARTPTS[second]; \
+ [first][second]concat=n=2:v=1:a=0[outv]" \
+-map "[outv]" -c:v libx264 -preset fast -crf 18 "$OUTPUT"
