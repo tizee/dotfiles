@@ -31,5 +31,5 @@
 - model_id: qwen-2.5-32b
   model_name: qwen-2.5-32b
   api_base: "https://api.groq.com/openai/v1"
-  can_stream: true
+  can_stream: false
   api_key_name: groq

@@ -896,7 +896,7 @@ function yogit::reset_update() {
   local branch=$(yogit::current_branch)
   git fetch --depth=1 origin "$branch" && git reset --hard FETCH_HEAD
 }
-alias "${_yogit_basic_prefix}resetupdate"='yogit::resetupdate'
+alias "${_yogit_basic_prefix}resetupdate"='yogit::reset_update'
 # }}}
 
 # Interactive commands aliases start with prefix gi {{{
