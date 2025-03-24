@@ -2,18 +2,19 @@
 set -euo pipefail
 
 # 检查参数是否正确传入
-if [ "$#" -ne 1 ]; then
-  echo "Usage: $0 <codebase-directory>"
+if [ "$#" -ne 2 ]; then
+  echo "Usage: $0 <codebase-directory> <depth>"
   exit 1
 fi
 
 CODEBASE="$1"
+DEPTH="$2"
 
 # 进入代码库目录，方便获得相对路径
 cd "$CODEBASE" || exit 1
 
 # 仅列举当前目录下的一层文件，并使用 fzf 进行多选（可选预览命令）
-selected=$(find . -maxdepth 1 -type f | fzf --multi --preview 'bat --style=numbers --color=always {}')
+selected=$(find . -maxdepth $DEPTH -type f | fzf --multi --preview 'bat --style=numbers --color=always {}')
 if [ -z "$selected" ]; then
   echo "没有选择任何文件."
   exit 1
