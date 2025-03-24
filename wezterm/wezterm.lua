@@ -286,6 +286,8 @@ return {
 			family = "Maple Mono NF",
 			weight = "Regular",
 			italic = false,
+      -- see https://font.subf.dev/en/#features
+      harfbuzz_features = { 'cv01=1', 'clig=1', 'liga=1', 'calt=1' },
 		},
 		{
 			family = "JetBrainsMono Nerd Font Mono",
