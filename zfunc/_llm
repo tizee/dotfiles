@@ -1,0 +1,22 @@
+#compdef llm
+
+_llm() {
+  local -a opts
+  opts=()
+
+  if [[ $words[2] == "-m" ]]; then
+    _llm_models
+  else
+    opts+=("-m[Specify model]:model:_llm_models")
+    _describe -t commands "llm commands" opts
+  fi
+}
+
+_llm_models() {
+  local -a models
+  models=($(llm models list 2>/dev/null | awk -F':' '{print $2}' | awk '{print $1}'))
+  _describe 'model' models
+}
+
+_llm "$@"
+

@@ -4,7 +4,7 @@
   can_stream: true
   api_key_name: doubao
 - model_id: doubao-v3
-  model_name: ep-20250206164147-pr792
+  model_name: ep-20250327002251-dzdkf
   api_base: "https://ark.cn-beijing.volces.com/api/v3"
   can_stream: true
   api_key_name: doubao
