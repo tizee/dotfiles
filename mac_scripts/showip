@@ -1,0 +1,12 @@
+#!/bin/zsh
+
+# Get the primary network interface's IP address
+ip_address=$(ipconfig getifaddr en0)
+
+# Fallback to Wi-Fi interface if en0 doesn't work
+if [ -z "$ip_address" ]; then
+    ip_address=$(ipconfig getifaddr en1)
+fi
+
+echo "Your current IP address is: $ip_address"
+
