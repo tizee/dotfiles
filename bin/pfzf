@@ -1,31 +1,54 @@
 #!/usr/bin/env zsh
 set -euo pipefail
 
-# 检查参数是否正确传入
-if [ "$#" -ne 2 ]; then
-  echo "Usage: $0 <codebase-directory> <depth>"
+# Default depth is 1
+DEPTH=1
+
+# Parse arguments
+if [ "$#" -eq 0 ]; then
+  echo "Usage: $0 <codebase-directory> [depth]"
+  exit 1
+elif [ "$#" -eq 1 ]; then
+  CODEBASE="$1"
+elif [ "$#" -eq 2 ]; then
+  CODEBASE="$1"
+  DEPTH="$2"
+fi
+
+# Verify directory exists
+if [ ! -d "$CODEBASE" ]; then
+  echo "Error: Directory '$CODEBASE' does not exist."
   exit 1
 fi
 
-CODEBASE="$1"
-DEPTH="$2"
+# Store original directory
+ORIGINAL_DIR=$(pwd)
 
-# 进入代码库目录，方便获得相对路径
-cd "$CODEBASE" || exit 1
+# Navigate to codebase
+cd "$CODEBASE" || { echo "Failed to access $CODEBASE"; exit 1; }
 
-# 仅列举当前目录下的一层文件，并使用 fzf 进行多选（可选预览命令）
-selected=$(find . -maxdepth $DEPTH -type f | fzf --multi --preview 'bat --style=numbers --color=always {}')
+# Check if there are files to select
+if [ -z "$(find . -maxdepth "$DEPTH" -type f 2>/dev/null)" ]; then
+  echo "No files found at depth $DEPTH in $CODEBASE."
+  exit 1
+fi
+
+# Use find and sed to remove ./ prefix before passing to fzf
+selected=$(find . -maxdepth "$DEPTH" -type f | sed 's|^\./||' | fzf --multi --preview 'bat --style=numbers --color=always {} 2>/dev/null || cat {}' --prompt="Select files (TAB for multi-select): ")
+
+# Check if selection was made
 if [ -z "$selected" ]; then
-  echo "没有选择任何文件."
-  exit 1
+  echo "No files selected."
+  cd "$ORIGINAL_DIR"
+  exit 0
 fi
 
-# 去除前缀 "./"，并用逗号拼接所有选择的文件
-files=$(echo "$selected" | sed 's|^\./||' | paste -sd ',' -)
+# Process selected files (no need to remove ./ prefix now)
+files=$(echo "$selected" | paste -sd ',' -)
 
-# 构造并执行 code2prompt 命令：-i 后的文件以逗号分隔
+# Run code2prompt with selected files
+echo "Running code2prompt on selected files..."
 code2prompt -i "$files" "$CODEBASE"
 
-# 回到原目录（可选）
-cd - >/dev/null
-
+# Return to original directory
+cd "$ORIGINAL_DIR"
