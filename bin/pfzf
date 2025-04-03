@@ -45,10 +45,11 @@ fi
 
 # Process selected files (no need to remove ./ prefix now)
 files=$(echo "$selected" | paste -sd ',' -)
+echo "$CODEBASE files: $files"
 
 # Run code2prompt with selected files
 echo "Running code2prompt on selected files..."
-code2prompt -i "$files" "$CODEBASE"
+code2prompt -i "$files" .
 
 # Return to original directory
 cd "$ORIGINAL_DIR"
