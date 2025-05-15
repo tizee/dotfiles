@@ -33,7 +33,7 @@ alias ln='ln -v'
 alias proxy="http_proxy=http://127.0.0.1:1087 https_proxy=http://127.0.0.1:1087 socks5_proxy=socks5://127.0.0.1:1080 all_proxy=socks5://127.0.0.1:1080"
 # Add this to your ~/.bashrc or ~/.zshrc
 
-proxy_toggle() {
+proxytoggle() {
   if [ -z "$http_proxy" ]; then
     # Enable proxies
     export http_proxy=http://127.0.0.1:1087
@@ -349,5 +349,8 @@ alias rustccfg="touch rust_toolchain.toml"
 # ========== pnpm ========== {{{
 alias pn="pnpm"
 # }}}
+
+# If I use a command more than three times, I'll create an alias for it.
+alias ygurlcp="ygurl | pbcopy"
 
 # vim:ft=zsh:foldmarker={{{,}}}
