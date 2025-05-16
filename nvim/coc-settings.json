@@ -26,8 +26,12 @@
   "stylua.checkUpdate": false,
   // coc-clangd
   "clangd.path": "/opt/homebrew/opt/llvm/bin/clangd",
+  "clangd.arguments": ["--background-index", "--clang-tidy"],
   "clangd.enabled": true,
   "clangd.checkUpdates": false,
+  "clangd.compilationDatabaseCandidates": ["${workspaceFolder}/build"],
+  "clangd.trace.file": "/tmp/coc-clangd.log",
+  "clangd.trace.server": "verbose",
   // codelens
   "codeLens.enable": true,
   "codeLens.separator": " ",
@@ -135,11 +139,11 @@
     //   "command": "texlab",
     //   "filetypes": ["tex"]
     // }
-     "clangd": {
-       "command": "clangd",
-       "rootPatterns": ["compile_flags.txt", "compile_commands.json"],
-       "filetypes": ["c", "cpp", "c++", "objc", "objcpp"]
-     },
+   // "clangd": {
+   //    "command": "clangd",
+   //    "rootPatterns": ["compile_flags.txt", "compile_commands.json"],
+   //    "filetypes": ["c", "cpp", "c++", "objc", "objcpp"]
+   //  },
     //"ccls": {
     //  "command": "ccls",
     //  "rootPatterns": [
