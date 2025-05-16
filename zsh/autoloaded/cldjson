@@ -1,31 +1,25 @@
 #!/usr/bin/env zsh
 
-# help link CMake generated compile_commands.json in given directory to current pwd
-# if directory is not given then try to link compile_commands.json in pwd to parent directory
+# cldjson [build_dir]
+# 将 build_dir/compile_commands.json 软链接到当前目录（默认为 build），找不到就报错，不做多余操作
 
 function cldjson() {
- local directory="build"
- if [[ -n $1 ]]; then
-   echo "dir:" $1
-   directory=$1
- fi
- local path="$(pwd)/${directory}"
- echo "path:" $path
- if [[ -d $path ]]; then
-   # search in build
-   if [[ -e $path/compile_commands.json ]]; then
-     /bin/ln -s $path/compile_commands.json compile_commands.json
-     echo "find in $path and link!"
-   else
-     echo "Not found!"
-   fi
- elif [[ -e compile_commands.json ]];then
-   # link to parent directory
-   /bin/ln -s $(pwd)/compile_commands.json $(pwd)/../compile_commands.json
-   echo "found in current dir and link!"
-else
-   echo "Not found!"
- fi
+  local directory="${1:-build}"
+  local src_file="$directory/compile_commands.json"
+  local dest_file="$(pwd)/compile_commands.json"
+
+  # 检查源文件是否存在
+  if [[ -f "$src_file" ]]; then
+    # 获取绝对路径，保证链接永远指向真实物理文件
+    local abs_src="$(realpath "$src_file")"
+    ln -sf "$abs_src" "$dest_file"
+    echo "Linked: $abs_src -> $dest_file"
+    return 0
+  fi
+
+  # 如果本目录下有 compile_commands.json，且用户想要链到上一级，可以自己手动指定
+  echo "Error: $src_file not found."
+  return 1
 }
 
 cldjson "$@"
