@@ -151,7 +151,12 @@
   recurse= true
 
 [format]
-  pretty=%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %n%C(bold blue)<%an> %ae%Creset [%G?]%n
+  # see https://git-scm.com/docs/pretty-formats
+  pretty=%Cred%h%Creset %C(yellow)%d%Creset %s %n%Cgreen(%cr - %ci) %n%C(bold blue)<%an> %ae%Creset [%G?]%n
+
+[log]
+  # https://git-scm.com/docs/git-log#Documentation/git-log.txt---dateltformatgt
+  date = format:%Y-%m-%d %H:%M:%S
 
 [delta]
   features = tizee decorations
