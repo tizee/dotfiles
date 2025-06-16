@@ -1,0 +1,2 @@
+command script import ~/.config/lldb/lldbinit.py
+command script import ~/.config/lldb/dless.py

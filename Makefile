@@ -25,6 +25,7 @@ help:
 	@echo "make zsh-force     -  require make install"
 	@echo "make rm-zsh        -  require make install"
 	@echo "make sudoer        -  (macOS) sudoer setup"
+	@echo "make lldb          -  (macOS) lldb setup"
 .PHONY: help
 
 cargo:
@@ -100,6 +101,11 @@ sudoer:
 	@echo "add $$(whoami) to /private/etc/sudoers.d"
 	-echo "$$(whoami) ALL=(ALL) NOPASSWD:ALL" | sudo tee /private/etc/sudoers.d/$$(whoami)
 .PHONY: sudoer
+
+lldb:
+	@echo "link ~/.lldbinit to ~/.config/lldb/.lldbinit"
+	ln -svf $(PWD)/lldb/.lldbinit ~/.lldbinit
+.PHONY: lldb
 
 rm-zsh:
 	rm -v $(HOME)/.zlogin $(HOME)/.zprofile $(HOME)/.zshenv $(HOME)/.zshrc
