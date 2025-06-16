@@ -8,4 +8,4 @@ def dis_less(debugger, command, result, internal_dict):
     p.communicate(input=output.GetOutput().encode())
 
 def __lldb_init_module(debugger, internal_dict):
-    debugger.HandleCommand('command script add -f dless.dis_less dless')
+    debugger.HandleCommand("command script add -h '(dless) disassembly with less pager' -f dless.dis_less dless")
