@@ -1,0 +1,107 @@
+#!/usr/bin/env python3
+import argparse
+import os
+import sys
+
+def apply_caesar(text: str, shift: int) -> str:
+    """Apply Caesar cipher with given shift to input text.
+
+    Args:
+        text: Input string to encrypt/decrypt
+        shift: Number of positions to shift (1-25)
+
+    Returns:
+        Encrypted/decrypted string
+    """
+    result = []
+    for char in text:
+        if char.isupper():
+            result.append(chr((ord(char) - ord('A') + shift) % 26 + ord('A')))
+        elif char.islower():
+            result.append(chr((ord(char) - ord('a') + shift) % 26 + ord('a')))
+        else:
+            result.append(char)
+    return ''.join(result)
+
+def main():
+    # Get script name without extension if executed from PATH
+    script_name = os.path.basename(sys.argv[0])
+    if script_name.endswith('.py'):
+        script_name = script_name[:-3]
+
+    parser = argparse.ArgumentParser(
+        description=f"{script_name} - Intelligent Caesar cipher tool with ROT13 optimization",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=f"""Usage Examples:
+  # Basic encryption/decryption
+  {script_name} "hello" -n 3       # Encrypt with shift 3 → "khoor"
+  {script_name} "khoor" -n 3 -d    # Decrypt with shift 3 → "hello"
+
+  # Automatic ROT13 handling (self-reversible)
+  {script_name} "secret" -n 13     # Encrypt → "frperg"
+  {script_name} "frperg" -n 13     # Decrypt → "secret"
+
+  # File operations
+  {script_name} -n 13 -i input.txt -o secret.txt
+  {script_name} -n 5 -d -i encrypted.txt -o plain.txt
+
+  # Pipe support
+  cat document.txt | {script_name} -n 7 > encrypted.txt
+  {script_name} -n 7 -d < encrypted.txt
+""")
+
+    # Argument definitions
+    parser.add_argument("text", nargs='?',
+                      help="Input text (mutually exclusive with file input)")
+    parser.add_argument("-n", "--shift", type=int, required=True,
+                      help="Shift value (1-25, 13 enables ROT13 auto-handling)")
+    parser.add_argument("-d", "--decrypt", action="store_true",
+                      help="Decryption mode (ignored for ROT13)")
+    parser.add_argument("-i", "--input",
+                      help="Input file (overrides text argument)")
+    parser.add_argument("-o", "--output",
+                      help="Output file (default: stdout)")
+
+    args = parser.parse_args()
+
+    # Validate shift value
+    if not 1 <= args.shift <= 25:
+        parser.error("Shift value must be between 1 and 25")
+
+    # Determine input source
+    if args.input:
+        if args.text:
+            parser.error("Cannot specify both text and file input")
+        try:
+            with open(args.input, 'r') as f:
+                text = f.read()
+        except IOError as e:
+            parser.error(f"Input file error: {e}")
+    else:
+        if not args.text:
+            parser.error("Either text argument or input file required")
+        text = args.text
+
+    # Process text
+    if args.shift == 13:  # ROT13 mode
+        result = apply_caesar(text, 13)
+        action = "ROT13"
+    else:  # Standard Caesar cipher
+        effective_shift = -args.shift if args.decrypt else args.shift
+        result = apply_caesar(text, effective_shift)
+        action = "Decrypted" if args.decrypt else "Encrypted"
+
+    # Handle output
+    if args.output:
+        try:
+            with open(args.output, 'w') as f:
+                f.write(result)
+        except IOError as e:
+            print(f"Error writing output: {e}", file=sys.stderr)
+            sys.exit(1)
+    else:
+        print(f"{action} (shift {args.shift}): {result}")
+
+if __name__ == "__main__":
+    main()
+
