@@ -2,6 +2,7 @@
 import argparse
 import os
 import sys
+from typing import Optional
 
 def apply_caesar(text: str, shift: int) -> str:
     """Apply Caesar cipher with given shift to input text.
@@ -22,6 +23,37 @@ def apply_caesar(text: str, shift: int) -> str:
         else:
             result.append(char)
     return ''.join(result)
+
+def get_input_text(args: argparse.Namespace) -> str:
+    """Determine input source based on availability and priority:
+    1. Pipe/redirect input (stdin)
+    2. Input file (-i/--input)
+    3. Command line argument (text)
+    """
+    # Check for pipe/redirect input first
+    if not sys.stdin.isatty():  # Data is being piped in or redirected
+        if args.text or args.input:
+            print("Warning: Ignoring command line text/file input because pipe/redirect detected",
+                  file=sys.stderr)
+        return sys.stdin.read()
+
+    # Next check for file input
+    if args.input:
+        if args.text:
+            print("Warning: Ignoring command line text because file input specified",
+                  file=sys.stderr)
+        try:
+            with open(args.input, 'r') as f:
+                return f.read()
+        except IOError as e:
+            raise ValueError(f"Input file error: {e}")
+
+    # Finally use command line text
+    if args.text:
+        return args.text
+
+    # No input found
+    raise ValueError("No input provided (use pipe, file, or command line argument)")
 
 def main():
     # Get script name without extension if executed from PATH
@@ -52,7 +84,7 @@ def main():
 
     # Argument definitions
     parser.add_argument("text", nargs='?',
-                      help="Input text (mutually exclusive with file input)")
+                      help="Input text (mutually exclusive with file/pipe input)")
     parser.add_argument("-n", "--shift", type=int, required=True,
                       help="Shift value (1-25, 13 enables ROT13 auto-handling)")
     parser.add_argument("-d", "--decrypt", action="store_true",
@@ -61,6 +93,8 @@ def main():
                       help="Input file (overrides text argument)")
     parser.add_argument("-o", "--output",
                       help="Output file (default: stdout)")
+    parser.add_argument("-v", "--verbose", action="store_true",
+                      help="Verbose mode (default: off)")
 
     args = parser.parse_args()
 
@@ -68,19 +102,10 @@ def main():
     if not 1 <= args.shift <= 25:
         parser.error("Shift value must be between 1 and 25")
 
-    # Determine input source
-    if args.input:
-        if args.text:
-            parser.error("Cannot specify both text and file input")
-        try:
-            with open(args.input, 'r') as f:
-                text = f.read()
-        except IOError as e:
-            parser.error(f"Input file error: {e}")
-    else:
-        if not args.text:
-            parser.error("Either text argument or input file required")
-        text = args.text
+    try:
+        text = get_input_text(args)
+    except ValueError as e:
+        parser.error(str(e))
 
     # Process text
     if args.shift == 13:  # ROT13 mode
@@ -100,7 +125,11 @@ def main():
             print(f"Error writing output: {e}", file=sys.stderr)
             sys.exit(1)
     else:
-        print(f"{action} (shift {args.shift}): {result}")
+        if args.verbose:
+            print(f"{action} (shift {args.shift}): {result}", file=sys.stderr)
+            print(result, end="")
+        else:
+            print(result, end="")
 
 if __name__ == "__main__":
     main()
