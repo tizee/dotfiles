@@ -278,6 +278,10 @@ function yogit::update_remote() {
 
         # Update tracking
         if git show-ref --verify --quiet refs/heads/$current_default; then
+            # First fetch the fork's branches
+            git fetch $FORK_REMOTE
+            
+            # Then set upstream tracking
             git branch --set-upstream-to=$FORK_REMOTE/$current_default $current_default || {
                 echo "Error: Failed to set upstream tracking"
                 return 1
