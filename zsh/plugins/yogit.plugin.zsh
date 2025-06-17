@@ -179,61 +179,70 @@ function yogit::current_branch() {
 
 # basic aliases start with prefix gg {{{
 function yogit::update_remote() {
-    # Configuration - adjust these variables if needed
-    local UPSTREAM_REMOTE="upstream"  # The original team repo
-    local FORK_REMOTE="origin"        # Your personal fork
-    local DEFAULT_BRANCH="main"       # Default branch name (main or master)
+    # Configuration
+    local UPSTREAM_REMOTE="upstream"
+    local FORK_REMOTE="origin"
+    local DEFAULT_BRANCH="main"
 
-    # Step 1: Verify we're in a Git repo
+    # Verify Git repo
     if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
         echo "Error: Not in a Git repository"
         return 1
     fi
 
-    # Step 2: Get GitHub username from git config
+    # Get GitHub username
     local github_username=$(git config --global --get user.name)
     if [ -z "$github_username" ]; then
         echo "Warning: Could not get GitHub username from git config"
         read -p "Please enter your GitHub username: " github_username
     fi
 
-    # Step 3: Detect current default branch
+    # Detect current branch
     local current_default=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | awk -F'/' '{print $NF}')
     [ -z "$current_default" ] && current_default=$DEFAULT_BRANCH
 
-    # Step 4: Determine repository type by checking origin URL
-    local repo_type="unknown"
+    # Get origin URL
     local origin_url=$(git remote get-url origin 2>/dev/null)
-
     if [ -z "$origin_url" ]; then
         echo "Error: No origin remote found"
         return 1
     fi
 
-    # Convert SSH URL to HTTPS format if needed
+    # Convert SSH URL to consistent format
     if [[ "$origin_url" == git@github.com:* ]]; then
         origin_url="https://github.com/${origin_url#git@github.com:}"
+        origin_url=${origin_url%.git}
     fi
 
-    # Check if origin URL contains the user's GitHub username
+    # Determine repo type
     if [[ "$origin_url" == *"github.com/$github_username/"* ]]; then
-        repo_type="fork"
-        echo "Detected: This is a clone of your personal fork (origin points to your repo)"
-    else
-        repo_type="upstream"
-        echo "Detected: This is a clone of the upstream repository"
-    fi
+        echo "Detected: This is a clone of your personal fork"
 
-    # Step 5: Handle fork clone (just add upstream)
-    if [ "$repo_type" = "fork" ]; then
-        if git remote get-url $UPSTREAM_REMOTE >/dev/null 2>&1; then
-            echo "Upstream remote already exists as $UPSTREAM_REMOTE"
-        else
-            # Try to guess upstream URL by replacing username with org/project
-            local guessed_upstream_url=$(echo "$origin_url" | sed "s/$github_username\/\([^.]*\)/organization\/\1/")
-            echo "Suggested upstream URL: $guessed_upstream_url"
-            read -p "Confirm or edit the upstream repository URL [leave empty to use suggested]: " upstream_url
-            upstream_url=${upstream_url:-$guessed_upstream_url}
+        # Add upstream remote
+        if ! git remote get-url $UPSTREAM_REMOTE >/dev/null 2>&1; then
+            echo "Please provide the UPSTREAM repository details:"
+            read "org_name?Enter the organization/owner name: "
+            read "repo_name?Enter the repository name [${origin_url##*/}]: "
+            repo_name=${repo_name:-${origin_url##*/}}
+
+            # Offer URL format choice
+            echo -e "\nSelect URL format:"
+            echo "1) HTTPS (https://github.com/$org_name/$repo_name.git)"
+            echo "2) SSH (git@github.com:$org_name/$repo_name.git)"
+            read "url_choice?Enter choice [1/2]: "
+
+            case "$url_choice" in
+                1|"")
+                    upstream_url="https://github.com/$org_name/$repo_name.git"
+                    ;;
+                2)
+                    upstream_url="git@github.com:$org_name/$repo_name.git"
+                    ;;
+                *)
+                    echo "Invalid choice, using HTTPS format"
+                    upstream_url="https://github.com/$org_name/$repo_name.git"
+                    ;;
+            esac
 
             git remote add $UPSTREAM_REMOTE "$upstream_url" || {
                 echo "Error: Failed to add upstream remote"
@@ -242,12 +251,11 @@ function yogit::update_remote() {
             echo "Added upstream remote ($UPSTREAM_REMOTE)"
         fi
 
-    # Step 6: Handle upstream clone (rename origin to upstream, add your fork as origin)
-    elif [ "$repo_type" = "upstream" ]; then
-        # Rename origin to upstream if not already done
-        if git remote get-url $UPSTREAM_REMOTE >/dev/null 2>&1; then
-            echo "Upstream remote already exists as $UPSTREAM_REMOTE"
-        else
+    else
+        echo "Detected: This is a clone of the upstream repository"
+
+        # Rename origin to upstream
+        if ! git remote get-url $UPSTREAM_REMOTE >/dev/null 2>&1; then
             git remote rename origin $UPSTREAM_REMOTE || {
                 echo "Error: Failed to rename origin to $UPSTREAM_REMOTE"
                 return 1
@@ -255,15 +263,11 @@ function yogit::update_remote() {
             echo "Renamed origin to $UPSTREAM_REMOTE"
         fi
 
-        # Add your fork as origin if not exists
-        if git remote get-url $FORK_REMOTE >/dev/null 2>&1; then
-            echo "Fork remote already exists as $FORK_REMOTE"
-        else
-            # Try to guess fork URL by replacing org/project with username
-            local guessed_fork_url=$(echo "$origin_url" | sed "s/\([^/]*\)\/\([^.]*\)/$github_username\/\2/")
-            echo "Suggested fork URL: $guessed_fork_url"
-            read -p "Confirm or edit your fork repository URL [leave empty to use suggested]: " fork_url
-            fork_url=${fork_url:-$guessed_fork_url}
+        # Add fork remote
+        if ! git remote get-url $FORK_REMOTE >/dev/null 2>&1; then
+            echo "Please provide your FORK repository details:"
+            read "fork_url?Enter your fork URL [git@github.com:$github_username/${origin_url##*/}.git]: "
+            fork_url=${fork_url:-"git@github.com:$github_username/${origin_url##*/}.git"}
 
             git remote add $FORK_REMOTE "$fork_url" || {
                 echo "Error: Failed to add fork remote"
@@ -272,7 +276,7 @@ function yogit::update_remote() {
             echo "Added your fork as $FORK_REMOTE"
         fi
 
-        # Update tracking to point to your fork
+        # Update tracking
         if git show-ref --verify --quiet refs/heads/$current_default; then
             git branch --set-upstream-to=$FORK_REMOTE/$current_default $current_default || {
                 echo "Error: Failed to set upstream tracking"
@@ -282,33 +286,26 @@ function yogit::update_remote() {
         fi
     fi
 
-    # Step 7: Common operations for both cases
+    # Fetch all remotes
+    echo -e "\nFetching from all remotes..."
     git fetch --all --prune || {
-        echo "Error: Failed to fetch from remotes"
-        return 1
+        echo "Warning: Failed to fetch from some remotes"
     }
 
-    # Update remote HEAD references
-    git remote set-head $UPSTREAM_REMOTE --auto 2>/dev/null
-    git remote set-head $FORK_REMOTE --auto 2>/dev/null
-
-    # Step 8: Verify the configuration
+    # Verify configuration
     echo -e "\nFinal remote configuration:"
     git remote -v
-    echo -e "\nCurrent branch tracking:"
+    echo -e "\nBranch tracking:"
     git branch -vv
 
-    echo -e "\nRepository setup completed successfully!"
-    if [ "$repo_type" = "fork" ]; then
-        echo "Workflow configuration:"
-        echo "- git pull $UPSTREAM_REMOTE $current_default  # Get upstream changes"
-        echo "- git push origin $current_default          # Push to your fork"
-    else
-        echo "Workflow configuration:"
-        echo "- git pull $UPSTREAM_REMOTE $current_default  # Get upstream changes"
-        echo "- git push origin $current_default          # Push to your fork"
+    # Show workflow instructions
+    echo -e "\nRepository setup completed!"
+    if git remote get-url $UPSTREAM_REMOTE >/dev/null 2>&1; then
+        echo -e "\nWorkflow commands:"
+        echo "  git pull $UPSTREAM_REMOTE $current_default  # Get upstream changes"
+        echo "  git push $FORK_REMOTE $current_default       # Push to your fork"
+        echo "  # Create PRs from your fork to upstream"
     fi
-    echo "- Create PRs from your fork to upstream"
 }
 
 # modify current tracked remote
