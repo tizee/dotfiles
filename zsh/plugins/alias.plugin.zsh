@@ -30,7 +30,7 @@ alias rm='rm -v'
 alias ln='ln -v'
 # }}}
 
-alias proxy="http_proxy=http://127.0.0.1:1087 https_proxy=http://127.0.0.1:1087 socks5_proxy=socks5://127.0.0.1:1080 all_proxy=socks5://127.0.0.1:1080"
+alias proxy="http_proxy=http://127.0.0.1:1087 https_proxy=http://127.0.0.1:1087 socks5_proxy=socks5://127.0.0.1:1080 all_proxy=http://127.0.0.1:1087"
 # Add this to your ~/.bashrc or ~/.zshrc
 
 proxytoggle() {
