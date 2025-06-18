@@ -32,7 +32,8 @@ help:
 claude:
 	@echo "link claude code config"
 	mkdir -p ~/.claude
-	ln -sv $(PWD)/claude/claude-code-settings.json ~/.claude/settings.json
+	-ln -sv $(PWD)/claude/claude-code-settings.json ~/.claude/settings.json
+	-ln -sv $(PWD)/claude/commands ~/.claude/commands
 .PHONY: claude
 
 cargo:
