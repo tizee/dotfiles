@@ -26,7 +26,14 @@ help:
 	@echo "make rm-zsh        -  require make install"
 	@echo "make sudoer        -  (macOS) sudoer setup"
 	@echo "make lldb          -  (macOS) lldb setup"
+	@echo "make claude        -  (macOS) claude code setup"
 .PHONY: help
+
+claude:
+	@echo "link claude code config"
+	mkdir -p ~/.claude
+	ln -sv $(PWD)/claude/claude-code-settings.json ~/.claude/settings.json
+.PHONY: claude
 
 cargo:
 	@echo "link cargo config"

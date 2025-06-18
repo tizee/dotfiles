@@ -1,0 +1,8 @@
+{
+  "includeCoAuthoredBy": false,
+  "env": {
+    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": true,
+    "HTTP_PROXY": "http://127.0.0.1:1087",
+    "HTTPS_PROXY": "http://127.0.0.1:1087"
+  }
+}

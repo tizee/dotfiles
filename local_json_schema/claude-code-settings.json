@@ -1,0 +1,247 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Claude Settings Configuration",
+  "description": "Schema for validating Claude code settings.json configuration\r\r see https://docs.anthropic.com/en/docs/claude-code/settings",
+  "type": "object",
+  "properties": {
+    "apiKeyHelper": {
+      "description": "Custom script to generate an auth value, executed in /bin/sh",
+      "type": "string",
+      "pattern": "^\\/.*\\.sh$",
+      "examples": [
+        "/bin/generate_temp_api_key.sh"
+      ]
+    },
+    "cleanupPeriodDays": {
+      "description": "How long to locally retain chat transcripts in days",
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 365,
+      "default": 30,
+      "examples": [
+        20
+      ]
+    },
+    "env": {
+      "description": "Environment variables applied to every session",
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "properties": {
+        "ANTHROPIC_API_KEY": {
+          "description": "API key sent as X-Api-Key header",
+          "type": "string",
+          "minLength": 1
+        },
+        "ANTHROPIC_AUTH_TOKEN": {
+          "description": "Custom value for Authorization headers (prefixed with 'Bearer ')",
+          "type": "string",
+          "minLength": 1
+        },
+        "ANTHROPIC_CUSTOM_HEADERS": {
+          "description": "Custom headers in 'Name: Value' format",
+          "type": "string",
+          "pattern": "^([\\w-]+:\\s*.+)(,\\s*[\\w-]+:\\s*.+)*$"
+        },
+        "ANTHROPIC_MODEL": {
+          "description": "Name of custom model to use",
+          "type": "string"
+        },
+        "ANTHROPIC_SMALL_FAST_MODEL": {
+          "description": "Name of Haiku-class model for background tasks",
+          "type": "string"
+        },
+        "BASH_DEFAULT_TIMEOUT_MS": {
+          "description": "Default timeout for bash commands in milliseconds",
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 86400000
+        },
+        "BASH_MAX_TIMEOUT_MS": {
+          "description": "Maximum timeout for bash commands in milliseconds",
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 86400000
+        },
+        "BASH_MAX_OUTPUT_LENGTH": {
+          "description": "Maximum characters in bash outputs before truncation",
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 1000000
+        },
+        "CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR": {
+          "description": "Return to original working directory after Bash commands",
+          "type": "boolean"
+        },
+        "CLAUDE_CODE_API_KEY_HELPER_TTL_MS": {
+          "description": "Credential refresh interval in milliseconds",
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 86400000
+        },
+        "CLAUDE_CODE_MAX_OUTPUT_TOKENS": {
+          "description": "Maximum output tokens for requests",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4096
+        },
+        "CLAUDE_CODE_USE_BEDROCK": {
+          "description": "Enable Bedrock integration",
+          "type": "boolean"
+        },
+        "CLAUDE_CODE_USE_VERTEX": {
+          "description": "Enable Vertex integration",
+          "type": "boolean"
+        },
+        "CLAUDE_CODE_SKIP_BEDROCK_AUTH": {
+          "description": "Skip AWS authentication for Bedrock",
+          "type": "boolean"
+        },
+        "CLAUDE_CODE_SKIP_VERTEX_AUTH": {
+          "description": "Skip Google authentication for Vertex",
+          "type": "boolean"
+        },
+        "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": {
+          "description": "Disable non-essential network traffic: Equivalent of setting DISABLE_AUTOUPDATER, DISABLE_BUG_COMMAND, DISABLE_ERROR_REPORTING, and DISABLE_TELEMETRY",
+          "type": "boolean"
+        },
+        "DISABLE_AUTOUPDATER": {
+          "description": "Disable automatic updater",
+          "type": "integer",
+          "enum": [
+            0,
+            1
+          ]
+        },
+        "DISABLE_BUG_COMMAND": {
+          "description": "Disable /bug command",
+          "type": "integer",
+          "enum": [
+            0,
+            1
+          ]
+        },
+        "DISABLE_COST_WARNINGS": {
+          "description": "Disable cost warning messages",
+          "type": "integer",
+          "enum": [
+            0,
+            1
+          ]
+        },
+        "DISABLE_ERROR_REPORTING": {
+          "description": "Opt out of Sentry error reporting",
+          "type": "integer",
+          "enum": [
+            0,
+            1
+          ]
+        },
+        "DISABLE_NON_ESSENTIAL_MODEL_CALLS": {
+          "description": "Disable non-critical model calls",
+          "type": "integer",
+          "enum": [
+            0,
+            1
+          ]
+        },
+        "DISABLE_TELEMETRY": {
+          "description": "Opt out of Statsig telemetry",
+          "type": "integer",
+          "enum": [
+            0,
+            1
+          ]
+        },
+        "HTTP_PROXY": {
+          "description": "HTTP proxy server URL",
+          "type": "string",
+          "format": "uri"
+        },
+        "HTTPS_PROXY": {
+          "description": "HTTPS proxy server URL",
+          "type": "string",
+          "format": "uri"
+        },
+        "MAX_THINKING_TOKENS": {
+          "description": "Thinking token budget",
+          "type": "integer",
+          "minimum": 1
+        },
+        "MCP_TIMEOUT": {
+          "description": "MCP server startup timeout in milliseconds",
+          "type": "integer",
+          "minimum": 100
+        },
+        "MCP_TOOL_TIMEOUT": {
+          "description": "MCP tool execution timeout in milliseconds",
+          "type": "integer",
+          "minimum": 100
+        }
+      },
+      "examples": [
+        {
+          "FOO": "bar"
+        }
+      ]
+    },
+    "includeCoAuthoredBy": {
+      "description": "Include co-authored-by Claude byline in git commits/PRs",
+      "type": "boolean",
+      "default": true,
+      "examples": [
+        false
+      ]
+    },
+    "permissions": {
+      "description": "Permission rules for allowed/denied actions",
+      "type": "object",
+      "properties": {
+        "allow": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_\\-\\s()]+$"
+          },
+          "examples": [
+            [
+              "Bash(npm run lint)"
+            ]
+          ]
+        },
+        "deny": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_\\-\\s()]+$"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "examples": [
+        {
+          "allow": [
+            "Bash(npm run lint)"
+          ]
+        }
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "examples": [
+    {
+      "apiKeyHelper": "/bin/generate_temp_api_key.sh",
+      "cleanupPeriodDays": 20,
+      "env": {
+        "FOO": "bar"
+      },
+      "includeCoAuthoredBy": false,
+      "permissions": {
+        "allow": [
+          "Bash(npm run lint)"
+        ]
+      }
+    }
+  ]
+}

@@ -254,6 +254,12 @@
   "json.schemas": [
     {
       "fileMatch": [
+        "/claude-code-settings.json"
+      ],
+      "url": "file:///Users/tizee/.config/local_json_schema/claude-code-settings.json"
+    },
+    {
+      "fileMatch": [
         "/clang-format.json"
       ],
       "url": "https://json-schema.org/draft/2019-09/schema"

@@ -607,9 +607,6 @@ fi
 [[ -f ~/.config/tabtab/zsh/__tabtab.zsh ]] && . ~/.config/tabtab/zsh/__tabtab.zsh || true
 source ~/.config/zsh/mangit.zsh
 
-# Added by Windsurf
-export PATH="/Users/tizee/.codeium/windsurf/bin:$PATH"
-
 # >>> mamba initialize >>>
 # !! Contents within this block are managed by 'mamba shell init' !!
 export MAMBA_EXE='/opt/homebrew/opt/micromamba/bin/mamba';
