@@ -3,6 +3,24 @@
   "env": {
     "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": true,
     "HTTP_PROXY": "http://127.0.0.1:1087",
-    "HTTPS_PROXY": "http://127.0.0.1:1087"
+    "HTTPS_PROXY": "http://127.0.0.1:1087",
+    "BASH_DEFAULT_TIMEOUT_MS": 60000,
+    "BASH_MAX_TIMEOUT_MS": 300000
+  },
+  "permissions": {
+    "allow": [
+      "Bash(fd:*)",
+      "Bash(rg:*)",
+      "Bash(gh:*)",
+      "Bash(which:*)",
+      "Bash(ls:*)",
+      "Bash(git:*)",
+      "TodoWrite",
+      "TodoRead"
+    ],
+    "deny": [
+      "Bash(rm -rf:*)",
+      "Bash(sudo:*)"
+    ]
   }
 }

@@ -202,11 +202,18 @@
           "type": "array",
           "items": {
             "type": "string",
-            "pattern": "^[A-Za-z0-9_\\-\\s()]+$"
+            "pattern": "^[A-Za-z0-9_][A-Za-z0-9_\\-\\s()./:*~${}\\[\\]]*$",
+            "minLength": 1
           },
+          "uniqueItems": true,
           "examples": [
             [
-              "Bash(npm run lint)"
+              "Bash(npm run lint)",
+              "Bash(fd:*)",
+              "Bash(rg:*)",
+              "Edit",
+              "MultiEdit",
+              "Bash(git commit:*)"
             ]
           ]
         },
@@ -214,15 +221,31 @@
           "type": "array",
           "items": {
             "type": "string",
-            "pattern": "^[A-Za-z0-9_\\-\\s()]+$"
-          }
+            "pattern": "^[A-Za-z0-9_][A-Za-z0-9_\\-\\s()./:*~${}\\[\\]]*$",
+            "minLength": 1
+          },
+          "uniqueItems": true,
+          "examples": [
+            [
+              "Bash(rm -rf:*)",
+              "Bash(sudo:*)",
+              "Bash(curl:*)"
+            ]
+          ]
         }
       },
       "additionalProperties": false,
       "examples": [
         {
           "allow": [
-            "Bash(npm run lint)"
+            "Bash(fd:*)",
+            "Bash(rg:*)",
+            "Edit",
+            "MultiEdit"
+          ],
+          "deny": [
+            "Bash(rm -rf:*)",
+            "Bash(sudo:*)"
           ]
         }
       ]
