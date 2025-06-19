@@ -30,10 +30,23 @@ help:
 .PHONY: help
 
 claude:
-	@echo "link claude code config"
-	mkdir -p ~/.claude
-	-ln -sv $(PWD)/claude/claude-code-settings.json ~/.claude/settings.json
-	-ln -sv $(PWD)/claude/commands ~/.claude/commands
+	@echo "Linking claude code config..."
+	@mkdir -p ~/.claude
+	@if [ -e ~/.claude/settings.json ]; then \
+		echo "~/.claude/settings.json already exists - skipping"; \
+	else \
+		ln -sv $(PWD)/claude/claude-code-settings.json ~/.claude/settings.json; \
+	fi
+	@if [ -e ~/.claude/commands ]; then \
+		echo "~/.claude/commands already exists - skipping"; \
+	else \
+		ln -sv $(PWD)/claude/commands ~/.claude/commands; \
+	fi
+	@if [ -e ~/.claude/CLAUDE.md ]; then \
+		echo "~/.claude/CLAUDE.md already exists - skipping"; \
+	else \
+		ln -sv $(PWD)/claude/CLAUDE.md ~/.claude/CLAUDE.md; \
+	fi
 .PHONY: claude
 
 cargo:
