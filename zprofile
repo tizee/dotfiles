@@ -511,6 +511,7 @@ if $is_macOS; then
   # python llm cli
   export LLM_USER_PATH="$HOME/.config/io.datasette.llm"
   export LLM_PROGRAM="/opt/homebrew/bin/llm"
+  export LLM_PREPARE_COMMIT_MSG_PROMPT="~/prompts/git/diff-based-commit-prompt.txt"
 
   # xray-core
   # export XRAY_LOCATION_CONFDIR="$HOME/.config/xray/conf"
