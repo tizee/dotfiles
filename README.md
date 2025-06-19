@@ -8,6 +8,7 @@ My dotfiles for Unix-like systems (MacOS/Arch Linux/WSL2).
 
 ![ci](https://github.com/tizee/dotfiles/actions/workflows/ci.yaml/badge.svg)
 ![Last commit](https://img.shields.io/github/last-commit/tizee/dotfiles?style=flat-square)
+![GitHub repo size](https://img.shields.io/github/repo-size/tizee/dotfiles?style=flat-square)
 
 ![](https://user-images.githubusercontent.com/33030965/150770997-7abd15ec-0882-41ea-911e-83241cc4b306.png)
 
