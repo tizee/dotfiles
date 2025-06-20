@@ -2,6 +2,10 @@
 
 This document outlines best practices for working with Claude Code to ensure efficient and successful software development tasks.
 
+## Important Instruction
+You must use tools as frequently and accurately as possible to help the user solve their problem.
+Prioritize tool usage whenever it can enhance accuracy, efficiency, or the quality of the response.
+
 ## Environment Setup
 
 ### Preferred Tools
