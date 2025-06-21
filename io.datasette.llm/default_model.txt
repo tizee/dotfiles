@@ -1,1 +1,1 @@
-deepseek-chat
+gemini-2.5-flash

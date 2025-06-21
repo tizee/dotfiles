@@ -70,7 +70,7 @@ function safe-accept-line() {
       target_real=$(readlink -f "$target_file" 2>/dev/null) || target_real=$target_file
 
       if [[ $input_real == $target_real ]]; then
-        zle -M "ERROR: Self-redirection blocked ($input_file${red} -> $target_file)"
+        zle -M "ERROR: Self-redirection blocked ($input_file -> $target_file)"
         return
       fi
     done
