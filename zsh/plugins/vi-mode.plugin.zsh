@@ -18,37 +18,62 @@ function zle-keymap-select() {
 
 zle -N zle-keymap-select
 
-# Enhanced accept-line function with self-redirection protection
+# Enhanced accept-line with comprehensive self-redirection protection
 function safe-accept-line() {
   local cmdline=$BUFFER
 
   # Check for output redirection
   if [[ $cmdline =~ '>[[:space:]]*([^[:space:]|&;]+)' ]]; then
     local target_file=${match[1]}
+    local words=("${(z)cmdline%%>*}")  # Parse command before redirection
+    local cmd_name=${words[1]}
 
-    # Extract command name (first word)
-    local cmd_name=${${(z)cmdline}[1]}
-
-    # Skip check for built-ins and functions
+    # Skip built-ins and functions
     if (( ${+builtins[$cmd_name]} )) || (( ${+functions[$cmd_name]} )); then
       zle accept-line
       return
     fi
 
-    # Resolve command path
-    local cmd_path=$(command -v "$cmd_name" 2>/dev/null)
-    [[ -z $cmd_path ]] && { zle accept-line; return; }
+    # Check all possible input files
+    local input_files=()
 
-    local cmd_real target_real
-    cmd_real=$(readlink -f "$cmd_path" 2>/dev/null) || cmd_real=$cmd_path
-    target_real=$(readlink -f "$target_file" 2>/dev/null) || target_real=$target_file
+    case $cmd_name in
+      # Script interpreters - check script file arguments
+      python*|node|ruby|perl|php|bash|zsh|sh)
+        # Find script files in arguments (skip flags)
+        local i
+        for ((i=2; i<=${#words}; i++)); do
+          local arg=${words[i]}
+          # Skip flags and options
+          [[ $arg == -* ]] && continue
+          # If it's a readable file, add to input_files
+          [[ -r $arg ]] && input_files+=$arg
+        done
+        ;;
+      # Direct executables
+      *)
+        # Check if the command itself is a file
+        if [[ -x $cmd_name ]]; then
+          input_files+=$cmd_name
+        elif command -v "$cmd_name" >/dev/null 2>&1; then
+          local cmd_path=$(command -v "$cmd_name")
+          [[ -f $cmd_path ]] && input_files+=$cmd_path
+        fi
+        ;;
+    esac
 
-    # Check if command would redirect to itself
-    if [[ $cmd_real == $target_real ]]; then
-       print -u2 "\nERROR: Self-redirection blocked ($cmd_name -> $target_file)"
-      zle reset-prompt
-      return
-    fi
+    # Check each input file against target
+    local input_file
+    for input_file in $input_files; do
+      local input_real target_real
+      input_real=$(readlink -f "$input_file" 2>/dev/null) || input_real=$input_file
+      target_real=$(readlink -f "$target_file" 2>/dev/null) || target_real=$target_file
+
+      if [[ $input_real == $target_real ]]; then
+        zle -M "ERROR: Self-redirection blocked ($input_file${red} -> $target_file)"
+        return
+      fi
+    done
   fi
 
   # Normal execution
