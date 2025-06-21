@@ -18,18 +18,58 @@ function zle-keymap-select() {
 
 zle -N zle-keymap-select
 
-function vi-accept-line() {
+# Enhanced accept-line function with self-redirection protection
+function safe-accept-line() {
+  local cmdline=$BUFFER
+
+  # Check for output redirection
+  if [[ $cmdline =~ '>[[:space:]]*([^[:space:]|&;]+)' ]]; then
+    local target_file=${match[1]}
+
+    # Extract command name (first word)
+    local cmd_name=${${(z)cmdline}[1]}
+
+    # Skip check for built-ins and functions
+    if (( ${+builtins[$cmd_name]} )) || (( ${+functions[$cmd_name]} )); then
+      zle accept-line
+      return
+    fi
+
+    # Resolve command path
+    local cmd_path=$(command -v "$cmd_name" 2>/dev/null)
+    [[ -z $cmd_path ]] && { zle accept-line; return; }
+
+    local cmd_real target_real
+    cmd_real=$(readlink -f "$cmd_path" 2>/dev/null) || cmd_real=$cmd_path
+    target_real=$(readlink -f "$target_file" 2>/dev/null) || target_real=$target_file
+
+    # Check if command would redirect to itself
+    if [[ $cmd_real == $target_real ]]; then
+       print -u2 "\nERROR: Self-redirection blocked ($cmd_name -> $target_file)"
+      zle reset-prompt
+      return
+    fi
+  fi
+
+  # Normal execution
   VI_KEYMAP=main
   zle accept-line
 }
 
-zle -N vi-accept-line
+zle -N safe-accept-line
 
 bindkey -v
 
+bindkey -M vicmd '^J' safe-accept-line
+bindkey -M vicmd '^M' safe-accept-line
+bindkey -M viins '^J' safe-accept-line
+bindkey -M viins '^M' safe-accept-line
+bindkey -M main '^J' safe-accept-line
+bindkey -M main '^M' safe-accept-line
+
 # use custom accept-line widget to update $VI_KEYMAP
-bindkey -M vicmd '^J' vi-accept-line
-bindkey -M vicmd '^M' vi-accept-line
+#bindkey -M vicmd '^J' vi-accept-line
+#bindkey -M vicmd '^M' vi-accept-line
 
 # allow v to edit the command line (standard behaviour)
 autoload -Uz edit-command-line
