@@ -19,12 +19,31 @@ function! s:change_opts()
   setl ei=FileType " ignore FileType event
   let l:msg="You have opened a file LAREGER than " . (g:large_file_size / (1024 * 1024)) . " MB"
   echohl WarningMsg | echom l:msg | echohl None
+  " Disable plugins for large files
+  " Disable heavy plugins
+  if exists(':CocDisable')
+    CocDisable
+  endif
+  " Add more plugins to disable as needed
 endfunction
 
 function! s:handle_largefile(file)
   let f = getfsize(a:file)
   if f > g:large_file_size || f == -2
     autocmd file_vim VimEnter * call <SID>change_opts()
+    " Check if file is binary
+    if !empty(glob(a:file)) && system("file -b --mime " . shellescape(a:file)) =~? 'application/octet-stream'
+      setl binary
+      setl nobomb
+      setl noeol
+      setl nofixendofline
+      " Call hex viewer function if binary
+      call <SID>hex_viewer(a:file)
+    endif
+    " Check if plugin is loaded
+    if exists('g:loaded_coc')
+      let g:loaded_coc = 0
+    endif
   endif
 endfunction
 
@@ -36,6 +55,18 @@ augroup file_vim
   autocmd BufReadPre * call <SID>handle_largefile(expand("<afile>"))
   autocmd BufReadPre zh-* call <SID>handle_chinese_file()
 augroup END "file_vim
+
+function! s:hex_viewer(file)
+  " Use hexdump to display binary files
+  if executable('hexdump')
+    silent execute "%!hexdump -C " . shellescape(a:file)
+    setl readonly
+    setl nomodifiable
+    setl filetype=hex
+  else
+    echohl ErrorMsg | echom "hexdump not found. Install it to view binary files." | echohl None
+  endif
+endfunction
 
 " inspired by yuchanns/ccr.nvim
 " created time
