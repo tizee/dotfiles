@@ -101,7 +101,8 @@ fi
 
 # WSL
 if $(uname -r | grep 'microsoft' > /dev/null); then
-  echo "WSL $USER at $(date) - $TTY"
+  # Only show banner for interactive terminals
+  [[ $- == *i* ]] && echo "WSL $USER at $(date) - $TTY"
   # always use host proxy
   source ~/.config/win_scripts/wsl2/wsl-proxy
   export PATH="$HOME/.config/win_scripts/wsl2:$PATH"
@@ -109,7 +110,8 @@ if $(uname -r | grep 'microsoft' > /dev/null); then
   # use ssh-key from smart-card
   # export SSH_AUTH_SOCK=$HOME/.gnupg/S.gpg-agent.ssh
 else
-  echo "macOS $USER at $(date) - $TTY"
+  # Only show banner for interactive terminals
+  [[ $- == *i* ]] && echo "macOS $USER at $(date) - $TTY"
 fi
 
 # Preferred editor for local and remote sessions

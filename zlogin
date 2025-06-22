@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 
-# use ANSI shadow style logo
-if [[ $PROLOGUE_LOGO ]]; then
+# use ANSI shadow style logo - only show in interactive terminals
+if [[ $PROLOGUE_LOGO && $- == *i* ]]; then
   echo "\033[94m"
   echo " ████████╗██╗███████╗███████╗███████╗ ███████╗███████╗██╗  ██╗"
   echo " ╚══██╔══╝██║╚══███╔╝██╔════╝██╔════╝ ╚══███╔╝██╔════╝██║  ██║"
@@ -11,7 +11,7 @@ if [[ $PROLOGUE_LOGO ]]; then
   echo "    ╚═╝   ╚═╝╚══════╝╚══════╝╚══════╝ ╚══════╝╚══════╝╚═╝  ╚═╝"
   echo "\033[m"
 fi
-if [[ $PROLOGUE_FORTUNE ]]; then
+if [[ $PROLOGUE_FORTUNE && $- == *i* ]]; then
   local quotes=(
     alan-kay
     mao-ze-dong-anthology
