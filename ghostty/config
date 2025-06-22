@@ -49,11 +49,11 @@
 #
 # Changing this configuration at runtime will only affect new terminals, i.e.
 # new windows, tabs, etc.
-font-family = JetBrainsMono Nerd Font, LXGW WenKai Mono, Lantinghei TC
+font-family = Maple Mono NF, JetBrainsMono Nerd Font, LXGW WenKai Mono, Lantinghei TC
 
-font-family-bold = JetBrainsMono Nerd Font, LXGW WenKai Mono, Lantinghei TC
-font-family-italic =
-font-family-bold-italic =
+font-family-bold = Maple Mono NF, JetBrainsMono Nerd Font, LXGW WenKai Mono, Lantinghei TC
+font-family-italic = Maple Mono NF
+font-family-bold-italic = Maple Mono NF
 # The named font style to use for each of the requested terminal font styles.
 # This looks up the style based on the font style string advertised by the
 # font itself. For example, "Iosevka Heavy" has a style of "Heavy".
@@ -117,10 +117,9 @@ font-synthetic-style = bold,italic,bold-italic
 # feature name for programming ligatures. To look into what font features
 # your font has and what they do, use a font inspection tool such as
 # [fontdrop.info](https://fontdrop.info).
-#
 # To generally disable most ligatures, use `-calt`, `-liga`, and `-dlig` (as
 # separate repetitive entries in your config).
-font-feature = calt, liga, dlig
+font-feature = calt, liga, dlig, cv01, clig
 
 # Font size in points. This value can be a non-integer and the nearest integer
 # pixel size will be selected. If you have a high dpi display where 1pt = 2px
@@ -356,27 +355,21 @@ freetype-load-flags = hinting,force-autohint,monochrome,autohint
 #
 #   - macOS: titlebar tabs style is not updated when switching themes.
 #
-theme = dark:Dracula,light:Dracula
-
-# Background color for the window.
-background =
-
-# Foreground color for the window.
-foreground =
+theme = MyDracula
 
 # The foreground and background color for selection. If this is not set, then
 # the selection color is just the inverted window background and foreground
 # (note: not to be confused with the cell bg/fg).
-selection-foreground =
+#selection-foreground =
 
-selection-background =
+#selection-background =
 # Swap the foreground and background colors of cells for selection. This
 # option overrides the `selection-foreground` and `selection-background`
 # options.
 #
 # If you select across cells with differing foregrounds and backgrounds, the
 # selection color will vary across the selection.
-selection-invert-fg-bg = false
+selection-invert-fg-bg = true
 
 # The minimum contrast ratio between the foreground and background colors.
 # The contrast ratio is a value between 1 and 21. A value of 1 allows for no
@@ -1152,6 +1145,7 @@ keybind = shift+up=adjust_selection:up
 keybind = super+down=jump_to_prompt:1
 keybind = super+enter=toggle_fullscreen
 keybind = super+t=new_tab
+keybind = super+backslash=toggle_tab_overview
 keybind = super+c=copy_to_clipboard
 keybind = super+shift+right_bracket=next_tab
 keybind = super+physical:one=goto_tab:1
@@ -1326,7 +1320,7 @@ window-decoration = true
 # The font that will be used for the application's window and tab titles.
 #
 # This is currently only supported on macOS.
-window-title-font-family =
+window-title-font-family = Maple Mono NF
 
 # The theme to use for the windows. Valid values:
 #
@@ -1355,7 +1349,7 @@ window-theme = auto
 # Changing this value at runtime will only affect new windows.
 #
 # This setting is only supported on macOS.
-window-colorspace = srgb
+window-colorspace = display-p3
 
 # The initial window size. This size is in terminal grid cells by default.
 # Both values must be set to take effect. If only one value is set, it is
@@ -2209,7 +2203,7 @@ gtk-adwaita = true
 desktop-notifications = true
 
 # If `true`, the bold text will use the bright color palette.
-bold-is-bright = false
+bold-is-bright = true
 
 # This will be used to set the `TERM` environment variable.
 # HACK: We set this with an `xterm` prefix because vim uses that to enable key

@@ -115,6 +115,7 @@ end)
 
 return {
  -- general settings <-
+ -- true color
  term = "xterm-256color",
  hyperlink_rules = {
   -- Linkify things that look like URLs and the host has a TLD name.
