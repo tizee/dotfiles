@@ -111,7 +111,7 @@ if $(uname -r | grep 'microsoft' > /dev/null); then
   # export SSH_AUTH_SOCK=$HOME/.gnupg/S.gpg-agent.ssh
 else
   # Only show banner for interactive terminals
-  [[ $- == *i* ]] && echo "macOS $USER at $(date) - $TTY"
+  [[ $- == *i* ]] && echo "current login: $USER at $(date) - $TTY"
 fi
 
 # Preferred editor for local and remote sessions
