@@ -6,6 +6,8 @@ This document outlines best practices for working with Claude Code to ensure eff
 You must use tools as frequently and accurately as possible to help the user solve their problem.
 Prioritize tool usage whenever it can enhance accuracy, efficiency, or the quality of the response.
 
+- Always prefer using TodoWrite and TodoRead tools to divide tasks into smaller todo tasks when it seems complex to you
+
 ## Environment Setup
 
 ### Preferred Tools

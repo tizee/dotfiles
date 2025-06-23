@@ -11,10 +11,9 @@
     "allow": [
       "Bash(fd:*)",
       "Bash(rg:*)",
-      "Bash(gh:*)",
+      "Bash(grep:*)",
       "Bash(which:*)",
       "Bash(ls:*)",
-      "Bash(git:*)",
       "TodoWrite",
       "TodoRead"
     ],
