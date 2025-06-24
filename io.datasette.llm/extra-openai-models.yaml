@@ -33,3 +33,8 @@
   api_base: "https://openrouter.ai/api/v1"
   can_stream: true
   api_key_name: openrouter
+- model_id: gemini-2.5-flash-lite
+  model_name: google/gemini-2.5-flash-lite-preview-06-17
+  api_base: "https://openrouter.ai/api/v1"
+  can_stream: true
+  api_key_name: openrouter
