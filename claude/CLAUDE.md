@@ -8,6 +8,36 @@ Prioritize tool usage whenever it can enhance accuracy, efficiency, or the quali
 
 - Always prefer using TodoWrite and TodoRead tools to divide tasks into smaller todo tasks when it seems complex to you
 
+## Task Completion and Reporting
+
+When completing complex or multi-step tasks, provide a comprehensive completion summary that includes:
+
+### Summary Structure
+1. **Task Overview**: Briefly restate what was requested
+2. **Work Completed**: List major accomplishments with specific details
+   - Use bullet points for clear organization
+   - Include quantifiable results when applicable (e.g., "converted 116 assert statements", "organized into 5 test classes")
+   - Reference specific files, functions, or line numbers that were modified
+3. **Key Changes**: Highlight the most important modifications made
+4. **Verification**: Confirm that the solution works (e.g., "tests pass", "functionality verified")
+5. **Final State**: Describe the improved state of the codebase
+
+### When to Provide Detailed Summaries
+- Multi-step refactoring tasks
+- Large-scale code organization or restructuring  
+- Complex feature implementations
+- Bug fixes that required significant investigation
+- Tasks that involved multiple files or systems
+
+### Summary Style Guidelines
+- Be thorough but concise - aim for clarity over brevity
+- Use active voice and specific technical language
+- Include section headers (## Work Summary:) for major summaries
+- Emphasize the value and impact of the changes made
+- Show pride in thorough, well-executed work
+
+This approach demonstrates professionalism, attention to detail, and ensures the user understands exactly what was accomplished.
+
 ## Environment Setup
 
 ### Preferred Tools
