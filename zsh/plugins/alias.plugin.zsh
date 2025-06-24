@@ -145,7 +145,6 @@ fi
 # youtube-dl or its alternative yt-dlp
 # ========== youtube-dl========== {{{
 alias ydl="yt-dlp"
-#!/usr/bin/env zsh
 
 ###############################################################################
 # Options:
@@ -352,5 +351,8 @@ alias pn="pnpm"
 
 # If I use a command more than three times, I'll create an alias for it.
 alias ygurlcp="ygurl | pbcopy"
+
+# Claude Code over local proxy server
+alias pcc="ANTHROPIC_BASE_URL=http://127.0.0.1:8082 claude"
 
 # vim:ft=zsh:foldmarker={{{,}}}
