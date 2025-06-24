@@ -24,8 +24,8 @@ function! s:change_opts()
   if exists(':CocDisable')
     CocDisable
   endif
-  if exists(':ToggleLineMovemnt')
-    ToggleLineMovemnt
+  if exists(':ToggleLineMovement')
+    ToggleLineMovement
   endif
   " Add more plugins to disable as needed
 endfunction
