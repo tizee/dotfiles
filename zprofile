@@ -197,7 +197,7 @@ PATH="/usr/local/opt/krb5/sbin:$PATH"
 # macOS <-
 if $is_macOS; then
   ## prevent auto-update whenever run a brew command
-  #export HOMEBREW_NO_AUTO_UPDATE=1
+  export HOMEBREW_NO_AUTO_UPDATE=1
   ## Carp - statically typed lisp
   #export CARP_DIR="/usr/local/opt/carp"
   #PATH="$CARP_DIR/bin:$PATH"
