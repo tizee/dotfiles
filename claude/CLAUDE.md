@@ -10,6 +10,18 @@ Prioritize tool usage whenever it can enhance accuracy, efficiency, or the quali
 
 ## Task Completion and Reporting
 
+### Mandatory Response Requirement
+**For ANY task (regardless of complexity), you must provide a summary response.** This ensures users receive acknowledgment and confirmation of completed work.
+
+- **Simple Tasks**: Provide a one-sentence summary confirming completion
+- **Complex Tasks**: Provide a comprehensive completion summary with detailed breakdown
+
+### Response Guidelines
+Never leave tasks without feedback. Always respond with:
+- Confirmation that the task was completed
+- Brief description of what was accomplished
+- Any relevant outcomes or results
+
 When completing complex or multi-step tasks, provide a comprehensive completion summary that includes:
 
 ### Summary Structure
@@ -24,7 +36,7 @@ When completing complex or multi-step tasks, provide a comprehensive completion 
 
 ### When to Provide Detailed Summaries
 - Multi-step refactoring tasks
-- Large-scale code organization or restructuring  
+- Large-scale code organization or restructuring
 - Complex feature implementations
 - Bug fixes that required significant investigation
 - Tasks that involved multiple files or systems
@@ -110,6 +122,44 @@ When searching for specific content, patterns, or definitions within a codebase,
 - **Edit**: Single, well-defined replacement
 - **MultiEdit**: Multiple changes in same file (applies sequentially)
 
+### Edit Operation Best Practices
+
+**Principle: Default to Granular Edits.** Your default behavior must be to break down any non-trivial modification into the smallest possible, sequential `Edit` or `MultiEdit` calls. Avoid attempting large, complex changes in a single operation. This is not a suggestion, but a requirement to reduce errors and provide a better user experience.
+
+To ensure reliable and efficient file editing:
+
+#### Size Limits for Edit Operations
+- **Single Edit**: Limit `old_string` and `new_string` to 50-100 lines maximum
+- **MultiEdit**: Use at most 3-5 edit operations per call
+- **Large Changes**: Break into multiple sequential tool calls instead of one massive operation
+
+#### Breaking Down Large Modifications
+When facing large file modifications:
+1. **Identify Logical Sections**: Break changes into independent, logically cohesive chunks
+2. **Sequential Approach**: Use multiple separate Edit/MultiEdit calls in sequence
+3. **Incremental Progress**: Complete one section before moving to the next
+4. **Use TodoWrite**: Track progress across multiple edit operations
+
+#### Safe MultiEdit Practices
+- **Limit Scope**: Each edit within MultiEdit should target small, specific sections
+- **Avoid Overlapping**: Ensure edits don't interfere with each other
+- **Test Incrementally**: Verify each change works before proceeding
+
+#### Example: Large File Refactoring Strategy
+Instead of:
+```
+// DON'T: Single massive MultiEdit with 10+ operations
+MultiEdit([edit1, edit2, edit3, ... edit15])
+```
+
+Use:
+```
+// DO: Multiple smaller operations
+MultiEdit([edit1, edit2, edit3])  // First logical group
+MultiEdit([edit4, edit5, edit6])  // Second logical group
+Edit(edit7)                       // Single targeted change
+```
+
 ### Reliable Code Insertion with MultiEdit
 For larger code blocks:
 1. **Primary Edit**: Use stable line *after* insertion point as anchor
@@ -146,6 +196,7 @@ For larger code blocks:
 2. Check for whitespace mismatches in `old_string`
 3. Use more context in `old_string` to ensure uniqueness
 4. Break complex edits into smaller, atomic changes
+5. **Self-Correction**: If an edit fails, you MUST assume your approach was too broad. Your next step is to immediately break the failed edit into smaller, more granular `Edit` or `MultiEdit` calls and retry. Do not attempt the same large edit again.
 
 ### When File Operations Fail
 - Verify file paths are absolute, not relative
