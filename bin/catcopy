@@ -1,0 +1,12 @@
+#/bin/zsh
+
+catcopy() {
+    if [[ $# -eq 0 ]]; then
+        # from stdin
+        pbcopy
+    else
+        # Concatenate all file contents
+        cat "$@" | pbcopy && echo "✓ Copied contents to clipboard"
+    fi
+}
+
