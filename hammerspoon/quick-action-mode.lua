@@ -56,7 +56,7 @@ end
 function actions.showAppInfo()
 	alert.show(
 		string.format(
-			"App path:      %s\nBundler Id:      %s\nIM source id:  %s\nWindow Size: width:%s height:%s",
+			"App path:      %s\nApp Name:      %s\nIM source id:  %s\nWindow Size: width:%s height:%s",
 			hs.window.focusedWindow():application():path(),
 			hs.window.focusedWindow():application():name(),
 			hs.keycodes.currentSourceID(),
