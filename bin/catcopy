@@ -10,3 +10,4 @@ catcopy() {
     fi
 }
 
+catcopy "$@"

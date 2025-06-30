@@ -1,25 +1,30 @@
 {
-  "includeCoAuthoredBy": false,
   "env": {
-    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": true,
+    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "true",
     "HTTP_PROXY": "http://127.0.0.1:1087",
     "HTTPS_PROXY": "http://127.0.0.1:1087",
-    "BASH_DEFAULT_TIMEOUT_MS": 60000,
-    "BASH_MAX_TIMEOUT_MS": 300000
+    "BASH_DEFAULT_TIMEOUT_MS": "60000",
+    "BASH_MAX_TIMEOUT_MS": "300000"
   },
+  "includeCoAuthoredBy": false,
   "permissions": {
     "allow": [
+      "Bash(sg:*)",
+      "Bash(ast-grep:*)",
       "Bash(fd:*)",
-      "Bash(rg:*)",
-      "Bash(grep:*)",
       "Bash(which:*)",
       "Bash(ls:*)",
+      "Bash(rg:*)",
       "TodoWrite",
       "TodoRead"
     ],
     "deny": [
+      "Grep",
       "Bash(rm -rf:*)",
-      "Bash(sudo:*)"
+      "Bash(sudo:*)",
+      "Bash(grep:*)",
+      "Bash(find:*)"
     ]
-  }
+  },
+  "model": "sonnet"
 }

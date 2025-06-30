@@ -53,10 +53,11 @@ This approach demonstrates professionalism, attention to detail, and ensures the
 ## Environment Setup
 
 ### Preferred Tools
+- **Primary**: Use `sg` (ast-grep) for structural code searches and syntax-aware analysis
 - Use `fd` instead of `find` for file searches: `fd "*.js" src/` instead of `find src/ -name "*.js"`
-- Use `rg` instead of `grep` for content searches
+- Use `rg` instead of `grep` for plain-text content searches (only when ast-grep isn't applicable)
 - Use `gh` CLI for GitHub operations
-- Always check tool availability first: `which fd || which find`
+- **Note**: ast-grep is pre-installed and available, just like ripgrep (`rg`) - no availability checks needed
 
 ### fd Usage Examples
 - Find files by name: `fd filename`
@@ -64,6 +65,12 @@ This approach demonstrates professionalism, attention to detail, and ensures the
 - Find in specific directory: `fd pattern /path/to/search`
 - Case insensitive: `fd -i pattern`
 - Include hidden files: `fd -H pattern`
+
+### Basic ast-grep Usage Examples
+- Find function calls: `sg -p 'functionName($$)' -l javascript .`
+- Find class definitions: `sg -p 'class $NAME { $$ }' -l typescript .`
+- Find imports: `sg -p 'import { $$ } from "$MODULE"' -l javascript .`
+- Interactive rewrite: `sg -p '$OLD_PATTERN' --rewrite '$NEW_PATTERN' -l python --interactive .`
 
 ## Task Management
 
@@ -73,28 +80,202 @@ For complex or multi-step tasks, Claude Code will use:
 
 ## Search Strategy Hierarchy
 
-### Tool Selection
-- **Agent**: Open-ended searches when uncertain about file locations ("find config files", "which file handles X"), keyword searches across unknown codebase structure
-- **Grep**: Known patterns in specific file types (`*.js`, specific regex patterns)
-- **Glob**: File pattern matching (`**/*.ts`, `src/**/test*.py`)
-- **Read**: Specific known file paths, small-to-medium files
-- **Bash + fd/rg**: Complex searches requiring counts, line numbers, or advanced filtering
+### Tool Selection Priority
+1. **ast-grep (sg)**: **PRIMARY** - Structural code patterns, syntax-aware searches, language-specific refactoring
+2. **Agent**: Broad exploration when ast-grep isn't applicable, semantic understanding, multi-round discovery
+3. **Grep**: Plain-text patterns only when explicitly requested or when structural search isn't needed
+4. **Glob**: File pattern matching (`**/*.ts`, `src/**/test*.py`)
+5. **Read**: Specific known file paths, small-to-medium files
+6. **Bash + fd/rg**: Complex searches requiring counts, line numbers, or advanced filtering
 
 ### Discovery Process
-1. Start with Agent for broad exploration and multi-round searches
-2. Use Grep to narrow down to specific patterns
-3. Use fd for file discovery, rg for content search
-4. Read identified files for detailed analysis
+1. **Use ast-grep first** for any code structure analysis:
+   - Function definitions, calls, or usage patterns
+   - Class definitions, inheritance, or method patterns
+   - Import/require statements or module usage
+   - Variable assignments, declarations, or references
+   - Language-specific syntax patterns
+2. **Fall back to Agent** for broad semantic exploration when ast-grep cannot handle the query
+3. **Use Grep only** for plain-text searches explicitly requested by user
+4. **Use fd** for file discovery based on names/paths
+5. **Read** identified files for detailed analysis
+
+### ast-grep First Strategy
+**ALWAYS prioritize ast-grep when the search involves:**
+- Code structure or syntax (functions, classes, methods, etc.)
+- Language-aware pattern matching (not just text matching)
+- Refactoring or code transformation needs
+- Finding usage patterns across codebases
+- Cross-language searches in polyglot repositories
+
+**Example Decision Matrix:**
+- ❌ "Find all TODO comments" → Use Grep (plain text)
+- ✅ "Find all function calls to `fetchData`" → Use ast-grep
+- ✅ "Find all React hooks usage" → Use ast-grep
+- ✅ "Find all class definitions extending BaseClass" → Use ast-grep
+- ❌ "Find files containing string 'password'" → Use Grep (plain text)
+- ✅ "Find all import statements from specific module" → Use ast-grep
 
 ### Agent Tool Usage
-- Use Agent when searching for concepts like "config", "logger", or "authentication logic"
+- Use Agent when ast-grep cannot handle the semantic complexity
+- Use Agent for conceptual searches like "authentication logic" or "configuration handling"
 - Launch multiple agents concurrently for complex multi-part searches
 - Use Agent when you need multiple rounds of discovery and aren't confident in first-try success
+
+## AST-Grep Integration Protocol
+
+### When to Use ast-grep
+
+Use `sg` (ast-grep) instead of plain regex or text search when:
+
+- **Structural code patterns** are involved (e.g., finding all function calls, class definitions, or method implementations)
+- **Language-aware refactoring** is required (e.g., renaming variables, updating function signatures, or changing imports)
+- **Complex code analysis** is needed (e.g., finding all usages of a pattern across different syntactic contexts)
+- **Cross-language searches** are necessary (e.g., working with both JavaScript and TypeScript in a monorepo)
+- **Semantic code understanding** is important (e.g., finding patterns based on code structure, not just text)
+
+### Command Templates
+
+#### Basic Search Pattern:
+```bash
+sg -p '$PATTERN' -l $LANGUAGE $PATH
+```
+
+#### Search with Context:
+```bash
+sg -p '$PATTERN' -l $LANGUAGE -C 3 $PATH  # Show 3 lines of context
+```
+
+#### Interactive Rewrite:
+```bash
+sg -p '$OLD_PATTERN' --rewrite '$NEW_PATTERN' -l $LANGUAGE --interactive $PATH
+```
+
+#### JSON Output for Processing:
+```bash
+sg -p '$PATTERN' -l $LANGUAGE --json $PATH
+```
+
+### Common Use Cases and Patterns
+
+#### JavaScript/TypeScript Patterns:
+- **Find function calls:**
+  `sg -p 'functionName($$)' -l javascript .`
+- **Find class definitions:**
+  `sg -p 'class $NAME { $$ }' -l typescript .`
+- **Find method calls on objects:**
+  `sg -p '$OBJ.$METHOD($$)' -l typescript .`
+- **Find import statements:**
+  `sg -p 'import { $$ } from "$MODULE"' -l javascript .`
+- **Find React hooks:**
+  `sg -p 'const [$STATE, $SETTER] = useState($$)' -l typescript .`
+- **Find async functions:**
+  `sg -p 'async function $NAME($$) { $$ }' -l javascript .`
+
+#### Python Patterns:
+- **Find function definitions:**
+  `sg -p 'def $NAME($$): $$' -l python .`
+- **Find class definitions:**
+  `sg -p 'class $NAME: $$' -l python .`
+- **Find method calls:**
+  `sg -p '$OBJ.$METHOD($$)' -l python .`
+- **Find imports:**
+  `sg -p 'from $MODULE import $$' -l python .`
+- **Find decorators:**
+  `sg -p '@$DECORATOR' -l python .`
+
+#### Ruby Patterns:
+- **Find class definitions:**
+  `sg -p 'class $NAME < $$; $$; end' -l ruby .`
+- **Find method definitions:**
+  `sg -p 'def $NAME($$); $$; end' -l ruby .`
+- **Find method calls:**
+  `sg -p '$OBJ.$METHOD($$)' -l ruby .`
+
+#### General Patterns:
+- **Find variable assignments:**
+  `sg -p '$VAR = $$' -l $LANG .`
+- **Find conditional statements:**
+  `sg -p 'if $CONDITION { $$ }' -l $LANG .`
+
+### Pattern Syntax Reference
+
+- **`$VAR`** — matches any single node and captures it
+- **`$$`** — matches zero or more nodes (wildcard)
+- **`$$$`** — matches one or more nodes
+- **Literal code** — matches exactly as written
+- **Indentation insensitive** — matches regardless of whitespace/formatting
+
+### Supported Languages
+
+- **Web**: `javascript`, `typescript`, `html`, `css`
+- **Backend**: `python`, `ruby`, `go`, `rust`, `java`, `c`, `cpp`
+- **Config**: `yaml`, `json`, `toml`
+- **And many more** - see [full list](https://ast-grep.github.io/reference/languages.html)
+
+### Integration Workflow
+
+#### Using ast-grep workflow:
+1. **Identify** if the task involves structural code patterns or language-aware refactoring
+2. **Determine** the appropriate language(s) to search
+3. **Construct** the pattern using ast-grep syntax
+4. **Run** ast-grep to gather precise structural information
+5. **Use** results to inform code edits, refactoring, or further analysis
+
+#### Example Workflow
+
+When asked to "find all service objects that call `perform` method":
+
+1. **Run ast-grep search:**
+   ```bash
+   sg -p 'perform($$)' -l ruby app/services/
+   ```
+2. **Analyze** results structurally
+3. **Use** Agent or Read tools for additional context if needed
+4. **Make** informed edits based on structural understanding
+
+### Advanced Usage
+
+#### Rewrite Patterns:
+```bash
+# Simple rewrite
+sg -p '$PROP && $PROP()' --rewrite '$PROP?.()' -l typescript
+
+# Interactive rewrite session
+sg -p '$OLD' --rewrite '$NEW' -l python --interactive
+
+# Auto-apply all changes
+sg -p '$OLD' --rewrite '$NEW' -l javascript --update-all
+```
+
+#### Complex Patterns:
+```bash
+# Find nested patterns
+sg -p 'if ($COND) { if ($INNER) { $$ } }' -l javascript
+
+# Find patterns with specific context
+sg -p 'class $NAME { constructor($$) { $$ } }' -l typescript
+```
+
+### Key Benefits Over Regex
+
+1. **Language-aware** — understands syntax and semantics
+2. **Structural matching** — finds patterns regardless of formatting
+3. **Cross-language** — works consistently across different languages
+4. **Precise refactoring** — makes structural changes safely
+5. **Context-aware** — understands code hierarchy and scope
+
+**Always prefer ast-grep for code structure analysis over regex-based approaches.**
 
 ## File Handling and Reading
 
 ### Targeted Information Retrieval
-When searching for specific content, patterns, or definitions within a codebase, prefer using search tools like `Grep` or `Agent`. This is more efficient than reading entire files.
+When searching for specific content, patterns, or definitions within a codebase, prefer using search tools in this order:
+1. **ast-grep (`sg`)** for structural code patterns and syntax-aware searches
+2. **Agent** for semantic understanding and complex multi-round discovery
+3. **Grep** for plain-text patterns only when structural search isn't applicable
+
+This is more efficient than reading entire files and provides better accuracy for code analysis.
 
 ### Reading File Content
 - **Small to Medium Files**: Use `Read` tool for files where full context is needed
@@ -170,13 +351,15 @@ For larger code blocks:
 ## Handling Large Files for Incremental Refactoring
 
 ### Initial Exploration
-- Use `Grep` to locate specific patterns or sections
-- Use `fd` and `rg` with line numbers: `rg -n "pattern" file`
+- **Primary**: Use `sg` (ast-grep) to locate structural code patterns: `sg -p 'pattern' -l language -C 3 file`
+- Use `fd` for file discovery: `fd pattern /path`
+- **Fallback**: Use `rg` with line numbers for plain-text patterns: `rg -n "pattern" file`
 - Create mental model of file structure before editing
 
 ### Chunked Reading Strategy
 - Use multiple `Read` operations with different `offset` and `limit` parameters
-- Use `rg -A N` or `rg -B N` to show context lines around matches
+- **Preferred**: Use `sg -A N` or `sg -B N` to show context lines around structural matches
+- **Fallback**: Use `rg -A N` or `rg -B N` for plain-text context
 - Target specific sections with focused `offset` parameters
 
 ### Sequential Selective Edits
