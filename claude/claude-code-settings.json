@@ -1,10 +1,12 @@
 {
   "env": {
-    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "true",
+    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": 1,
     "HTTP_PROXY": "http://127.0.0.1:1087",
     "HTTPS_PROXY": "http://127.0.0.1:1087",
     "BASH_DEFAULT_TIMEOUT_MS": "60000",
-    "BASH_MAX_TIMEOUT_MS": "300000"
+    "BASH_MAX_TIMEOUT_MS": "300000",
+    "CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR": true,
+    "DISABLE_NON_ESSENTIAL_MODEL_CALLS": 1
   },
   "includeCoAuthoredBy": false,
   "permissions": {
@@ -19,7 +21,6 @@
       "TodoRead"
     ],
     "deny": [
-      "Grep",
       "Bash(rm -rf:*)",
       "Bash(sudo:*)",
       "Bash(grep:*)",
