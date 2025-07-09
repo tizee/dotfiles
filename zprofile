@@ -519,4 +519,12 @@ if $is_macOS; then
   # export XRAY_LOCATION_CONFDIR="$HOME/.config/xray/conf"
   export HTTP_PROXY=http://127.0.0.1:1087
   export HTTPS_PROXY=http://127.0.0.1:1087
+
+  # SMART SUGGESTION
+  export SMART_SUGGESTION_KEY='^o'
+  export SMART_SUGGESTION_AUTO_UPDATE=false
+  export SMART_SUGGESTION_AI_PROVIDER="deepseek"
+  export SMART_SUGGESTION_BINARY="$HOME/projects/project-AI/tools/smart-suggestion.yetone/smart-suggestion"
+  export SMART_SUGGESTION_PROVIDER_FILE="$HOME/.config/llm/smart-suggestion.json"
+
 fi

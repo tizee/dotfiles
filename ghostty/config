@@ -49,9 +49,9 @@
 #
 # Changing this configuration at runtime will only affect new terminals, i.e.
 # new windows, tabs, etc.
-font-family = Maple Mono NF, JetBrainsMono Nerd Font, LXGW WenKai Mono, Lantinghei TC
+font-family = Maple Mono NF, LXGW WenKai Mono
 
-font-family-bold = Maple Mono NF, JetBrainsMono Nerd Font, LXGW WenKai Mono, Lantinghei TC
+font-family-bold = Maple Mono NF, LXGW WenKai Mono
 font-family-italic = Maple Mono NF
 font-family-bold-italic = Maple Mono NF
 # The named font style to use for each of the requested terminal font styles.
