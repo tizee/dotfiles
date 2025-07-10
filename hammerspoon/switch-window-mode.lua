@@ -9,12 +9,25 @@ local function getAppWindows()
     -- app = nil
     return {}
   end
-  -- log.d(app:name())
-  -- Spaces-aware windowfilters might experience a (sometimes significant) delay after every Space switch,
-  -- since (due to OS X limitations) they must re-query for the list of all windows in the current Space every time.
-  local wf = hs.window.filter.new(false):setAppFilter(app:name(),{visible=nil, currentSpace=nil})
-  local windows = wf:getWindows()
-  return windows
+  -- Use faster method: get all windows for the app directly
+  -- This avoids the slow window filter that queries current space
+  local windows = app:allWindows()
+  
+  -- Filter for valid, visible windows only
+  local validWindows = {}
+  for _, win in ipairs(windows) do
+    local title = win:title()
+    -- Filter out windows that are:
+    -- - not visible
+    -- - minimized
+    -- - have no title (nil or empty string)
+    if win:isVisible() and not win:isMinimized() and 
+       title and title ~= "" then
+      table.insert(validWindows, win)
+    end
+  end
+  
+  return validWindows
 end
 
 -- shortcuts to common Apps
@@ -38,24 +51,30 @@ local mode_config = {
     trigger   = 'tab',
 }
 
+-- Cache windows to avoid multiple calls to getAppWindows()
+local cached_windows = nil
+
 local function update_mappings()
-  local windows = getAppWindows()
+  cached_windows = getAppWindows()
   local mappings = {}
-  for i, win in ipairs(windows) do
-    if i<10 then
+  for i, win in ipairs(cached_windows) do
+    if i < 10 then
       -- use number
-      table.insert(mappings,{ {}, string.char(i+string.byte('0')) , string.sub(win:title(),0,50)});
+      local title = string.sub(win:title() or "", 1, 50)
+      table.insert(mappings, { {}, string.char(i + string.byte('0')), title })
     end
   end
   return mappings
 end
 
 local function update_actions()
-  local windows = getAppWindows()
+  -- Use cached windows instead of calling getAppWindows() again
+  local windows = cached_windows or {}
   local actions = {}
-  for _,win in pairs(windows) do
+  for _, win in pairs(windows) do
     -- limit the length of title to 50 bytes
-    actions[string.sub(win:title(),0,50)] = function ()
+    local title = string.sub(win:title() or "", 1, 50)
+    actions[title] = function()
       switchWindow(win)
     end
   end

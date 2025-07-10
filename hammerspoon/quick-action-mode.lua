@@ -32,10 +32,26 @@ end
 
 -- shortcuts to common Apps
 local actions = {}
+
+-- readable action names mapping
+local action_display_names = {
+	quickNavigation = "Quick Navigation",
+	pasteInPlainText = "Paste as Plain Text",
+	showAppInfo = "Show App Info",
+	toggleDarkMode = "Toggle Dark Mode",
+	reloadConfig = "Reload Config",
+	pasteBoardYoutubeURL = "YouTube URL Cleaner",
+	pasteBoardRemoveTrackers = "Remove URL Trackers",
+	Claude = "Toggle Claude",
+	Ghostty = "Toggle Ghostty",
+	Obsidian = "Toggle Obsidian",
+	["Cherry Studio"] = "Toggle Cherry Studio"
+}
+
 -- action name to app name
 local app_names = {
 	{ "Claude", "Claude" },
-	{ "ChatGPT", "ChatGPT" },
+	{ "Ghostty", "Ghostty" },
 	{ "Obsidian", "Obsidian" },
 	{ "Cherry Studio", "Cherry Studio" }
 }
@@ -98,6 +114,11 @@ end
 function actions.toggleDarkMode()
 	osascript.applescript(read_file_content(CONFIG_PATH .. "scripts/" .. "toggle_darkmode.applescript"))
 	hs.alert.show("Toggle Dark Mode")
+end
+
+-- function to get display name for an action
+function actions.getDisplayName(action_key)
+	return action_display_names[action_key] or action_key
 end
 
 return mode_comp.new("Quick Action Mode", "F17", HS_Config.quickActionMappings, actions)

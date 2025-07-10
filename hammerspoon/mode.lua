@@ -49,14 +49,15 @@ local function newModal(modeName,keycode,modeConfig,mappings,opTable)
   msgStr = modeName .. ' (' .. msgStr .. (string.len(msgStr) > 0 and '+' or '') .. trigger .. ')'
 
   for _, mapping in ipairs(mappings) do
-    local modifier, action_trigger, opName = table.unpack(mapping)
+    local modifier, action_trigger, opName, displayName = table.unpack(mapping)
     local hotKeyStr = getModifiersStr(modifier)
+    local showName = displayName or opName
 
     if showHelp == true then
       if string.len(hotKeyStr) > 0 then
-        msgStr = msgStr .. (string.format('\n%10s+%s => %s', hotKeyStr, action_trigger, opName))
+        msgStr = msgStr .. (string.format('\n%10s+%s => %s', hotKeyStr, action_trigger, showName))
       else
-        msgStr = msgStr .. (string.format('\n%11s => %s', action_trigger, opName))
+        msgStr = msgStr .. (string.format('\n%11s => %s', action_trigger, showName))
       end
     end
    local statusmessage = require('status-message')
