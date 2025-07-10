@@ -517,16 +517,19 @@ if $is_macOS; then
 
   # xray-core
   # export XRAY_LOCATION_CONFDIR="$HOME/.config/xray/conf"
-  export HTTP_PROXY=http://127.0.0.1:1087
-  export HTTPS_PROXY=http://127.0.0.1:1087
+  export HTTP_PROXY=http://127.0.0.1:1080
+  export HTTPS_PROXY=http://127.0.0.1:1080
 
-  # SMART SUGGESTION
+  # SMART SUGGESTION - Privacy-focused configuration
   export SMART_SUGGESTION_KEY='^o'
   export SMART_SUGGESTION_RECOVER_KEY='^y'
   export SMART_SUGGESTION_AUTO_UPDATE=false
   export SMART_SUGGESTION_AI_PROVIDER="openai_compatible"
   export SMART_SUGGESTION_BINARY="$HOME/projects/project-AI/tools/smart-suggestion.yetone/smart-suggestion"
   export SMART_SUGGESTION_PROVIDER_FILE="$HOME/.config/llm/smart-suggestion.json"
+  # Privacy settings
+  export SMART_SUGGESTION_PROXY_MODE=false
+  export SMART_SUGGESTION_SEND_CONTEXT=false
 
   # tmux-capture
   source "$HOME/projects/project-python/tizee-packages/tmux-capture/tmux-capture.plugin.zsh"

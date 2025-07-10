@@ -7,6 +7,16 @@
 # profiling zsh
 # zmodload zsh/zprof
 
+# Debug shell loading function
+function debug_shell_loading() {
+    local log_file="${1:-/tmp/shell_debug.log}"
+    echo "Debug: Loading .zshrc, SHLVL=$SHLVL, PPID=$PPID, PID=$$" >> "$log_file"
+    echo "Debug: SHELL=$SHELL, TERM_PROGRAM=$TERM_PROGRAM" >> "$log_file"
+    echo "Debug: Date=$(date)" >> "$log_file"
+    echo "---" >> "$log_file"
+    echo "Debug info logged to $log_file"
+}
+
 ######################
 # Prompt
 # more details on https://zsh.sourceforge.io/Doc/Release/Prompt-Expansion.html
@@ -586,10 +596,11 @@ chpwd_functions=(${chpwd_functions[@]} "__cd_hook_list_files")
 # <<< conda initialize <<<
 
 export TMUX_CONF="$HOME/.config/tmux/tmux.conf"
-if [[ "$TERM_PROGRAM" = "wezterm" ]]; then
-  if [[ -x "$(command -v tmux)" ]]; then
-    tmux has -t develop &> /dev/null
-    if [[ $? != 0 ]]; then
+# Commented out automatic tmux session to prevent nested shells
+supported_terms=("WezTerm" "ghostty")
+if [[ -n "$TERM_PROGRAM" && " ${supported_terms[@]} " =~ " $TERM_PROGRAM " ]]; then
+  if command -v tmux &> /dev/null; then
+    if ! tmux has -t develop &> /dev/null; then
       tmux new -s develop
     else
       tmux attach -t develop
