@@ -282,13 +282,16 @@ return {
  -- ->
  -- font settings <-
  font_size = 20,
+ font_shaper = "Harfbuzz",
+ -- harfbuzz_features = { "calt=1", "clig=1", "liga=1" },
+ -- https://wezterm.org/config/font-shaping.html
  font = wezterm.font_with_fallback({
   {
    family = "Maple Mono NF",
    weight = "Regular",
    italic = false,
    -- see https://font.subf.dev/en/#features
-      harfbuzz_features = { 'cv01=1', 'clig=1', 'liga=1', 'calt=1' },
+    harfbuzz_features = { 'cv01=1', 'clig=1', 'liga=1', 'calt=1' },
   },
   {
    family = "JetBrainsMono Nerd Font Mono",
@@ -413,7 +416,6 @@ return {
  color_scheme = "Dracula",
  -- font shaping that enables ligatures
  -- see https://docs.microsoft.com/en-us/typography/opentype/spec/featurelist
- harfbuzz_features = { "calt=1", "clig=1", "liga=1" },
 }
 
 -- vim:foldmarker=<-,-> foldmethod=marker
