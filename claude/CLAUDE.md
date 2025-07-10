@@ -59,6 +59,52 @@ This approach demonstrates professionalism, attention to detail, and ensures the
 - Use `gh` CLI for GitHub operations
 - **Note**: ast-grep is pre-installed and available, just like ripgrep (`rg`) - no availability checks needed
 
+### rg Usage Examples
+
+Here's the revised **ripgrep (rg) Cheat Sheet** in the requested format:
+
+#### **Basic Search**
+- Search recursively: `rg "pattern"`
+- Search in directory: `rg "pattern" path/`
+- Case-insensitive: `rg -i "pattern"`
+- Show line numbers: `rg -n "pattern"`
+- Whole-word match: `rg -w "pattern"`
+- Literal string: `rg -F "$path"`
+
+#### **File Types**
+- Python files only: `rg --type=py "import"`
+- Multiple file types: `rg --type=js,ts "console"`
+- Exclude file types: `rg -Tjson "data"`
+
+#### **Context Control**
+- Show 3 lines after: `rg -A 3 "error"`
+- Show 2 lines before: `rg -B 2 "warning"`
+- Show 5 lines around: `rg -C 5 "panic"`
+
+#### **Multiline Search**
+- Basic multiline: `rg -U "start(.|\n)*?end"`
+- ⚠️ **Warning**: Cannot combine `-U` with `-A`/`-B`/`-C`
+
+#### **Output Formats**
+- Filenames only: `rg -l "config"`
+- Match counts: `rg -c "test"`
+- Only matched text: `rg -o "user_\w+"`
+- JSON output: `rg --json "pattern"`
+
+#### **Advanced**
+- Multiple patterns: `rg -e "err" -e "warn"`
+- PCRE2 regex: `rg --pcre2 "(?<=api_)v\d+"`
+- Search compressed: `rg -z "password" file.gz`
+
+#### **Performance**
+- Ignore .gitignore: `rg --no-ignore`
+- Search everything: `rg -uuu`
+- Limit depth: `rg --max-depth 3 "x"`
+
+#### **Pro Tips**
+- Find hidden files: `rg --hidden ".*env"`
+- Exclude minified: `rg -g '!*.min.js' "x"`
+
 ### fd Usage Examples
 - Find files by name: `fd filename`
 - Find by extension: `fd -e js -e ts`
