@@ -4,6 +4,10 @@
 (( ! ${+SMART_SUGGESTION_KEY} )) &&
     typeset -g SMART_SUGGESTION_KEY='^o'
 
+# Prompt recovery key binding
+(( ! ${+SMART_SUGGESTION_RECOVER_KEY} )) &&
+    typeset -g SMART_SUGGESTION_RECOVER_KEY='^[^o'
+
 # Configuration options
 (( ! ${+SMART_SUGGESTION_SEND_CONTEXT} )) &&
     typeset -g SMART_SUGGESTION_SEND_CONTEXT=true
@@ -127,6 +131,9 @@ function _do_smart_suggestion() {
     command rm -f /tmp/.smart_suggestion_canceled
     command rm -f /tmp/.smart_suggestion_error
     local input=$(echo "${BUFFER:0:$CURSOR}" | tr '\n' ';')
+    
+    ##### Save current input to history for recovery
+    echo "$input" > /tmp/smart_suggestion_last_prompt
 
     _zsh_autosuggest_clear
 
@@ -172,6 +179,28 @@ function _do_smart_suggestion() {
     fi
 }
 
+function _recover_last_prompt() {
+    ##### Check if last prompt file exists
+    if [[ ! -f /tmp/smart_suggestion_last_prompt ]]; then
+        echo "No previous prompt found"
+        return 1
+    fi
+    
+    ##### Read the last prompt
+    local last_prompt=$(cat /tmp/smart_suggestion_last_prompt 2>/dev/null)
+    
+    if [[ -z "$last_prompt" ]]; then
+        echo "No previous prompt found"
+        return 1
+    fi
+    
+    ##### Restore the prompt to buffer, converting back from semicolon format
+    local restored_prompt=$(echo "$last_prompt" | tr ';' '\n')
+    BUFFER="$restored_prompt"
+    CURSOR=${#BUFFER}
+    zle redisplay
+}
+
 function _check_smart_suggestion_updates() {
     # Check if SMART_SUGGESTION_UPDATE_INTERVAL is a positive integer
     if [[ "$SMART_SUGGESTION_UPDATE_INTERVAL" -le 0 ]]; then
@@ -203,11 +232,13 @@ function _check_smart_suggestion_updates() {
 
 function smart-suggestion() {
     echo "Smart Suggestion is now active. Press $SMART_SUGGESTION_KEY to get suggestions."
+    echo "Press $SMART_SUGGESTION_RECOVER_KEY to recover the last prompt."
     echo ""
     echo "Configurations:"
     echo "    - SMART_SUGGESTION_KEY: Key to press to get suggestions (default: ^o, value: $SMART_SUGGESTION_KEY)."
+    echo "    - SMART_SUGGESTION_RECOVER_KEY: Key to press to recover last prompt (default: ^[^o, value: $SMART_SUGGESTION_RECOVER_KEY)."
     echo "    - SMART_SUGGESTION_SEND_CONTEXT: If \`true\`, smart-suggestion will send context information (whoami, shell, pwd, etc.) to the AI model (default: true, value: $SMART_SUGGESTION_SEND_CONTEXT)."
-    echo "    - SMART_SUGGESTION_AI_PROVIDER: AI provider to use ('openai', 'azure_openai', 'anthropic', 'gemini', or 'deepseek', value: $SMART_SUGGESTION_AI_PROVIDER)."
+    echo "    - SMART_SUGGESTION_AI_PROVIDER: AI provider to use ('openai', 'openai_compatible', 'azure_openai', 'anthropic', 'gemini', or 'deepseek', value: $SMART_SUGGESTION_AI_PROVIDER)."
     echo "    - SMART_SUGGESTION_DEBUG: Enable debug logging (default: false, value: $SMART_SUGGESTION_DEBUG)."
     echo "    - SMART_SUGGESTION_AUTO_UPDATE: Enable automatic update checking (default: true, value: $SMART_SUGGESTION_AUTO_UPDATE)."
     echo "    - SMART_SUGGESTION_UPDATE_INTERVAL: Days between update checks (default: 7, value: $SMART_SUGGESTION_UPDATE_INTERVAL)."
@@ -215,7 +246,9 @@ function smart-suggestion() {
 }
 
 zle -N _do_smart_suggestion
+zle -N _recover_last_prompt
 bindkey "$SMART_SUGGESTION_KEY" _do_smart_suggestion
+bindkey "$SMART_SUGGESTION_RECOVER_KEY" _recover_last_prompt
 
 if [[ "$SMART_SUGGESTION_PROXY_MODE" == "true" && -z "$TMUX" && -z "$KITTY_LISTEN_ON" ]]; then
     _run_smart_suggestion_proxy

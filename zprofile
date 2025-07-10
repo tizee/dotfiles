@@ -522,6 +522,7 @@ if $is_macOS; then
 
   # SMART SUGGESTION
   export SMART_SUGGESTION_KEY='^o'
+  export SMART_SUGGESTION_RECOVER_KEY='^y'
   export SMART_SUGGESTION_AUTO_UPDATE=false
   export SMART_SUGGESTION_AI_PROVIDER="openai_compatible"
   export SMART_SUGGESTION_BINARY="$HOME/projects/project-AI/tools/smart-suggestion.yetone/smart-suggestion"
