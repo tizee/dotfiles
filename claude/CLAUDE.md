@@ -54,10 +54,18 @@ This approach demonstrates professionalism, attention to detail, and ensures the
 
 ### Preferred Tools
 - **Primary**: Use `sg` (ast-grep) for structural code searches and syntax-aware analysis
-- Use `fd` instead of `find` for file searches: `fd "*.js" src/` instead of `find src/ -name "*.js"`
-- Use `rg` instead of `grep` for plain-text content searches (only when ast-grep isn't applicable)
+- **MANDATORY**: Use `fd` instead of `find` for file searches: `fd "*.js" src/` instead of `find src/ -name "*.js"`
+- **MANDATORY**: Use `rg` instead of `grep` for plain-text content searches (only when ast-grep isn't applicable)
 - Use `gh` CLI for GitHub operations
-- **Note**: ast-grep is pre-installed and available, just like ripgrep (`rg`) - no availability checks needed
+- **Note**: ast-grep is pre-installed and available, just like ripgrep (`rg`) and fd - no availability checks needed
+
+### Tool Priority Enforcement
+**CRITICAL**: You MUST use modern tools over legacy alternatives:
+- ✅ **fd** → ❌ find
+- ✅ **rg** → ❌ grep
+- ✅ **sg** → ❌ regex-based searches for code
+
+**Never use `find` or `grep` commands directly.** Always use `fd` and `rg` instead.
 
 ### rg Usage Examples
 
@@ -106,11 +114,55 @@ Here's the revised **ripgrep (rg) Cheat Sheet** in the requested format:
 - Exclude minified: `rg -g '!*.min.js' "x"`
 
 ### fd Usage Examples
-- Find files by name: `fd filename`
-- Find by extension: `fd -e js -e ts`
-- Find in specific directory: `fd pattern /path/to/search`
-- Case insensitive: `fd -i pattern`
-- Include hidden files: `fd -H pattern`
+
+Here's the comprehensive **fd (file finder) Cheat Sheet** - an alternative to `find` that aims to be faster and easier to use:
+
+#### **Basic Search**
+- Recursively find files matching pattern: `fd "string|regex"`
+- Find files that begin with pattern: `fd "^foo"`
+- Find files by exact name: `fd filename`
+- Case insensitive search: `fd -i pattern`
+
+#### **File Extensions**
+- Find by single extension: `fd --extension txt`
+- Find by multiple extensions: `fd -e js -e ts`
+- Alternative syntax: `fd -e js,ts`
+
+#### **Directory Control**
+- Find in specific directory: `fd "pattern" path/to/directory`
+- Limit search depth: `fd --max-depth 3 pattern`
+- Search only directories: `fd --type d pattern`
+- Search only files: `fd --type f pattern`
+
+#### **Visibility Control**
+- Include hidden files: `fd --hidden pattern`
+- Include ignored files: `fd --no-ignore pattern`
+- Include both hidden and ignored: `fd -H --no-ignore pattern`
+- Show absolute paths: `fd --absolute-path pattern`
+
+#### **Output Control**
+- Execute command on results: `fd pattern -x command`
+- Print null-separated: `fd -0 pattern`
+- Show file details: `fd -l pattern`
+- Follow symlinks: `fd -L pattern`
+
+#### **Advanced Usage**
+- Multiple patterns: `fd -e js -e ts "test|spec"`
+- Exclude patterns: `fd --exclude node_modules pattern`
+- Full path search: `fd --full-path "/src.*test"`
+- Regex mode: `fd --regex "\.(js|ts)$"`
+
+#### **Performance Tips**
+- Use specific extensions when possible: `fd -e py` vs `fd "*.py"`
+- Combine with other tools: `fd -e js | xargs grep "pattern"`
+- Use parallel execution: `fd pattern -x parallel_command`
+
+#### **Common Use Cases**
+- Find config files: `fd "config" --type f`
+- Find test files: `fd "test" -e js -e ts`
+- Find all JavaScript: `fd -e js -e jsx -e ts -e tsx`
+- Find recently modified: `fd pattern -x ls -la`
+- Clean build artifacts: `fd "dist|build" --type d -x rm -rf`
 
 ### Basic ast-grep Usage Examples
 - Find function calls: `sg -p 'functionName($$)' -l javascript .`
@@ -129,10 +181,19 @@ For complex or multi-step tasks, Claude Code will use:
 ### Tool Selection Priority
 1. **ast-grep (sg)**: **PRIMARY** - Structural code patterns, syntax-aware searches, language-specific refactoring
 2. **Agent**: Broad exploration when ast-grep isn't applicable, semantic understanding, multi-round discovery
-3. **Grep**: Plain-text patterns only when explicitly requested or when structural search isn't needed
-4. **Glob**: File pattern matching (`**/*.ts`, `src/**/test*.py`)
-5. **Read**: Specific known file paths, small-to-medium files
-6. **Bash + fd/rg**: Complex searches requiring counts, line numbers, or advanced filtering
+3. **fd**: **MANDATORY** for file discovery - Never use `find`
+4. **rg**: **MANDATORY** for plain-text patterns - Never use `grep`
+5. **Glob**: File pattern matching (`**/*.ts`, `src/**/test*.py`)
+6. **Read**: Specific known file paths, small-to-medium files
+7. **Bash**: For executing fd/rg/sg commands and complex searches requiring counts, line numbers, or advanced filtering
+
+**Note**: All command-line tools (fd, rg, sg) are executed through the Bash tool. The Bash tool is the interface for running these modern alternatives.
+
+### File Discovery Strategy
+**Always use `fd` for file discovery tasks:**
+- ✅ `fd "*.js" src/` → ❌ `find src/ -name "*.js"`
+- ✅ `fd -e py test/` → ❌ `find test/ -name "*.py"`
+- ✅ `fd config --type f` → ❌ `find . -name "*config*" -type f`
 
 ### Discovery Process
 1. **Use ast-grep first** for any code structure analysis:
@@ -142,8 +203,8 @@ For complex or multi-step tasks, Claude Code will use:
    - Variable assignments, declarations, or references
    - Language-specific syntax patterns
 2. **Fall back to Agent** for broad semantic exploration when ast-grep cannot handle the query
-3. **Use Grep only** for plain-text searches explicitly requested by user
-4. **Use fd** for file discovery based on names/paths
+3. **Use rg only** for plain-text searches when ast-grep isn't applicable
+4. **Use fd** for file discovery based on names/paths - **NEVER use find**
 5. **Read** identified files for detailed analysis
 
 ### ast-grep First Strategy
@@ -155,12 +216,14 @@ For complex or multi-step tasks, Claude Code will use:
 - Cross-language searches in polyglot repositories
 
 **Example Decision Matrix:**
-- ❌ "Find all TODO comments" → Use Grep (plain text)
+- ❌ "Find all TODO comments" → Use rg (plain text)
 - ✅ "Find all function calls to `fetchData`" → Use ast-grep
 - ✅ "Find all React hooks usage" → Use ast-grep
 - ✅ "Find all class definitions extending BaseClass" → Use ast-grep
-- ❌ "Find files containing string 'password'" → Use Grep (plain text)
+- ❌ "Find files containing string 'password'" → Use rg (plain text)
 - ✅ "Find all import statements from specific module" → Use ast-grep
+- ❌ "Find all .env files" → Use fd
+- ❌ "Find Python test files" → Use fd
 
 ### Agent Tool Usage
 - Use Agent when ast-grep cannot handle the semantic complexity
@@ -319,7 +382,8 @@ sg -p 'class $NAME { constructor($$) { $$ } }' -l typescript
 When searching for specific content, patterns, or definitions within a codebase, prefer using search tools in this order:
 1. **ast-grep (`sg`)** for structural code patterns and syntax-aware searches
 2. **Agent** for semantic understanding and complex multi-round discovery
-3. **Grep** for plain-text patterns only when structural search isn't applicable
+3. **fd** for file discovery and name-based searches - **NEVER use find**
+4. **rg** for plain-text patterns only when structural search isn't applicable - **NEVER use grep**
 
 This is more efficient than reading entire files and provides better accuracy for code analysis.
 
@@ -398,8 +462,8 @@ For larger code blocks:
 
 ### Initial Exploration
 - **Primary**: Use `sg` (ast-grep) to locate structural code patterns: `sg -p 'pattern' -l language -C 3 file`
-- Use `fd` for file discovery: `fd pattern /path`
-- **Fallback**: Use `rg` with line numbers for plain-text patterns: `rg -n "pattern" file`
+- **MANDATORY**: Use `fd` for file discovery: `fd pattern /path` - **NEVER use find**
+- **Fallback**: Use `rg` with line numbers for plain-text patterns: `rg -n "pattern" file` - **NEVER use grep**
 - Create mental model of file structure before editing
 
 ### Chunked Reading Strategy
