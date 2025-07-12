@@ -1,6 +1,46 @@
 #!/bin/zsh
 
-export ANTHROPIC_AUTH_TOKEN=$(cat $HOME/.config/llm/cc-proxy.json | jq '.auth_key' -r)
-export ANTHROPIC_BASE_URL=$(cat $HOME/.config/llm/cc-proxy.json | jq '.base_url' -r)
-#export ANTHROPIC_API_KEY=$(cat $HOME/.config/llm/cc-proxy.json | jq '.api_key' -r)
-claude
+# Default config file
+CONFIG_FILE="$HOME/.config/llm/cc-proxy.json"
+
+# Parse command line arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -c|--config)
+            CONFIG_FILE="$2"
+            shift 2
+            ;;
+        -h|--help)
+            echo "Usage: ccproxy [options] [claude-args...]"
+            echo "Options:"
+            echo "  -c, --config FILE    Use custom config file (default: ~/.config/llm/cc-proxy.json)"
+            echo "  -h, --help           Show this help message"
+            echo ""
+            echo "Any additional arguments are passed directly to claude command"
+            exit 0
+            ;;
+        *)
+            break
+            ;;
+    esac
+done
+
+# Check if config file exists
+if [[ ! -f "$CONFIG_FILE" ]]; then
+    echo "Error: Config file not found: $CONFIG_FILE"
+    echo "Use -c/--config to specify a custom config file"
+    exit 1
+fi
+
+# Read config file
+if ! command -v jq &> /dev/null; then
+    echo "Error: jq is required but not installed"
+    exit 1
+fi
+
+export ANTHROPIC_AUTH_TOKEN=$(cat "$CONFIG_FILE" | jq '.auth_key' -r)
+export ANTHROPIC_BASE_URL=$(cat "$CONFIG_FILE" | jq '.base_url' -r)
+#export ANTHROPIC_API_KEY=$(cat "$CONFIG_FILE" | jq '.api_key' -r)
+
+# Pass remaining arguments to claude
+claude "$@"
