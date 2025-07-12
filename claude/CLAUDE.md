@@ -67,6 +67,16 @@ This approach demonstrates professionalism, attention to detail, and ensures the
 
 **Never use `find` or `grep` commands directly.** Always use `fd` and `rg` instead.
 
+### MANDATORY Tool Usage
+**YOU ARE BLOCKED FROM USING LEGACY COMMANDS** - The system has hooks configured that will deny permission for:
+- `find` commands (use `fd` instead)
+- `grep` commands (use `rg` instead)
+
+**File Search Examples:**
+- ❌ `find . -name "*.swift" -type f` → ✅ `fd "\.swift$"`
+- ❌ `find . -name "MyFile.swift"` → ✅ `fd "MyFile.swift"`
+- ❌ `grep -r "pattern" .` → ✅ `rg "pattern"`
+
 ### rg Usage Examples
 
 Here's the revised **ripgrep (rg) Cheat Sheet** in the requested format:

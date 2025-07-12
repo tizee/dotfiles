@@ -1,5 +1,0 @@
-#!/bin/zsh
-
-export ANTHROPIC_AUTH_TOKEN=$(cat $HOME/.config/llm/anyrouter.json | jq '.auth_key' -r)
-export ANTHROPIC_BASE_URL=$(cat $HOME/.config/llm/anyrouter.json | jq '.base_url' -r)
-claude

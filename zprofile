@@ -533,4 +533,7 @@ if $is_macOS; then
 
   # tmux-capture
   source "$HOME/projects/project-python/tizee-packages/tmux-capture/tmux-capture.plugin.zsh"
+
+  # git hook
+  export GITHOOK_SPINNER="dots"
 fi
