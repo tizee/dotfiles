@@ -461,14 +461,6 @@ if $is_macOS; then
   ## anaconda3
   ## source $HOME/.config/conda_active.zsh
 
-  ## keyboard setting for vim
-  #if [ -f $(command -v kbaware) ]; then
-  #  export COLEMAK_KEYBOARD=0
-  #  # if test $(kbaware) = 'Colemak'; then
-  #  #   export COLEMAK_KEYBOARD=1
-  #  # fi
-  #fi
-
   # yubikey
   # export SSH_AUTH_SOCK=$(gpgconf --list-dirs agent-ssh-socket)
   # gpgconf --launch gpg-agent
