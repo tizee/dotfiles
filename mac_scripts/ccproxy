@@ -1,6 +1,6 @@
 #!/bin/zsh
 
-#export ANTHROPIC_AUTH_TOKEN=$(cat $HOME/.config/llm/cc-proxy.json | jq '.auth_key' -r)
+export ANTHROPIC_AUTH_TOKEN=$(cat $HOME/.config/llm/cc-proxy.json | jq '.auth_key' -r)
 export ANTHROPIC_BASE_URL=$(cat $HOME/.config/llm/cc-proxy.json | jq '.base_url' -r)
-export ANTHROPIC_API_KEY=$(cat $HOME/.config/llm/cc-proxy.json | jq '.api_key' -r)
+#export ANTHROPIC_API_KEY=$(cat $HOME/.config/llm/cc-proxy.json | jq '.api_key' -r)
 claude
