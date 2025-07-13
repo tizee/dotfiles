@@ -100,146 +100,146 @@ function yogit::help() {
   # basic
   printf "${_yogit_color_cyan}${_yogit_color_bold}>>> Basic Usage${_yogit_color_reset}\n"
   printf "\n"
-  
+
   # Core commands
   printf "${_yogit_color_green}${_yogit_basic_prefix}st${_yogit_color_reset}\n"
   printf "  git status\n\n"
-  
+
   printf "${_yogit_color_green}${_yogit_basic_prefix}a${_yogit_color_reset}\n"
   printf "  git add\n\n"
-  
+
   printf "${_yogit_color_green}${_yogit_basic_prefix}c${_yogit_color_reset}\n"
   printf "  git commit -v\n\n"
-  
+
   printf "${_yogit_color_green}${_yogit_basic_prefix}ct${_yogit_color_reset}\n"
   printf "  git commit -v --trailer sign --trailer coauthor\n\n"
-  
+
   printf "${_yogit_color_green}${_yogit_basic_prefix}c!${_yogit_color_reset}\n"
   printf "  git commit --amend\n\n"
-  
+
   printf "${_yogit_color_green}${_yogit_basic_prefix}cn!${_yogit_color_reset}\n"
   printf "  git commit --amend --no-edit\n\n"
-  
+
   printf "${_yogit_color_green}${_yogit_basic_prefix}push${_yogit_color_reset}\n"
   printf "  git push origin current_branch\n\n"
-  
+
   printf "${_yogit_color_green}${_yogit_basic_prefix}pull${_yogit_color_reset}\n"
   printf "  git pull origin current_branch\n\n"
-  
+
   # Clone commands
   printf "${_yogit_color_green}${_yogit_basic_prefix}sc${_yogit_color_reset}\n"
   printf "  git clone with depth 1 and shallow clone submodules\n\n"
-  
+
   printf "${_yogit_color_green}${_yogit_basic_prefix}sc!${_yogit_color_reset}\n"
   printf "  git clone with depth 1 (without submodules)\n\n"
-  
+
   printf "${_yogit_color_green}${_yogit_basic_prefix}ghsc${_yogit_color_reset}\n"
   printf "  git clone a github repo using <username>/<repo-name> with submodules\n\n"
-  
+
   printf "${_yogit_color_green}${_yogit_basic_prefix}ghsc!${_yogit_color_reset}\n"
   printf "  git clone a github repo using <username>/<repo-name> (without submodules)\n\n"
-  
+
   printf "${_yogit_color_green}${_yogit_basic_prefix}pickclone${_yogit_color_reset}\n"
   printf "  git clone --sparse --filter=blob:none --depth=1 --no-checkout\n"
   printf "  ${_yogit_color_blue}(after setting up sparse-checkout, use git read-tree -mu HEAD)${_yogit_color_reset}\n\n"
-  
+
   # Branch & Remote commands
   printf "${_yogit_color_green}${_yogit_basic_prefix}cob${_yogit_color_reset}\n"
   printf "  git checkout -b\n\n"
-  
+
   printf "${_yogit_color_green}${_yogit_basic_prefix}br${_yogit_color_reset}\n"
   printf "  git branch -r\n\n"
-  
+
   printf "${_yogit_color_green}${_yogit_basic_prefix}bru${_yogit_color_reset}\n"
   printf "  git branch -u <remote>/<branch> <local-branch>\n\n"
-  
+
   printf "${_yogit_color_green}${_yogit_basic_prefix}bm${_yogit_color_reset}\n"
   printf "  rename branch and update its tracked origin branch\n\n"
-  
+
   printf "${_yogit_color_green}${_yogit_basic_prefix}lr${_yogit_color_reset}\n"
   printf "  remote list\n\n"
-  
+
   printf "${_yogit_color_green}${_yogit_basic_prefix}url${_yogit_color_reset}\n"
   printf "  print remote url (usage: ${_yogit_basic_prefix}url <remote-name>)\n\n"
-  
+
   printf "${_yogit_color_green}${_yogit_basic_prefix}seturl${_yogit_color_reset}\n"
   printf "  git remote set-url origin\n\n"
-  
+
   printf "${_yogit_color_green}${_yogit_basic_prefix}rnremote${_yogit_color_reset}\n"
   printf "  rename remote (usage: ${_yogit_basic_prefix}rnremote <old-name> <new-name>)\n\n"
-  
+
   printf "${_yogit_color_green}${_yogit_basic_prefix}rnurl${_yogit_color_reset}\n"
   printf "  change remote URL (usage: ${_yogit_basic_prefix}rnurl <remote-name> <new-url>)\n\n"
-  
+
   printf "${_yogit_color_green}${_yogit_basic_prefix}rremote${_yogit_color_reset}\n"
   printf "  modify current tracked remote repo\n\n"
-  
+
   printf "${_yogit_color_green}${_yogit_basic_prefix}prune${_yogit_color_reset}\n"
   printf "  git remote prune origin\n\n"
-  
+
   # File & Status commands
   printf "${_yogit_color_green}${_yogit_basic_prefix}sst${_yogit_color_reset}\n"
   printf "  list staged and unstaged file names only\n\n"
-  
+
   printf "${_yogit_color_green}${_yogit_basic_prefix}ls${_yogit_color_reset}\n"
   printf "  git ls-files --others --exclude-standard\n\n"
-  
+
   # Submodule commands
   printf "${_yogit_color_green}${_yogit_basic_prefix}sub${_yogit_color_reset}\n"
   printf "  git submodule update --init --recursive\n\n"
-  
+
   printf "${_yogit_color_green}${_yogit_basic_prefix}subu${_yogit_color_reset}\n"
   printf "  git submodule update --remote --merge\n\n"
-  
+
   # Tag commands
   printf "${_yogit_color_green}${_yogit_basic_prefix}rtags${_yogit_color_reset}\n"
   printf "  list remote tags with 'git ls-remote --tags'\n\n"
-  
+
   printf "${_yogit_color_green}${_yogit_basic_prefix}ftag${_yogit_color_reset}\n"
   printf "  fetch a remote tag\n\n"
-  
+
   # GitHub specific commands
   printf "${_yogit_color_green}${_yogit_basic_prefix}ghsize${_yogit_color_reset}\n"
   printf "  get size of github repo\n\n"
-  
+
   printf "${_yogit_color_green}${_yogit_basic_prefix}ghurl${_yogit_color_reset}\n"
   printf "  github repo worktree url of current commit\n\n"
-  
+
   printf "${_yogit_color_green}${_yogit_basic_prefix}opengh${_yogit_color_reset}\n"
   printf "  open github repo worktree url of current commit\n\n"
-  
+
   printf "${_yogit_color_green}${_yogit_basic_prefix}open${_yogit_color_reset}\n"
   printf "  open/xdg-open repo url in browser\n\n"
-  
+
   # Utility commands
   printf "${_yogit_color_green}${_yogit_basic_prefix}parse${_yogit_color_reset}\n"
   printf "  git rev-parse [input] | cut -c 1-7\n\n"
-  
+
   printf "${_yogit_color_green}${_yogit_basic_prefix}resetupdate${_yogit_color_reset}\n"
   printf "  git fetch --depth=1 then reset to FETCH_HEAD\n\n"
-  
+
   printf "${_yogit_color_green}${_yogit_basic_prefix}htest${_yogit_color_reset}\n"
   printf "  ssh -T git@github.com\n\n"
-  
+
   # Interactive commands
   printf "${_yogit_color_cyan}${_yogit_color_bold}>>> Interactive Usage${_yogit_color_reset}\n"
   printf "\n"
-  
+
   printf "${_yogit_color_green}${yogit_checkout:-${_yogit_interactive_prefix}co}${_yogit_color_reset}\n"
   printf "  checkout with fzf\n\n"
-  
+
   printf "${_yogit_color_green}${yogit_cherry_pick:-${_yogit_interactive_prefix}cp}${_yogit_color_reset}\n"
   printf "  cherry pick with fzf\n\n"
-  
+
   printf "${_yogit_color_green}${yogit_show:-${_yogit_interactive_prefix}sc}${_yogit_color_reset}\n"
   printf "  select commit with fzf\n\n"
-  
+
   printf "${_yogit_color_green}${yogit_branch:-${_yogit_interactive_prefix}br}${_yogit_color_reset}\n"
   printf "  select branch with fzf\n\n"
-  
+
   printf "${_yogit_color_green}${yogit_diff:-${_yogit_interactive_prefix}diff}${_yogit_color_reset}\n"
   printf "  diff with fzf\n\n"
-  
+
   printf "${_yogit_color_green}${_yogit_interactive_prefix}rtags${_yogit_color_reset}\n"
   printf "  select a tag name with fzf\n\n"
 }
@@ -375,7 +375,7 @@ function yogit::update_remote() {
         if git show-ref --verify --quiet refs/heads/$current_default; then
             # First fetch the fork's branches
             git fetch $FORK_REMOTE
-            
+
             # Then set upstream tracking
             git branch --set-upstream-to=$FORK_REMOTE/$current_default $current_default || {
                 echo "Error: Failed to set upstream tracking"
@@ -517,9 +517,11 @@ function yogit::get_gh_repo_size() {
     printf "Repository  : ${_yogit_color_green}${repo_name}${_yogit_color_reset}\n"
 
     # Run curl directly without background process
+    # see https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#get-a-repository
     local response=$(curl -sL "https://api.github.com/repos/${organ}/${repo_name}")
 
     # Process the results
+    # The size of the repository, in kilobytes. Size is calculated hourly. When a repository is initially created, the size is 0.
     local repo_size=$(echo "$response" | grep -m 1 '"size"' | awk -F ':|,' '{print $2}')
 
     if [[ -z "$repo_size" ]]; then
@@ -1114,7 +1116,7 @@ function yogit::rename_remote() {
 
   if [[ $? -eq 0 ]]; then
     yogit::success "Remote renamed successfully"
-    
+
     # Update tracking branches if any
     local current_branch=$(yogit::current_branch)
     if [[ "$current_branch" != *"(detached:"* ]]; then
