@@ -3,9 +3,9 @@
 Validate file paths for security and safety
 Blocks: path traversal, sensitive files, and git directory modifications
 """
+
 import json
 import sys
-import os
 
 # Define validation rules for sensitive files and directories
 SENSITIVE_PATTERNS = [
@@ -30,19 +30,21 @@ SENSITIVE_PATTERNS = [
     (r"/sys/", "System directory access blocked"),
 ]
 
+
 def validate_file_path(file_path: str) -> list[str]:
     """Validate a file path and return list of issues found."""
     issues = []
     if not file_path:
         return issues
 
-    # Check for dangerous patterns
     import re
+
     for pattern, message in SENSITIVE_PATTERNS:
         if re.search(pattern, file_path):
             issues.append(message)
 
     return issues
+
 
 def main():
     """Main entry point for the hook."""
@@ -69,6 +71,7 @@ def main():
         sys.exit(2)
 
     sys.exit(0)
+
 
 if __name__ == "__main__":
     main()
