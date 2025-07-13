@@ -1,12 +1,12 @@
 {
   "env": {
-    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
+    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": true,
     "HTTP_PROXY": "http://127.0.0.1:1080",
     "HTTPS_PROXY": "http://127.0.0.1:1080",
-    "BASH_DEFAULT_TIMEOUT_MS": "60000",
-    "BASH_MAX_TIMEOUT_MS": "300000",
-    "CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR": "true",
-    "DISABLE_NON_ESSENTIAL_MODEL_CALLS": "1"
+    "BASH_DEFAULT_TIMEOUT_MS": 60000,
+    "BASH_MAX_TIMEOUT_MS": 300000,
+    "CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR": true,
+    "DISABLE_NON_ESSENTIAL_MODEL_CALLS": 1
   },
   "includeCoAuthoredBy": false,
   "hooks": {
@@ -48,6 +48,39 @@
           {
             "type": "command",
             "command": "python3 ~/.claude/hooks/notification-handler.py"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ~/.claude/hooks/stop-handler.py"
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ~/.claude/hooks/subagent-stop-handler.py"
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ~/.claude/hooks/pre-compact-handler.py"
           }
         ]
       }

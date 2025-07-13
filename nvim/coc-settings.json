@@ -254,7 +254,7 @@
   "json.schemas": [
     {
       "fileMatch": [
-        "/claude-code-settings.json"
+        "claude-code-settings.json"
       ],
       "url": "file:///Users/tizee/.config/local_json_schema/claude-code-settings.json"
     },

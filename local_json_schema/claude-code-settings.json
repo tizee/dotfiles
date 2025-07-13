@@ -249,9 +249,109 @@
           ]
         }
       ]
+    },
+    "hooks": {
+      "description": "Event-driven hooks for executing commands based on Claude Code events",
+      "type": "object",
+      "properties": {
+        "PreToolUse": {
+          "description": "Hooks executed before a tool is used",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/hookConfiguration"
+          }
+        },
+        "PostToolUse": {
+          "description": "Hooks executed after a tool is used",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/hookConfiguration"
+          }
+        },
+        "Notification": {
+          "description": "Hooks executed on notifications",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/hookConfiguration"
+          }
+        },
+        "Stop": {
+          "description": "Hooks executed when Claude Code stops",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/hookConfiguration"
+          }
+        },
+        "SubagentStop": {
+          "description": "Hooks executed when a subagent stops",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/hookConfiguration"
+          }
+        },
+        "PreCompact": {
+          "description": "Hooks executed before conversation compaction",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/hookConfiguration"
+          }
+        }
+      }
+    },
+    "additionalProperties": false
+  },
+  "definitions": {
+    "hookConfiguration": {
+      "type": "object",
+      "properties": {
+        "matcher": {
+          "description": "String or regex pattern to match tool names, omit or use empty string for all tools",
+          "type": "string",
+          "default": ""
+        },
+        "hooks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/hookAction"
+          },
+          "minItems": 1
+        }
+      },
+      "required": [
+        "hooks"
+      ],
+      "additionalProperties": false
+    },
+    "hookAction": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "description": "Type of hook action",
+          "type": "string",
+          "enum": [
+            "command"
+          ]
+        },
+        "command": {
+          "description": "Shell command to execute",
+          "type": "string",
+          "minLength": 1
+        },
+        "timeout": {
+          "description": "Timeout for command execution in seconds",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3600,
+          "default": 60
+        }
+      },
+      "required": [
+        "type",
+        "command"
+      ],
+      "additionalProperties": false
     }
   },
-  "additionalProperties": false,
   "examples": [
     {
       "apiKeyHelper": "/bin/generate_temp_api_key.sh",
@@ -263,6 +363,31 @@
       "permissions": {
         "allow": [
           "Bash(npm run lint)"
+        ]
+      },
+      "hooks": {
+        "PreToolUse": [
+          {
+            "matcher": "Bash",
+            "hooks": [
+              {
+                "type": "command",
+                "command": "echo 'About to run Bash command' >> /tmp/claude-hooks.log",
+                "timeout": 30
+              }
+            ]
+          }
+        ],
+        "PostToolUse": [
+          {
+            "matcher": "",
+            "hooks": [
+              {
+                "type": "command",
+                "command": "echo 'Tool use completed' >> /tmp/claude-hooks.log"
+              }
+            ]
+          }
         ]
       }
     }

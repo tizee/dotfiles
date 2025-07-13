@@ -553,6 +553,32 @@ When generating commit messages:
 - The `Co-Authored-By: Claude <noreply@anthropic.com>` line will **not** be included
 - The `🤖 Generated with [Claude Code](https://claude.ai/code)` line will **not** be included
 
+## Code Formatting and Structure
+
+### Always Use External Tools for Formatting
+- **Never manually adjust indentation or formatting** - always use external CLI tools like `jq`, `prettier`, `black`, etc.
+- After JSON edits: `jq . file.json > tmp && mv tmp file.json`
+- After code edits: Use project-specific formatters (`npm run format`, `black`, `prettier`, etc.)
+- This ensures consistent formatting and avoids human error
+
+### Granular Edit Operations
+**Break down large modifications into atomic, sequential edits:**
+- **Single Edit**: Limit to 50-100 lines maximum
+- **MultiEdit**: Use 3-5 operations maximum per call
+- **Complex changes**: Use multiple `Edit`/`MultiEdit` calls in sequence
+- **Failed edits**: Immediately break into smaller operations and retry
+
+**Example approach:**
+```
+// DON'T: Large complex edit
+Edit(entire_function)
+
+// DO: Sequential granular edits
+Edit(function_signature)
+Edit(function_body_part1)
+Edit(function_body_part2)
+```
+
 ## General Interaction
 
 Claude Code will directly apply proposed changes and modifications using available tools rather than describing them and asking for manual implementation. This ensures efficient and direct workflow.
