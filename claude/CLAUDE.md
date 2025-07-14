@@ -101,7 +101,12 @@ Here's the revised **ripgrep (rg) Cheat Sheet** in the requested format:
 
 #### **Multiline Search**
 - Basic multiline: `rg -U "start(.|\n)*?end"`
-- ⚠️ **Warning**: Cannot combine `-U` with `-A`/`-B`/`-C`
+- ⚠️ **CRITICAL**: Cannot combine `-U` (multiline) with `-A`/`-B`/`-C` (context)
+- ❌ **INVALID**: `rg -U -A 5 "pattern"` - This will fail
+- ❌ **INVALID**: `rg -A 20 -B 5 "build.*service\|get.*configuration"` - Context with multiline regex fails
+- ✅ **CORRECT**: Choose one approach:
+  - For multiline: `rg -U "build(.|\n)*?service"`
+  - For context: `rg -A 20 "build.*service" && rg -B 5 "get.*configuration"`
 
 #### **Output Formats**
 - Filenames only: `rg -l "config"`
@@ -119,9 +124,16 @@ Here's the revised **ripgrep (rg) Cheat Sheet** in the requested format:
 - Search everything: `rg -uuu`
 - Limit depth: `rg --max-depth 3 "x"`
 
+#### **Common Pitfalls and Conflicts**
+- **Multiline vs Context**: Cannot use `-U` with `-A`/`-B`/`-C` flags together
+- **Multiple pattern syntax**: Use `\|` for OR in regex, not `-e` with complex patterns
+- **Context with piping**: Context flags are lost when piping to other commands
+- **Case sensitivity**: Default is case-sensitive; use `-i` for case-insensitive searches
+
 #### **Pro Tips**
 - Find hidden files: `rg --hidden ".*env"`
 - Exclude minified: `rg -g '!*.min.js' "x"`
+- Combine searches: `rg "pattern1" && rg "pattern2"` instead of complex regex
 
 ### fd Usage Examples
 
