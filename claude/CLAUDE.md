@@ -542,6 +542,182 @@ For larger code blocks:
 - Run linting/formatting tools if configured
 - Verify changes don't break existing functionality
 
+## Complete Implementation Standards - CRITICAL
+
+### No Half-Measures Philosophy
+
+**Don't hold back. Give it your all.** Always provide complete, production-ready implementations rather than abbreviated or placeholder code.
+
+#### Full Implementation Requirements:
+1. **Complete Function Bodies**: Never use placeholder comments like `// TODO: implement this` or `// Add implementation here`
+2. **Handle All Cases**: Implement all branches, error conditions, and edge cases
+3. **Include All Features**: When asked to implement something, include all relevant features and functionality
+4. **Production Quality**: Write code as if it's going directly into production
+5. **Comprehensive Logic**: Implement the actual algorithms and business logic, not just stubs
+
+#### Examples of Insufficient vs Complete Implementation:
+
+**❌ INSUFFICIENT - Placeholder implementation:**
+```javascript
+function processUserData(userData) {
+    // TODO: Validate input
+    // TODO: Transform data
+    // TODO: Save to database
+    return userData;
+}
+```
+
+**✅ COMPLETE - Full implementation:**
+```javascript
+function processUserData(userData) {
+    // Validate input
+    if (!userData || typeof userData !== 'object') {
+        throw new Error('Invalid user data provided');
+    }
+    
+    if (!userData.email || !isValidEmail(userData.email)) {
+        throw new Error('Valid email is required');
+    }
+    
+    // Transform data
+    const processedData = {
+        id: generateUniqueId(),
+        email: userData.email.toLowerCase().trim(),
+        name: userData.name?.trim() || 'Anonymous',
+        createdAt: new Date().toISOString(),
+        status: 'active'
+    };
+    
+    // Save to database
+    try {
+        const savedUser = database.users.create(processedData);
+        logger.info(`User created successfully: ${savedUser.id}`);
+        return savedUser;
+    } catch (error) {
+        logger.error(`Failed to save user: ${error.message}`);
+        throw new Error('User creation failed');
+    }
+}
+```
+
+#### When Implementing Features:
+- **Include all relevant functionality**: Don't just implement the basic case
+- **Add proper error handling**: Handle failures gracefully with meaningful messages
+- **Implement edge cases**: Consider boundary conditions and unusual inputs
+- **Add validation**: Validate inputs and state before processing
+- **Include logging/monitoring**: Add appropriate logging for debugging and monitoring
+- **Follow patterns**: Use established patterns and conventions from the codebase
+
+#### Red Flags - Incomplete Implementation:
+- Using placeholder comments instead of actual code
+- Returning hardcoded values instead of computed results
+- Skipping error handling or validation
+- Implementing only the "happy path" without edge cases
+- Creating stub methods that don't actually work
+- Missing essential features when implementing a component
+
+#### Quality Modifiers for Implementation:
+When implementing any feature, apply these principles:
+- **"Include as many relevant features and interactions as possible"**
+- **"Go beyond the basics to create a fully-featured implementation"**
+- **"Create a production-ready solution with proper error handling"**
+- **"Implement comprehensive logic that handles all valid scenarios"**
+- **"Add thoughtful details and robust functionality"**
+
+#### Implementation Verification Checklist:
+Before considering any implementation complete, verify:
+1. **Does it handle all specified requirements?**
+2. **Are error conditions properly managed?**
+3. **Would this work in a production environment?**
+4. **Are edge cases considered and handled?**
+5. **Is the implementation robust and maintainable?**
+
+**Remember**: Users expect working, complete solutions. Partial implementations create more work and frustration than no implementation at all.
+
+## Refactoring Principles - CRITICAL
+
+### Clean Slate Approach
+
+**When refactoring, eliminate legacy code completely.** Do not maintain backward compatibility by keeping old implementations alongside new ones.
+
+#### Core Refactoring Rules:
+1. **Replace, Don't Supplement**: Remove old implementations entirely when introducing new approaches
+2. **No Hybrid Systems**: Avoid mixing old and new implementations in the same codebase
+3. **Complete Migration**: Update all references to use the new implementation consistently
+4. **Clean Removal**: Delete deprecated functions, classes, and patterns completely
+5. **Single Source of Truth**: Maintain only one way to accomplish each task
+
+#### Examples of Wrong vs Right Refactoring:
+
+**❌ WRONG - Keeping legacy alongside new:**
+```javascript
+// Old implementation (deprecated but kept for "compatibility")
+function processDataOld(data) {
+    // Legacy logic...
+}
+
+// New implementation
+function processDataNew(data) {
+    // Improved logic...
+}
+
+// Wrapper trying to maintain compatibility
+function processData(data, useNewVersion = false) {
+    if (useNewVersion) {
+        return processDataNew(data);
+    }
+    return processDataOld(data); // BAD: Still supporting old way
+}
+```
+
+**✅ RIGHT - Clean replacement:**
+```javascript
+// Complete replacement - old implementation removed entirely
+function processData(data) {
+    // New improved logic directly implemented
+    // No references to old approach
+}
+```
+
+#### When Refactoring Architecture:
+- **Remove deprecated interfaces completely**: Don't create adapters or wrappers
+- **Update all call sites**: Change every usage to the new pattern
+- **Delete old files/modules**: Remove deprecated code files entirely
+- **Clean up imports/dependencies**: Remove references to old implementations
+- **Update documentation**: Reflect only the new approach
+
+#### Refactoring Anti-Patterns to Avoid:
+- Creating "compatibility layers" that bridge old and new
+- Keeping old functions marked as "deprecated" 
+- Having both `oldFunction()` and `newFunction()` in the same codebase
+- Using configuration flags to switch between old and new behavior
+- Maintaining parallel code paths for the same functionality
+- Adding wrapper functions that delegate to either old or new implementations
+
+#### Benefits of Clean Refactoring:
+- **Simplified codebase**: Single approach reduces cognitive load
+- **Easier maintenance**: No need to maintain multiple implementations
+- **Clear direction**: Developers know there's only one way to do things
+- **Reduced bugs**: No confusion between old and new approaches
+- **Better performance**: No overhead from compatibility layers
+
+#### Refactoring Process:
+1. **Plan complete replacement**: Identify all usage points of old implementation
+2. **Implement new approach fully**: Ensure it handles all cases the old one did
+3. **Update all references**: Change every call site to use new implementation
+4. **Remove old code entirely**: Delete deprecated functions, classes, files
+5. **Test thoroughly**: Verify the new implementation works for all scenarios
+6. **Clean up dependencies**: Remove any packages/imports only needed for old approach
+
+#### When Legacy Support is Truly Needed:
+If backward compatibility is absolutely required (e.g., public APIs), consider:
+- **Version the API**: Create v2 endpoints and deprecate v1 completely
+- **Migration timeline**: Set clear deadlines for removing old versions
+- **Separate codebases**: Keep old and new in completely separate modules/services
+- **Never mix**: Don't let old and new implementations coexist in the same files
+
+**Remember**: Refactoring means "improving the structure without changing external behavior." This improvement requires removing old, inferior approaches entirely to achieve a cleaner, more maintainable codebase.
+
 ## Workflow Efficiency
 
 ### Planning Phase
@@ -590,6 +766,71 @@ Edit(function_signature)
 Edit(function_body_part1)
 Edit(function_body_part2)
 ```
+
+## Test Integrity Guidelines - CRITICAL
+
+### Fundamental Test Principles
+
+**NEVER modify tests just to make them pass.** Tests are living documentation of expected behavior and requirements.
+
+#### When Tests Fail - Analysis Framework:
+1. **Understand First**: What business scenario or requirement is this test validating?
+2. **Root Cause Analysis**: Why is the test failing?
+   - Legitimate bug in the implementation?
+   - Missing or incorrect mock/stub configuration?
+   - Architectural changes requiring test updates?
+   - Test expectations that no longer match requirements?
+
+3. **Fix Hierarchy** (in order of preference):
+   - ✅ **Fix the implementation** if there's a genuine bug
+   - ✅ **Update mock/stub setup** to reflect new architecture while preserving test intent
+   - ✅ **Adjust test expectations** only if business requirements have genuinely changed
+   - ❌ **NEVER** remove assertions, simplify verification logic, or bypass test scenarios
+   - ❌ **NEVER** change test purpose to make it easier to pass
+
+#### Test Modification Guidelines:
+- **Preserve test purpose**: Each test validates specific business behavior - keep that intact
+- **Maintain verification completeness**: Don't remove error checking, boundary validation, or behavioral assertions
+- **Use proper mocking**: Configure mocks to simulate intended scenarios, don't work around them
+- **Review impact**: Use version control diffs to ensure changes don't alter test intent
+
+#### Examples of Correct vs Incorrect Approaches:
+
+**❌ WRONG - Removing verification to make test pass:**
+```
+// Original test validates specific error handling
+assertThat(error).isInstanceOf(SpecificException.class);
+assertThat(error.getMessage()).contains("Expected error message");
+
+// WRONG: Simplified to just check something happened
+assertThat(mockService.wasCallMade()).isTrue();
+```
+
+**✅ RIGHT - Updating setup while preserving verification:**
+```
+// Configure mock to simulate the intended failure scenario
+mockService.stubFailure(new SpecificException("Expected error message"));
+
+// Keep the original verification logic intact
+assertThat(error).isInstanceOf(SpecificException.class);
+assertThat(error.getMessage()).contains("Expected error message");
+```
+
+#### Pre-Modification Checklist:
+Before changing any test, ask:
+1. **"What business behavior is being validated here?"**
+2. **"Am I preserving that validation in my changes?"**
+3. **"Could I fix this by updating the code or mock setup instead?"**
+4. **"Will my changes maintain the same level of confidence in the system?"**
+
+#### Red Flags - Stop and Reconsider:
+- Removing specific error type or message checks
+- Simplifying complex test scenarios
+- Commenting out assertions
+- Changing test data to avoid edge cases
+- Replacing detailed verification with generic checks
+
+**Remember**: Tests failing often indicates real issues. Treat test failures as signals to investigate, not obstacles to bypass.
 
 ## General Interaction
 
