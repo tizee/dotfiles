@@ -1049,6 +1049,18 @@ alias "${_yogit_basic_prefix}br"='yogit::list_remote_branches'
 # print current remote url
 alias "${_yogit_basic_prefix}url"='yogit::url'
 
+# copy remote url to clipboard
+function yogit::url_copy(){
+  yogit::is_git_repo || return 1
+  local url=$(yogit::url "$@")
+  if [[ $? -ne 0 ]]; then
+    return 1
+  fi
+  echo "$url" | pbcopy
+  yogit::success "Remote URL copied to clipboard"
+}
+alias "${_yogit_basic_prefix}urlcp"='yogit::url_copy'
+
 # list remote
 function yogit::list_remotes() {
   yogit::is_git_repo || return 1
