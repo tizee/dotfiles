@@ -520,8 +520,10 @@ if $is_macOS; then
   export SMART_SUGGESTION_BINARY="$HOME/projects/project-AI/tools/smart-suggestion.yetone/smart-suggestion"
   export SMART_SUGGESTION_PROVIDER_FILE="$HOME/.config/llm/smart-suggestion.json"
   # Privacy settings
-  export SMART_SUGGESTION_PROXY_MODE=false
-  export SMART_SUGGESTION_SEND_CONTEXT=false
+  export SMART_SUGGESTION_PROXY_MODE=false      # No terminal recording
+  export SMART_SUGGESTION_SEND_CONTEXT=true     # Limited context only
+  export SMART_SUGGESTION_PRIVACY_LEVEL="moderate" # Basic filtering sufficient
+
 
   # tmux-capture
   source "$HOME/projects/project-python/tizee-packages/tmux-capture/tmux-capture.plugin.zsh"
