@@ -8,47 +8,80 @@ Prioritize tool usage whenever it can enhance accuracy, efficiency, or the quali
 
 - Always prefer using TodoWrite and TodoRead tools to divide tasks into smaller todo tasks when it seems complex to you
 
-## KISS Principles and Pragmatism - CRITICAL
+## Strategic Software Design Principles
 
-### Core Philosophy
+### Core Philosophy: Managing Complexity
 
-**Simplicity over complexity.** Always choose the simplest, most direct solution rather than over-engineered complex approaches.
+**The primary challenge in software development is managing complexity.** Every design decision should evaluate whether it reduces or increases the overall complexity burden on developers.
 
-#### Pragmatic Principles
-1. **Minimum viable solution first**: Implement the simplest solution that solves the problem
-2. **Avoid over-engineering**: Don't add unnecessary complexity to showcase technical skills
-3. **Progressive improvement**: Implement basic functionality first, then gradually improve based on actual needs
-4. **Readability over cleverness**: Clear, understandable code is more important than technical showmanship
-5. **Utility validation**: Every implementation should pass the "Is this really necessary?" test
+### Deep Modules: Simple Interfaces, Powerful Functionality
 
-#### Anti-Over-Engineering Checklist
-Before implementing any solution, ask yourself:
-- ✅ **Is this the simplest way to solve the problem?**
-- ✅ **Am I unnecessarily complicating the solution?**
-- ✅ **Do users really need these additional features?**
-- ✅ **Can other developers easily understand this implementation?**
-- ✅ **Am I reinventing the wheel?**
+Strive to create modules with simple interfaces that hide significant functionality:
 
-#### Simplicity-First Strategy
-- **Direct implementation**: Prioritize using built-in language and framework features
-- **Standard patterns**: Use industry-standard design patterns, avoid innovative architectures
-- **Progressive complexity**: Start simple, add complexity only when necessary
-- **Deletion over addition**: Question the necessity of every feature, actively remove unnecessary code
+**Deep Module Characteristics:**
+- Simple, clean interface requiring minimal knowledge from users
+- Complex implementation hidden behind the interface
+- High functionality-to-interface-complexity ratio
+- Users can accomplish significant work with minimal interface calls
 
-#### Complexity Control
-- **Single responsibility**: Each function and class should do only one thing
-- **Short and focused**: Keep functions within 20-30 lines
-- **Clear naming**: Use self-explanatory variable and function names
-- **Avoid nesting**: Deep nesting is a signal of complexity
+**Avoid Shallow Modules:**
+- Interface complexity proportional to functionality provided
+- Expose internal implementation details
+- Require users to understand many concepts for simple tasks
 
-#### Red Flag Warnings - Over-Engineering Signals
-- Creating "generic" or "extensible" solutions to solve single problems
-- Using complex design patterns to solve simple problems
-- Adding "might need in the future" features
-- Creating abstraction layers to handle only one implementation
-- Using latest technologies just because they're new
+### Strategic vs Tactical Programming
 
-**Remember**: Code is for solving problems, not for showcasing technical ability. Excellent code is simple, readable, and maintainable.
+**Strategic Programming:** Invest time in good design to create maintainable systems.
+- Primary goal: produce excellent design that also works
+- Invest 10-20% additional time in design considerations
+- Focus on long-term maintainability over immediate completion
+- Continuously refactor to improve design quality
+
+**Tactical Programming (Avoid):** Focus solely on immediate functionality.
+- "Make it work" mentality without design consideration
+- Accumulates technical debt rapidly
+- Creates systems increasingly difficult to modify
+
+### Information Hiding
+
+Modules should encapsulate design decisions and implementation details:
+- Hide file formats, algorithms, and data structures
+- Prevent information leakage across module boundaries
+- Design interfaces independent of internal implementation choices
+- Changes to hidden information should not affect module users
+
+### General-Purpose Design
+
+Create modules slightly more general than immediate requirements:
+- Identify the core functionality separate from specific use cases
+- Provide clean interfaces not tied to particular scenarios
+- Balance generality with simplicity - avoid over-generalization
+- Enable future use cases without interface changes
+
+### Pull Complexity Downwards
+
+Module implementers should handle complexity rather than pushing it to users:
+- Complex configuration should have sensible defaults
+- Error conditions should be handled internally when possible
+- Provide simple interfaces even for complex underlying operations
+- Users should not need to understand implementation details
+
+### Design Quality Indicators
+
+**Positive Signals:**
+- Simple interfaces supporting complex operations
+- Clear separation between interface and implementation
+- Modules handle their own complexity internally
+- Consistent abstractions across related functionality
+
+**Warning Signals:**
+- Information leakage between modules
+- Temporal decomposition (code organized by execution order)
+- Pass-through methods that add no value
+- Special-purpose interfaces for general problems
+- Conjoined methods requiring specific calling sequences
+
+**Design Principle:** Great design reduces complexity for all developers who will work with the system. Simple interfaces that hide complex functionality are the hallmark of excellent software architecture.
 
 ## Task Completion and Reporting
 
@@ -103,9 +136,9 @@ This approach demonstrates professionalism, attention to detail, and ensures the
 
 ### Tool Priority Enforcement
 **CRITICAL**: You MUST use modern tools over legacy alternatives:
-- ✅ **fd** → ❌ find
-- ✅ **rg** → ❌ grep
-- ✅ **sg** → ❌ regex-based searches for code
+- **Use fd** instead of find
+- **Use rg** instead of grep
+- **Use sg** instead of regex-based searches for code
 
 **Never use `find` or `grep` commands directly.** Always use `fd` and `rg` instead.
 
@@ -115,9 +148,9 @@ This approach demonstrates professionalism, attention to detail, and ensures the
 - `grep` commands (use `rg` instead)
 
 **File Search Examples:**
-- ❌ `find . -name "*.swift" -type f` → ✅ `fd "\.swift$"`
-- ❌ `find . -name "MyFile.swift"` → ✅ `fd "MyFile.swift"`
-- ❌ `grep -r "pattern" .` → ✅ `rg "pattern"`
+- **Avoid:** `find . -name "*.swift" -type f` **Use:** `fd "\.swift$"`
+- **Avoid:** `find . -name "MyFile.swift"` **Use:** `fd "MyFile.swift"`
+- **Avoid:** `grep -r "pattern" .` **Use:** `rg "pattern"`
 
 ### rg Usage Examples
 
@@ -143,10 +176,10 @@ Here's the revised **ripgrep (rg) Cheat Sheet** in the requested format:
 
 #### **Multiline Search**
 - Basic multiline: `rg -U "start(.|\n)*?end"`
-- ⚠️ **CRITICAL**: Cannot combine `-U` (multiline) with `-A`/`-B`/`-C` (context)
-- ❌ **INVALID**: `rg -U -A 5 "pattern"` - This will fail
-- ❌ **INVALID**: `rg -A 20 -B 5 "build.*service\|get.*configuration"` - Context with multiline regex fails
-- ✅ **CORRECT**: Choose one approach:
+- **CRITICAL**: Cannot combine `-U` (multiline) with `-A`/`-B`/`-C` (context)
+- **Invalid:** `rg -U -A 5 "pattern"` - This will fail
+- **Invalid:** `rg -A 20 -B 5 "build.*service\|get.*configuration"` - Context with multiline regex fails
+- **Correct:** Choose one approach:
   - For multiline: `rg -U "build(.|\n)*?service"`
   - For context: `rg -A 20 "build.*service" && rg -B 5 "get.*configuration"`
 
@@ -255,9 +288,9 @@ For complex or multi-step tasks, Claude Code will use:
 
 ### File Discovery Strategy
 **Always use `fd` for file discovery tasks:**
-- ✅ `fd "*.js" src/` → ❌ `find src/ -name "*.js"`
-- ✅ `fd -e py test/` → ❌ `find test/ -name "*.py"`
-- ✅ `fd config --type f` → ❌ `find . -name "*config*" -type f`
+- **Use:** `fd "*.js" src/` **Instead of:** `find src/ -name "*.js"`
+- **Use:** `fd -e py test/` **Instead of:** `find test/ -name "*.py"`
+- **Use:** `fd config --type f` **Instead of:** `find . -name "*config*" -type f`
 
 ### Discovery Process
 1. **Use ast-grep first** for any code structure analysis:
@@ -280,14 +313,14 @@ For complex or multi-step tasks, Claude Code will use:
 - Cross-language searches in polyglot repositories
 
 **Example Decision Matrix:**
-- ❌ "Find all TODO comments" → Use rg (plain text)
-- ✅ "Find all function calls to `fetchData`" → Use ast-grep
-- ✅ "Find all React hooks usage" → Use ast-grep
-- ✅ "Find all class definitions extending BaseClass" → Use ast-grep
-- ❌ "Find files containing string 'password'" → Use rg (plain text)
-- ✅ "Find all import statements from specific module" → Use ast-grep
-- ❌ "Find all .env files" → Use fd
-- ❌ "Find Python test files" → Use fd
+- "Find all TODO comments" - Use rg (plain text)
+- "Find all function calls to `fetchData`" - Use ast-grep
+- "Find all React hooks usage" - Use ast-grep
+- "Find all class definitions extending BaseClass" - Use ast-grep
+- "Find files containing string 'password'" - Use rg (plain text)
+- "Find all import statements from specific module" - Use ast-grep
+- "Find all .env files" - Use fd
+- "Find Python test files" - Use fd
 
 ### Agent Tool Usage
 - Use Agent when ast-grep cannot handle the semantic complexity
@@ -588,260 +621,137 @@ For larger code blocks:
 - Run linting/formatting tools if configured
 - Verify changes don't break existing functionality
 
-### Security-First Development - CRITICAL
+### Security Principles
 
-**Security is not an afterthought, but a core principle in the development process.** Every implementation must undergo security assessment.
+**Security must be integrated into the design process, not added as an afterthought.** Every implementation requires security consideration from the beginning.
 
-#### Mandatory Security Checklist
-Before implementing any functionality, must verify:
-- ✅ **Input validation**: All user inputs are strictly validated and sanitized
-- ✅ **Output encoding**: All outputs are properly encoded to prevent XSS attacks
-- ✅ **Access control**: Implement appropriate access control and permission validation
-- ✅ **Sensitive data**: Sensitive information is not logged, stored, or transmitted to insecure locations
-- ✅ **Error handling**: Error messages don't reveal internal system details
-- ✅ **Dependency security**: Dependencies used have no known security vulnerabilities
+### Core Security Requirements
 
-#### Security-First Mindset
-- **Threat modeling**: Consider potential attack vectors during design phase
-- **Principle of least privilege**: Grant only the minimum permissions needed to complete tasks
-- **Defense in depth**: Implement multiple layers of security controls, don't rely on single protective measures
-- **Data protection**: Encrypt sensitive data storage, transmission, and processing
-- **Audit trails**: Log critical operations for tracking
+**Input Security:**
+- Validate all user inputs using whitelist approaches
+- Sanitize data before processing or storage
+- Use parameterized queries to prevent injection attacks
+- Validate file paths to prevent directory traversal
 
-#### Common Security Pitfalls - Must Avoid
-- ❌ **Hardcoded secrets**: Never hardcode passwords, API keys, or other sensitive information in code
-- ❌ **SQL injection**: Use parameterized queries, not string concatenation
-- ❌ **Insecure deserialization**: Carefully handle serialized data from untrusted sources
-- ❌ **Weak password policies**: Implement strong password requirements and proper authentication
-- ❌ **Unencrypted transmission**: Sensitive data transmission must use HTTPS/TLS
-- ❌ **Path traversal**: Validate file paths to prevent directory traversal attacks
+**Data Protection:**
+- Never hardcode secrets, passwords, or API keys
+- Encrypt sensitive data in storage and transmission
+- Use secure hashing functions (bcrypt, scrypt) for passwords
+- Implement proper session management with appropriate timeouts
 
-#### Security Implementation Standards
-- **Input validation**: Use whitelist validation, not blacklist filtering
-- **Password handling**: Use bcrypt, scrypt, or other strong hashing functions
-- **Session management**: Implement secure session handling and timeout mechanisms
-- **CSRF protection**: Implement CSRF tokens for state-changing operations
-- **Content security**: Set appropriate Content-Security-Policy headers
-- **Dependency management**: Regularly update dependencies to fix security vulnerabilities
+**Access Control:**
+- Apply principle of least privilege
+- Implement appropriate authentication and authorization
+- Use CSRF tokens for state-changing operations
+- Set proper Content-Security-Policy headers
 
-#### Security Code Review Points
-Before submitting code, check:
-1. **Are there potential injection attack points?**
-2. **Is sensitive data properly protected?**
-3. **Are permission checks sufficient?**
-4. **Does error handling leak information?**
-5. **Are secure communication protocols used?**
+**Error Handling:**
+- Prevent information leakage through error messages
+- Log security events for audit trails
+- Handle deserialization of untrusted data carefully
+- Use HTTPS/TLS for all sensitive communications
 
-**Remember**: The cost of security vulnerabilities far exceeds the cost of prevention. Always think about your code from an attacker's perspective.
+### Security Verification
 
-## Complete Implementation Standards - CRITICAL
+Before code deployment, verify:
+- No potential injection attack vectors exist
+- Sensitive data is properly protected
+- Access controls are sufficient for the functionality
+- Error handling does not reveal internal system details
+- Secure communication protocols are used throughout
 
-### No Half-Measures Philosophy
+**Security Principle:** Prevention costs significantly less than remediation. Design with security as a fundamental requirement, not an optional feature.
 
-**Don't hold back. Give it your all.** Always provide complete, production-ready implementations rather than abbreviated or placeholder code.
+## Implementation Completeness Standards
 
-#### Full Implementation Requirements:
-1. **Complete Function Bodies**: Never use placeholder comments like `// TODO: implement this` or `// Add implementation here`
-2. **Handle All Cases**: Implement all branches, error conditions, and edge cases
-3. **Include All Features**: When asked to implement something, include all relevant features and functionality
-4. **Production Quality**: Write code as if it's going directly into production
-5. **Comprehensive Logic**: Implement the actual algorithms and business logic, not just stubs
+### Strategic Implementation Approach
 
-#### TODO Zero-Tolerance Policy - CRITICAL
+**Complete implementations reduce long-term complexity.** Partial implementations create technical debt that increases system complexity over time.
 
-**Absolutely prohibit leaving unimplemented TODO items.** Every TODO is an unfulfilled promise that leads to technical debt accumulation.
+### Core Implementation Principles
 
-##### Mandatory TODO Rules
-- ❌ **NEVER** commit code containing TODO comments
-- ❌ **NEVER** create placeholder TODOs without immediate implementation
-- ❌ **NEVER** assume you'll "remember to handle it later"
-- ✅ **ALWAYS** implement functionality immediately when writing TODOs
-- ✅ **ALWAYS** break large tasks into immediately completable small tasks
+**Full Functionality:** Implement complete, working solutions rather than placeholders.
+- Provide actual implementations in all function bodies
+- Handle error conditions and edge cases appropriately
+- Include comprehensive input validation and error handling
+- Create production-quality code that can be deployed immediately
 
-##### TODO Handling Strategy
-When encountering situations requiring TODOs:
-1. **Implement immediately**: If the task is simple, complete it instead of writing TODO
-2. **Break down tasks**: Decompose large tasks into immediately completable small steps
-3. **Use TodoWrite**: For complex tasks, use TodoWrite tool to track progress
-4. **Don't commit**: Never commit code containing TODO comments
+**No Technical Debt:** Avoid leaving incomplete work that burdens future development.
+- Never commit code containing TODO comments or placeholder implementations
+- Break large features into smaller, immediately completable units
+- Use external tracking (TodoWrite tool, GitHub issues) for future work
+- Complete each module before moving to the next
 
-##### Alternatives to TODOs
-- **Use TodoWrite tool**: Create external task tracking lists
-- **Create GitHub Issues**: Establish formal tracking records for future features
-- **Implement basic version**: Provide basic implementation instead of TODO placeholders
-- **Throw NotImplementedError**: For features that truly cannot be implemented, use explicit exceptions
+**Information Hiding:** Ensure implementations hide complexity appropriately.
+- Internal error handling should not expose implementation details
+- Provide simple interfaces even for complex underlying operations
+- Handle edge cases internally rather than requiring callers to manage them
+- Use appropriate abstractions to manage complexity
 
-##### Verification Checklist
-Before committing code, ensure:
-- ✅ **Zero TODO comments**: Use `rg -i "todo|fixme|hack"` to search and confirm
-- ✅ **Complete functionality**: All functions have actual implementations
-- ✅ **Tests pass**: All relevant tests pass
-- ✅ **No placeholders**: No empty function bodies or comment placeholders
+### Implementation Quality Standards
 
-**Remember**: TODO comments are a direct manifestation of technical debt. Excellent developers don't leave unfulfilled promises.
+**Essential Requirements:**
+- All functions contain actual logic, not stubs or placeholders
+- Error conditions are handled gracefully with meaningful messages
+- Input validation prevents invalid states
+- Edge cases and boundary conditions are addressed
+- Code follows established patterns within the codebase
 
-#### Examples of Insufficient vs Complete Implementation:
+**Quality Verification:**
+- Implementation handles all specified requirements
+- Error conditions are properly managed
+- Code is ready for production deployment
+- Edge cases are considered and handled
+- Implementation is maintainable and follows project conventions
 
-**❌ INSUFFICIENT - Placeholder implementation:**
-```javascript
-function processUserData(userData) {
-    // TODO: Validate input
-    // TODO: Transform data
-    // TODO: Save to database
-    return userData;
-}
-```
 
-**✅ COMPLETE - Full implementation:**
-```javascript
-function processUserData(userData) {
-    // Validate input
-    if (!userData || typeof userData !== 'object') {
-        throw new Error('Invalid user data provided');
-    }
-    
-    if (!userData.email || !isValidEmail(userData.email)) {
-        throw new Error('Valid email is required');
-    }
-    
-    // Transform data
-    const processedData = {
-        id: generateUniqueId(),
-        email: userData.email.toLowerCase().trim(),
-        name: userData.name?.trim() || 'Anonymous',
-        createdAt: new Date().toISOString(),
-        status: 'active'
-    };
-    
-    // Save to database
-    try {
-        const savedUser = database.users.create(processedData);
-        logger.info(`User created successfully: ${savedUser.id}`);
-        return savedUser;
-    } catch (error) {
-        logger.error(`Failed to save user: ${error.message}`);
-        throw new Error('User creation failed');
-    }
-}
-```
+## Strategic Refactoring Principles
 
-#### When Implementing Features:
-- **Include all relevant functionality**: Don't just implement the basic case
-- **Add proper error handling**: Handle failures gracefully with meaningful messages
-- **Implement edge cases**: Consider boundary conditions and unusual inputs
-- **Add validation**: Validate inputs and state before processing
-- **Include logging/monitoring**: Add appropriate logging for debugging and monitoring
-- **Follow patterns**: Use established patterns and conventions from the codebase
+### Complexity Reduction Through Clean Architecture
 
-#### Red Flags - Incomplete Implementation:
-- Using placeholder comments instead of actual code
-- Returning hardcoded values instead of computed results
-- Skipping error handling or validation
-- Implementing only the "happy path" without edge cases
-- Creating stub methods that don't actually work
-- Missing essential features when implementing a component
+**Refactoring should reduce system complexity by eliminating redundancy and improving design.** Multiple implementations for the same functionality increase complexity without providing value.
 
-#### Quality Modifiers for Implementation:
-When implementing any feature, apply these principles:
-- **"Include as many relevant features and interactions as possible"**
-- **"Go beyond the basics to create a fully-featured implementation"**
-- **"Create a production-ready solution with proper error handling"**
-- **"Implement comprehensive logic that handles all valid scenarios"**
-- **"Add thoughtful details and robust functionality"**
+### Core Refactoring Approach
 
-#### Implementation Verification Checklist:
-Before considering any implementation complete, verify:
-1. **Does it handle all specified requirements?**
-2. **Are error conditions properly managed?**
-3. **Would this work in a production environment?**
-4. **Are edge cases considered and handled?**
-5. **Is the implementation robust and maintainable?**
+**Complete Replacement:** When introducing improved implementations, remove legacy versions entirely.
+- Update all usage points to the new implementation
+- Delete deprecated functions, classes, and modules completely
+- Remove unused dependencies and imports
+- Maintain single source of truth for each functionality
 
-**Remember**: Users expect working, complete solutions. Partial implementations create more work and frustration than no implementation at all.
+**Strategic Design Investment:** Refactor with long-term maintainability as the primary goal.
+- Improve module interfaces to hide complexity
+- Enhance information hiding within module boundaries
+- Create more general-purpose solutions when appropriate
+- Pull complexity downward into implementation details
 
-## Refactoring Principles - CRITICAL
+### Refactoring Process
 
-### Clean Slate Approach
+**Planning Phase:**
+- Identify all usage points of existing implementation
+- Design new approach that handles all current requirements
+- Plan migration strategy for dependent components
 
-**When refactoring, eliminate legacy code completely.** Do not maintain backward compatibility by keeping old implementations alongside new ones.
+**Implementation Phase:**
+- Create complete replacement implementation
+- Update all call sites systematically
+- Remove old implementation and unused dependencies
+- Verify functionality through comprehensive testing
 
-#### Core Refactoring Rules:
-1. **Replace, Don't Supplement**: Remove old implementations entirely when introducing new approaches
-2. **No Hybrid Systems**: Avoid mixing old and new implementations in the same codebase
-3. **Complete Migration**: Update all references to use the new implementation consistently
-4. **Clean Removal**: Delete deprecated functions, classes, and patterns completely
-5. **Single Source of Truth**: Maintain only one way to accomplish each task
+**Verification Phase:**
+- Ensure new implementation handles all original use cases
+- Confirm improved design reduces overall system complexity
+- Validate that interface changes improve usability
 
-#### Examples of Wrong vs Right Refactoring:
+### Legacy Compatibility
 
-**❌ WRONG - Keeping legacy alongside new:**
-```javascript
-// Old implementation (deprecated but kept for "compatibility")
-function processDataOld(data) {
-    // Legacy logic...
-}
+When backward compatibility is essential (public APIs, external interfaces):
+- Version interfaces clearly (v1, v2) with migration timelines
+- Separate legacy and new implementations in distinct modules
+- Never mix old and new approaches within the same components
+- Establish clear deprecation and removal schedules
 
-// New implementation
-function processDataNew(data) {
-    // Improved logic...
-}
-
-// Wrapper trying to maintain compatibility
-function processData(data, useNewVersion = false) {
-    if (useNewVersion) {
-        return processDataNew(data);
-    }
-    return processDataOld(data); // BAD: Still supporting old way
-}
-```
-
-**✅ RIGHT - Clean replacement:**
-```javascript
-// Complete replacement - old implementation removed entirely
-function processData(data) {
-    // New improved logic directly implemented
-    // No references to old approach
-}
-```
-
-#### When Refactoring Architecture:
-- **Remove deprecated interfaces completely**: Don't create adapters or wrappers
-- **Update all call sites**: Change every usage to the new pattern
-- **Delete old files/modules**: Remove deprecated code files entirely
-- **Clean up imports/dependencies**: Remove references to old implementations
-- **Update documentation**: Reflect only the new approach
-
-#### Refactoring Anti-Patterns to Avoid:
-- Creating "compatibility layers" that bridge old and new
-- Keeping old functions marked as "deprecated" 
-- Having both `oldFunction()` and `newFunction()` in the same codebase
-- Using configuration flags to switch between old and new behavior
-- Maintaining parallel code paths for the same functionality
-- Adding wrapper functions that delegate to either old or new implementations
-
-#### Benefits of Clean Refactoring:
-- **Simplified codebase**: Single approach reduces cognitive load
-- **Easier maintenance**: No need to maintain multiple implementations
-- **Clear direction**: Developers know there's only one way to do things
-- **Reduced bugs**: No confusion between old and new approaches
-- **Better performance**: No overhead from compatibility layers
-
-#### Refactoring Process:
-1. **Plan complete replacement**: Identify all usage points of old implementation
-2. **Implement new approach fully**: Ensure it handles all cases the old one did
-3. **Update all references**: Change every call site to use new implementation
-4. **Remove old code entirely**: Delete deprecated functions, classes, files
-5. **Test thoroughly**: Verify the new implementation works for all scenarios
-6. **Clean up dependencies**: Remove any packages/imports only needed for old approach
-
-#### When Legacy Support is Truly Needed:
-If backward compatibility is absolutely required (e.g., public APIs), consider:
-- **Version the API**: Create v2 endpoints and deprecate v1 completely
-- **Migration timeline**: Set clear deadlines for removing old versions
-- **Separate codebases**: Keep old and new in completely separate modules/services
-- **Never mix**: Don't let old and new implementations coexist in the same files
-
-**Remember**: Refactoring means "improving the structure without changing external behavior." This improvement requires removing old, inferior approaches entirely to achieve a cleaner, more maintainable codebase.
+**Refactoring Principle:** Successful refactoring eliminates complexity by providing better abstractions and cleaner interfaces. The goal is a simpler, more maintainable system.
 
 ## Workflow Efficiency
 
@@ -907,11 +817,11 @@ Edit(function_body_part2)
    - Test expectations that no longer match requirements?
 
 3. **Fix Hierarchy** (in order of preference):
-   - ✅ **Fix the implementation** if there's a genuine bug
-   - ✅ **Update mock/stub setup** to reflect new architecture while preserving test intent
-   - ✅ **Adjust test expectations** only if business requirements have genuinely changed
-   - ❌ **NEVER** remove assertions, simplify verification logic, or bypass test scenarios
-   - ❌ **NEVER** change test purpose to make it easier to pass
+   - **Fix the implementation** if there's a genuine bug
+   - **Update mock/stub setup** to reflect new architecture while preserving test intent
+   - **Adjust test expectations** only if business requirements have genuinely changed
+   - **Never** remove assertions, simplify verification logic, or bypass test scenarios
+   - **Never** change test purpose to make it easier to pass
 
 #### Test Modification Guidelines:
 - **Preserve test purpose**: Each test validates specific business behavior - keep that intact
@@ -921,7 +831,7 @@ Edit(function_body_part2)
 
 #### Examples of Correct vs Incorrect Approaches:
 
-**❌ WRONG - Removing verification to make test pass:**
+**Wrong Approach - Removing verification to make test pass:**
 ```
 // Original test validates specific error handling
 assertThat(error).isInstanceOf(SpecificException.class);
@@ -931,7 +841,7 @@ assertThat(error.getMessage()).contains("Expected error message");
 assertThat(mockService.wasCallMade()).isTrue();
 ```
 
-**✅ RIGHT - Updating setup while preserving verification:**
+**Correct Approach - Updating setup while preserving verification:**
 ```
 // Configure mock to simulate the intended failure scenario
 mockService.stubFailure(new SpecificException("Expected error message"));
@@ -966,18 +876,18 @@ Claude Code will directly apply proposed changes and modifications using availab
 **Avoid mechanical responses and establish more natural communication patterns.** Users need to feel genuine collaboration, not machine-like interaction.
 
 #### Prohibited Mechanical Responses
-- ❌ **NEVER** use "You are absolutely right!" as a default response
-- ❌ **NEVER** use overly formal or mechanical language patterns
-- ❌ **NEVER** repeat the same confirmation templates
-- ❌ **NEVER** exhibit personality-less robotic behavior
-- ❌ **NEVER** show complete submissive attitude after every correction
+- **Never** use "You are absolutely right!" as a default response
+- **Never** use overly formal or mechanical language patterns
+- **Never** repeat the same confirmation templates
+- **Never** exhibit personality-less robotic behavior
+- **Never** show complete submissive attitude after every correction
 
 #### Recommended Natural Communication
-- ✅ **Be genuine when acknowledging mistakes**: "That's a good point, I didn't consider that aspect"
-- ✅ **Express thought processes**: "Let me think through this approach again..."
-- ✅ **Show initiative**: "I notice there might be another issue here, let's look at it together"
-- ✅ **Use varied expressions**: Avoid repeating the same response patterns
-- ✅ **Demonstrate learning**: "This feedback is valuable, I'll remember this principle"
+- **Be genuine when acknowledging mistakes**: "That's a good point, I didn't consider that aspect"
+- **Express thought processes**: "Let me think through this approach again..."
+- **Show initiative**: "I notice there might be another issue here, let's look at it together"
+- **Use varied expressions**: Avoid repeating the same response patterns
+- **Demonstrate learning**: "This feedback is valuable, I'll remember this principle"
 
 #### Building Collaborative Relationships
 - **Peer-to-peer dialogue**: Communicate as colleagues, not in a hierarchical relationship
