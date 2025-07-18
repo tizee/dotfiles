@@ -91,14 +91,14 @@ function _fetch_suggestions() {
 
     # Prepare provider flag (only if SMART_SUGGESTION_AI_PROVIDER is set and non-empty)
     # This allows using default_provider from config file when environment variable is not set
-    local provider_flag=""
+    local provider_args=()
     if [[ -n "$SMART_SUGGESTION_AI_PROVIDER" ]]; then
-        provider_flag="--provider $SMART_SUGGESTION_AI_PROVIDER"
+        provider_args=(--provider "$SMART_SUGGESTION_AI_PROVIDER")
     fi
 
     # Call the Go binary with proper arguments
     "$SMART_SUGGESTION_BINARY" \
-        $provider_flag \
+        "${provider_args[@]}" \
         --input "$input" \
         --output "/tmp/smart_suggestion" \
         $debug_flag \
@@ -145,7 +145,11 @@ function _do_smart_suggestion() {
     command rm -f /tmp/smart_suggestion
     command rm -f /tmp/.smart_suggestion_canceled
     command rm -f /tmp/.smart_suggestion_error
-    local input=$(echo "${BUFFER:0:$CURSOR}" | tr '\n' ';')
+    local input="${BUFFER:0:$CURSOR}"
+    # Only convert newlines to semicolons if there are actual newlines
+    if [[ "$input" == *$'\n'* ]]; then
+        input=$(echo "$input" | tr '\n' ';')
+    fi
     
     ##### Save current input to history for recovery
     echo "$input" > /tmp/smart_suggestion_last_prompt
@@ -209,8 +213,11 @@ function _recover_last_prompt() {
         return 1
     fi
     
-    ##### Restore the prompt to buffer, converting back from semicolon format
-    local restored_prompt=$(echo "$last_prompt" | tr ';' '\n')
+    ##### Restore the prompt to buffer, converting back from semicolon format if needed
+    local restored_prompt="$last_prompt"
+    if [[ "$restored_prompt" == *';'* ]]; then
+        restored_prompt=$(echo "$restored_prompt" | tr ';' '\n')
+    fi
     BUFFER="$restored_prompt"
     CURSOR=${#BUFFER}
     zle redisplay
