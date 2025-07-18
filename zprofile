@@ -505,7 +505,7 @@ if $is_macOS; then
   # python llm cli
   export LLM_USER_PATH="$HOME/.config/io.datasette.llm"
   export LLM_PROGRAM="/opt/homebrew/bin/llm"
-  export LLM_PREPARE_COMMIT_MSG_PROMPT="~/prompts/git/diff-based-commit-prompt.txt"
+  export LLM_PREPARE_COMMIT_MSG_PROMPT="$HOME/prompts/git/diff-based-commit-prompt.txt"
 
   # xray-core
   # export XRAY_LOCATION_CONFDIR="$HOME/.config/xray/conf"
@@ -521,7 +521,7 @@ if $is_macOS; then
   export SMART_SUGGESTION_PROVIDER_FILE="$HOME/.config/llm/smart-suggestion.json"
   # Privacy settings
   export SMART_SUGGESTION_PROXY_MODE=false      # No terminal recording
-  export SMART_SUGGESTION_SEND_CONTEXT=true     # Limited context only
+  export SMART_SUGGESTION_SEND_CONTEXT=false # Limited context only
   export SMART_SUGGESTION_PRIVACY_LEVEL="moderate" # Basic filtering sufficient
 
 

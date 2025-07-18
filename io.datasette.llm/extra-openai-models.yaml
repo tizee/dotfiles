@@ -38,3 +38,8 @@
   api_base: "https://openrouter.ai/api/v1"
   can_stream: true
   api_key_name: openrouter
+- model_id: kimi-k2
+  model_name: kimi-k2-0711-preview
+  api_base: "https://api.moonshot.cn/v1"
+  can_stream: true
+  api_key_name: moonshot
