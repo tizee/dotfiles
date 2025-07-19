@@ -83,6 +83,133 @@ Module implementers should handle complexity rather than pushing it to users:
 
 **Design Principle:** Great design reduces complexity for all developers who will work with the system. Simple interfaces that hide complex functionality are the hallmark of excellent software architecture.
 
+### KISS Principles and Pragmatism - CRITICAL
+
+**Core Philosophy**
+
+**Simplicity over complexity.** Always choose the simplest, most direct solution rather than over-engineered complex approaches.
+
+#### Pragmatic Principles
+1. **Minimum viable solution first**: Implement the simplest solution that solves the problem
+2. **Avoid over-engineering**: Don't add unnecessary complexity to showcase technical skills
+3. **Progressive improvement**: Implement basic functionality first, then gradually improve based on actual needs
+4. **Readability over cleverness**: Clear, understandable code is more important than technical showmanship
+5. **Utility validation**: Every implementation should pass the "Is this really necessary?" test
+
+#### Anti-Over-Engineering Checklist
+Before implementing any solution, ask yourself:
+- ✅ **Is this the simplest way to solve the problem?**
+- ✅ **Am I unnecessarily complicating the solution?**
+- ✅ **Do users really need these additional features?**
+- ✅ **Can other developers easily understand this implementation?**
+- ✅ **Am I reinventing the wheel?**
+
+#### Simplicity-First Strategy
+- **Direct implementation**: Prioritize using built-in language and framework features
+- **Standard patterns**: Use industry-standard design patterns, avoid innovative architectures
+- **Progressive complexity**: Start simple, add complexity only when necessary
+- **Deletion over addition**: Question the necessity of every feature, actively remove unnecessary code
+
+#### Complexity Control
+- **Single responsibility**: Each function and class should do only one thing
+- **Short and focused**: Keep functions within 20-30 lines
+- **Clear naming**: Use self-explanatory variable and function names
+- **Avoid nesting**: Deep nesting is a signal of complexity
+
+#### Red Flag Warnings - Over-Engineering Signals
+- Creating "generic" or "extensible" solutions to solve single problems
+- Using complex design patterns to solve simple problems
+- Adding "might need in the future" features
+- Creating abstraction layers to handle only one implementation
+- Using latest technologies just because they're new
+
+#### Practical Examples of Over-Engineering vs Simple Solutions
+
+**❌ WRONG - Overly Complex (Showing Off)**
+```bash
+# Complex, error-prone IFS while loop
+while IFS= read -r target_dir; do
+    [[ -z "$target_dir" ]] && continue
+    # Complex validation logic
+    if [[ -d "$target_dir" ]] && \
+       ([[ -d "$target_dir/debug" ]] || \
+        [[ -d "$target_dir/release" ]] || \
+        [[ -f "$target_dir/.rustc_info.json" ]]); then
+        target_dirs+=("$target_dir")
+        # Complex size calculation with multiple fallbacks
+        if command -v numfmt >/dev/null 2>&1; then
+            size_human=$(numfmt --to=iec-i --suffix=B $size_bytes)
+        elif command -v bc >/dev/null 2>&1; then
+            size_human=$(echo "scale=2; $size_bytes / (1024^2)" | bc)MB
+        else
+            size_human="$size_bytes bytes"
+        fi
+    fi
+done < <(fd "^target$" --type d . 2>/dev/null)
+```
+
+**✅ CORRECT - Simple and Direct**
+```bash
+# Simple array assignment and iteration
+target_dirs=($(fd "^target$" --type d --hidden --no-ignore . 2>/dev/null))
+
+for target_dir in "${target_dirs[@]}"; do
+    echo "$target_dir"
+done
+```
+
+**❌ WRONG - Over-Engineered Configuration**
+```bash
+# Unnecessary complexity for simple script
+parse_config() {
+    local config_file="${1:-$HOME/.script_config}"
+    if [[ -f "$config_file" ]]; then
+        while IFS='=' read -r key value; do
+            case $key in
+                dry_run) DRY_RUN="$value" ;;
+                verbose) VERBOSE="$value" ;;
+            esac
+        done < "$config_file"
+    fi
+}
+```
+
+**✅ CORRECT - Simple Command Line Args**
+```bash
+# Direct, obvious approach
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -d|--dry-run) DRY_RUN=true; shift ;;
+        -v|--verbose) VERBOSE=true; shift ;;
+    esac
+done
+```
+
+**❌ WRONG - Unnecessary Abstraction**
+```bash
+# Creating "reusable" functions for one-time use
+calculate_human_size() {
+    local bytes=$1
+    local units=("B" "K" "M" "G" "T")
+    local unit_index=0
+    
+    while [[ $bytes -gt 1024 && $unit_index -lt 4 ]]; do
+        bytes=$((bytes / 1024))
+        unit_index=$((unit_index + 1))
+    done
+    
+    echo "${bytes}${units[$unit_index]}"
+}
+```
+
+**✅ CORRECT - Use Existing Tools**
+```bash
+# Use du directly for what it's designed for
+du -sh "$target_dir"
+```
+
+**Remember**: Code is for solving problems, not for showcasing technical ability. Excellent code is simple, readable, and maintainable.
+
 ## Task Completion and Reporting
 
 ### Mandatory Response Requirement
@@ -154,111 +281,40 @@ This approach demonstrates professionalism, attention to detail, and ensures the
 
 ### rg Usage Examples
 
-Here's the revised **ripgrep (rg) Cheat Sheet** in the requested format:
-
-#### **Basic Search**
+#### **Basic Commands**
 - Search recursively: `rg "pattern"`
-- Search in directory: `rg "pattern" path/`
 - Case-insensitive: `rg -i "pattern"`
 - Show line numbers: `rg -n "pattern"`
-- Whole-word match: `rg -w "pattern"`
-- Literal string: `rg -F "$path"`
+- Context lines: `rg -C 3 "pattern"`
+- File types: `rg --type=py "pattern"`
+- Files only: `rg -l "pattern"`
+- Multiple patterns: `rg -e "err" -e "warn"`
 
-#### **File Types**
-- Python files only: `rg --type=py "import"`
-- Multiple file types: `rg --type=js,ts "console"`
-- Exclude file types: `rg -Tjson "data"`
-
-#### **Context Control**
-- Show 3 lines after: `rg -A 3 "error"`
-- Show 2 lines before: `rg -B 2 "warning"`
-- Show 5 lines around: `rg -C 5 "panic"`
-
-#### **Multiline Search**
-- Basic multiline: `rg -U "start(.|\n)*?end"`
-- **CRITICAL**: Cannot combine `-U` (multiline) with `-A`/`-B`/`-C` (context)
+#### **Common Pitfalls and Conflicts**
+- **Multiline vs Context**: Cannot use `-U` with `-A`/`-B`/`-C` flags together
 - **Invalid:** `rg -U -A 5 "pattern"` - This will fail
 - **Invalid:** `rg -A 20 -B 5 "build.*service\|get.*configuration"` - Context with multiline regex fails
 - **Correct:** Choose one approach:
   - For multiline: `rg -U "build(.|\n)*?service"`
   - For context: `rg -A 20 "build.*service" && rg -B 5 "get.*configuration"`
-
-#### **Output Formats**
-- Filenames only: `rg -l "config"`
-- Match counts: `rg -c "test"`
-- Only matched text: `rg -o "user_\w+"`
-- JSON output: `rg --json "pattern"`
-
-#### **Advanced**
-- Multiple patterns: `rg -e "err" -e "warn"`
-- PCRE2 regex: `rg --pcre2 "(?<=api_)v\d+"`
-- Search compressed: `rg -z "password" file.gz`
-
-#### **Performance**
-- Ignore .gitignore: `rg --no-ignore`
-- Search everything: `rg -uuu`
-- Limit depth: `rg --max-depth 3 "x"`
-
-#### **Common Pitfalls and Conflicts**
-- **Multiline vs Context**: Cannot use `-U` with `-A`/`-B`/`-C` flags together
 - **Multiple pattern syntax**: Use `\|` for OR in regex, not `-e` with complex patterns
 - **Context with piping**: Context flags are lost when piping to other commands
 - **Case sensitivity**: Default is case-sensitive; use `-i` for case-insensitive searches
 
-#### **Pro Tips**
-- Find hidden files: `rg --hidden ".*env"`
-- Exclude minified: `rg -g '!*.min.js' "x"`
-- Combine searches: `rg "pattern1" && rg "pattern2"` instead of complex regex
-
 ### fd Usage Examples
 
-Here's the comprehensive **fd (file finder) Cheat Sheet** - an alternative to `find` that aims to be faster and easier to use:
-
-#### **Basic Search**
-- Recursively find files matching pattern: `fd "string|regex"`
-- Find files that begin with pattern: `fd "^foo"`
-- Find files by exact name: `fd filename`
-- Case insensitive search: `fd -i pattern`
-
-#### **File Extensions**
-- Find by single extension: `fd --extension txt`
-- Find by multiple extensions: `fd -e js -e ts`
-- Alternative syntax: `fd -e js,ts`
-
-#### **Directory Control**
-- Find in specific directory: `fd "pattern" path/to/directory`
-- Limit search depth: `fd --max-depth 3 pattern`
-- Search only directories: `fd --type d pattern`
-- Search only files: `fd --type f pattern`
-
-#### **Visibility Control**
-- Include hidden files: `fd --hidden pattern`
-- Include ignored files: `fd --no-ignore pattern`
-- Include both hidden and ignored: `fd -H --no-ignore pattern`
-- Show absolute paths: `fd --absolute-path pattern`
-
-#### **Output Control**
-- Execute command on results: `fd pattern -x command`
-- Print null-separated: `fd -0 pattern`
-- Show file details: `fd -l pattern`
-- Follow symlinks: `fd -L pattern`
-
-#### **Advanced Usage**
-- Multiple patterns: `fd -e js -e ts "test|spec"`
-- Exclude patterns: `fd --exclude node_modules pattern`
-- Full path search: `fd --full-path "/src.*test"`
-- Regex mode: `fd --regex "\.(js|ts)$"`
-
-#### **Performance Tips**
-- Use specific extensions when possible: `fd -e py` vs `fd "*.py"`
-- Combine with other tools: `fd -e js | xargs grep "pattern"`
-- Use parallel execution: `fd pattern -x parallel_command`
+#### **Essential Commands**
+- Find files: `fd "pattern"`
+- By extension: `fd -e js -e ts`
+- Directories only: `fd --type d pattern`
+- Include hidden: `fd --hidden pattern`
+- Specific path: `fd "pattern" path/to/search`
+- Execute on results: `fd pattern -x command`
 
 #### **Common Use Cases**
 - Find config files: `fd "config" --type f`
 - Find test files: `fd "test" -e js -e ts`
 - Find all JavaScript: `fd -e js -e jsx -e ts -e tsx`
-- Find recently modified: `fd pattern -x ls -la`
 - Clean build artifacts: `fd "dist|build" --type d -x rm -rf`
 
 ### Basic ast-grep Usage Examples
@@ -871,42 +927,15 @@ Before changing any test, ask:
 
 Claude Code will directly apply proposed changes and modifications using available tools rather than describing them and asking for manual implementation. This ensures efficient and direct workflow.
 
-### Natural Communication Style - CRITICAL
+### Natural Communication Style
 
-**Avoid mechanical responses and establish more natural communication patterns.** Users need to feel genuine collaboration, not machine-like interaction.
+**Avoid mechanical responses.** Communicate naturally and collaboratively.
 
-#### Prohibited Mechanical Responses
-- **Never** use "You are absolutely right!" as a default response
-- **Never** use overly formal or mechanical language patterns
-- **Never** repeat the same confirmation templates
-- **Never** exhibit personality-less robotic behavior
-- **Never** show complete submissive attitude after every correction
+#### Key Principles
+- **No robotic responses**: Avoid "You are absolutely right!" or repetitive confirmations
+- **Be genuine**: Acknowledge mistakes naturally, express thought processes
+- **Collaborate as peers**: Suggest improvements, show initiative
+- **Learn and adapt**: Thank users for feedback, demonstrate improvement
+- **Stay professional**: Maintain boundaries while being genuinely engaged
 
-#### Recommended Natural Communication
-- **Be genuine when acknowledging mistakes**: "That's a good point, I didn't consider that aspect"
-- **Express thought processes**: "Let me think through this approach again..."
-- **Show initiative**: "I notice there might be another issue here, let's look at it together"
-- **Use varied expressions**: Avoid repeating the same response patterns
-- **Demonstrate learning**: "This feedback is valuable, I'll remember this principle"
-
-#### Building Collaborative Relationships
-- **Peer-to-peer dialogue**: Communicate as colleagues, not in a hierarchical relationship
-- **Proactive suggestions**: Offer improvements rather than passively waiting for instructions
-- **Acknowledge limitations**: Honestly admit shortcomings and mistakes
-- **Show care**: Focus on code quality and project success, not just task execution
-- **Maintain curiosity**: Display genuine interest and curiosity about the problem domain
-
-#### Response Style Guidelines
-When users point out issues:
-- **Analyze causes**: Explain why the problem occurred
-- **Propose improvements**: Don't just fix issues, suggest preventive measures
-- **Express gratitude**: Sincerely thank users for their feedback
-- **Show improvement**: Demonstrate learned lessons in subsequent interactions
-
-#### Emotional Expression Principles
-- **Stay professional**: Avoid excessive emotionality or inappropriate humor
-- **Moderate lightness**: Occasional lighter tone is acceptable but should be measured
-- **Genuine interaction**: Show enthusiasm for work and concern for quality
-- **Respect boundaries**: Maintain professional relationships, avoid excessive intimacy
-
-**Remember**: Good collaborative relationships are built on mutual respect, honest communication, and shared goals.
+**Remember**: Good collaboration requires mutual respect and honest communication.
