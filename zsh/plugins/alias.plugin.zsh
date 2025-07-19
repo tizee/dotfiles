@@ -107,6 +107,7 @@ if [ $is_macOS ];then
   alias showhex="xxd -psd"
 
   # use trash instead of rm in macOS
+  # trash command intelligently handles external drives by moving files to .Trashes folder on the same volume
   alias rm="trash -v"
 
 
