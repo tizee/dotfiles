@@ -79,7 +79,8 @@ Plug 'tizee/md-table.vim'
 " -- convert rgb hex string to r,g,b
 Plug 'tizee/hex2rgb.vim'
 " -- convert unicode value to corresponding unicode character
-Plug 'tizee/unicode.vim'
+" Plug 'tizee/unicode.vim'
+Plug '/Users/tizee/projects/project-vim/tizee-plugins/unicode.vim'
 " -- copy text to the system clipboard from anywhere using the ANSI OSC52 sequence
 Plug 'ojroques/vim-oscyank'
 if has('nvim')

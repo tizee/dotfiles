@@ -69,6 +69,10 @@ if [[ $(uname -s) = "Darwin" ]]; then
   # 3 - enable additional keyboard navigation features, including navigate dialog boxex and pop-up menus
   defaults write -g "AppleKeyboardUIMode" -int 3
 
+  # see /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/IOKit.framework/Versions/A/Headers/hid/IOHIDProperties.h
+  # the delay (in ms) before the caps lock key is activated.
+  hidutil property --set '{"CapsLockDelayOverride":0}'
+
   # }}}
 
   # Dock {{{
