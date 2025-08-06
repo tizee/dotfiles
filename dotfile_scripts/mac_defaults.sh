@@ -115,6 +115,15 @@ if [[ $(uname -s) = "Darwin" ]]; then
 
   # Finder {{{
   # killall Finder to activate
+
+  # https://apple.stackexchange.com/questions/463901/customising-the-system-locale-s-date-format-in-recent-macos-versions
+  defaults write com.apple.finder RelativeDates -bool false
+  defaults write NSGlobalDomain AppleICUDateFormatStrings -dict-add "1" "yyyy-MM-dd HH:mm"
+  defaults write NSGlobalDomain AppleICUDateFormatStrings -dict-add "2" "yyyy-MM-dd HH:mm:ss"
+  defaults write NSGlobalDomain AppleICUDateFormatStrings -dict-add "3" "yyyy-MM-dd HH:mm:ss"
+  defaults write NSGlobalDomain AppleICUDateFormatStrings -dict-add "4" "yyyy-MM-dd HH:mm:ss"
+  # defaults delete NSGlobalDomain AppleICUDateFormatStrings
+
   # display quit option
   defaults write com.apple.finder "QuitMenuItem" -bool "true"
   # always display file path at the bottom of Finder window
