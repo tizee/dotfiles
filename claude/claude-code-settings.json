@@ -28,7 +28,12 @@
       "Task"
     ]
   },
-  "model": "opus",
+  "statusLine": {
+    "type": "command",
+    "command": "pnpm dlx ccusage statusline",
+    "padding": 0
+  },
+  "model": "sonnet",
   "hooks": {
     "PreToolUse": [
       {
