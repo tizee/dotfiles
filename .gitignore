@@ -18,3 +18,4 @@ zcd/zcddata
 raycast/extensions
 # cloudflare worker
 .wrangler
+github-copilot
