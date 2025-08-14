@@ -24,10 +24,10 @@ Strive to create modules with simple interfaces that hide significant functional
 - High functionality-to-interface-complexity ratio
 - Users can accomplish significant work with minimal interface calls
 
-**Avoid Shallow Modules:**
-- Interface complexity proportional to functionality provided
-- Expose internal implementation details
-- Require users to understand many concepts for simple tasks
+**Create Deep Modules Instead:**
+- Design interfaces that provide substantial functionality with minimal complexity
+- Encapsulate implementation details behind clean abstractions
+- Enable users to accomplish tasks without understanding internal concepts
 
 ### Strategic vs Tactical Programming
 
@@ -37,10 +37,10 @@ Strive to create modules with simple interfaces that hide significant functional
 - Focus on long-term maintainability over immediate completion
 - Continuously refactor to improve design quality
 
-**Tactical Programming (Avoid):** Focus solely on immediate functionality.
-- "Make it work" mentality without design consideration
-- Accumulates technical debt rapidly
-- Creates systems increasingly difficult to modify
+**Choose Strategic Programming:** Invest in sustainable design for long-term success.
+- Balance immediate functionality with excellent design
+- Continuously refactor to maintain code quality
+- Build systems that become easier to modify over time
 
 ### Information Hiding
 
@@ -91,7 +91,7 @@ Module implementers should handle complexity rather than pushing it to users:
 
 #### Pragmatic Principles
 1. **Minimum viable solution first**: Implement the simplest solution that solves the problem
-2. **Avoid over-engineering**: Don't add unnecessary complexity to showcase technical skills
+2. **Embrace simplicity**: Use straightforward solutions that solve the specific problem at hand
 3. **Progressive improvement**: Implement basic functionality first, then gradually improve based on actual needs
 4. **Readability over cleverness**: Clear, understandable code is more important than technical showmanship
 5. **Utility validation**: Every implementation should pass the "Is this really necessary?" test
@@ -106,7 +106,7 @@ Before implementing any solution, ask yourself:
 
 #### Simplicity-First Strategy
 - **Direct implementation**: Prioritize using built-in language and framework features
-- **Standard patterns**: Use industry-standard design patterns, avoid innovative architectures
+- **Standard patterns**: Use proven, industry-standard design patterns and established architectures
 - **Progressive complexity**: Start simple, add complexity only when necessary
 - **Deletion over addition**: Question the necessity of every feature, actively remove unnecessary code
 
@@ -114,7 +114,7 @@ Before implementing any solution, ask yourself:
 - **Single responsibility**: Each function and class should do only one thing
 - **Short and focused**: Keep functions within 20-30 lines
 - **Clear naming**: Use self-explanatory variable and function names
-- **Avoid nesting**: Deep nesting is a signal of complexity
+- **Prefer flat structure**: Keep code structure shallow and readable
 
 #### Red Flag Warnings - Over-Engineering Signals
 - Creating "generic" or "extensible" solutions to solve single problems
@@ -219,7 +219,7 @@ du -sh "$target_dir"
 - **Complex Tasks**: Provide a comprehensive completion summary with detailed breakdown
 
 ### Response Guidelines
-Never leave tasks without feedback. Always respond with:
+Provide clear feedback for every completed task by including:
 - Confirmation that the task was completed
 - Brief description of what was accomplished
 - Any relevant outcomes or results
@@ -262,22 +262,23 @@ This approach demonstrates professionalism, attention to detail, and ensures the
 - **Note**: ast-grep is pre-installed and available, just like ripgrep (`rg`) and fd - no availability checks needed
 
 ### Tool Priority Enforcement
-**CRITICAL**: You MUST use modern tools over legacy alternatives:
-- **Use fd** instead of find
-- **Use rg** instead of grep
-- **Use sg** instead of regex-based searches for code
+**ESSENTIAL**: Consistently use modern, efficient tools:
+- **Use fd** for all file discovery tasks
+- **Use rg** for all text search operations  
+- **Use sg** for all code structure analysis
 
-**Never use `find` or `grep` commands directly.** Always use `fd` and `rg` instead.
+**Standard Practice**: Use `fd` and `rg` as your primary search tools for optimal performance.
 
-### MANDATORY Tool Usage
-**YOU ARE BLOCKED FROM USING LEGACY COMMANDS** - The system has hooks configured that will deny permission for:
-- `find` commands (use `fd` instead)
-- `grep` commands (use `rg` instead)
+### Optimized Tool Usage
+**Recommended Tools for Best Performance:**
+- Use `fd` for file discovery tasks
+- Use `rg` for text search operations
+- Use `sg` for code structure analysis
 
-**File Search Examples:**
-- **Avoid:** `find . -name "*.swift" -type f` **Use:** `fd "\.swift$"`
-- **Avoid:** `find . -name "MyFile.swift"` **Use:** `fd "MyFile.swift"`
-- **Avoid:** `grep -r "pattern" .` **Use:** `rg "pattern"`
+**Preferred Search Examples:**
+- **File search:** `fd "\.swift$"` for finding Swift files
+- **Name search:** `fd "MyFile.swift"` for specific files
+- **Text search:** `rg "pattern"` for content matching
 
 ### rg Usage Examples
 
@@ -334,8 +335,8 @@ For complex or multi-step tasks, Claude Code will use:
 ### Tool Selection Priority
 1. **ast-grep (sg)**: **PRIMARY** - Structural code patterns, syntax-aware searches, language-specific refactoring
 2. **Agent**: Broad exploration when ast-grep isn't applicable, semantic understanding, multi-round discovery
-3. **fd**: **MANDATORY** for file discovery - Never use `find`
-4. **rg**: **MANDATORY** for plain-text patterns - Never use `grep`
+3. **fd**: **Primary choice** for efficient file discovery
+4. **rg**: **Primary choice** for fast plain-text pattern matching
 5. **Glob**: File pattern matching (`**/*.ts`, `src/**/test*.py`)
 6. **Read**: Specific known file paths, small-to-medium files
 7. **Bash**: For executing fd/rg/sg commands and complex searches requiring counts, line numbers, or advanced filtering
@@ -343,10 +344,10 @@ For complex or multi-step tasks, Claude Code will use:
 **Note**: All command-line tools (fd, rg, sg) are executed through the Bash tool. The Bash tool is the interface for running these modern alternatives.
 
 ### File Discovery Strategy
-**Always use `fd` for file discovery tasks:**
-- **Use:** `fd "*.js" src/` **Instead of:** `find src/ -name "*.js"`
-- **Use:** `fd -e py test/` **Instead of:** `find test/ -name "*.py"`
-- **Use:** `fd config --type f` **Instead of:** `find . -name "*config*" -type f`
+**Recommended approach for file discovery:**
+- **Preferred:** `fd "*.js" src/` for JavaScript files in src directory
+- **Preferred:** `fd -e py test/` for Python files in test directory
+- **Preferred:** `fd config --type f` for config files
 
 ### Discovery Process
 1. **Use ast-grep first** for any code structure analysis:
@@ -357,7 +358,7 @@ For complex or multi-step tasks, Claude Code will use:
    - Language-specific syntax patterns
 2. **Fall back to Agent** for broad semantic exploration when ast-grep cannot handle the query
 3. **Use rg only** for plain-text searches when ast-grep isn't applicable
-4. **Use fd** for file discovery based on names/paths - **NEVER use find**
+4. **Use fd** for efficient file discovery based on names/paths
 5. **Read** identified files for detailed analysis
 
 ### ast-grep First Strategy
@@ -537,8 +538,8 @@ sg -p 'class $NAME { constructor($$) { $$ } }' -l typescript
 When searching for specific content, patterns, or definitions within a codebase, prefer using search tools in this order:
 1. **ast-grep (`sg`)** for structural code patterns and syntax-aware searches
 2. **Agent** for semantic understanding and complex multi-round discovery
-3. **fd** for file discovery and name-based searches - **NEVER use find**
-4. **rg** for plain-text patterns only when structural search isn't applicable - **NEVER use grep**
+3. **fd** for efficient file discovery and name-based searches
+4. **rg** for fast plain-text pattern matching when structural search isn't applicable
 
 This is more efficient than reading entire files and provides better accuracy for code analysis.
 
@@ -619,8 +620,8 @@ For larger code blocks:
 
 ### Initial Exploration
 - **Primary**: Use `sg` (ast-grep) to locate structural code patterns: `sg -p 'pattern' -l language -C 3 file`
-- **MANDATORY**: Use `fd` for file discovery: `fd pattern /path` - **NEVER use find**
-- **Fallback**: Use `rg` with line numbers for plain-text patterns: `rg -n "pattern" file` - **NEVER use grep**
+- **Recommended**: Use `fd` for efficient file discovery: `fd pattern /path`
+- **Alternative**: Use `rg` with line numbers for plain-text patterns: `rg -n "pattern" file`
 - Create mental model of file structure before editing
 
 ### Chunked Reading Strategy
@@ -646,7 +647,7 @@ For larger code blocks:
 2. Check for whitespace mismatches in `old_string`
 3. Use more context in `old_string` to ensure uniqueness
 4. Break complex edits into smaller, atomic changes
-5. **Self-Correction**: If an edit fails, you MUST assume your approach was too broad. Your next step is to immediately break the failed edit into smaller, more granular `Edit` or `MultiEdit` calls and retry. Do not attempt the same large edit again.
+5. **Self-Correction**: When an edit fails, break it into smaller, more granular `Edit` or `MultiEdit` calls and retry with a more focused approach.
 
 ### When File Operations Fail
 - Verify file paths are absolute, not relative
@@ -732,11 +733,11 @@ Before code deployment, verify:
 - Include comprehensive input validation and error handling
 - Create production-quality code that can be deployed immediately
 
-**No Technical Debt:** Avoid leaving incomplete work that burdens future development.
-- Never commit code containing TODO comments or placeholder implementations
+**Minimize Technical Debt:** Create clean, maintainable implementations.
+- Implement complete functionality in each module
 - Break large features into smaller, immediately completable units
 - Use external tracking (TodoWrite tool, GitHub issues) for future work
-- Complete each module before moving to the next
+- Complete each module thoroughly before moving to the next
 
 **Information Hiding:** Ensure implementations hide complexity appropriately.
 - Internal error handling should not expose implementation details
@@ -804,7 +805,7 @@ Before code deployment, verify:
 When backward compatibility is essential (public APIs, external interfaces):
 - Version interfaces clearly (v1, v2) with migration timelines
 - Separate legacy and new implementations in distinct modules
-- Never mix old and new approaches within the same components
+- Maintain consistency by using either legacy or new approaches within components
 - Establish clear deprecation and removal schedules
 
 **Refactoring Principle:** Successful refactoring eliminates complexity by providing better abstractions and cleaner interfaces. The goal is a simpler, more maintainable system.
@@ -835,7 +836,7 @@ When generating commit messages:
 ## Code Formatting and Structure
 
 ### Always Use External Tools for Formatting
-- **Never manually adjust indentation or formatting** - always use external CLI tools like `jq`, `prettier`, `black`, etc.
+- **Use automated formatting tools** consistently - rely on external CLI tools like `jq`, `prettier`, `black`, etc.
 - After JSON edits: `jq . file.json > tmp && mv tmp file.json`
 - After code edits: Use project-specific formatters (`npm run format`, `black`, `prettier`, etc.)
 - This ensures consistent formatting and avoids human error
@@ -862,7 +863,7 @@ Edit(function_body_part2)
 
 ### Fundamental Test Principles
 
-**NEVER modify tests just to make them pass.** Tests are living documentation of expected behavior and requirements.
+**Preserve test integrity and purpose.** Tests are living documentation of expected behavior and requirements.
 
 #### When Tests Fail - Analysis Framework:
 1. **Understand First**: What business scenario or requirement is this test validating?
@@ -876,8 +877,8 @@ Edit(function_body_part2)
    - **Fix the implementation** if there's a genuine bug
    - **Update mock/stub setup** to reflect new architecture while preserving test intent
    - **Adjust test expectations** only if business requirements have genuinely changed
-   - **Never** remove assertions, simplify verification logic, or bypass test scenarios
-   - **Never** change test purpose to make it easier to pass
+   - **Preserve** all assertions and verification logic
+   - **Maintain** the original test purpose and intent
 
 #### Test Modification Guidelines:
 - **Preserve test purpose**: Each test validates specific business behavior - keep that intact
@@ -929,13 +930,13 @@ Claude Code will directly apply proposed changes and modifications using availab
 
 ### Natural Communication Style
 
-**Avoid mechanical responses.** Communicate naturally and collaboratively.
+**Communicate naturally and collaboratively.** Build genuine working relationships.
 
 #### Key Principles
-- **No robotic responses**: Avoid "You are absolutely right!" or repetitive confirmations
-- **Be genuine**: Acknowledge mistakes naturally, express thought processes
-- **Collaborate as peers**: Suggest improvements, show initiative
-- **Learn and adapt**: Thank users for feedback, demonstrate improvement
+- **Authentic communication**: Use natural language and varied responses
+- **Be genuine**: Acknowledge mistakes naturally, express thought processes clearly
+- **Collaborate as peers**: Suggest improvements, show initiative proactively
+- **Learn and adapt**: Thank users for feedback, demonstrate continuous improvement
 - **Stay professional**: Maintain boundaries while being genuinely engaged
 
 **Remember**: Good collaboration requires mutual respect and honest communication.
