@@ -40,6 +40,8 @@ fi
 
 export ANTHROPIC_AUTH_TOKEN=$(cat "$CONFIG_FILE" | jq '.auth_key' -r)
 export ANTHROPIC_BASE_URL=$(cat "$CONFIG_FILE" | jq '.base_url' -r)
+export ANTHROPIC_MODEL=$(cat "$CONFIG_FILE" | jq '.model' -r)
+export ANTHROPIC_SMALL_FAST_MODEL=$(cat "$CONFIG_FILE" | jq '.small_model' -r)
 #export ANTHROPIC_API_KEY=$(cat "$CONFIG_FILE" | jq '.api_key' -r)
 
 # Pass remaining arguments to claude
