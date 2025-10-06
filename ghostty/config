@@ -2195,7 +2195,7 @@ gtk-wide-tabs = true
 #
 # This configuration only has an effect if Ghostty was built with
 # Adwaita support.
-gtk-adwaita = true
+# gtk-adwaita = true
 
 # If `true` (default), applications running in the terminal can show desktop
 # notifications using certain escape sequences such as OSC 9 or OSC 777.

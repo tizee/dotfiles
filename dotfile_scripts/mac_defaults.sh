@@ -106,6 +106,7 @@ if [[ $(uname -s) = "Darwin" ]]; then
   # group windows by application in Mission Control
   defaults write com.apple.dock "expose-group-by-app" -bool true
 
+  killall Dock
   # }}}
 
   # Menu Bar {{{
