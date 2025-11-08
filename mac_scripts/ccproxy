@@ -1,48 +1,105 @@
 #!/bin/zsh
 
-# Default config file
+# ccproxy - Claude Command Proxy Script
+# This script acts as a wrapper for the claude command, providing:
+# - Dynamic provider configuration via JSON config file
+# - Environment variable setup for Anthropic API authentication
+# - Seamless passthrough of all arguments to the claude command
+#
+# Usage: ccproxy [options] [claude-args...]
+
+# Default configuration file path
+# Falls back to ~/.config/llm/cc-proxy.json if not specified via -c flag
 CONFIG_FILE="$HOME/.config/llm/cc-proxy.json"
 
+# Default provider name, can be overridden via CCPROXY_PROVIDER env var or -p flag
+# Defaults to 'kimi' if no environment variable is set
+DEFAULT_PROVIDER="${CCPROXY_PROVIDER:-kimi}"
+PROVIDER_NAME="$DEFAULT_PROVIDER"
+
 # Parse command line arguments
+# Supports:
+# -c/--config: Specify custom config file path
+# -p/--provider: Select provider from config file
+# -h/--help: Show usage information
+# All remaining arguments are passed to claude command
 while [[ $# -gt 0 ]]; do
     case $1 in
         -c|--config)
+            # Override default config file path with user-provided value
             CONFIG_FILE="$2"
             shift 2
             ;;
         -h|--help)
+            # Display help message and exit
             echo "Usage: ccproxy [options] [claude-args...]"
             echo "Options:"
             echo "  -c, --config FILE    Use custom config file (default: ~/.config/llm/cc-proxy.json)"
+            echo "  -p, --provider NAME  Provider key in config (default: $PROVIDER_NAME)"
             echo "  -h, --help           Show this help message"
             echo ""
             echo "Any additional arguments are passed directly to claude command"
             exit 0
             ;;
+        -p|--provider)
+            # Validate provider argument is not empty
+            if [[ -z "$2" ]]; then
+                echo "Error: --provider requires an argument"
+                exit 1
+            fi
+            # Set provider name from command line argument
+            PROVIDER_NAME="$2"
+            shift 2
+            ;;
         *)
+            # Stop parsing options; remaining args will be passed to claude
             break
             ;;
     esac
 done
 
-# Check if config file exists
+# Configuration file validation and environment setup
+
+# Verify config file exists before proceeding
 if [[ ! -f "$CONFIG_FILE" ]]; then
     echo "Error: Config file not found: $CONFIG_FILE"
     echo "Use -c/--config to specify a custom config file"
     exit 1
 fi
 
-# Read config file
+# Check for required dependencies
+# jq is needed to parse JSON config files
 if ! command -v jq &> /dev/null; then
     echo "Error: jq is required but not installed"
     exit 1
 fi
 
-export ANTHROPIC_AUTH_TOKEN=$(cat "$CONFIG_FILE" | jq '.auth_key' -r)
-export ANTHROPIC_BASE_URL=$(cat "$CONFIG_FILE" | jq '.base_url' -r)
-export ANTHROPIC_MODEL=$(cat "$CONFIG_FILE" | jq '.model' -r)
-export ANTHROPIC_SMALL_FAST_MODEL=$(cat "$CONFIG_FILE" | jq '.small_model' -r)
-#export ANTHROPIC_API_KEY=$(cat "$CONFIG_FILE" | jq '.api_key' -r)
+# Validate that the specified provider exists in the config file
+# Exits with error if provider key is not found
+if ! jq -e --arg provider "$PROVIDER_NAME" '.[$provider]' "$CONFIG_FILE" > /dev/null; then
+    echo "Error: Provider \"$PROVIDER_NAME\" not found in config: $CONFIG_FILE"
+    exit 1
+fi
 
-# Pass remaining arguments to claude
+# Export environment variables for claude command
+# These variables are consumed by Claude Code to configure API access
+
+# Authentication token for the API provider
+export ANTHROPIC_AUTH_TOKEN=$(jq -r --arg provider "$PROVIDER_NAME" '.[$provider].auth_key' "$CONFIG_FILE")
+
+# Base URL for the API endpoint
+export ANTHROPIC_BASE_URL=$(jq -r --arg provider "$PROVIDER_NAME" '.[$provider].base_url' "$CONFIG_FILE")
+
+# Primary model identifier for general use
+export ANTHROPIC_MODEL=$(jq -r --arg provider "$PROVIDER_NAME" '.[$provider].model' "$CONFIG_FILE")
+
+# Optional: Smaller model for fast/efficient operations
+# Uses jq's '// empty' to handle missing keys gracefully
+export ANTHROPIC_SMALL_FAST_MODEL=$(jq -r --arg provider "$PROVIDER_NAME" '.[$provider].small_model // empty' "$CONFIG_FILE")
+
+# Optional: Alternative API key field (currently disabled/commented out)
+#export ANTHROPIC_API_KEY=$(jq -r --arg provider "$PROVIDER_NAME" '.[$provider].api_key' "$CONFIG_FILE")
+
+# Execute claude command with all remaining arguments
+# All arguments after options are passed directly to the claude command
 claude "$@"

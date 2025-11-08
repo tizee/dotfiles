@@ -28,12 +28,6 @@
       "Task"
     ]
   },
-  "statusLine": {
-    "type": "command",
-    "command": "pnpm dlx ccusage statusline",
-    "padding": 0
-  },
-  "model": "sonnet",
   "hooks": {
     "PreToolUse": [
       {
@@ -110,5 +104,11 @@
         ]
       }
     ]
-  }
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "pnpm dlx ccusage statusline",
+    "padding": 0
+  },
+  "alwaysThinkingEnabled": true
 }
