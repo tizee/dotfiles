@@ -28,6 +28,12 @@ see Claude Code's doc on [Personal commands](https://docs.anthropic.com/en/docs/
 ln -sv ~/.config/claude/commands ~/.claude/commands
 ```
 
+### User Skills
+
+```
+ln -sv ~/.config/claude/skills ~/.claude/skills
+```
+
 ## desktop app config
 
 ```

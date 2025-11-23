@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Validate bash commands to prevent use of legacy tools
-Blocks: find, grep (without pipes), and other unsafe patterns
+Blocks: grep (without pipes), and other unsafe patterns
 """
 
 import json
@@ -10,14 +10,6 @@ import sys
 
 # Define validation rules as a list of (regex pattern, message) tuples
 VALIDATION_RULES = [
-    (
-        r"\bfind\b(?!.*\|)",
-        "Use 'fd' instead of 'find' for better performance and features",
-    ),
-    (
-        r"\bgrep\b(?!.*\|)",
-        "Use 'rg' (ripgrep) instead of 'grep' for better performance",
-    ),
     (r"\bwhich\b", "Use 'command -v' instead of 'which' for better portability"),
     (r"\bsudo\b", "sudo usage is blocked for security reasons"),
     (r"rm\s+-rf\s+/?", "Dangerous rm -rf command blocked"),
