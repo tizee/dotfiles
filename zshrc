@@ -352,6 +352,9 @@ function __update_tz_prompt() {
     path_display="$current_dir"
   fi
 
+  # Escape spaces in path for easy copying
+  path_display="${path_display// /\\ }"
+
   # Build the prompt components
   prompt_top_left="%(!,[ROOT],)"
   # Only add sys_icon when not in TMUX
