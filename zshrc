@@ -22,7 +22,7 @@ function debug_shell_loading() {
 # more details on https://zsh.sourceforge.io/Doc/Release/Prompt-Expansion.html
 ######################
 # Resolve the directory of this file (follow symlinks) and load the prompt config from zsh/prompt.zsh.
-prompt_config_file="${${(%):-%N}:A:h}/zsh/prompt.zsh"
+prompt_config_file="${${(%):-%N}:A:h}/zsh/tizee-prompt.zsh"
 [[ -f $prompt_config_file ]] && source "$prompt_config_file"
 
 export ZSHDIR=$HOME/.config/zsh

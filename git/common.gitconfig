@@ -88,7 +88,7 @@
   fzff = !git ls-files --modified --others --exclude-standard | fzf -m --prompt 'ls-files> '
   fzfvi = !nvim $(git ls-files --modified --others --exclude-standard | fzf -m --prompt 'nvim> ')
   fzft = !git tag --list | fzf -m --prompt 'tag > '
-  fzfa = !git ls-files --modified --others --exclude-standard | fzf -m --preview-window=right,60% --preview 'bat --color=always --wrap=auto --diff {} 2> /dev/null' | xargs -I {} git add "{}"
+  fzfa = "!git ls-files --modified --others --exclude-standard | fzf -m --preview-window=bottom,60%,wrap --preview 'git diff --color=always -- {} 2>/dev/null || bat --diff --wrap auto --color=always {} 2>/dev/null || echo \"[deleted] {}\"' | xargs -I {} git add \"{}\""
   # select unstaged file to restore
   fzfr = !git restore $(git ls-files --modified --others --exclude-standard | fzf -m)
   fzfstagedr = !git diff --name-only --cached | fzf -m --prompt 'path> ' --print0 | xargs -0 -I {} git restore --staged {}
