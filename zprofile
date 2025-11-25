@@ -525,6 +525,8 @@ if $is_macOS; then
   export SMART_SUGGESTION_SEND_CONTEXT=false # Limited context only
   export SMART_SUGGESTION_PRIVACY_LEVEL="moderate" # Basic filtering sufficient
 
+  # codex
+  alias cdxs='codex --search --sandbox=danger-full-access --ask-for-approval=never -c sandbox_workspace_write.network_access=true'
 
   # tmux-capture
   source "$HOME/projects/project-python/tizee-packages/tmux-capture/tmux-capture.plugin.zsh"

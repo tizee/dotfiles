@@ -27,6 +27,7 @@ help:
 	@echo "make sudoer        -  (macOS) sudoer setup"
 	@echo "make lldb          -  (macOS) lldb setup"
 	@echo "make claude        -  (macOS) claude code setup"
+	@echo "make codex         -  (macOS) codex config setup"
 .PHONY: help
 
 claude:
@@ -48,6 +49,16 @@ claude:
 		ln -sv $(PWD)/claude/CLAUDE.md ~/.claude/CLAUDE.md; \
 	fi
 .PHONY: claude
+
+codex:
+	@echo "Linking codex config..."
+	@mkdir -p ~/.codex
+	@if [ -e ~/.codex/config.toml ]; then \
+		echo "~/.codex/config.toml already exists - skipping"; \
+	else \
+		ln -sv $(PWD)/codex/config.toml ~/.codex/config.toml; \
+	fi
+.PHONY: codex
 
 cargo:
 	@echo "link cargo config"
