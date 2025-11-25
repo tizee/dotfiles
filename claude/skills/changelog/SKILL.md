@@ -1,11 +1,11 @@
 ---
-name: changelog-generator
-description: Generates and updates CHANGELOG.md files from git commit history. Analyzes commits using conventional commit format, categorizes changes, and maintains version history. Use when updating project changelog, preparing releases, or documenting version changes.
+name: changelog
+description: Generates and updates CHANGELOG.md files by analyzing git commit history. Handles both creating new changelogs and appending recent changes. Analyzes commits using conventional commit format and categorizes changes. Use this skill when generating a new CHANGELOG.md file, updating CHANGELOG.md with recent changes, preparing for a release, documenting changes between versions, or when user mentions "update changelog", "generate changelog", "changelog", "release notes".
 ---
 
-# Changelog Generator
+# Changelog Management
 
-Automates CHANGELOG.md generation from git commit history with support for conventional commits and semantic versioning.
+Generates and updates CHANGELOG.md by analyzing git commit history with support for conventional commits and semantic versioning. Works with both new and existing changelog files.
 
 ## Usage Scenarios
 
