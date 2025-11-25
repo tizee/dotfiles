@@ -145,11 +145,7 @@ function _do_smart_suggestion() {
     command rm -f /tmp/smart_suggestion
     command rm -f /tmp/.smart_suggestion_canceled
     command rm -f /tmp/.smart_suggestion_error
-    local input="${BUFFER:0:$CURSOR}"
-    # Only convert newlines to semicolons if there are actual newlines
-    if [[ "$input" == *$'\n'* ]]; then
-        input=$(echo "$input" | tr '\n' ';')
-    fi
+    local input=$(echo "${BUFFER:0:$CURSOR}" | tr '\n' ';')
     
     ##### Save current input to history for recovery
     echo "$input" > /tmp/smart_suggestion_last_prompt
@@ -174,7 +170,8 @@ function _do_smart_suggestion() {
 
     if [[ ! -f /tmp/smart_suggestion ]]; then
         _zsh_autosuggest_clear
-        echo $(cat /tmp/.smart_suggestion_error 2>/dev/null || echo "No suggestion available at this time. Please try again later.")
+        local error_msg=$(cat /tmp/.smart_suggestion_error 2>/dev/null || echo "No suggestion available at this time. Please try again later.")
+        zle -M "$error_msg"
         return 1
     fi
 
@@ -201,23 +198,20 @@ function _do_smart_suggestion() {
 function _recover_last_prompt() {
     ##### Check if last prompt file exists
     if [[ ! -f /tmp/smart_suggestion_last_prompt ]]; then
-        echo "No previous prompt found"
+        zle -M "No previous prompt found"
         return 1
     fi
-    
+
     ##### Read the last prompt
     local last_prompt=$(cat /tmp/smart_suggestion_last_prompt 2>/dev/null)
-    
+
     if [[ -z "$last_prompt" ]]; then
-        echo "No previous prompt found"
+        zle -M "No previous prompt found"
         return 1
     fi
-    
-    ##### Restore the prompt to buffer, converting back from semicolon format if needed
-    local restored_prompt="$last_prompt"
-    if [[ "$restored_prompt" == *';'* ]]; then
-        restored_prompt=$(echo "$restored_prompt" | tr ';' '\n')
-    fi
+
+    ##### Restore the prompt to buffer, converting back from semicolon format
+    local restored_prompt=$(echo "$last_prompt" | tr ';' '\n')
     BUFFER="$restored_prompt"
     CURSOR=${#BUFFER}
     zle redisplay
