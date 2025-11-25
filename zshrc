@@ -178,30 +178,8 @@ autoload -U +X bashcompinit && bashcompinit
 # python manager
 export PATH="$HOME/.poetry/bin:$PATH"
 
-# llm
-
-# prepare-commit-msg hook
-function toggleLLMCommit {
-  if [ -z "$SKIP_LLM_GITHOOK" ]; then
-    export SKIP_LLM_GITHOOK=1
-    echo "Disable LLM git commit generation"
-  else
-    unset SKIP_LLM_GITHOOK
-    echo "Enable LLM git commit generation"
-  fi
-}
-
-# pre-commit hook
-# Function to enable or disable the secret scan pre-commit hook
-function toggleSecretScan {
-  if [ -z "$SKIP_SCAN_GITHOOK" ]; then
-    export SKIP_SCAN_GITHOOK=1
-    echo "Disable credential scan"
-  else
-    unset SKIP_SCAN_GITHOOK
-    echo "Enable credential scan"
-  fi
-}
+# Load utility functions
+[[ -f $ZSHDIR/functions.zsh ]] && source "$ZSHDIR/functions.zsh"
 
 # yubikey
 # export SSH_AUTH_SOCK=$(gpgconf --list-dirs agent-ssh-socket)
@@ -234,14 +212,17 @@ chpwd_functions=(${chpwd_functions[@]} "__cd_hook_list_files")
 # <<< conda initialize <<<
 
 export TMUX_CONF="$HOME/.config/tmux/tmux.conf"
-# Commented out automatic tmux session to prevent nested shells
-supported_terms=("WezTerm" "ghostty")
-if [[ -n "$TERM_PROGRAM" && " ${supported_terms[@]} " =~ " $TERM_PROGRAM " ]]; then
-  if command -v tmux &> /dev/null; then
-    if ! tmux has -t develop &> /dev/null; then
-      tmux new -s develop
-    else
-      tmux attach -t develop
+# Automatic tmux session management with guards to prevent nested shells
+# Only auto-attach if not already in tmux and SHLVL is 1
+if [[ -z "$TMUX" && "$SHLVL" -eq 1 ]]; then
+  supported_terms=("WezTerm" "ghostty")
+  if [[ -n "$TERM_PROGRAM" && " ${supported_terms[@]} " =~ " $TERM_PROGRAM " ]]; then
+    if command -v tmux &> /dev/null; then
+      if ! tmux has -t develop &> /dev/null; then
+        tmux new -s develop
+      else
+        tmux attach -t develop
+      fi
     fi
   fi
 fi
