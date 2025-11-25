@@ -503,6 +503,8 @@ if $is_macOS; then
   # openFrameworks
   export OF_ROOT="$HOME/projects/project-creative-art/openFrameworks"
   # python llm cli
+  # classic,dots,arrows/blocks/pulse/bouncing/circle/square/triangle/diamond
+  export LLM_GITHOOK_SPINNER_STYLE="dots"
   export LLM_USER_PATH="$HOME/.config/io.datasette.llm"
   export LLM_PROGRAM="$HOME/.local/bin/llm"
   export LLM_PREPARE_COMMIT_MSG_PROMPT="$HOME/prompts/git/diff-based-commit-prompt.txt"

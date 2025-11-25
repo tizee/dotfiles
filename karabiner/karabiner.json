@@ -180,7 +180,13 @@
                         "is_keyboard": true,
                         "product_id": 33,
                         "vendor_id": 1278
-                    }
+                    },
+                    "simple_modifications": [
+                        {
+                            "from": { "key_code": "delete_forward" },
+                            "to": [{ "apple_vendor_top_case_key_code": "keyboard_fn" }]
+                        }
+                    ]
                 },
                 {
                     "identifiers": {
