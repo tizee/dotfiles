@@ -10,7 +10,6 @@ import sys
 
 # Define validation rules as a list of (regex pattern, message) tuples
 VALIDATION_RULES = [
-    (r"\bwhich\b", "Use 'command -v' instead of 'which' for better portability"),
     (r"\bsudo\b", "sudo usage is blocked for security reasons"),
     (r"rm\s+-rf\s+/?", "Dangerous rm -rf command blocked"),
     (r"chmod\s+777", "chmod 777 is insecure - use more restrictive permissions"),

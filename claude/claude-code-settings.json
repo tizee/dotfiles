@@ -23,8 +23,6 @@
     "deny": [
       "Bash(rm -rf:*)",
       "Bash(sudo:*)",
-      "Bash(grep:*)",
-      "Bash(find:*)",
       "Task"
     ]
   },
