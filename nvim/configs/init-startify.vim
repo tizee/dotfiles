@@ -78,13 +78,13 @@ endfunction
 " need to escape control sequence for Chinese qutoes
 " 杨花榆荚无才思，惟解漫天作雪飞。
 " [33m    -- 韩愈[32m《晚春》[m[m
+" "kk-99",
+" "learning",
+" "song",
+" "unix"
 let s:quotes =[
-      \"kk-99",
-      \"mao-ze-dong-anthology",
-      \"mao-ze-dong-chronicle",
-      \"learning",
-      \"song",
-      \"unix"
+      \ "naval-on-wealth",
+      \ "naval-on-happiness",
       \]
 let s:quote=system('fortune ' . join(s:quotes, " ") . ' | sed -r "s/.\[[0-9]*m//g"')
 let s:quote_lines=split(s:quote,"\n")

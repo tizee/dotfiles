@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 
 # use ANSI shadow style logo - only show in interactive terminals (not in tmux)
-if [[ $PROLOGUE_LOGO && $- == *i* && -z $TMUX ]]; then
+if [[ $PROLOGUE_LOGO && $- == *i* ]]; then
   echo "\033[94m"
   echo " ████████╗██╗███████╗███████╗███████╗ ███████╗███████╗██╗  ██╗"
   echo " ╚══██╔══╝██║╚══███╔╝██╔════╝██╔════╝ ╚══███╔╝██╔════╝██║  ██║"
@@ -11,15 +11,15 @@ if [[ $PROLOGUE_LOGO && $- == *i* && -z $TMUX ]]; then
   echo "    ╚═╝   ╚═╝╚══════╝╚══════╝╚══════╝ ╚══════╝╚══════╝╚═╝  ╚═╝"
   echo "\033[m"
 fi
-if [[ $PROLOGUE_FORTUNE && $- == *i* && -z $TMUX ]]; then
+if [[ $PROLOGUE_FORTUNE && $- == *i* ]]; then
+  # alan-kay
+  # kk-99
+  # song
+  # unix
+  # learning
   local quotes=(
-    alan-kay
-    mao-ze-dong-anthology
-    mao-ze-dong-chronicle
-    kk-99
-    song
-    unix
-    learning
+    naval-on-wealth
+    naval-on-happiness
   )
   fortune "${quotes[@]}"
 fi
