@@ -1,0 +1,282 @@
+#!/usr/bin/env zsh
+setopt ERR_EXIT PIPE_FAIL
+
+# Interactive TUI upgrader for AI CLI tools
+# Colors and formatting
+autoload -U colors && colors
+typeset -A COLOR=(
+  reset  $'\e[0m'
+  bold   $'\e[1m'
+  dim    $'\e[2m'
+  red    $'\e[31m'
+  green  $'\e[32m'
+  yellow $'\e[33m'
+  blue   $'\e[34m'
+  cyan   $'\e[36m'
+  gray   $'\e[90m'
+)
+
+# Box drawing characters
+typeset -A BOX=(
+  tl '┌' tr '┐' bl '└' br '┘'
+  h  '─' v  '│' vr '├' vl '┤'
+  check '✓' cross '✗' dot '•'
+  arrow '→' spin '⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
+)
+
+# Tool definitions
+typeset -a TOOLS=(
+  'claude|Claude Code CLI|pnpm add -g @anthropic-ai/claude-code@latest|pnpm'
+  'codex|OpenAI Codex CLI|pnpm add -g @openai/codex@latest|pnpm'
+  'kimi-cli|Kimi CLI|uv tool upgrade --no-cache kimi-cli|uv'
+  'llm|LLM CLI by Simon Willison|uv tool upgrade --no-cache llm|uv'
+)
+
+# Parse tool array into associative arrays
+typeset -A TOOL_NAME TOOL_DESC TOOL_CMD TOOL_DEP
+for i in {1..$#TOOLS}; do
+  IFS='|' read -r name desc cmd dep <<< "${TOOLS[$i]}"
+  TOOL_NAME[$i]="$name"
+  TOOL_DESC[$i]="$desc"
+  TOOL_CMD[$i]="$cmd"
+  TOOL_DEP[$i]="$dep"
+done
+
+# Utility functions
+print_line() {
+  local char="${1:-${BOX[h]}}"
+  local width="${2:-$(tput cols)}"
+  printf "%${width}s\n" | tr ' ' "$char"
+}
+
+print_box_top() {
+  local width="${1:-$(tput cols)}"
+  printf "%s" "${BOX[tl]}"
+  print_line "${BOX[h]}" $((width - 2)) | tr -d '\n'
+  printf "%s\n" "${BOX[tr]}"
+}
+
+print_box_bottom() {
+  local width="${1:-$(tput cols)}"
+  printf "%s" "${BOX[bl]}"
+  print_line "${BOX[h]}" $((width - 2)) | tr -d '\n'
+  printf "%s\n" "${BOX[br]}"
+}
+
+print_box_line() {
+  local text="$1"
+  local width="${2:-$(tput cols)}"
+  local text_len=${#text}
+  local padding=$((width - text_len - 4))
+  printf "%s %s%${padding}s %s\n" "${BOX[v]}" "$text" "" "${BOX[v]}"
+}
+
+spinner_start() {
+  local msg="$1"
+  local spin_chars="${BOX[spin]}"
+  local pid=$$
+  (
+    local i=0
+    while kill -0 "$pid" 2>/dev/null; do
+      local char="${spin_chars:$((i % ${#spin_chars})):1}"
+      printf "\r${COLOR[cyan]}%s${COLOR[reset]} %s" "$char" "$msg"
+      i=$((i + 1))
+      sleep 0.1
+    done
+  ) &
+  SPINNER_PID=$!
+}
+
+spinner_stop() {
+  [[ -n "${SPINNER_PID:-}" ]] && kill "$SPINNER_PID" 2>/dev/null
+  printf "\r%${COLUMNS:-80}s\r" ""
+}
+
+check_dependency() {
+  local dep="$1"
+  command -v "$dep" &>/dev/null
+}
+
+print_header() {
+  clear
+  local width=$(tput cols)
+  print_box_top "$width"
+  print_box_line "${COLOR[bold]}${COLOR[cyan]}  LLM Tools Updater  ${COLOR[reset]}" "$width"
+  print_box_bottom "$width"
+  echo
+}
+
+print_menu() {
+  local width=$(tput cols)
+
+  printf "${COLOR[bold]}Available tools:${COLOR[reset]}\n\n"
+
+  for i in {1..$#TOOLS}; do
+    local name="${TOOL_NAME[$i]}"
+    local desc="${TOOL_DESC[$i]}"
+    local dep="${TOOL_DEP[$i]}"
+
+    # Check if dependency is available
+    local status_icon="${COLOR[green]}${BOX[check]}${COLOR[reset]}"
+    local status_text=""
+    if ! check_dependency "$dep"; then
+      status_icon="${COLOR[yellow]}!${COLOR[reset]}"
+      status_text=" ${COLOR[dim]}(${dep} not found)${COLOR[reset]}"
+    fi
+
+    printf "  ${COLOR[bold]}%d)${COLOR[reset]} %s %-15s ${COLOR[gray]}%s${COLOR[reset]}%s\n" \
+      "$i" "$status_icon" "$name" "$desc" "$status_text"
+  done
+
+  echo
+  print_line "${BOX[h]}" "$width"
+  printf "\n${COLOR[bold]}Options:${COLOR[reset]}\n"
+  printf "  ${BOX[dot]} Enter numbers (space-separated): ${COLOR[cyan]}1 3${COLOR[reset]}\n"
+  printf "  ${BOX[dot]} Press ${COLOR[cyan]}Enter${COLOR[reset]} to update all available tools\n"
+  printf "  ${BOX[dot]} Press ${COLOR[cyan]}q${COLOR[reset]} to quit\n"
+  echo
+}
+
+collect_selection() {
+  local input
+  read "?${COLOR[bold]}${BOX[arrow]} Your choice:${COLOR[reset]} " input
+
+  # Handle quit
+  if [[ "$input" =~ ^(q|quit|exit)$ ]]; then
+    printf "\n${COLOR[yellow]}Cancelled.${COLOR[reset]}\n"
+    exit 0
+  fi
+
+  # Handle empty input (select all with available deps)
+  if [[ -z "$input" ]]; then
+    typeset -ga SELECTED=()
+    for i in {1..$#TOOLS}; do
+      if check_dependency "${TOOL_DEP[$i]}"; then
+        SELECTED+=($i)
+      fi
+    done
+
+    if [[ ${#SELECTED} -eq 0 ]]; then
+      printf "\n${COLOR[red]}${BOX[cross]} No tools available (missing dependencies)${COLOR[reset]}\n"
+      exit 1
+    fi
+    return 0
+  fi
+
+  # Parse space-separated numbers
+  typeset -ga SELECTED=()
+  for token in ${=input}; do
+    if [[ "$token" =~ ^[0-9]+$ ]] && (( token >= 1 && token <= $#TOOLS )); then
+      SELECTED+=($token)
+    else
+      printf "\n${COLOR[red]}${BOX[cross]} Invalid choice: %s${COLOR[reset]}\n" "$token"
+      exit 1
+    fi
+  done
+}
+
+run_upgrade() {
+  local idx="$1"
+  local name="${TOOL_NAME[$idx]}"
+  local desc="${TOOL_DESC[$idx]}"
+  local cmd="${TOOL_CMD[$idx]}"
+  local dep="${TOOL_DEP[$idx]}"
+
+  printf "\n${COLOR[bold]}${BOX[arrow]} Upgrading ${COLOR[cyan]}%s${COLOR[reset]}\n" "$name"
+  printf "${COLOR[dim]}%s${COLOR[reset]}\n" "$desc"
+
+  # Check dependency
+  if ! check_dependency "$dep"; then
+    printf "${COLOR[red]}${BOX[cross]} Missing dependency: %s${COLOR[reset]}\n" "$dep"
+    return 1
+  fi
+
+  # Show command
+  printf "${COLOR[gray]}$ %s${COLOR[reset]}\n\n" "$cmd"
+
+  # Run command with output
+  if eval "$cmd"; then
+    printf "\n${COLOR[green]}${BOX[check]} Successfully upgraded %s${COLOR[reset]}\n" "$name"
+    return 0
+  else
+    printf "\n${COLOR[red]}${BOX[cross]} Failed to upgrade %s${COLOR[reset]}\n" "$name"
+    return 1
+  fi
+}
+
+print_summary() {
+  local success_count=$1
+  shift
+  local -a success=("${@:1:$success_count}")
+  shift $success_count
+  local failed_count=$1
+  shift
+  local -a failed=("$@")
+  local width=$(tput cols)
+
+  echo
+  print_line "${BOX[h]}" "$width"
+  printf "\n${COLOR[bold]}Summary:${COLOR[reset]}\n\n"
+
+  if [[ $success_count -gt 0 ]]; then
+    printf "${COLOR[green]}${BOX[check]} Succeeded (%d):${COLOR[reset]}\n" "$success_count"
+    for tool in "${success[@]}"; do
+      printf "  ${BOX[dot]} %s\n" "$tool"
+    done
+    echo
+  fi
+
+  if [[ $failed_count -gt 0 ]]; then
+    printf "${COLOR[red]}${BOX[cross]} Failed (%d):${COLOR[reset]}\n" "$failed_count"
+    for tool in "${failed[@]}"; do
+      printf "  ${BOX[dot]} %s\n" "$tool"
+    done
+    echo
+  fi
+
+  if [[ $failed_count -eq 0 ]]; then
+    printf "${COLOR[green]}${COLOR[bold]}All updates completed successfully!${COLOR[reset]}\n"
+  fi
+}
+
+main() {
+  print_header
+  print_menu
+  collect_selection
+
+  # Confirm selection
+  echo
+  printf "${COLOR[bold]}Selected tools:${COLOR[reset]} "
+  for i in "${SELECTED[@]}"; do
+    printf "${COLOR[cyan]}%s${COLOR[reset]} " "${TOOL_NAME[$i]}"
+  done
+  echo
+
+  local confirm
+  read "?${COLOR[bold]}Proceed? [Y/n]:${COLOR[reset]} " confirm
+  if [[ "$confirm" =~ ^[Nn] ]]; then
+    printf "\n${COLOR[yellow]}Cancelled.${COLOR[reset]}\n"
+    exit 0
+  fi
+
+  # Run upgrades
+  typeset -a success_list=()
+  typeset -a fail_list=()
+
+  for idx in "${SELECTED[@]}"; do
+    if run_upgrade "$idx"; then
+      success_list+=("${TOOL_NAME[$idx]}")
+    else
+      fail_list+=("${TOOL_NAME[$idx]}")
+    fi
+  done
+
+  # Print summary
+  print_summary ${#success_list[@]} "${success_list[@]}" ${#fail_list[@]} "${fail_list[@]}"
+
+  # Exit with error if any failed
+  [[ ${#fail_list[@]} -gt 0 ]] && exit 1
+  exit 0
+}
+
+main "$@"

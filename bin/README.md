@@ -93,6 +93,37 @@ A curated collection of useful command-line tools and utilities for daily develo
 **Usage**: `git-sview`
 **Details**: Uses zx script to provide enhanced git repository insights (see zx_scripts/git-sview.mjs)
 
+### 🤖 AI/LLM Tools
+
+#### `llm-update`
+**Purpose**: Interactive TUI for updating AI CLI tools and LLM agents
+**Usage**: `llm-update`
+**Features**:
+- Beautiful terminal UI with color-coded status indicators
+- Automatic dependency detection (checks for pnpm/uv availability)
+- Smart tool selection (space-separated numbers or Enter for all)
+- Pre-update confirmation step
+- Real-time progress feedback with visual indicators
+- Comprehensive summary with success/failure reporting
+
+**Supported Tools**:
+- `claude` - Claude Code CLI (requires pnpm)
+  - Package: `@anthropic-ai/claude-code`
+  - Install: `pnpm add -g @anthropic-ai/claude-code@latest`
+- `codex` - OpenAI Codex CLI (requires pnpm)
+  - Package: `@openai/codex`
+  - Install: `pnpm add -g @openai/codex@latest`
+- `kimi-cli` - Kimi CLI (requires uv)
+  - Package: `kimi-cli`
+  - Install: `uv tool install kimi-cli` or `uv tool upgrade --no-cache kimi-cli`
+- `llm` - LLM CLI by Simon Willison (requires uv)
+  - Package: `llm`
+  - Install: `uv tool install llm` or `uv tool upgrade --no-cache llm`
+
+**Details**: Provides a professional TUI experience for managing multiple LLM tools with box-drawing characters, status icons (✓/✗), and colored output. Automatically skips tools with missing dependencies.
+
+**Note**: If updates fail, verify the package names above are still correct. Package names may change over time.
+
 ### 📁 File Management
 
 #### `catcopy`
@@ -184,6 +215,7 @@ A curated collection of useful command-line tools and utilities for daily develo
 Most scripts are self-contained and require no additional setup. Some may need:
 - Python 3.7+ for Python-based tools
 - External dependencies: ffmpeg, yt-dlp, fzf, bat, code2prompt
+- Package managers: pnpm (for npm-based LLM tools), uv (for Python-based LLM tools)
 - Platform-specific: xclip (Linux), pbcopy/pbpaste (macOS)
 
 ## 📁 Script Categories
@@ -193,6 +225,7 @@ Most scripts are self-contained and require no additional setup. Some may need:
 - **Security & Encoding** (4): bashfuck, caesar, gentoken, uriencoder
 - **Network Tools** (2): ip4to6, machineid
 - **Development** (2): dart_lsp_server, git-sview
+- **AI/LLM Tools** (1): llm-update
 - **File Management** (4): catcopy, mark, open, osccp
 - **Clipboard** (3): pbcopy, pbpaste, osccp
 - **Utilities** (7): num2str, num2zh, temperature, truecolor, unix, yearp
