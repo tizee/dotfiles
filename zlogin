@@ -20,6 +20,7 @@ if [[ $PROLOGUE_FORTUNE && $- == *i* ]]; then
   local quotes=(
     naval-on-wealth
     naval-on-happiness
+    naval-bonus
   )
   fortune "${quotes[@]}"
 fi

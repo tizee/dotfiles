@@ -39,18 +39,6 @@ let s:roman_slogan=[
 \ '',
       \]
 
-" TODO: use figlet to generate hanzi slogan
-" TODO: use a morden figlet alternative program for cjk characters or
-" complicated scripts.
-" TODO steps to generate following slogan
-" use a cli font viewer for rendering non-Latin characters
-"let g:cjk_slogan=[
-"\ '     ⣀⣀⣀⣤⡤  ',
-"\ '       ⣿⢀   ',
-"\ '     ⠈⠛⣿⠉⠁  ',
-"\ '   ⠠⠤⠴⠖⠛⠒⠒⠚⠶',
-"\]
-
 let s:logo=[
       \'████████╗██╗███████╗███████╗███████╗',
       \'╚══██╔══╝██║╚══███╔╝██╔════╝██╔════╝',
@@ -75,9 +63,6 @@ function s:longest(l) abort
   return max
 endfunction
 
-" need to escape control sequence for Chinese qutoes
-" 杨花榆荚无才思，惟解漫天作雪飞。
-" [33m    -- 韩愈[32m《晚春》[m[m
 " "kk-99",
 " "learning",
 " "song",
@@ -85,6 +70,7 @@ endfunction
 let s:quotes =[
       \ "naval-on-wealth",
       \ "naval-on-happiness",
+      \ "naval-bonus",
       \]
 let s:quote=system('fortune ' . join(s:quotes, " ") . ' | sed -r "s/.\[[0-9]*m//g"')
 let s:quote_lines=split(s:quote,"\n")
