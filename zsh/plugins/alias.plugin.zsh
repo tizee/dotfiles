@@ -2,9 +2,14 @@
 # more info
 # set -xeuo pipefall
 
+# Guard: prevent reloading
+(( ${+_ALIAS_PLUGIN_LOADED} )) && return
+typeset -g _ALIAS_PLUGIN_LOADED=1
+
+# Cache system detection
 local is_macOS=false
 local is_Linux=false
-case $SYSTEM in
+case ${SYSTEM:-$(uname -s)} in
    Darwin) is_macOS=true ;;
    Linux) is_Linux=true  ;;
 esac

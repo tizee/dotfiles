@@ -5,7 +5,7 @@
 [ ! -n "$ZSH_VERSION" ] && return
 
 # profiling zsh
-# zmodload zsh/zprof
+#zmodload zsh/zprof
 
 # Debug shell loading function
 function debug_shell_loading() {
@@ -78,13 +78,20 @@ setopt append_history         # append to history rather than overwrite
 # could get some ideas from famous Zsh frameworks
 # {{{
 # cost about 9ms
-[ -e $ZSHDIR/vendor/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ] && source "$ZSHDIR/vendor/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+# Load autosuggestions immediately (lightweight)
 [ -e $ZSHDIR/vendor/zsh-autosuggestions/zsh-autosuggestions.zsh ] && source "$ZSHDIR/vendor/zsh-autosuggestions/zsh-autosuggestions.zsh"
+
+# Defer syntax highlighting to after prompt (saves ~4ms on startup)
+if [ -e $ZSHDIR/vendor/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]; then
+  function _load_syntax_highlighting() {
+    source "$ZSHDIR/vendor/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+    add-zsh-hook -d precmd _load_syntax_highlighting
+  }
+  add-zsh-hook precmd _load_syntax_highlighting
+fi
 if [ -d $ZSHDIR/vendor/zsh-completions/src ];then
   fpath=("$ZSHDIR/vendor/zsh-completions/src" ${fpath[@]})
 fi
-# source "$ZSHDIR/vendor/z.sh"
-# [ -e "$ZSHDIR/../zoxide.zsh" ] && source "$ZSHDIR/../zoxide.zsh"
 # use zcd instead
 
 # lazy load functions
@@ -93,17 +100,11 @@ fpath=($ZSHDIR/autoloaded $HOME/.config/zfunc "${fpath[@]}")
 autoload -Uz $fpath[1]/*(.:t)
 
 ## plugins
-# cost about 60ms
-local my_plugins=($HOME/.config/zsh/plugins/*.plugin.zsh)
-local my_widgets=($HOME/.config/zsh/widgets/*.widget.zsh)
-for file in $my_plugins; do
-  source "$file"
+# Optimized: use builtin source, glob directly in loop, avoid intermediate variables
+# (N) glob qualifier: NULL_GLOB - return empty if no matches
+for file in $HOME/.config/zsh/plugins/*.plugin.zsh(N) $HOME/.config/zsh/widgets/*.widget.zsh(N); do
+  builtin source "$file"
 done
-for file in $my_widgets; do
-  source "$file"
-done
-unset my_widgets
-unset my_plugins
 
 
 # debug
@@ -137,6 +138,9 @@ unset my_plugins
 # }
 # haskell_completion_init
 
+# python manager
+export PATH="$HOME/.poetry/bin:$PATH"
+
 # cleanup: remove duplicate PATH entries
 export -U PATH
 # eliminate duplicates
@@ -150,33 +154,19 @@ typeset -gU cdpath fpath
 
 autoload -Uz compinit
 
-# zcompdump
-case $SYSTEM in
-  Darwin)
-    # use macOS stat
-    if [[ $(date +'%j') != $(/usr/bin/stat -f '%Sm' -t '%j' $HOME/.zcompdump) ]]; then
-      # update
-      compinit;
-    else
-      compinit -C;
-    fi
-    ;;
-  *)
-    if [[ $(date +'%j') != $(date -r $HOME/.zcompdump +'%j') ]]; then
-      # update
-      compinit;
-    else
-      compinit -C;
-    fi
-    ;;
-esac
+# zcompdump - use builtin zsh glob qualifiers for fast checks
+# Rebuild if dump is >24 hours old, otherwise use cache
+if [[ -f "$HOME/.zcompdump"(#qNmh-24) ]]; then
+  # Dump file is fresh (modified within last 24 hours), skip security checks
+  compinit -C
+else
+  # Rebuild completion dump
+  compinit
+fi
 
 # bash completion compatibility
 autoload -U +X bashcompinit && bashcompinit
 # }}}
-
-# python manager
-export PATH="$HOME/.poetry/bin:$PATH"
 
 # Load utility functions
 [[ -f $ZSHDIR/functions.zsh ]] && source "$ZSHDIR/functions.zsh"
@@ -217,7 +207,7 @@ export TMUX_CONF="$HOME/.config/tmux/tmux.conf"
 if [[ -z "$TMUX" && "$SHLVL" -eq 1 ]]; then
   supported_terms=("WezTerm" "ghostty")
   if [[ -n "$TERM_PROGRAM" && " ${supported_terms[@]} " =~ " $TERM_PROGRAM " ]]; then
-    if command -v tmux &> /dev/null; then
+    if (( ${+commands[tmux]} )); then
       if ! tmux has -t develop &> /dev/null; then
         tmux new -s develop
       else
@@ -227,25 +217,25 @@ if [[ -z "$TMUX" && "$SHLVL" -eq 1 ]]; then
   fi
 fi
 
-# zsh profiling end
-# zprof
-
 # pnpm
 # https://pnpm.io/completion
 # tabtab source for packages
 # uninstall by removing these lines
 [[ -f ~/.config/tabtab/zsh/__tabtab.zsh ]] && . ~/.config/tabtab/zsh/__tabtab.zsh || true
-source ~/.config/zsh/mangit.zsh
+[[ -f ~/.config/zsh/mangit.zsh ]] && source ~/.config/zsh/mangit.zsh || true
 
 # >>> mamba initialize >>>
 # !! Contents within this block are managed by 'mamba shell init' !!
-export MAMBA_EXE='/opt/homebrew/opt/micromamba/bin/mamba';
-export MAMBA_ROOT_PREFIX='/Users/tizee/mamba';
-__mamba_setup="$("$MAMBA_EXE" shell hook --shell zsh --root-prefix "$MAMBA_ROOT_PREFIX" 2> /dev/null)"
-if [ $? -eq 0 ]; then
-    eval "$__mamba_setup"
-else
-    alias mamba="$MAMBA_EXE"  # Fallback on help from mamba activate
-fi
-unset __mamba_setup
+#export MAMBA_EXE='/opt/homebrew/opt/micromamba/bin/mamba';
+#export MAMBA_ROOT_PREFIX='/Users/tizee/mamba';
+#__mamba_setup="$("$MAMBA_EXE" shell hook --shell zsh --root-prefix "$MAMBA_ROOT_PREFIX" 2> /dev/null)"
+#if [ $? -eq 0 ]; then
+#    eval "$__mamba_setup"
+#else
+#    alias mamba="$MAMBA_EXE"  # Fallback on help from mamba activate
+#fi
+#unset __mamba_setup
 # <<< mamba initialize <<<
+
+# zsh profiling end
+#zprof

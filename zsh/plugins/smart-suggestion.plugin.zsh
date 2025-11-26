@@ -1,5 +1,9 @@
 #!/usr/bin/env zsh
 
+# Guard: prevent reloading
+(( ${+_SMART_SUGGESTION_LOADED} )) && return
+typeset -g _SMART_SUGGESTION_LOADED=1
+
 # Default key binding
 (( ! ${+SMART_SUGGESTION_KEY} )) &&
     typeset -g SMART_SUGGESTION_KEY='^o'

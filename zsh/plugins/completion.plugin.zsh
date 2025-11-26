@@ -2,6 +2,10 @@
 # Thanks to https://thevaluable.dev/zsh-completion-guide-examples/ sharing this knowledge
 # some configurations from https://github.com/Phantas0s/.dotfiles/blob/master/zsh/completion.zsh
 
+# Guard: prevent reloading
+(( ${+_COMPLETION_PLUGIN_LOADED} )) && return
+typeset -g _COMPLETION_PLUGIN_LOADED=1
+
 # setting of zsh completion system
 # list of completion functions:
 # _completion: core function for completion

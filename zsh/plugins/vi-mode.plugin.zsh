@@ -1,4 +1,9 @@
 #!/usr/bin/env zsh
+
+# Guard: prevent reloading
+(( ${+_VI_MODE_PLUGIN_LOADED} )) && return
+typeset -g _VI_MODE_PLUGIN_LOADED=1
+
 # Updates editor information when the keymap changes.
 function zle-keymap-select() {
   # update keymap variable for the prompt

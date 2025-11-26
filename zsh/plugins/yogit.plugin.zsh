@@ -10,6 +10,10 @@
 # Have fun ;-)
 # Note that this plugin is conflicted with fzf-tab.
 
+# Guard: prevent reloading
+(( ${+_YOGIT_LOADED} )) && return
+typeset -g _YOGIT_LOADED=1
+
 # Color definitions for better output
 _yogit_color_reset="\033[0m"
 _yogit_color_green="\033[0;32m"
@@ -19,32 +23,32 @@ _yogit_color_red="\033[0;31m"
 _yogit_color_cyan="\033[0;36m"
 _yogit_color_magenta="\033[0;35m"
 _yogit_color_bold="\033[1m"
-# Detect the number of CPU cores
-if command -v nproc >/dev/null 2>&1; then
+# Detect the number of CPU cores (cached)
+if (( ! ${+CORES} )); then
+  if (( ${+commands[nproc]} )); then
     CORES=$(nproc)  # Linux
-elif command -v sysctl >/dev/null 2>&1; then
+  elif (( ${+commands[sysctl]} )); then
     CORES=$(sysctl -n hw.ncpu)  # macOS
-else
+  else
     CORES=8  # Fallback to 8 if detection fails
+  fi
 fi
 
-# Check for required commands
-function yogit::check_dependencies() {
+# Check for required commands (run once only)
+if (( ! ${+_YOGIT_DEPS_CHECKED} )); then
+  typeset -g _YOGIT_DEPS_CHECKED=1
+
   local missing_deps=()
   for cmd in git fzf; do
-    if ! command -v $cmd &>/dev/null; then
-      missing_deps+=($cmd)
-    fi
+    (( ${+commands[$cmd]} )) || missing_deps+=($cmd)
   done
 
   if [[ ${#missing_deps[@]} -gt 0 ]]; then
-    printf "${_yogit_color_yellow}Warning: Missing dependencies: ${missing_deps[*]}${_yogit_color_reset}\n"
-    printf "Install them for full functionality.\n"
+    printf "${_yogit_color_yellow}Warning: Missing dependencies: ${missing_deps[*]}${_yogit_color_reset}\n" >&2
+    printf "Install them for full functionality.\n" >&2
     [[ " ${missing_deps[@]} " =~ " git " ]] && return 1
   fi
-  return 0
-}
-yogit::check_dependencies
+fi
 
 # Improved error handling
 function yogit::error() {
@@ -73,26 +77,29 @@ if [[ -z $YOGIT_INTERACTIVE_PREFIX ]]; then
   _yogit_interactive_prefix='ygi'
 fi
 
-# System detection with fallback
+# System detection with fallback (cached)
 if [[ -z $SYSTEM ]]; then
   SYSTEM=$(uname -s)
 fi
 
-if [[ $SYSTEM == Darwin ]]; then
-  alias _yogit_open='open'
-elif [[ $SYSTEM == Linux ]]; then
-  alias _yogit_open='xdg-open'
-else
-  # Fallback detection for other systems
-  if command -v xdg-open &>/dev/null; then
-    alias _yogit_open='xdg-open'
-  elif command -v open &>/dev/null; then
+# Setup open command (only once)
+if (( ! ${+functions[_yogit_open]} )) && ! alias _yogit_open &>/dev/null; then
+  if [[ $SYSTEM == Darwin ]]; then
     alias _yogit_open='open'
+  elif [[ $SYSTEM == Linux ]]; then
+    alias _yogit_open='xdg-open'
   else
-    function _yogit_open() {
-      yogit::error "Could not find a suitable 'open' command for your system"
-      echo "URL: $1" # At least show the URL
-    }
+    # Fallback detection for other systems
+    if (( ${+commands[xdg-open]} )); then
+      alias _yogit_open='xdg-open'
+    elif (( ${+commands[open]} )); then
+      alias _yogit_open='open'
+    else
+      function _yogit_open() {
+        yogit::error "Could not find a suitable 'open' command for your system"
+        echo "URL: $1" # At least show the URL
+      }
+    fi
   fi
 fi
 

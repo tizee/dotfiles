@@ -1,5 +1,9 @@
 #!/usr/bin/env zsh
 
+# Guard: prevent reloading
+(( ${+_FFMPEG_PLUGIN_LOADED} )) && return
+typeset -g _FFMPEG_PLUGIN_LOADED=1
+
 get_simple_audio() {
     # Check if required arguments are provided
   if [ $# -lt 2 ]; then
