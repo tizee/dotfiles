@@ -93,9 +93,39 @@ export ANTHROPIC_BASE_URL=$(jq -r --arg provider "$PROVIDER_NAME" '.[$provider].
 # Primary model identifier for general use
 export ANTHROPIC_MODEL=$(jq -r --arg provider "$PROVIDER_NAME" '.[$provider].model' "$CONFIG_FILE")
 
-# Optional: Smaller model for fast/efficient operations
+# Optional: Smaller model for fast/efficient operations (deprecated, use ANTHROPIC_DEFAULT_HAIKU_MODEL)
 # Uses jq's '// empty' to handle missing keys gracefully
-export ANTHROPIC_SMALL_FAST_MODEL=$(jq -r --arg provider "$PROVIDER_NAME" '.[$provider].small_model // empty' "$CONFIG_FILE")
+SMALL_FAST_MODEL=$(jq -r --arg provider "$PROVIDER_NAME" '.[$provider].small_model // empty' "$CONFIG_FILE")
+if [[ -n "$SMALL_FAST_MODEL" ]]; then
+    export ANTHROPIC_SMALL_FAST_MODEL="$SMALL_FAST_MODEL"
+fi
+
+# Model alias environment variables for fine-grained control
+# These allow customization of what models the 'sonnet', 'opus', 'haiku' aliases resolve to
+
+# Model for 'haiku' alias and background functionality
+HAIKU_MODEL=$(jq -r --arg provider "$PROVIDER_NAME" '.[$provider].ANTHROPIC_DEFAULT_HAIKU_MODEL // empty' "$CONFIG_FILE")
+if [[ -n "$HAIKU_MODEL" ]]; then
+    export ANTHROPIC_DEFAULT_HAIKU_MODEL="$HAIKU_MODEL"
+fi
+
+# Model for 'sonnet' alias (or 'opusplan' when not in plan mode)
+SONNET_MODEL=$(jq -r --arg provider "$PROVIDER_NAME" '.[$provider].ANTHROPIC_DEFAULT_SONNET_MODEL // empty' "$CONFIG_FILE")
+if [[ -n "$SONNET_MODEL" ]]; then
+    export ANTHROPIC_DEFAULT_SONNET_MODEL="$SONNET_MODEL"
+fi
+
+# Model for 'opus' alias (or 'opusplan' when in plan mode)
+OPUS_MODEL=$(jq -r --arg provider "$PROVIDER_NAME" '.[$provider].ANTHROPIC_DEFAULT_OPUS_MODEL // empty' "$CONFIG_FILE")
+if [[ -n "$OPUS_MODEL" ]]; then
+    export ANTHROPIC_DEFAULT_OPUS_MODEL="$OPUS_MODEL"
+fi
+
+# Model for subagents (used in Task tool with explore/implement subagents)
+SUBAGENT_MODEL=$(jq -r --arg provider "$PROVIDER_NAME" '.[$provider].CLAUDE_CODE_SUBAGENT_MODEL // empty' "$CONFIG_FILE")
+if [[ -n "$SUBAGENT_MODEL" ]]; then
+    export CLAUDE_CODE_SUBAGENT_MODEL="$SUBAGENT_MODEL"
+fi
 
 # Optional: Alternative API key field (currently disabled/commented out)
 #export ANTHROPIC_API_KEY=$(jq -r --arg provider "$PROVIDER_NAME" '.[$provider].api_key' "$CONFIG_FILE")
