@@ -69,7 +69,77 @@ tmux -S "$SOCKET" kill-session -t "$SESSION"
 - When composing inline commands, use single quotes or ANSI C quoting to avoid expansion: `tmux -S "$SOCKET" send-keys -t target -- $'python3 -m http.server 8000'`.
 - To send control keys: `tmux -S "$SOCKET" send-keys -t target C-c`, `C-d`, `C-z`, `Escape`, etc.
 - Send Enter: `tmux -S "$SOCKET" send-keys -t target -- "cmd" Enter`
-- **IMPORTANT**: The `-l` (literal) flag treats ALL input as literal text. You cannot combine `-l` with special keys like `Enter`, `C-c`, etc. in the same command.
+
+### CRITICAL: `-l` Flag Cannot Be Combined With Special Keys
+
+**The `-l` (literal) flag treats ALL input as literal text. You CANNOT combine `-l` with special keys like `Enter`, `C-c`, etc. in the same command.**
+
+**WRONG - This will NOT work:**
+```bash
+# INCORRECT: Trying to send literal text + Enter in one command
+tmux -S "$SOCKET" send-keys -t python:0.0 -l 'print("hello world")' Enter
+# This fails because -l makes "Enter" literal text instead of a keystroke
+```
+
+**CORRECT - Use two separate commands:**
+```bash
+# CORRECT: Send literal text first, then Enter separately
+tmux -S "$SOCKET" send-keys -t python:0.0 -l 'print("hello world")'
+tmux -S "$SOCKET" send-keys -t python:0.0 Enter
+```
+
+**Alternative - Without `-l` flag (if no special chars):**
+```bash
+# CORRECT: Simple text can be sent with Enter in one command
+tmux -S "$SOCKET" send-keys -t python:0.0 'print("hello world")' Enter
+```
+
+**When to use each approach:**
+- Use `-l` flag with separate `Enter` command when your text contains special shell characters like dollar signs, exclamation marks, or backticks
+- Use single command without `-l` flag for simple text without special characters
+
+### BEST PRACTICE: Sending Multi-line Code Blocks
+
+**RECOMMENDED: Use `-l` to send large code blocks in one operation instead of line-by-line.**
+
+This is much more efficient than sending commands one line at a time:
+
+```bash
+# EFFICIENT: Send entire code block at once with embedded newlines
+tmux -S "$SOCKET" send-keys -t python:0.0 -l 'def hello(name):
+    print(f"Hello, {name}!")
+    return True
+
+result = hello("world")'
+tmux -S "$SOCKET" send-keys -t python:0.0 Enter
+```
+
+**Key advantages:**
+- **Faster**: One operation instead of multiple send-keys calls
+- **Safer**: Preserves exact formatting and indentation
+- **More reliable**: Avoids timing issues between line sends
+- **Handles special chars**: Dollar signs, quotes, backticks work correctly
+
+**For very large code blocks, use heredoc or read from file:**
+```bash
+# Send multi-line code from heredoc
+tmux -S "$SOCKET" send-keys -t python:0.0 -l "$(cat <<'EOF'
+class Calculator:
+    def __init__(self):
+        self.result = 0
+
+    def add(self, x):
+        self.result += x
+        return self.result
+
+calc = Calculator()
+calc.add(5)
+EOF
+)"
+tmux -S "$SOCKET" send-keys -t python:0.0 Enter
+```
+
+**Remember**: Always send `Enter` as a separate command after using `-l` to execute the code.
 
 ## Watching output
 
@@ -167,9 +237,61 @@ tools/find-sessions.sh -S SOCKET -q "pattern" # Filter by name
 
 ## Cleanup
 
-- Kill a session when done: `tmux -S "$SOCKET" kill-session -t "$SESSION"`.
-- Kill all sessions on a socket: `tmux -S "$SOCKET" list-sessions -F '#{session_name}' | xargs -r -n1 tmux -S "$SOCKET" kill-session -t`.
-- Remove everything on the private socket: `tmux -S "$SOCKET" kill-server`.
+**CRITICAL**: Always clean up after completing work. Killing sessions may not remove socket files - you MUST verify and remove them.
+
+### Todo Tool Integration
+
+**MANDATORY**: When working with tmux sessions, use the TodoWrite tool to track cleanup tasks and ensure nothing is forgotten:
+
+```
+TodoWrite:
+1. Create tmux session (in_progress)
+2. Complete interactive work (pending)
+3. Kill tmux session (pending)
+4. Verify socket file removed (pending)
+5. Remove socket file if still exists (pending)
+```
+
+Mark each cleanup step as completed ONLY after verification. This prevents leaving orphaned socket files.
+
+### Proper Cleanup Procedure
+
+1. **Kill the session when done:**
+   ```bash
+   tmux -S "$SOCKET" kill-session -t "$SESSION"
+   ```
+
+2. **VERIFY socket file is removed (REQUIRED):**
+   ```bash
+   # Check if socket file still exists
+   ls -la "$(dirname "$SOCKET")"
+   ```
+
+3. **Remove stale socket file if it exists (REQUIRED):**
+   ```bash
+   # If socket file remains after killing session/server
+   rm -f "$SOCKET"
+   ```
+
+4. **Mark cleanup tasks as completed in TodoWrite** - Only after confirming socket file is gone.
+
+### Alternative Cleanup Methods
+
+- **Kill all sessions on a socket:**
+  ```bash
+  tmux -S "$SOCKET" list-sessions -F '#{session_name}' | xargs -r -n1 tmux -S "$SOCKET" kill-session -t
+  ```
+
+- **Remove everything on the private socket (including all sessions):**
+  ```bash
+  tmux -S "$SOCKET" kill-server
+  ```
+
+**CRITICAL WARNING:** Even `kill-server` may leave socket files behind. ALWAYS:
+1. Verify with `ls` that the socket file is gone
+2. Manually remove stale socket files with `rm -f "$SOCKET"`
+3. Update your Todo tasks to mark cleanup as completed
+4. NEVER mark cleanup as done without verifying socket file removal
 
 ## Troubleshooting
 
