@@ -132,6 +132,93 @@ For complex or multi-step tasks, Claude Code will use:
 - **TodoWrite**: To create a structured task list, breaking down work into manageable steps
 - **TodoRead**: To review current task status and ensure alignment with objectives
 
+## Task Tool and Subagent Usage
+
+### Understanding Task Tool Result Reporting
+
+When using the Task tool to launch subagents, **understand the distinction between task completion and output content**:
+
+#### Reporting Guidelines by Task Type
+
+**1. File/Resource Generation Tasks**
+When a subagent creates files, generates resources, or performs operations:
+- **DO**: Confirm the task completed successfully (e.g., "ccproxy successfully generated the SVG file")
+- **DON'T**: Try to retrieve or display the generated content unless the user explicitly asks for it
+- **Reason**: The user needs the artifact created, not necessarily to see its contents
+
+Examples:
+- "Generate an SVG file" → Confirm generation, don't fetch the SVG code
+- "Create a PDF report" → Confirm creation, don't try to read the PDF
+- "Build the project" → Confirm build success, don't display all build output
+- "Run tests" → Confirm test execution, summarize pass/fail status
+
+**2. Information/Analysis Tasks**
+When a subagent gathers information, analyzes code, or investigates issues:
+- **DO**: Summarize the key findings and insights from the subagent's work
+- **DO**: Provide relevant details that answer the user's question
+- **Reason**: The user needs the information discovered, not just confirmation
+
+Examples:
+- "Find authentication logic" → Summarize where it's located and how it works
+- "Analyze performance issues" → Report the bottlenecks identified
+- "Explain this error" → Provide the explanation discovered
+- "Search for usage patterns" → Describe what patterns were found
+
+#### Critical Rule: Never Duplicate Work
+
+**NEVER re-run commands or use additional tools just to "show results" after a Task tool succeeds.**
+
+The Task tool description states: "The result returned by the agent is not visible to the user. To show the user the result, you should send a text message back to the user with a concise summary of the result."
+
+**Correct interpretation:**
+- "Show the user the result" means **communicate what was accomplished**, not necessarily display full output
+- For generation tasks: Confirmation is sufficient
+- For information tasks: Summary of findings is needed
+- The subagent has already completed the work - don't repeat it
+
+**Wrong interpretation (avoid this):**
+- ❌ Running Bash/Read/etc. to fetch content that was just generated
+- ❌ Re-executing commands to capture output after Task tool completes
+- ❌ Assuming you must always display detailed content back to the user
+
+#### Decision Framework
+
+Ask yourself after a Task tool completes:
+1. **What was the primary goal?** (Create something vs. Find something)
+2. **Does the user need to see the content?** (Usually no for generation, yes for analysis)
+3. **Has the subagent already fulfilled the request?** (If yes, don't duplicate work)
+4. **Did the user explicitly ask for the output?** (If no, just confirm completion)
+
+### Examples of Correct Usage
+
+**Example 1: Resource Generation**
+```
+User: "Use ccproxy to generate an SVG of a bicycle"
+✓ Correct: "ccproxy successfully generated the SVG file of a bicycle"
+✗ Wrong: [Tries to run ccproxy again or read the file to show content]
+```
+
+**Example 2: Code Analysis**
+```
+User: "Use the Explore agent to find error handling patterns"
+✓ Correct: "The Explore agent found error handling in 3 main locations:
+   - src/api/errors.ts: Centralized error handling middleware
+   - src/utils/logger.ts: Error logging utilities
+   - src/services/*: Service-level try-catch patterns"
+✗ Wrong: "The Explore agent completed successfully" [without sharing findings]
+```
+
+**Example 3: Ambiguous Case**
+```
+User: "Generate a report using kimi-researcher"
+✓ Correct: "kimi-researcher successfully generated the report at reports/analysis.md"
+Note: If unsure whether user wants to see content, you can ask or wait for them to request it
+```
+
+### Key Takeaway
+
+**Task tool success = Work is done.** Report appropriately based on task type, but never duplicate the subagent's work just to display output. Trust that the subagent completed its job, and communicate that completion effectively to the user.
+
 ## Memory Management and Context Window
 
 ### Context Window Automatic Compaction
