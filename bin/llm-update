@@ -64,10 +64,18 @@ print_box_bottom() {
   printf "%s\n" "${BOX[br]}"
 }
 
+# Calculate visible length of text (strip ANSI color codes)
+visible_length() {
+  local text="$1"
+  # Remove ANSI escape sequences using sed
+  local stripped=$(echo -n "$text" | sed -E 's/\x1b\[[0-9;]*m//g')
+  echo "${#stripped}"
+}
+
 print_box_line() {
   local text="$1"
   local width="${2:-$(tput cols)}"
-  local text_len=${#text}
+  local text_len=$(visible_length "$text")
   local padding=$((width - text_len - 4))
   printf "%s %s%${padding}s %s\n" "${BOX[v]}" "$text" "" "${BOX[v]}"
 }
