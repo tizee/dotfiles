@@ -23,8 +23,7 @@
     ],
     "deny": [
       "Bash(rm -rf:*)",
-      "Bash(sudo:*)",
-      "Task"
+      "Bash(sudo:*)"
     ]
   },
   "hooks": {

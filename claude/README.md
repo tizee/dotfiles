@@ -3,8 +3,58 @@
 
 ## Claude Code
 
+### Quick Setup with Makefile
+
+The easiest way to set up all Claude Code configurations is using the included Makefile:
+
+```bash
+# Link all configurations at once
+make install
+
+# Or link individual components
+make link-settings
+make link-commands
+make link-skills
+make link-agents
+
+# Check status of all symlinks
+make check
+
+# Remove all symlinks
+make clean
+
+# Show all available commands
+make help
 ```
+
+### Manual Setup
+
+If you prefer to link configurations manually:
+
+**Settings:**
+```bash
 ln -sv ~/.config/claude/claude-code-settings.json ~/.claude/settings.json
+```
+
+**Commands:**
+
+See Claude Code's doc on [Personal commands](https://docs.anthropic.com/en/docs/claude-code/slash-commands#personal-commands)
+
+```bash
+ln -sv ~/.config/claude/commands ~/.claude/commands
+```
+
+**Skills:**
+```bash
+ln -sv ~/.config/claude/skills ~/.claude/skills
+```
+
+**Agents:**
+
+See Claude Code's doc on [Subagents](https://docs.anthropic.com/en/docs/claude-code/subagents)
+
+```bash
+ln -sv ~/.config/claude/agents ~/.claude/agents
 ```
 
 ### CLAUDE.md
@@ -19,20 +69,6 @@ References:
 
 - [Leaked Claude Code system prompts](https://gist.github.com/wong2/e0f34aac66caf890a332f7b6f9e2ba8f)
 - [Official Claude Code Best practices](https://www.anthropic.com/engineering/claude-code-best-practices)
-
-### User Commands
-
-see Claude Code's doc on [Personal commands](https://docs.anthropic.com/en/docs/claude-code/slash-commands#personal-commands)
-
-```
-ln -sv ~/.config/claude/commands ~/.claude/commands
-```
-
-### User Skills
-
-```
-ln -sv ~/.config/claude/skills ~/.claude/skills
-```
 
 ## Available Tools
 

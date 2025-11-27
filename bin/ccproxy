@@ -6,42 +6,72 @@
 # - Environment variable setup for Anthropic API authentication
 # - Seamless passthrough of all arguments to the claude command
 #
-# Usage: ccproxy [options] [claude-args...]
+# Usage: ccproxy [options] -- [claude-args...]
+#        ccproxy list
 
 # Default configuration file path
-# Falls back to ~/.config/llm/cc-proxy.json if not specified via -c flag
+# Falls back to ~/.config/llm/cc-proxy.json if not specified via --config flag
 CONFIG_FILE="$HOME/.config/llm/cc-proxy.json"
 
-# Default provider name, can be overridden via CCPROXY_PROVIDER env var or -p flag
-# Defaults to 'kimi' if no environment variable is set
+# Default provider name, can be overridden via CCPROXY_PROVIDER env var or --provider flag
+# Defaults to 'kimi-sub' if no environment variable is set
 DEFAULT_PROVIDER="${CCPROXY_PROVIDER:-kimi-sub}"
 PROVIDER_NAME="$DEFAULT_PROVIDER"
 
+# Function to display help message
+show_help() {
+    echo "Usage: ccproxy [options] -- [claude-args...]"
+    echo "       ccproxy list [options]"
+    echo ""
+    echo "Commands:"
+    echo "  list                 List all available providers from config file"
+    echo ""
+    echo "Options:"
+    echo "  -C, --config FILE    Use custom config file (default: ~/.config/llm/cc-proxy.json)"
+    echo "  -P, --provider NAME  Provider key in config (default: $PROVIDER_NAME)"
+    echo "  -h, --help           Show this help message"
+    echo ""
+    echo "Examples:"
+    echo "  ccproxy list                                    # List all providers"
+    echo "  ccproxy -P kimi-sub -- -p \"Hello Claude\"      # Use kimi-sub provider with print mode"
+    echo "  ccproxy --provider openai -- --model opus      # Use openai provider with opus model"
+    echo ""
+    echo "Note: Use '--' to separate ccproxy options from claude arguments"
+}
+
 # Parse command line arguments
 # Supports:
-# -c/--config: Specify custom config file path
-# -p/--provider: Select provider from config file
+# -C/--config: Specify custom config file path
+# -P/--provider: Select provider from config file
 # -h/--help: Show usage information
-# All remaining arguments are passed to claude command
+# list: List available providers
+# --: Separator between ccproxy args and claude args
+# All arguments after -- are passed to claude command
+CLAUDE_ARGS=()
+COMMAND=""
+
 while [[ $# -gt 0 ]]; do
     case $1 in
-        -c|--config)
+        list)
+            # List command to show available providers
+            COMMAND="list"
+            shift
+            ;;
+        -C|--config)
             # Override default config file path with user-provided value
+            if [[ -z "$2" ]]; then
+                echo "Error: --config requires an argument"
+                exit 1
+            fi
             CONFIG_FILE="$2"
             shift 2
             ;;
         -h|--help)
             # Display help message and exit
-            echo "Usage: ccproxy [options] [claude-args...]"
-            echo "Options:"
-            echo "  -c, --config FILE    Use custom config file (default: ~/.config/llm/cc-proxy.json)"
-            echo "  -p, --provider NAME  Provider key in config (default: $PROVIDER_NAME)"
-            echo "  -h, --help           Show this help message"
-            echo ""
-            echo "Any additional arguments are passed directly to claude command"
+            show_help
             exit 0
             ;;
-        -p|--provider)
+        -P|--provider)
             # Validate provider argument is not empty
             if [[ -z "$2" ]]; then
                 echo "Error: --provider requires an argument"
@@ -51,19 +81,75 @@ while [[ $# -gt 0 ]]; do
             PROVIDER_NAME="$2"
             shift 2
             ;;
+        --)
+            # Everything after -- is for claude
+            shift
+            CLAUDE_ARGS=("$@")
+            break
+            ;;
         *)
-            # Stop parsing options; remaining args will be passed to claude
+            # If no --, treat remaining args as claude args
+            CLAUDE_ARGS=("$@")
             break
             ;;
     esac
 done
+
+# Function to list available providers
+list_providers() {
+    # Verify config file exists
+    if [[ ! -f "$CONFIG_FILE" ]]; then
+        echo "Error: Config file not found: $CONFIG_FILE"
+        echo "Use -C/--config to specify a custom config file"
+        exit 1
+    fi
+
+    # Check for jq dependency
+    if ! command -v jq &> /dev/null; then
+        echo "Error: jq is required but not installed"
+        exit 1
+    fi
+
+    echo "Available providers in $CONFIG_FILE:"
+    echo ""
+
+    # Get all provider names
+    providers=$(jq -r 'keys[]' "$CONFIG_FILE")
+
+    if [[ -z "$providers" ]]; then
+        echo "No providers found in config file"
+        exit 0
+    fi
+
+    # Display each provider with details
+    echo "$providers" | while read -r provider; do
+        base_url=$(jq -r --arg p "$provider" '.[$p].base_url // "N/A"' "$CONFIG_FILE")
+        model=$(jq -r --arg p "$provider" '.[$p].model // "N/A"' "$CONFIG_FILE")
+
+        # Mark the current/default provider
+        if [[ "$provider" == "$PROVIDER_NAME" ]]; then
+            echo "* $provider (current)"
+        else
+            echo "  $provider"
+        fi
+        echo "    Base URL: $base_url"
+        echo "    Model: $model"
+        echo ""
+    done
+}
+
+# Handle list command
+if [[ "$COMMAND" == "list" ]]; then
+    list_providers
+    exit 0
+fi
 
 # Configuration file validation and environment setup
 
 # Verify config file exists before proceeding
 if [[ ! -f "$CONFIG_FILE" ]]; then
     echo "Error: Config file not found: $CONFIG_FILE"
-    echo "Use -c/--config to specify a custom config file"
+    echo "Use -C/--config to specify a custom config file"
     exit 1
 fi
 
@@ -78,6 +164,8 @@ fi
 # Exits with error if provider key is not found
 if ! jq -e --arg provider "$PROVIDER_NAME" '.[$provider]' "$CONFIG_FILE" > /dev/null; then
     echo "Error: Provider \"$PROVIDER_NAME\" not found in config: $CONFIG_FILE"
+    echo "Available providers:"
+    jq -r 'keys[]' "$CONFIG_FILE" | sed 's/^/  - /'
     exit 1
 fi
 
@@ -131,5 +219,5 @@ fi
 #export ANTHROPIC_API_KEY=$(jq -r --arg provider "$PROVIDER_NAME" '.[$provider].api_key' "$CONFIG_FILE")
 
 # Execute claude command with all remaining arguments
-# All arguments after options are passed directly to the claude command
-claude "$@"
+# All arguments after -- separator are passed directly to the claude command
+claude "${CLAUDE_ARGS[@]}"
