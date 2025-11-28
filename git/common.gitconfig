@@ -199,13 +199,13 @@
 [uploadpack]
   allowfilter = true
 
-[https]
-proxy = http://127.0.0.1:1080
-;   vpn may cause ssl issues
+; [https]
+; proxy = http://127.0.0.1:1080
+; ;   vpn may cause ssl issues
 ; sslVerify = false
-[http]
-proxy = http://127.0.0.1:1080
-;   vpn may cause ssl issues
+; [http]
+; proxy = http://127.0.0.1:1080
+; ;   vpn may cause ssl issues
 ; sslVerify = false
 
 # CVE-2022-24765

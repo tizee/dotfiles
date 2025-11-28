@@ -108,5 +108,11 @@
     "command": "pnpm dlx ccusage statusline",
     "padding": 0
   },
+  "enabledPlugins": {
+    "explanatory-output-style@claude-code-plugins": true,
+    "frontend-design@claude-code-plugins": true,
+    "learning-output-style@claude-code-plugins": true,
+    "security-guidance@claude-code-plugins": true
+  },
   "alwaysThinkingEnabled": true
 }
