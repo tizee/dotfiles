@@ -177,7 +177,7 @@
   line-numbers-right-format = "{np:>4}│"
   line-numbers-left-style = blue
   line-numbers-right-style = blue
-  side-by-side = true
+  side-by-side = false
   diff-so-fancy = true # emulate diff-so-fancy
   whitespace-error-style = 22 reverse
 
