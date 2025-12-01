@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 
 # use ANSI shadow style logo - only show in interactive terminals (not in tmux)
-if [[ $PROLOGUE_LOGO && $- == *i* ]]; then
+if [[ $PROLOGUE_LOGO && $- == *i* && -z $TMUX ]]; then
   echo "\033[94m"
   echo " ████████╗██╗███████╗███████╗███████╗ ███████╗███████╗██╗  ██╗"
   echo " ╚══██╔══╝██║╚══███╔╝██╔════╝██╔════╝ ╚══███╔╝██╔════╝██║  ██║"
