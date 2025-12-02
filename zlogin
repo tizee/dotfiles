@@ -21,6 +21,7 @@ if [[ $PROLOGUE_FORTUNE && $- == *i* ]]; then
     naval-on-wealth
     naval-on-happiness
     naval-bonus
+    the-art-of-doing-science-and-engineering
   )
   fortune "${quotes[@]}"
 fi
