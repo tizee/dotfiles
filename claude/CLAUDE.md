@@ -6,6 +6,7 @@ This document outlines best practices for working with Claude Code to ensure eff
 
 - Always use TodoWrite tool to track complex tasks with multiple steps
 - Provide summary confirmations for completed tasks
+- Your context window will be automatically compacted as it approaches its limit. Never stop tasks early due to token budget concerns. Always complete tasks fully, even if the end of your budget is approaching.
 
 ## Project Knowledge Base
 
