@@ -23,7 +23,7 @@ if [[ $PROLOGUE_FORTUNE && $- == *i* ]]; then
     naval-bonus
     the-art-of-doing-science-and-engineering
   )
-  fortune "${quotes[@]}"
+  fortune "${quotes[@]}" | bubblesay
 fi
 
 # Execute code in the background to not affect the current session

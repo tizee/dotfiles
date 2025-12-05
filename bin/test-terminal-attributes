@@ -1,0 +1,173 @@
+#!/bin/bash
+
+# Test script for text attributes (SGR parameters)
+# Inspired by: https://x.com/thorstenball/status/1996591938422616462
+
+show_help() {
+    cat << 'EOF'
+Usage: test-attributes.sh [attribute...]
+
+Test terminal text attributes (SGR - Select Graphic Rendition parameters).
+If no arguments are provided, all tests are displayed.
+
+Arguments:
+  all                    Show all tests (default)
+  basic                  Show basic text attributes only
+  bold, italic, underline, dim, blink, reverse, hidden, strikethrough
+                         Show specific attribute tests
+  underline-styles       Show underline style variations
+  combo                  Quick bold+italic+underline combination test
+
+Options:
+  -h, --help             Show this help message
+
+Examples:
+  test-attributes.sh              # Run all tests
+  test-attributes.sh bold         # Test bold only
+  test-attributes.sh bold italic underline  # Test specific attributes
+  test-attributes.sh underline-styles combo  # Multiple test categories
+
+EOF
+}
+
+# Show help if requested
+for arg in "$@"; do
+    case "$arg" in
+        -h|--help)
+            show_help
+            exit 0
+            ;;
+    esac
+done
+
+ATTRS=($(printf "%s\n" "$@"))
+
+# If no arguments, show all
+if [ ${#ATTRS[@]} -eq 0 ]; then
+    ATTRS=("all")
+fi
+
+should_show() {
+    [[ " ${ATTRS[*]} " =~ " all " ]] || [[ " ${ATTRS[*]} " =~ " $1 " ]]
+}
+
+# Quick test for bold+italic+underline combo
+if should_show "combo"; then
+    echo "=== Bold + Italic + Underline Test ==="
+    echo
+    printf "Normal:              The quick brown fox\n"
+    printf "Bold:                \e[1mThe quick brown fox\e[0m\n"
+    printf "Italic:              \e[3mThe quick brown fox\e[0m\n"
+    printf "Underline:           \e[4mThe quick brown fox\e[0m\n"
+    printf "Bold+Italic:         \e[1;3mThe quick brown fox\e[0m\n"
+    printf "Bold+Underline:      \e[1;4mThe quick brown fox\e[0m\n"
+    printf "Italic+Underline:    \e[3;4mThe quick brown fox\e[0m\n"
+    printf "Bold+Italic+Under:   \e[1;3;4mThe quick brown fox\e[0m\n"
+    echo
+    exit 0
+fi
+
+if should_show "basic" || should_show "bold" || should_show "dim" || should_show "italic" || should_show "underline" || should_show "blink" || should_show "reverse" || should_show "hidden" || should_show "strikethrough"; then
+    echo "=== Basic Text Attributes ==="
+echo
+
+    should_show "bold" || should_show "basic" && printf "Normal:        \e[0mThe quick brown fox jumps over the lazy dog\e[0m\n"
+    should_show "bold" || should_show "basic" && printf "Bold:          \e[1mThe quick brown fox jumps over the lazy dog\e[0m\n"
+    should_show "dim" || should_show "basic" && printf "Dim/Faint:     \e[2mThe quick brown fox jumps over the lazy dog\e[0m\n"
+    should_show "italic" || should_show "basic" && printf "Italic:        \e[3mThe quick brown fox jumps over the lazy dog\e[0m\n"
+    should_show "underline" || should_show "basic" && printf "Underline:     \e[4mThe quick brown fox jumps over the lazy dog\e[0m\n"
+    should_show "blink" || should_show "basic" && printf "Blink (slow):  \e[5mThe quick brown fox jumps over the lazy dog\e[0m\n"
+    should_show "blink" || should_show "basic" && printf "Blink (rapid): \e[6mThe quick brown fox jumps over the lazy dog\e[0m\n"
+    should_show "reverse" || should_show "basic" && printf "Reverse:       \e[7mThe quick brown fox jumps over the lazy dog\e[0m\n"
+    should_show "hidden" || should_show "basic" && printf "Hidden:        \e[8mThe quick brown fox jumps over the lazy dog\e[0m (hidden)\n"
+    should_show "strikethrough" || should_show "basic" && printf "Strikethrough: \e[9mThe quick brown fox jumps over the lazy dog\e[0m\n"
+    echo
+fi
+
+if should_show "underline-styles"; then
+    echo "=== Underline Styles (some terminals) ==="
+echo
+
+printf "Single underline:  \e[4munderlined text\e[0m\n"
+printf "Double underline:  \e[21munderlined text\e[0m\n"
+printf "Curly underline:   \e[4:3munderlined text\e[0m\n"
+printf "Dotted underline:  \e[4:4munderlined text\e[0m\n"
+printf "Dashed underline:  \e[4:5munderlined text\e[0m\n"
+echo
+
+echo "=== Attribute Combinations ==="
+echo
+
+printf "Bold + Italic:           \e[1;3mBold Italic Text\e[0m\n"
+printf "Bold + Underline:        \e[1;4mBold Underlined\e[0m\n"
+printf "Italic + Underline:      \e[3;4mItalic Underlined\e[0m\n"
+printf "Bold + Italic + Under:   \e[1;3;4mBold Italic Underlined\e[0m\n"
+printf "Dim + Italic:            \e[2;3mDim Italic\e[0m\n"
+printf "Bold + Strikethrough:    \e[1;9mBold Strikethrough\e[0m\n"
+printf "Reverse + Bold:          \e[7;1mReverse Bold\e[0m\n"
+printf "Underline + Strike:      \e[4;9mUnderlined Strikethrough\e[0m\n"
+echo
+
+echo "=== Attributes with Colors ==="
+echo
+
+printf "Bold Red:       \e[1;31mBold Red Text\e[0m\n"
+printf "Dim Green:      \e[2;32mDim Green Text\e[0m\n"
+printf "Italic Blue:    \e[3;34mItalic Blue Text\e[0m\n"
+printf "Underline Cyan: \e[4;36mUnderlined Cyan\e[0m\n"
+printf "Bold Yellow BG: \e[1;43;30mBold on Yellow\e[0m\n"
+printf "Reverse Magenta:\e[7;35mReverse Magenta\e[0m\n"
+echo
+
+echo "=== Attribute Reset Tests ==="
+echo
+printf "Bold \e[1mon\e[22m off\e[0m\n"
+printf "Dim \e[2mon\e[22m off\e[0m\n"
+printf "Italic \e[3mon\e[23m off\e[0m\n"
+printf "Underline \e[4mon\e[24m off\e[0m\n"
+printf "Blink \e[5mon\e[25m off\e[0m\n"
+printf "Reverse \e[7mon\e[27m off\e[0m\n"
+printf "Strikethrough \e[9mon\e[29m off\e[0m\n"
+echo
+
+echo "=== Intensity Levels ==="
+echo
+
+printf "Normal:  \e[22mABCDEFG abcdefg 0123456789\e[0m\n"
+printf "Bold:    \e[1mABCDEFG abcdefg 0123456789\e[0m\n"
+printf "Dim:     \e[2mABCDEFG abcdefg 0123456789\e[0m\n"
+echo
+
+echo "=== Font Variants (rarely supported) ==="
+echo
+
+for i in {10..19}; do
+    printf "Font $i: \e[${i}mThe quick brown fox\e[0m\n"
+done
+echo
+
+echo "=== Colored Underlines (Kitty/some terminals) ==="
+echo
+
+printf "Red underline:    \e[4;58;2;255;0;0mUnderlined with red\e[0m\n"
+printf "Green underline:  \e[4;58;2;0;255;0mUnderlined with green\e[0m\n"
+printf "Blue underline:   \e[4;58;2;0;0;255mUnderlined with blue\e[0m\n"
+echo
+
+echo "=== Hyperlinks (OSC 8) ==="
+echo
+
+printf "Link: \e]8;;https://example.com\e\\Click here\e]8;;\e\\\n"
+echo
+
+echo "=== Special Characters with Attributes ==="
+echo
+
+printf "Bold box:   \e[1m┌──────┐\e[0m\n"
+printf "            \e[1m│ Bold │\e[0m\n"
+printf "            \e[1m└──────┘\e[0m\n"
+echo
+printf "Italic box: \e[3m╭──────╮\e[0m\n"
+printf "            \e[3m│Italic│\e[0m\n"
+printf "            \e[3m╰──────╯\e[0m\n"
+fi

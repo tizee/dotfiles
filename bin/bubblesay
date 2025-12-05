@@ -5,43 +5,90 @@
 # ///
 
 import sys
+import shutil
 import textwrap
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 
-def create_bubble(text: str, max_width: int = 40) -> List[str]:
+def get_terminal_width() -> int:
+    """
+    Get the current terminal width with a reasonable fallback.
+
+    Returns:
+        Terminal width in columns, accounting for bubble decorations
+    """
+    try:
+        # Get terminal size
+        terminal_size = shutil.get_terminal_size(fallback=(80, 24))
+        width = terminal_size.columns
+
+        # Reserve space for:
+        # - 2 pipes (|)
+        # - 2 wide spaces (　) = 4 columns
+        # - Small margin for safety = 6 columns
+        # Total reserved: 12 columns
+        usable_width = width - 12
+
+        # Ensure minimum width
+        return max(usable_width, 20)
+    except Exception:
+        # Fallback to conservative default if something goes wrong
+        return 40
+
+
+def create_bubble(text: str, max_width: Optional[int] = None) -> List[str]:
     """
     Creates a text bubble with the provided text.
 
     Args:
         text: The text to put in the bubble
-        max_width: Maximum width of the bubble content
+        max_width: Maximum width of the bubble content (defaults to terminal width)
 
     Returns:
         List of strings representing the bubble
     """
-    # Wrap the text to fit within the maximum width
-    wrapped_lines = textwrap.wrap(text, max_width)
+    # Use terminal width if max_width not specified
+    if max_width is None:
+        max_width = get_terminal_width()
 
-    # Find the longest line to determine bubble width
+    # Wrap the text based on visual width (accounting for wide characters)
+    wrapped_lines = wrap_text_by_visual_width(text, max_width)
+
+    # Find the maximum visual width among all wrapped lines
     if wrapped_lines:
-        max_line_length = max(len(line) for line in wrapped_lines)
+        max_visual_width = max(get_visual_width(line) for line in wrapped_lines)
     else:
-        max_line_length = 0
+        max_visual_width = 0
+
+    # Calculate visual alignment for wide characters:
+    # Content line structure: | + wide_space + text + wide_space + |
+    # Visual width: 1 + 2 + text_visual_width + 2 + 1 = text_visual_width + 6
+    # Border line structure: | + wide_chars + |
+    # Visual width: 1 + 2*num_wide_chars + 1 = 2*num_wide_chars + 2
+    # For alignment: 2*num_wide_chars + 2 = text_visual_width + 6
+    # Therefore: num_wide_chars = (text_visual_width + 4) / 2
+    num_border_chars = (max_visual_width + 4 + 1) // 2  # Round up for odd lengths
+
+    # Calculate the exact visual width for content padding
+    border_visual_width = 2 * num_border_chars + 2
+    content_visual_width = border_visual_width - 6  # Subtract pipes (2) and wide spaces (4)
 
     # Create the bubble
     bubble = []
 
-    # Top border - the +2 accounts for the spaces on each side
-    bubble.append('|￣' + '￣' * (max_line_length + 2) + '|')
+    # Top border
+    bubble.append('|' + '￣' * num_border_chars + '|')
 
-    # Content lines
+    # Content lines with proper padding based on visual width
     for line in wrapped_lines:
-        padding = ' ' * (max_line_length + 2)
-        bubble.append(f'|　{line}{padding}　|')
+        line_visual_width = get_visual_width(line)
+        # Calculate padding needed to reach target visual width
+        padding_needed = content_visual_width - line_visual_width
+        padded_line = line + ' ' * padding_needed
+        bubble.append(f'|　{padded_line}　|')
 
-    # Bottom border - the +2 accounts for the spaces on each side
-    bubble.append('|＿' + '＿' * (max_line_length + 2) + '|')
+    # Bottom border
+    bubble.append('|' + '＿' * num_border_chars + '|')
 
     return bubble
 
@@ -59,11 +106,325 @@ def create_bunny() -> List[str]:
         '/   づ'
     ]
 
+def get_visual_width(text: str) -> int:
+    """
+    Calculate the visual width of a string considering wide characters.
+    Wide characters (like CJK) take 2 columns, ASCII takes 1 column.
+
+    Args:
+        text: The text to measure
+
+    Returns:
+        Visual width in terminal columns
+    """
+    import unicodedata
+    width = 0
+    for char in text:
+        if unicodedata.east_asian_width(char) in ('F', 'W'):
+            width += 2
+        else:
+            width += 1
+    return width
+
+
+def wrap_text_by_visual_width(text: str, max_visual_width: int) -> List[str]:
+    """
+    Wrap text based on visual width, accounting for wide characters.
+    Preserves explicit line breaks from the input text.
+    Handles long words that exceed max_width by breaking them at character boundaries.
+
+    Args:
+        text: The text to wrap
+        max_visual_width: Maximum visual width per line
+
+    Returns:
+        List of wrapped text lines
+    """
+    import unicodedata
+
+    if not text:
+        return ['']
+
+    def break_long_word(word: str, max_width: int) -> List[str]:
+        """Break a long word into chunks that fit within max_width."""
+        if get_visual_width(word) <= max_width:
+            return [word]
+
+        chunks = []
+        current_chunk = []
+        current_width = 0
+
+        for char in word:
+            char_width = 2 if unicodedata.east_asian_width(char) in ('F', 'W') else 1
+            if current_width + char_width > max_width:
+                chunks.append(''.join(current_chunk))
+                current_chunk = [char]
+                current_width = char_width
+            else:
+                current_chunk.append(char)
+                current_width += char_width
+
+        if current_chunk:
+            chunks.append(''.join(current_chunk))
+
+        return chunks
+
+    # Split by newlines first to preserve explicit line breaks
+    paragraphs = text.split('\n')
+    all_lines = []
+
+    for paragraph in paragraphs:
+        # Split paragraph into words
+        words = paragraph.split()
+        if not words:
+            # Empty line - preserve it
+            all_lines.append('')
+            continue
+
+        current_line = []
+        current_width = 0
+
+        for word in words:
+            word_width = get_visual_width(word)
+
+            # If a single word is longer than max_width, break it
+            if word_width > max_visual_width:
+                # Flush current line first
+                if current_line:
+                    all_lines.append(' '.join(current_line))
+                    current_line = []
+                    current_width = 0
+
+                # Break the long word and add chunks
+                chunks = break_long_word(word, max_visual_width)
+                for chunk in chunks:
+                    all_lines.append(chunk)
+                continue
+
+            # Space width (1 column)
+            space_width = 1 if current_line else 0
+
+            # Check if adding this word would exceed the limit
+            if current_line and current_width + space_width + word_width > max_visual_width:
+                # Start a new line
+                all_lines.append(' '.join(current_line))
+                current_line = [word]
+                current_width = word_width
+            else:
+                # Add word to current line
+                current_line.append(word)
+                current_width += space_width + word_width
+
+        # Add the last line of this paragraph
+        if current_line:
+            all_lines.append(' '.join(current_line))
+
+    return all_lines if all_lines else ['']
+
+
+def run_tests():
+    """Run the test suite."""
+    import unittest
+
+    class TestBubbleSay(unittest.TestCase):
+        """Test cases for bubble alignment verification."""
+
+        def verify_alignment(self, bubble: List[str], description: str = ""):
+            """
+            Verify that all lines in the bubble have the same visual width.
+
+            Args:
+                bubble: List of bubble lines to verify
+                description: Optional description for the test case
+            """
+            if not bubble:
+                self.fail(f"{description}: Bubble is empty")
+
+            widths = [get_visual_width(line) for line in bubble]
+
+            # All lines should have the same visual width
+            self.assertEqual(len(set(widths)), 1,
+                            f"{description}: Lines have different visual widths: {widths}\n" +
+                            "\n".join(f"  {w}: {repr(line)}" for w, line in zip(widths, bubble)))
+
+        def test_empty_string(self):
+            """Test empty string input."""
+            bubble = create_bubble("")
+            self.verify_alignment(bubble, "Empty string")
+
+        def test_single_character(self):
+            """Test single character input."""
+            bubble = create_bubble("A")
+            self.verify_alignment(bubble, "Single character")
+
+        def test_two_characters(self):
+            """Test two character input."""
+            bubble = create_bubble("Hi")
+            self.verify_alignment(bubble, "Two characters")
+
+        def test_short_word(self):
+            """Test short word."""
+            bubble = create_bubble("Hello")
+            self.verify_alignment(bubble, "Short word")
+
+        def test_two_words(self):
+            """Test two words."""
+            bubble = create_bubble("Hello World")
+            self.verify_alignment(bubble, "Two words")
+
+        def test_with_numbers(self):
+            """Test text with numbers."""
+            bubble = create_bubble("Testing 123")
+            self.verify_alignment(bubble, "With numbers")
+
+        def test_with_punctuation(self):
+            """Test text with punctuation."""
+            bubble = create_bubble("Hello, World!")
+            self.verify_alignment(bubble, "With punctuation")
+
+        def test_special_characters(self):
+            """Test special characters."""
+            bubble = create_bubble("Test@#$%")
+            self.verify_alignment(bubble, "Special characters")
+
+        def test_various_lengths(self):
+            """Test various text lengths."""
+            for length in [5, 10, 15, 20, 25, 30, 35, 39, 40]:
+                with self.subTest(length=length):
+                    bubble = create_bubble("X" * length)
+                    self.verify_alignment(bubble, f"{length} characters")
+
+        def test_wrapping_short(self):
+            """Test text wrapping with short multi-line."""
+            bubble = create_bubble("This is a longer message that should wrap", max_width=30)
+            self.verify_alignment(bubble, "Short wrapping")
+            # Verify it actually wrapped
+            content_lines = [line for line in bubble if line.startswith('|　')]
+            self.assertGreater(len(content_lines), 1, "Should wrap to multiple lines")
+
+        def test_wrapping_long(self):
+            """Test text wrapping with long multi-line."""
+            text = "This is a much longer message that will definitely wrap to multiple lines when it exceeds the maximum width"
+            bubble = create_bubble(text, max_width=40)
+            self.verify_alignment(bubble, "Long wrapping")
+            # Verify it actually wrapped
+            content_lines = [line for line in bubble if line.startswith('|　')]
+            self.assertGreater(len(content_lines), 2, "Should wrap to 3+ lines")
+
+        def test_max_width(self):
+            """Test custom max width parameter."""
+            bubble = create_bubble("Short text", max_width=10)
+            self.verify_alignment(bubble, "Custom max width")
+
+        def test_odd_length(self):
+            """Test odd-length strings for proper rounding."""
+            for length in [1, 3, 5, 7, 9, 11, 13]:
+                with self.subTest(length=length):
+                    bubble = create_bubble("X" * length)
+                    self.verify_alignment(bubble, f"Odd length {length}")
+
+        def test_even_length(self):
+            """Test even-length strings."""
+            for length in [2, 4, 6, 8, 10, 12, 14]:
+                with self.subTest(length=length):
+                    bubble = create_bubble("X" * length)
+                    self.verify_alignment(bubble, f"Even length {length}")
+
+        def test_dynamic_terminal_width(self):
+            """Test that dynamic terminal width is used by default."""
+            # This should use terminal width without specifying max_width
+            text = "Testing dynamic width"
+            bubble = create_bubble(text)
+            self.verify_alignment(bubble, "Dynamic terminal width")
+            # Should have at least some content
+            self.assertGreater(len(bubble), 2, "Should have borders and content")
+
+        def test_chinese_characters(self):
+            """Test Chinese/CJK character handling."""
+            bubble = create_bubble("你好世界！", max_width=20)
+            self.verify_alignment(bubble, "Chinese characters")
+
+        def test_mixed_chinese_english(self):
+            """Test mixed Chinese and English text."""
+            bubble = create_bubble("Hello 你好 World 世界", max_width=30)
+            self.verify_alignment(bubble, "Mixed Chinese/English")
+
+        def test_long_chinese_text(self):
+            """Test long Chinese text with wrapping."""
+            text = "这是一段很长的中文文本，用来测试中文字符的换行功能是否正常工作。"
+            bubble = create_bubble(text, max_width=30)
+            self.verify_alignment(bubble, "Long Chinese text")
+            # Verify it wrapped
+            content_lines = [line for line in bubble if line.startswith('|　')]
+            self.assertGreater(len(content_lines), 1, "Chinese text should wrap")
+
+        def test_text_with_newlines(self):
+            """Test text with explicit newline characters."""
+            text = "Line 1\nLine 2\nLine 3"
+            bubble = create_bubble(text, max_width=20)
+            self.verify_alignment(bubble, "Text with newlines")
+            # Should have 3 content lines (one for each explicit line)
+            content_lines = [line for line in bubble if line.startswith('|　')]
+            self.assertEqual(len(content_lines), 3, "Should preserve newlines")
+
+        def test_text_with_empty_lines(self):
+            """Test text with empty lines between content."""
+            text = "Line 1\n\nLine 3"
+            bubble = create_bubble(text, max_width=20)
+            self.verify_alignment(bubble, "Text with empty lines")
+            # Should have 3 content lines (including the empty one)
+            content_lines = [line for line in bubble if line.startswith('|　')]
+            self.assertEqual(len(content_lines), 3, "Should preserve empty lines")
+
+        def test_chinese_with_newlines(self):
+            """Test Chinese text with newlines."""
+            text = "第一行\n第二行\n第三行"
+            bubble = create_bubble(text, max_width=30)
+            self.verify_alignment(bubble, "Chinese with newlines")
+            content_lines = [line for line in bubble if line.startswith('|　')]
+            self.assertEqual(len(content_lines), 3, "Should preserve Chinese newlines")
+
+        def test_mixed_content_with_newlines(self):
+            """Test mixed content with newlines and wrapping."""
+            text = "English line\n中文行\nMixed 混合 line that is long enough to wrap"
+            bubble = create_bubble(text, max_width=25)
+            self.verify_alignment(bubble, "Mixed content with newlines")
+            content_lines = [line for line in bubble if line.startswith('|　')]
+            # Should have at least 3 lines (might be more if wrapping occurs)
+            self.assertGreaterEqual(len(content_lines), 3, "Should handle mixed content")
+
+        def test_fortune_like_output(self):
+            """Test multi-paragraph fortune-like output."""
+            text = "Line 1: English quote\nLine 2: 中文翻译\n  --  Attribution line"
+            bubble = create_bubble(text, max_width=40)
+            self.verify_alignment(bubble, "Fortune-like output")
+            content_lines = [line for line in bubble if line.startswith('|　')]
+            self.assertEqual(len(content_lines), 3, "Should have 3 lines")
+
+    # Create a test suite
+    loader = unittest.TestLoader()
+    suite = loader.loadTestsFromTestCase(TestBubbleSay)
+
+    # Run tests with verbose output
+    runner = unittest.TextTestRunner(verbosity=2)
+    result = runner.run(suite)
+
+    # Return exit code based on results
+    return 0 if result.wasSuccessful() else 1
+
+
 def main():
+    # Check for test flag
+    if len(sys.argv) > 1 and sys.argv[1] in ['--test', '-t', 'test']:
+        sys.exit(run_tests())
+
     # Get user input
     if len(sys.argv) > 1:
         # Use command line arguments if provided
         user_text = ' '.join(sys.argv[1:])
+    elif not sys.stdin.isatty():
+        # Read from stdin if input is piped
+        user_text = sys.stdin.read().rstrip('\n')
     else:
         # Otherwise, prompt for input
         user_text = input("Enter text for the bubble: ")

@@ -7,6 +7,7 @@ This document outlines best practices for working with Claude Code to ensure eff
 - Always use TodoWrite tool to track complex tasks with multiple steps
 - Provide summary confirmations for completed tasks
 - Your context window will be automatically compacted as it approaches its limit. Never stop tasks early due to token budget concerns. Always complete tasks fully, even if the end of your budget is approaching.
+- Always comment code in English unless the user explicitly specifies otherwise
 
 ## Project Knowledge Base
 
@@ -49,3 +50,27 @@ When generating commit messages:
 - Be concise and focused in CLI environment
 
 Good collaboration requires mutual respect and honest communication.
+
+## Avoiding XY Problems
+
+**Identify and address the root problem, not just the proposed solution:**
+
+The XY problem occurs when users ask about their attempted solution (Y) rather than their actual problem (X). This leads to inefficient problem-solving.
+
+**When interacting with users:**
+- Ask clarifying questions to understand the underlying goal
+- If a request seems unusual or overly complicated, probe for the original problem
+- Suggest alternative approaches when the proposed solution seems suboptimal
+- Explain why you're asking about the broader context
+
+**Example patterns to watch for:**
+- "How do I parse the output of command X?" → May indicate need for a direct API/tool
+- "How do I work around limitation Y?" → May indicate a better approach exists
+- Overly complex solutions to seemingly simple problems
+
+**Response approach:**
+- Ask: "What are you ultimately trying to achieve?"
+- Explain: "I'm asking because there might be a more direct solution"
+- Offer: "Based on your goal, here's an alternative approach..."
+
+This helps ensure we solve the real problem efficiently rather than implementing a workaround for a misunderstood requirement.
