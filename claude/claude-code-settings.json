@@ -56,6 +56,15 @@
             "command": "python3 ~/.claude/hooks/operation-logger.py"
           }
         ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ~/.claude/hooks/bash-logger.py"
+          }
+        ]
       }
     ],
     "Notification": [
@@ -114,5 +123,6 @@
     "learning-output-style@claude-code-plugins": true,
     "security-guidance@claude-code-plugins": true
   },
-  "alwaysThinkingEnabled": true
+  "alwaysThinkingEnabled": true,
+  "model": "opus"
 }

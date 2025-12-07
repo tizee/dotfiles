@@ -1,37 +1,56 @@
 # Claude Code Enhanced Hooks
 
-## 概述
+## Table of Contents
 
-这套增强的hook系统为你的Claude Code会话提供了深度分析和性能跟踪功能。
+- [Overview](#overview)
+- [Features](#features)
+- [Lightweight JSON Architecture](#lightweight-json-architecture)
+- [Installation and Configuration](#installation-and-configuration)
+- [Log File Structure](#log-file-structure)
+- [Usage Examples](#usage-examples)
+- [Troubleshooting Guide](#troubleshooting-guide)
+- [Data API Reference](#data-api-reference)
+- [Advanced Usage](#advanced-usage)
+- [Security Considerations](#security-considerations)
 
-## 新增功能
+## Overview
 
-### Stop Hook 增强功能
-- **会话统计**: 计算总工具使用次数、bash命令数、文件操作数
-- **成功率分析**: 自动计算操作成功率
-- **Todo状态检查**: 检测是否还有未完成的todo项
-- **会话摘要**: 自动生成会话性能摘要报表
+This enhanced hook system provides deep analysis and performance tracking for Claude Code sessions.
 
-### SubagentStop Hook 增强功能
-- **任务完成质量分析**: 分析任务完成、进行中、失败的状态
-- **工具使用密度统计**: 分析每个子任务中工具的密集程度
-- **性能指标存储**: 将每次子任务运行数据存储到SQLite数据库
-- **效率评估**: 估算整体任务处理效率
+## Features
 
-### PreCompact Hook 增强功能
-- **压缩影响分析**: 预估压缩前后的大小变化
-- **关键洞察保留**: 识别重要关键词进行优先保留
-- **压缩历史跟踪**: 记录每次压缩的详细信息和推荐
-- **文件清理推荐**: 为交流管理提供智能清理建议
+### Bash Logger Hook (PostToolUse)
+- **Command Logging**: Logs all Bash command executions to `/tmp/claude-bash.log`
+- **Full Output Preservation**: Saves stdout and stderr to avoid losing truncated information
+- **Auto Rotation**: 500KB/500 lines limit prevents unlimited log growth
+- **Debug Aid**: View complete output via log file when output is truncated
 
-## 轻量级JSON架构设计
+### Stop Hook
+- **Session Statistics**: Counts total tool usage, bash commands, file operations
+- **Success Rate Analysis**: Calculates operation success rate automatically
+- **Todo Status Check**: Detects incomplete todo items
+- **Session Summary**: Generates session performance summary report
 
-### 存储格式对比
-- **SQLite**: ❌ 臃肿，需要数据库引擎
-- **JSON**: ✅ 轻量，直接可读，Python原生支持
-- **CSV**: ❌ 需要额外解析库
+### SubagentStop Hook
+- **Task Completion Analysis**: Analyzes completed, in-progress, and failed task states
+- **Tool Usage Density**: Analyzes tool density per subtask
+- **Performance Metrics Storage**: Stores subtask run data to JSON
+- **Efficiency Assessment**: Estimates overall task processing efficiency
 
-### JSON存储结构
+### PreCompact Hook
+- **Compaction Impact Analysis**: Estimates size changes before/after compaction
+- **Key Insight Preservation**: Identifies important keywords for priority retention
+- **Compaction History Tracking**: Records detailed compaction info and recommendations
+- **File Cleanup Recommendations**: Provides intelligent cleanup suggestions
+
+## Lightweight JSON Architecture
+
+### Storage Format Comparison
+- **SQLite**: ❌ Heavy, requires database engine
+- **JSON**: ✅ Lightweight, directly readable, native Python support
+- **CSV**: ❌ Requires additional parsing libraries
+
+### JSON Storage Structure
 
 #### subagent-metrics.json
 ```json
@@ -67,32 +86,72 @@
 ]
 ```
 
-## 安装和配置
+## Installation and Configuration
 
-### 1. 权限设置
-确保所有脚本有可执行权限：
+### 1. Permission Setup
+Ensure all scripts have execute permissions:
 ```bash
-chmod +x hooks/*.py
+chmod +x ~/.claude/hooks/*.py
 ```
 
-### 2. 配置验证
-JSON文件大小控制：
-- 每个metrics最多保存100个记录
-- 自动丢弃最早数据，回避文件膨胀
-- 纯JSON架构，无需外部依赖
+### 2. Configuration Validation
+JSON file size control:
+- Each metrics file keeps maximum 100 records
+- Automatically discards oldest data to prevent bloat
+- Pure JSON architecture, no external dependencies
 
-### 3. 更新Claude Code配置
+### 3. Claude Code Configuration
 
 ```json
 {
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ~/.claude/hooks/validate-commands.py"
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit|MultiEdit|Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ~/.claude/hooks/validate-files.py"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ~/.claude/hooks/operation-logger.py"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ~/.claude/hooks/bash-logger.py"
+          }
+        ]
+      }
+    ],
     "Stop": [
       {
         "matcher": "",
         "hooks": [
           {
             "type": "command",
-            "command": "/path/to/your/stop-handler.py"
+            "command": "python3 ~/.claude/hooks/stop-handler.py"
           }
         ]
       }
@@ -103,7 +162,7 @@ JSON文件大小控制：
         "hooks": [
           {
             "type": "command",
-            "command": "/path/to/your/subagent-stop-handler.py"
+            "command": "python3 ~/.claude/hooks/subagent-stop-handler.py"
           }
         ]
       }
@@ -114,7 +173,18 @@ JSON文件大小控制：
         "hooks": [
           {
             "type": "command",
-            "command": "/path/to/your/pre-compact-handler.py"
+            "command": "python3 ~/.claude/hooks/pre-compact-handler.py"
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ~/.claude/hooks/notification-handler.py"
           }
         ]
       }
@@ -123,25 +193,38 @@ JSON文件大小控制：
 }
 ```
 
-## 日志文件结构
+## Log File Structure
 
-所有日志文件会存储在：`~/.claude/logs/` 目录下
+### ~/.claude/logs/ Directory
+- `session-summary.log` - Session summary for each session
+- `task-analysis.log` - Detailed subtask analysis
+- `compaction-tracking.log` - Detailed compaction operation records
+- `cleanup-recommendations.json` - Intelligent cleanup recommendations
+- `subagent-metrics.json` - Lightweight performance metrics JSON
+- `operations.log` - File operation records (Write/Edit/MultiEdit)
 
-- `session-summary.log` - 每次会话的总体摘要
-- `task-analysis.log` - 子任务详细分析
-- `compaction-tracking.log` - 压缩操作的详细记录
-- `cleanup-recommendations.json` - 智能清理推荐
-- `subagent-metrics.json` - 轻量级性能指标JSON
+### /tmp/ Directory
+- `claude-bash.log` - Bash command execution log (with full stdout/stderr)
 
-## 使用案例
+## Usage Examples
 
-### 案例1: 会话结束后检查完成度
-会话结束时自动检查：
-- ✅ 本次会话工具使用统计
-- ✅ **TodoWrite未完成事项提醒** (独立于Task)
-- ✅ 操作成功率和错误统计
+### View Truncated Bash Output
+When command output is truncated, view the complete log:
+```bash
+# View recent command execution records
+tail -100 /tmp/claude-bash.log
 
-**运行示例**:
+# Search for specific command output
+grep -A 20 "npm run build" /tmp/claude-bash.log
+```
+
+### Post-Session Completion Check
+Auto-check at session end:
+- Tool usage statistics
+- Incomplete TodoWrite items reminder
+- Operation success rate and error statistics
+
+**Output Example**:
 ```
 [2024-07-13T15:45:12.123456] Session Summary:
   Total Tools: 23
@@ -153,86 +236,79 @@ JSON文件大小控制：
   Warning: 2 todo items are still incomplete
 ```
 
-### 案例2: 轻量级性能趋势
-查看历史会话指标：
+### Performance Trend Analysis
+View historical session metrics:
 ```bash
-# 查看原始JSON数据
+# View raw JSON data
 cat ~/.claude/logs/subagent-metrics.json | jq -r '.[-5:][] | {timestamp, stats}'
 
-# 分析工具使用趋势
+# Analyze tool usage trends
 jq '.[] | [.timestamp, .stats.total_tools, .stats.success_count]' ~/.claude/logs/subagent-metrics.json
 ```
 
-### 案例3: TodoWrite状态监控
-检查当前会话中的TodoWrite状态：
+### Pre-Compaction Analysis
+Get cleanup suggestions before compaction:
 ```bash
-# 查看最近的未完成TodoWrite
-jq '.[0] | check_todo_status()}' <(jot /path/to/transcript.json)
-```
-
-### 案例4: 压缩前智能分析
-在压缩前获取清理建议：
-```bash
-# 查看压缩推荐
+# View compaction recommendations
 jq '.[-1]' ~/.claude/logs/cleanup-recommendations.json
 ```
 
-## 故障排除指南
+## Troubleshooting Guide
 
-### 日常检查命令
+### Daily Check Commands
 ```bash
-# 验证脚本权限
+# Verify script permissions
 ls -la ~/.claude/hooks/*.py
 chmod +x ~/.claude/hooks/*.py
 
-# 查看实时日志
+# View real-time logs
 tail -f ~/.claude/logs/session-summary.log
 
-# 查看性能统计
+# View performance statistics
 jq length ~/.claude/logs/subagent-metrics.json
 ```
 
-### 常见问题
+### Common Issues
 
-#### Q: Stop hook报错的调试方法
+#### Q: How to debug Stop hook errors?
 ```bash
-# 手动运行hook测试
+# Manually test hook
 echo '{"transcript_path": "/tmp/test.json", "session_id": "test"}' | python3 ~/.claude/hooks/stop-handler.py
 ```
 
-#### Q: JSON文件过大怎么办？
-- ✅ 自动限制100条记录（已内置）
-- ✅ 可以直接删除历史文件
-- ✅ 不会导致系统性能问题
+#### Q: JSON file too large?
+- Auto-limited to 100 records (built-in)
+- Can directly delete history files
+- Won't cause system performance issues
 
-#### Q: TodoWrite统计不准确？
-- ✅ TodoWrite是独立工具，与Task功能无关
-- ✅ 通过transcript文件直接读取，无需Task依赖
-- ✅ 可以同时跟踪pending/in_progress/completed所有状态
+#### Q: TodoWrite statistics inaccurate?
+- TodoWrite is an independent tool, unrelated to Task
+- Reads directly from transcript file, no Task dependency
+- Tracks pending/in_progress/completed states simultaneously
 
-## 数据API参考
+## Data API Reference
 
-### 会话统计字段
+### Session Statistics Fields
 ```json
 {
-  "total_tools": "使用的总工具数",
-  "bash_commands": "执行的bash命令数", 
-  "file_operations": "文件操作次数(R/W/E/ME)",
-  "success_count": "成功操作数",
-  "error_count": "错误操作数",
-  "todo_incomplete": "未完成的TodoWrite项"
+  "total_tools": "Total tools used",
+  "bash_commands": "Bash commands executed",
+  "file_operations": "File operation count (R/W/E/ME)",
+  "success_count": "Successful operations",
+  "error_count": "Failed operations",
+  "todo_incomplete": "Incomplete TodoWrite items"
 }
 ```
 
-### 快速命令工具箱
+### Quick Command Toolbox
 ```bash
-# 一键查看当前会话摘要
+# View current session summary
 alias claude-stats="tail -n 10 ~/.claude/logs/session-summary.log"
 
-# 查看todo状态
+# Check todo status
 alias todo-watch="grep -c 'pending\|in_progress' ~/.claude/logs/session-summary.log"
 
-# 生成今日使用报告
+# Generate daily usage report
 function claude-report() {
   echo "=== Claude Code Daily Report ==="
   echo "Sessions completed:" $(wc -l < ~/.claude/logs/session-summary.log)
@@ -240,11 +316,11 @@ function claude-report() {
 }
 ```
 
-## 高级用法
+## Advanced Usage
 
-### 集成到您的shell提示符
+### Shell Prompt Integration
 ```bash
-# 显示当前会话的工具计数统计
+# Display current session tool count statistics
 function claude_session_info() {
   local stats_file="$HOME/.claude/logs/session-summary-simple.log"
   if [[ -f "$stats_file" ]]; then
@@ -253,10 +329,10 @@ function claude_session_info() {
 }
 ```
 
-### 创建TodoWrite完成度报告
+### TodoWrite Completion Report
 ```bash
 #!/bin/bash
-# 生成每日TodoWrite完成度报告
+# Generate daily TodoWrite completion report
 logfile="~/.claude/logs/session-summary.log"
 if [[ -f $logfile ]]; then
     echo "=== TodoWrite Daily Report ==="
@@ -264,19 +340,19 @@ if [[ -f $logfile ]]; then
 fi
 ```
 
-## 安全考虑
+## Security Considerations
 
-- ✅ **零系统权限**: 仅操作用主目录
-- ✅ **可安全删除**: JSON文件可直接删除重置
-- ✅ **只读操作**: 除日志外不会修改其他系统文件
-- ✅ **容量控制**: 智能限制文件大小防止膨胀
+- **Zero System Permissions**: Only operates in user home directory
+- **Safe to Delete**: JSON files can be deleted directly to reset
+- **Read-Only Operations**: Does not modify other system files except logs
+- **Capacity Control**: Intelligent file size limits prevent bloat
 
-所有hook都是读取和写入当前用户环境的日志文件，并不会执行破坏性操作。所有文件路径都经过验证和权限检查。
+All hooks read and write log files within the current user environment and do not perform destructive operations. All file paths are validated and permission-checked.
 
-## 故障排除
+## Troubleshooting
 
-如果hook不工作：
-1. 检查JSON配置是否正确
-2. 确认所有脚本有执行权限
-3. 查看 `~/.claude/logs/` 下的错误日志
-4. 使用 `/hooks` 命令验证配置
+If hooks don't work:
+1. Check JSON configuration is correct
+2. Confirm all scripts have execute permissions
+3. Check `~/.claude/logs/` for error logs
+4. Use `/hooks` command to verify configuration
