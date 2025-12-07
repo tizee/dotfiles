@@ -34,6 +34,16 @@ For specialized guidance on specific topics, refer to these skills:
 3. rg - for plain-text search
 4. Agent - for semantic exploration when needed
 
+## Shell Command Execution
+
+When running shell commands with potentially verbose output:
+- Redirect stdout/stderr to `/tmp/<descriptive_name>.log`
+- Use `tail` to retrieve results
+
+```bash
+command args > /tmp/output.log 2>&1; tail -n 50 /tmp/output.log
+```
+
 ## Commit Messages
 
 When generating commit messages:
