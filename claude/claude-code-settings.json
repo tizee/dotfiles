@@ -26,6 +26,7 @@
       "Bash(sudo:*)"
     ]
   },
+  "model": "opus",
   "hooks": {
     "PreToolUse": [
       {
@@ -123,6 +124,5 @@
     "learning-output-style@claude-code-plugins": true,
     "security-guidance@claude-code-plugins": true
   },
-  "alwaysThinkingEnabled": true,
-  "model": "opus"
+  "alwaysThinkingEnabled": true
 }

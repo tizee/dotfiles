@@ -2,6 +2,10 @@
 """
 Custom notification handler for Claude Code
 Provides visual feedback for important events
+
+Sound Configuration:
+  - Supports both system sounds (via terminal-notifier) and custom audio files (via afplay)
+  - Use SoundConfig to customize sounds through dependency injection
 """
 
 import json
@@ -9,8 +13,51 @@ import locale
 import os
 import subprocess
 import sys
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
+
+
+@dataclass
+class SoundConfig:
+    """
+    Configuration for notification sounds.
+    Sound names correspond to files in ~/Library/Sounds/ or /System/Library/Sounds/.
+
+    Usage:
+        # Use default config with custom sounds
+        config = get_default_sound_config()
+
+        # Override specific sounds
+        config = SoundConfig(
+            permission="yes-me-lord",  # Custom sound in ~/Library/Sounds/
+            idle="Tink",               # System sound
+            default="Glass"
+        )
+
+    To add custom sounds:
+        1. Convert to AIFF: afconvert input.mp3 ~/Library/Sounds/name.aiff -f AIFF -d BEI16
+        2. Use the name (without extension) in SoundConfig
+    """
+
+    permission: str = "Ping"  # Clear alert - needs attention
+    idle: str = "Tink"  # Soft notification - waiting state
+    completed: str = "default"  # System default
+    error: str = "Basso"  # Error sound
+    blocked: str = "Funk"  # Blocked action
+    default: str = "Glass"  # Default notification
+
+
+def get_default_sound_config() -> SoundConfig:
+    """Get default sound configuration with custom sounds from ~/Library/Sounds/."""
+    return SoundConfig(
+        permission="yes-me-lord",  # Custom: ~/Library/Sounds/yes-me-lord.aiff
+        idle="ready-to-work",  # Custom: ~/Library/Sounds/ready-to-work.aiff
+        completed="work-complete",  # Custom: ~/Library/Sounds/work-complete.aiff
+        error="huh",  # Custom: ~/Library/Sounds/huh.aiff
+        blocked="Funk",
+        default="more-work",  # Custom: ~/Library/Sounds/more-work.aiff
+    )
 
 
 def get_system_language():
@@ -72,18 +119,51 @@ def get_localized_strings(is_chinese=False):
     }
 
 
-def send_notification(title: str, message: str, sound_name: str | None = None):
-    """Send immediate notification using terminal-notifier with custom sound."""
-    try:
-        # Use terminal-notifier for reliable notifications
-        cmd = ["terminal-notifier", "-title", title, "-message", message]
-        if sound_name:
-            cmd.extend(["-sound", sound_name])
+def play_sound(sound: str | None) -> None:
+    """
+    Play a sound using afplay (bypasses terminal-notifier sound issues).
 
+    Args:
+        sound: Sound name (searches ~/Library/Sounds/ then /System/Library/Sounds/)
+    """
+    if not sound:
+        return
+
+    # Search paths for sound files
+    search_paths = [
+        Path.home() / "Library" / "Sounds" / f"{sound}.aiff",
+        Path(f"/System/Library/Sounds/{sound}.aiff"),
+    ]
+
+    for sound_path in search_paths:
+        if sound_path.exists():
+            subprocess.Popen(
+                ["afplay", str(sound_path)],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+            return
+
+
+def send_notification(title: str, message: str, sound: str | None = None) -> None:
+    """
+    Send notification using terminal-notifier + afplay for sound.
+
+    Args:
+        title: Notification title
+        message: Notification message
+        sound: Sound name (from ~/Library/Sounds/ or /System/Library/Sounds/)
+    """
+    try:
+        # Visual notification via terminal-notifier (without sound)
+        cmd = ["terminal-notifier", "-title", title, "-message", message]
         subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-        # Also log to stderr for debugging
-        sound_info = f" (🔊 {sound_name})" if sound_name else ""
+        # Play sound via afplay (more reliable)
+        play_sound(sound)
+
+        # Log to stderr for debugging
+        sound_info = f" (🔊 {sound})" if sound else ""
         print(f"🔔 {title}: {message}{sound_info}", file=sys.stderr)
 
     except Exception as e:
@@ -91,9 +171,22 @@ def send_notification(title: str, message: str, sound_name: str | None = None):
         print(f"\a🔔 {title}: {message} (Error: {e})", file=sys.stderr)
 
 
-def process_notification(data: dict):
-    """Process incoming notification data with different sounds and localized titles."""
+def process_notification(
+    data: dict,
+    sound_config: SoundConfig | None = None,
+) -> None:
+    """
+    Process incoming notification data with different sounds and localized titles.
+
+    Args:
+        data: Notification data dict with 'message' key
+        sound_config: Optional custom sound configuration (dependency injection)
+    """
     message = data.get("message", "")
+
+    # Use injected config or get default
+    config = sound_config or get_default_sound_config()
+
     # Detect system language and get localized strings
     is_chinese = get_system_language()
     strings = get_localized_strings(is_chinese)
@@ -101,22 +194,22 @@ def process_notification(data: dict):
     # Determine notification type and sound based on message content
     if "permission" in message.lower():
         title = strings["permission"]
-        send_notification(title, message, sound_name="Ping")  # 清脆提示音 - 需要注意
+        send_notification(title, message, sound=config.permission)
     elif "waiting" in message.lower() or "idle" in message.lower():
         title = strings["waiting"]
-        send_notification(title, message, sound_name="Tink")  # 轻柔提示音 - 等待状态
+        send_notification(title, message, sound=config.idle)
     elif "completed" in message.lower() or "success" in message.lower():
         title = strings["completed"]
-        send_notification(title, message, sound_name="default")  # 系统默认声音
+        send_notification(title, message, sound=config.completed)
     elif "error" in message.lower() or "failed" in message.lower():
         title = strings["error"]
-        send_notification(title, message, sound_name="Basso")  # 错误音效
+        send_notification(title, message, sound=config.error)
     elif "blocked" in message.lower() or "denied" in message.lower():
         title = strings["blocked"]
-        send_notification(title, message, sound_name="Funk")  # 阻止音效
+        send_notification(title, message, sound=config.blocked)
     else:
         title = strings["notification"]
-        send_notification(title, message, sound_name="Glass")  # 默认通知音效
+        send_notification(title, message, sound=config.default)
 
 
 def main():
