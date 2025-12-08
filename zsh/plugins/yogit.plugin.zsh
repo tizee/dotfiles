@@ -759,8 +759,16 @@ function yogit::push() {
     return 1
   fi
 
-  yogit::info "Pushing to origin/${branch}..."
-  git push origin "$branch" "$@"
+  # Check if upstream is already set for this branch
+  local upstream=$(git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>/dev/null)
+
+  if [[ -z "$upstream" ]]; then
+    yogit::info "Pushing to origin/${branch} with -u (setting upstream)..."
+    git push -u origin "$branch" "$@"
+  else
+    yogit::info "Pushing to origin/${branch}..."
+    git push origin "$branch" "$@"
+  fi
 
   if [[ $? -eq 0 ]]; then
     yogit::success "Push completed"
