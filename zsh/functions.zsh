@@ -93,7 +93,7 @@ function _githooks_interactive_menu {
     local current_scan_status=$(_get_toggle_label "$SKIP_SCAN_GITHOOK" "inverted")
     local current_spinner="${LLM_GITHOOK_SPINNER_STYLE:-classic}"
 
-    local choice=$(cat <<EOF | fzf --ansi --height=20 --header="Git Hooks Configuration - Press ESC to exit" --prompt="Select option > " --border
+    local choice=$(cat <<EOF | fzf --ansi --height=20 --header="Git Hooks Configuration - Press ESC to exit" --prompt="Select option > " --border --preview-window=hidden
 📝 Toggle LLM Commit Generation         [${current_llm_status}]
 ⚡ Toggle Force LLM Regeneration         [${current_force_status}]
 🔄 Toggle No Bypass Amending             [${current_amend_status}]

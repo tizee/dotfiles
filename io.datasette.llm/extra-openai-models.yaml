@@ -1,3 +1,8 @@
+- model_id: doubao-kimik2
+  model_name: ep-20250822180938-kqqwd
+  api_base: "https://ark.cn-beijing.volces.com/api/v3"
+  can_stream: true
+  api_key_name: doubao
 - model_id: doubao-v3
   model_name: ep-20250327002251-dzdkf
   api_base: "https://ark.cn-beijing.volces.com/api/v3"
@@ -8,36 +13,16 @@
   api_base: "https://ark.cn-beijing.volces.com/api/v3"
   can_stream: true
   api_key_name: doubao
-- model_id: siliconflow-r1
-  model_name: Pro/deepseek-ai/DeepSeek-R1
-  api_base: "https://api.siliconflow.cn/v1"
-  can_stream: true
-  api_key_name: siliconflow
 - model_id: siliconflow-v3
-  model_name: Pro/deepseek-ai/DeepSeek-V3
+  model_name: Pro/deepseek-ai/DeepSeek-V3.2
   api_base: "https://api.siliconflow.cn/v1"
   can_stream: true
   api_key_name: siliconflow
-- model_id: hyperbolic-v3
-  model_name: deepseek-ai/DeepSeek-V3
-  api_base: "https://api.hyperbolic.xyz/v1"
+- model_id: siliconflow-kimik2
+  model_name: Pro/moonshotai/Kimi-K2-Thinking
+  api_base: "https://api.siliconflow.cn/v1"
   can_stream: true
-  api_key_name: hyperbolic
-- model_id: qwen-2.5-32b
-  model_name: qwen-2.5-32b
-  api_base: "https://api.groq.com/openai/v1"
-  can_stream: true
-  api_key_name: groq
-- model_id: gemini-2.5-flash
-  model_name: google/gemini-2.5-flash
-  api_base: "https://openrouter.ai/api/v1"
-  can_stream: true
-  api_key_name: openrouter
-- model_id: gemini-2.5-flash-lite
-  model_name: google/gemini-2.5-flash-lite-preview-06-17
-  api_base: "https://openrouter.ai/api/v1"
-  can_stream: true
-  api_key_name: openrouter
+  api_key_name: siliconflow
 - model_id: kimi-k2
   model_name: kimi-k2-0711-preview
   api_base: "https://api.moonshot.cn/v1"
