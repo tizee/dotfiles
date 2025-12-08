@@ -751,6 +751,21 @@ alias "${_yogit_basic_prefix}c!"='git commit --amend'
 alias "${_yogit_basic_prefix}cn!"='git commit --amend --no-edit'
 
 # push
+# ┌─────────────────────────────────────────────────────────────────────────┐
+# │ yogit::push - Smart push with auto upstream tracking                    │
+# ├─────────────────────────────────────────────────────────────────────────┤
+# │ Scenario                      │ Behavior                                │
+# ├───────────────────────────────┼─────────────────────────────────────────┤
+# │ User passes -u/--set-upstream │ Pass through as-is (allows reconfigure) │
+# │ No upstream set, no -u passed │ Auto-add -u for convenience             │
+# │ Upstream exists, no -u passed │ Normal push without -u                  │
+# ├─────────────────────────────────────────────────────────────────────────┤
+# │ Examples:                                                               │
+# │   ygpush                    → git push -u origin branch (first push)    │
+# │   ygpush                    → git push origin branch (tracking exists)  │
+# │   ygpush -u                 → git push origin branch -u (reconfigure)   │
+# │   ygpush --force-with-lease → git push origin branch --force-with-lease │
+# └─────────────────────────────────────────────────────────────────────────┘
 function yogit::push() {
   yogit::is_git_repo || return 1
 
@@ -759,13 +774,29 @@ function yogit::push() {
     return 1
   fi
 
+  # Check if user explicitly passed -u or --set-upstream
+  local has_upstream_flag=0
+  local arg
+  for arg in "$@"; do
+    if [[ "$arg" == "-u" || "$arg" == "--set-upstream" ]]; then
+      has_upstream_flag=1
+      break
+    fi
+  done
+
   # Check if upstream is already set for this branch
   local upstream=$(git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>/dev/null)
 
-  if [[ -z "$upstream" ]]; then
+  if [[ $has_upstream_flag -eq 1 ]]; then
+    # User explicitly wants to set/change upstream, pass through as-is
+    yogit::info "Pushing to origin/${branch} with -u (setting upstream)..."
+    git push origin "$branch" "$@"
+  elif [[ -z "$upstream" ]]; then
+    # No upstream set, auto-add -u
     yogit::info "Pushing to origin/${branch} with -u (setting upstream)..."
     git push -u origin "$branch" "$@"
   else
+    # Upstream already set, normal push
     yogit::info "Pushing to origin/${branch}..."
     git push origin "$branch" "$@"
   fi
