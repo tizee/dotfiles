@@ -1,0 +1,1 @@
+/Users/tizee/projects/project-conf/dotfiles/tizee-dotfiles/gemini/../claude/CLAUDE.md

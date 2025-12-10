@@ -28,6 +28,7 @@ help:
 	@echo "make lldb          -  (macOS) lldb setup"
 	@echo "make claude        -  (macOS) claude code setup"
 	@echo "make codex         -  (macOS) codex config setup"
+	@echo "make gemini        -  (macOS) gemini config setup"
 .PHONY: help
 
 claude:
@@ -52,13 +53,21 @@ claude:
 
 codex:
 	@echo "Linking codex config..."
-	@mkdir -p ~/.codex
 	@if [ -e ~/.codex/config.toml ]; then \
 		echo "~/.codex/config.toml already exists - skipping"; \
 	else \
-		ln -sv $(PWD)/codex/config.toml ~/.codex/config.toml; \
+		ln -sv $(PWD)/codex ~/.codex; \
 	fi
 .PHONY: codex
+
+gemini:
+	@echo "Linking gemini config..."
+	@if [ -e ~/.gemini/settings.json ]; then \
+		echo "~/.gemini/settings.json already exists - skipping"; \
+	else \
+		ln -sv $(PWD)/gemini ~/.gemini; \
+	fi
+.PHONY: gemini
 
 cargo:
 	@echo "link cargo config"
