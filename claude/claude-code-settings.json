@@ -5,6 +5,7 @@
     "BASH_MAX_TIMEOUT_MS": "600000",
     "CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR": "true",
     "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "true",
+    "CLAUDE_CODE_ENABLE_TELEMETRY": 0,
     "DISABLE_NON_ESSENTIAL_MODEL_CALLS": "1",
     "HTTPS_PROXY": "http://127.0.0.1:1080",
     "HTTP_PROXY": "http://127.0.0.1:1080"
@@ -19,7 +20,8 @@
       "Bash(ls:*)",
       "Bash(rg:*)",
       "TodoWrite",
-      "TodoRead"
+      "TodoRead",
+      "mcp__nowledge-mem__memory_add"
     ],
     "deny": [
       "Bash(rm -rf:*)",
