@@ -19,4 +19,4 @@ raycast/extensions
 # cloudflare worker
 .wrangler
 github-copilot
-osay
+osay/config
