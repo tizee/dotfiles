@@ -1,11 +1,22 @@
-model = "gpt-5.1-codex-max"
-model_reasoning_effort = "high"
+model = "gpt-5.2"
+model_reasoning_effort = "medium"
 
 [notice]
 "hide_gpt-5.1-codex-max_migration_prompt" = true
 
+[features]
+rmcp_client = true
+
 [mcp_servers.nowledge-mem]
-url = "http://localhost:14242/mcp"
+url = "http://127.0.0.1:14242/mcp/"
+startup_timeout_sec = 30
+tool_timeout_sec = 45
 
 [mcp_servers.nowledge-mem.http_headers]
 APP = "Codex"
+
+[projects."/Users/tizee/projects/project-web/tizee-web-apps/web-tools"]
+trust_level = "trusted"
+
+[projects."/Users/tizee/projects/project-doc/tizee-docs/prompts.tizee"]
+trust_level = "trusted"
