@@ -2,11 +2,25 @@
 
 DEV_PROJECTS=${MY_PROJECTS:-"$HOME/projects"}
 PROJECT_PREFIX=${MY_PROJECT_PATTERN:-"project-"}
+_REPO_ROOT=${MY_PROJECTS:-"$HOME/projects"}
 
 function repo() {
     if [[ -z $1 ]];then
       if command -v tree >/dev/null 2>&1; then
-        local repo_name="$(fd . -t d -d 1 ${DEV_PROJECTS} --exec basename | fzf --preview="tree -L 1 ${DEV_PROJECTS}/{+1}")"
+        local repo_name
+        if [[ "$DEV_PROJECTS" == "$_REPO_ROOT" ]]; then
+          # 第一级：只查找 project- 前缀的文件夹，去掉前缀显示
+          local short_name="$(fd "^${PROJECT_PREFIX}" -t d -d 1 ${DEV_PROJECTS} --exec basename | \
+            sed "s/^${PROJECT_PREFIX}//" | \
+            sort | \
+            fzf --preview="tree -L 1 ${DEV_PROJECTS}/${PROJECT_PREFIX}{+1}")"
+          [[ -n $short_name ]] && repo_name="${PROJECT_PREFIX}${short_name}"
+        else
+          # 子目录：显示所有文件夹，不过滤
+          repo_name="$(fd . -t d -d 1 ${DEV_PROJECTS} --exec basename | \
+            sort | \
+            fzf --preview="tree -L 1 ${DEV_PROJECTS}/{+1}")"
+        fi
         if [[ -n $repo_name ]];then
           cd "${DEV_PROJECTS}/$repo_name" || return 1
           DEV_PROJECTS="${DEV_PROJECTS}/$repo_name" repo
