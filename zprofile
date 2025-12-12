@@ -508,6 +508,8 @@ if $is_macOS; then
   export LLM_USER_PATH="$HOME/.config/io.datasette.llm"
   export LLM_PROGRAM="$HOME/.local/bin/llm"
   export LLM_PREPARE_COMMIT_MSG_PROMPT="$HOME/prompts/git/diff-based-commit-prompt.txt"
+  export LLM_GITHOOK_SHIMMER_BASE_COLOR=120
+  export LLM_GITHOOK_SHIMMER_HIGHLIGHT_COLOR=103
 
   # xray-core
   # export XRAY_LOCATION_CONFDIR="$HOME/.config/xray/conf"
