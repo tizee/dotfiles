@@ -11,15 +11,6 @@ This document outlines best practices for working with Claude Code to ensure eff
 
 ## Project Knowledge Base
 
-### Skills
-
-For specialized guidance on specific topics, refer to these skills:
-
-- **Software Design**: [Software Design Principles Skill](~/.claude/skills/software-design-principles/SKILL.md)
-- **Code Formatting**: [Code Formatting Skill](~/.claude/skills/code-formatting/SKILL.md)
-- **Testing**: [Testing Guidelines Skill](~/.claude/skills/testing-guidelines/SKILL.md)
-- **AST-Grep**: [AST-Grep Skill](~/.claude/skills/ast-grep/SKILL.md)
-
 ## Tool Preferences
 
 **Preferred Tools** (all pre-installed):
