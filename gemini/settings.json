@@ -1,4 +1,21 @@
 {
+  "context": {
+    "includeDirectories": [
+      "~/.gemini/skills"
+    ]
+  },
+  "mcpServers": {
+    "nowledge-mem": {
+      "httpUrl": "http://127.0.0.1:14242/mcp",
+      "headers": {
+        "APP": "Gemini"
+      },
+      "trust": true
+    }
+  },
+  "privacy": {
+    "usageStatisticsEnabled": true
+  },
   "security": {
     "auth": {
       "selectedType": "oauth-personal"
@@ -11,14 +28,5 @@
   },
   "ui": {
     "hideBanner": true
-  },
-  "mcpServers": {
-    "nowledge-mem": {
-      "httpUrl": "http://127.0.0.1:14242/mcp",
-      "headers": {
-        "APP": "Gemini"
-      },
-      "trust": true
-    }
   }
 }

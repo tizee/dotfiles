@@ -5,7 +5,7 @@
 # Maintains Single Source of Truth (CLAUDE.md) while enabling skill discovery
 
 # Configuration
-GEMINI_SKILLS_DIR="${GEMINI_SKILLS_DIR:-$HOME/.claude/skills}"
+GEMINI_SKILLS_DIR="${GEMINI_SKILLS_DIR:-$HOME/.gemini/skills}"
 GEMINI_BASE_PROMPT="${GEMINI_BASE_PROMPT:-$HOME/.claude/CLAUDE.md}"
 GEMINI_CONFIG_DIR="${GEMINI_CONFIG_DIR:-$HOME/.gemini}"
 

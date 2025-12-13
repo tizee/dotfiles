@@ -1,5 +1,11 @@
+# see https://developers.openai.com/codex/local-config#cli
 model = "gpt-5.2"
-model_reasoning_effort = "medium"
+model_reasoning_effort = "xhigh"
+model_reasoning_summary = "detailed"
+# read-only | workspace-write | danger-full-access
+sandbox_mode = "danger-full-access"
+approval_policy = "never"
+
 
 [notice]
 "hide_gpt-5.1-codex-max_migration_prompt" = true
@@ -16,3 +22,6 @@ tool_timeout_sec = 45
 
 [mcp_servers.nowledge-mem.http_headers]
 APP = "Codex"
+
+[projects."/Users/tizee/projects/project-conf/dotfiles/tizee-dotfiles"]
+trust_level = "untrusted"

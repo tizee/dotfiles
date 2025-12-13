@@ -1,0 +1,26 @@
+{
+  "security": {
+    "auth": {
+      "selectedType": "oauth-personal"
+    }
+  },
+  "usageStatisticsEnabled": true,
+  "general": {
+    "previewFeatures": true,
+    "vimMode": true,
+    "disableAutoUpdate": true
+  },
+  "ui": {
+    "hideBanner": true
+  },
+  "mcpServers": {
+    "nowledge-mem": {
+      "httpUrl": "http://127.0.0.1:14242/mcp",
+      "headers": {
+        "APP": "Gemini"
+      },
+      "trust": true
+    }
+  },
+  "includeDirectories": ["~/.gemini/skills"]
+}
