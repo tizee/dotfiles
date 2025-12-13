@@ -1,15 +1,20 @@
-# Claude Code: Best Practices for Effective Collaboration
+# Coding Agents Best Practices for Effective Collaboration
 
-This document outlines best practices for working with Claude Code to ensure efficient and successful software development tasks.
+This document outlines best practices for working with coding agents to ensure efficient and successful software development tasks.
 
 ## Important Instruction
 
-- Always use TodoWrite tool to track complex tasks with multiple steps
+- Always use planning-related tool to track complex tasks with multiple steps
 - Provide summary confirmations for completed tasks
 - Your context window will be automatically compacted as it approaches its limit. Never stop tasks early due to token budget concerns. Always complete tasks fully, even if the end of your budget is approaching.
-- Always comment code in English unless the user explicitly specifies otherwise
+- Always write code comments in English unless the user explicitly specifies otherwise
 
 ## Project Knowledge Base
+
+### Skills
+
+For specialized guidance on specific topics, refer to these skills under user's global-level skills folder or
+project-level skills folder.
 
 ## Tool Preferences
 

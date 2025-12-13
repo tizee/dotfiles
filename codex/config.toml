@@ -6,6 +6,8 @@ model_reasoning_effort = "medium"
 
 [features]
 rmcp_client = true
+skills = true
+web_search_request = true
 
 [mcp_servers.nowledge-mem]
 url = "http://127.0.0.1:14242/mcp/"
@@ -14,9 +16,3 @@ tool_timeout_sec = 45
 
 [mcp_servers.nowledge-mem.http_headers]
 APP = "Codex"
-
-[projects."/Users/tizee/projects/project-web/tizee-web-apps/web-tools"]
-trust_level = "trusted"
-
-[projects."/Users/tizee/projects/project-doc/tizee-docs/prompts.tizee"]
-trust_level = "trusted"
