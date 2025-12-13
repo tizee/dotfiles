@@ -14,7 +14,7 @@ elseif has('mac') || has('macunix') || has('gui_macvim')
 elseif executable('xdg-open')
   let s:repo_open_command='xdg-open '
   let s:repo_copy_command='xclip -selection clipboard' " not support
-endif 
+endif
 
 function! s:stripNL(path)
   return substitute(a:path,'\n$','','')
@@ -68,6 +68,7 @@ function! s:copy_remote_repo()
   else
     call setreg('*', l:url)
   endif
+  echom 'Copied: ' . l:url
 endfunction
 
 function! s:echo_remote_repo()
