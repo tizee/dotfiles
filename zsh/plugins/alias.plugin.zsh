@@ -44,7 +44,24 @@ alias printgccld="gcc -Xlinker -v"
 alias printgccplus="gcc -x c++ -v -E /dev/null"
 alias printld="ld -x -v /dev/null"
 # human-friendly and easy to remember
-alias fontlist="fc-list : family file"
+# fontlist: browse fonts with fzf preview
+function fontlist() {
+  local selection
+  selection=$(fc-list --format="%{file}\n" 2>/dev/null | \
+    sort -u | \
+    awk -F'/' '{print $NF "\t" $0}' | \
+    sort -t$'\t' -k1,1 | \
+    fzf --delimiter=$'\t' \
+        --with-nth=1 \
+        --preview-window=bottom:8:wrap \
+        --preview 'fp=$(echo {} | cut -f2); fc-list :file="$fp" --format="Family: %{family[0]}\nFullname: %{fullname[0]}\nStyle: %{style[0]}\n---\n"' \
+        --header="Font Browser (filename)")
+
+  [[ -n "$selection" ]] || return 0
+  local filepath=$(echo "$selection" | cut -f2)
+  echo "Path: $filepath"
+  fc-list :file="$filepath" --format="Family: %{family[0]}\nFullname: %{fullname[0]}\nStyle: %{style[0]}\n---\n"
+}
 
 # ========== pandoc ========== {{{
 function __pandocc(){

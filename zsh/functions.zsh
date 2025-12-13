@@ -24,11 +24,38 @@ function githooks {
   esac
 }
 
+# Render a centered title inside a Unicode box
+# Usage: _githooks_box_header "Title Text" [width]
+# Default width: 59 (inner content width)
+function _githooks_box_header {
+  local title="$1"
+  local width="${2:-59}"
+  local title_len=${#title}
+
+  # Calculate padding
+  local total_padding=$((width - title_len))
+  local left_pad=$((total_padding / 2))
+  local right_pad=$((total_padding - left_pad))
+
+  # Build padding strings
+  local left_spaces=""
+  local right_spaces=""
+  local border=""
+
+  repeat $left_pad; do left_spaces+=" "; done
+  repeat $right_pad; do right_spaces+=" "; done
+  repeat $width; do border+="═"; done
+
+  # Render the box
+  echo "╔${border}╗"
+  echo "║${left_spaces}${title}${right_spaces}║"
+  echo "╚${border}╝"
+}
+
 # Show current status of all git hook options
 function _githooks_show_status {
-  echo "\n╔═══════════════════════════════════════════════════════════╗"
-  echo "║         Git Hooks Configuration Status                   ║"
-  echo "╚═══════════════════════════════════════════════════════════╝"
+  echo ""
+  _githooks_box_header "Git Hooks Configuration Status"
 
   echo "\n📝 Prepare-Commit-Msg Hook:"
   echo "  └─ LLM Generation:              $(_get_status_badge "$LLM_GITHOOK_SKIP" "inverted")"
@@ -36,6 +63,15 @@ function _githooks_show_status {
   echo "  └─ No Bypass Amending:          $(_get_status_badge "$LLM_GITHOOK_NO_BYPASS_AMENDING")"
   echo "  └─ Allow Non-Interactive:       $(_get_status_badge "$LLM_GITHOOK_ALLOW_NONINTERACTIVE")"
   echo "  └─ Spinner Style:               \033[36m${LLM_GITHOOK_SPINNER_STYLE:-classic}\033[0m"
+  echo "  └─ Animation FPS:               $(_githooks_value_or_default LLM_GITHOOK_FPS 30)"
+  echo "  └─ Status Text Override:        $(_githooks_value_or_default_text LLM_GITHOOK_STATUS_TEXT '(default)')"
+  echo "  └─ Shimmer Sweep Seconds:       $(_githooks_value_or_default LLM_GITHOOK_SHIMMER_SWEEP_SECONDS 2.0)"
+  echo "  └─ Shimmer Padding:             $(_githooks_value_or_default LLM_GITHOOK_SHIMMER_PADDING 10)"
+  echo "  └─ Shimmer Band Half-Width:     $(_githooks_value_or_default LLM_GITHOOK_SHIMMER_BAND_WIDTH 5.0)"
+  echo "  └─ Color Mode:                  $(_githooks_value_or_default LLM_GITHOOK_COLOR_MODE 256)"
+  echo "  └─ Shimmer Base Color:          $(_githooks_color_value LLM_GITHOOK_SHIMMER_BASE_COLOR 255 '255,255,255')"
+  echo "  └─ Shimmer Highlight Color:     $(_githooks_color_value LLM_GITHOOK_SHIMMER_HIGHLIGHT_COLOR 240 '240,240,240')"
+  echo "  └─ Spinner Color:               $(_githooks_spinner_color_value)"
 
   echo "\n🔐 Pre-Commit Hook:"
   echo "  └─ Secret Scan:                 $(_get_status_badge "$SKIP_SCAN_GITHOOK" "inverted")"
@@ -51,6 +87,12 @@ function _githooks_show_status {
     echo "  └─ Custom Prompt Template:      \033[36m${LLM_PREPARE_COMMIT_MSG_PROMPT}\033[0m"
   else
     echo "  └─ Custom Prompt Template:      \033[90m(not set)\033[0m"
+  fi
+
+  if [[ -n "$PYTHONIOENCODING" ]]; then
+    echo "  └─ PYTHONIOENCODING:            \033[36m${PYTHONIOENCODING}\033[0m"
+  else
+    echo "  └─ PYTHONIOENCODING:            \033[90m(not set)\033[0m"
   fi
   echo ""
 }
@@ -77,6 +119,137 @@ function _get_status_badge {
   fi
 }
 
+# Render a variable value with a default fallback, while indicating whether it is set.
+# Usage: _githooks_value_or_default VAR_NAME DEFAULT
+function _githooks_value_or_default {
+  local var_name="$1"
+  local default_value="$2"
+  local value="${(P)var_name}"
+
+  if [[ -n "$value" ]]; then
+    echo "\033[36m${value}\033[0m"
+  else
+    echo "\033[90m${default_value} (default)\033[0m"
+  fi
+}
+
+# Like _githooks_value_or_default, but quotes text values for readability.
+function _githooks_value_or_default_text {
+  local var_name="$1"
+  local default_value="$2"
+  local value="${(P)var_name}"
+
+  if [[ -n "$value" ]]; then
+    echo "\033[36m\"${value}\"\033[0m"
+  else
+    echo "\033[90m${default_value}\033[0m"
+  fi
+}
+
+function _githooks_color_mode {
+  local mode="${LLM_GITHOOK_COLOR_MODE:-256}"
+  if [[ "$mode" == "truecolor" ]]; then
+    echo "truecolor"
+  else
+    echo "256"
+  fi
+}
+
+function _githooks_is_uint8 {
+  local value="$1"
+  [[ "$value" =~ '^[0-9]+$' ]] || return 1
+  (( value >= 0 && value <= 255 ))
+}
+
+function _githooks_parse_rgb {
+  local raw="${1//[[:space:]]/}"
+  if [[ ! "$raw" =~ '^([0-9]{1,3}),([0-9]{1,3}),([0-9]{1,3})$' ]]; then
+    return 1
+  fi
+
+  local r="${match[1]}"
+  local g="${match[2]}"
+  local b="${match[3]}"
+
+  _githooks_is_uint8 "$r" || return 1
+  _githooks_is_uint8 "$g" || return 1
+  _githooks_is_uint8 "$b" || return 1
+
+  echo "${r},${g},${b}"
+}
+
+function _githooks_color_escape {
+  local color_value="$1"
+  local mode="$(_githooks_color_mode)"
+
+  if [[ "$mode" == "truecolor" ]]; then
+    local parsed="$(_githooks_parse_rgb "$color_value")" || return 1
+    local r="${parsed%%,*}"
+    local rest="${parsed#*,}"
+    local g="${rest%%,*}"
+    local b="${rest#*,}"
+    echo "\033[38;2;${r};${g};${b}m"
+  else
+    _githooks_is_uint8 "$color_value" || return 1
+    echo "\033[38;5;${color_value}m"
+  fi
+}
+
+function _githooks_color_value {
+  local var_name="$1"
+  local default_256="$2"
+  local default_truecolor="$3"
+  local value="${(P)var_name}"
+  local mode="$(_githooks_color_mode)"
+  local default_value="$default_256"
+  if [[ "$mode" == "truecolor" ]]; then
+    default_value="$default_truecolor"
+  fi
+  local effective="${value:-$default_value}"
+
+  local esc="$(_githooks_color_escape "$effective")"
+  if [[ -n "$esc" ]]; then
+    if [[ -n "$value" ]]; then
+      echo "\033[36m${value}\033[0m ${esc}██\033[0m"
+    else
+      echo "\033[90m${default_value} (default)\033[0m ${esc}██\033[0m"
+    fi
+  else
+    if [[ -n "$value" ]]; then
+      echo "\033[31m${value} (invalid for ${mode})\033[0m"
+    else
+      echo "\033[31m${default_value} (invalid for ${mode})\033[0m"
+    fi
+  fi
+}
+
+function _githooks_spinner_color_value {
+  local mode="$(_githooks_color_mode)"
+  local base_default="255"
+  if [[ "$mode" == "truecolor" ]]; then
+    base_default="255,255,255"
+  fi
+  local base="${LLM_GITHOOK_SHIMMER_BASE_COLOR:-$base_default}"
+  local spinner="${LLM_GITHOOK_SPINNER_COLOR:-}"
+
+  if [[ -z "$spinner" ]]; then
+    local esc="$(_githooks_color_escape "$base")"
+    if [[ -n "$esc" ]]; then
+      echo "\033[90m(same as base)\033[0m ${esc}██\033[0m"
+    else
+      echo "\033[90m(same as base)\033[0m"
+    fi
+    return 0
+  fi
+
+  local esc="$(_githooks_color_escape "$spinner")"
+  if [[ -n "$esc" ]]; then
+    echo "\033[36m${spinner}\033[0m ${esc}██\033[0m"
+  else
+    echo "\033[31m${spinner} (invalid for ${mode})\033[0m"
+  fi
+}
+
 # Interactive menu for managing git hooks
 function _githooks_interactive_menu {
   if ! command -v fzf &> /dev/null; then
@@ -92,14 +265,16 @@ function _githooks_interactive_menu {
     local current_noninteractive_status=$(_get_toggle_label "$LLM_GITHOOK_ALLOW_NONINTERACTIVE")
     local current_scan_status=$(_get_toggle_label "$SKIP_SCAN_GITHOOK" "inverted")
     local current_spinner="${LLM_GITHOOK_SPINNER_STYLE:-classic}"
+    local current_color_mode="$(_githooks_color_mode)"
 
     local choice=$(cat <<EOF | fzf --ansi --height=20 --header="Git Hooks Configuration - Press ESC to exit" --prompt="Select option > " --border --preview-window=hidden
-📝 Toggle LLM Commit Generation         [${current_llm_status}]
-⚡ Toggle Force LLM Regeneration         [${current_force_status}]
-🔄 Toggle No Bypass Amending             [${current_amend_status}]
-🤖 Toggle Allow Non-Interactive          [${current_noninteractive_status}]
-🎨 Change Spinner Style                  [${current_spinner}]
-🔐 Toggle Secret Scan                    [${current_scan_status}]
+📝 Toggle LLM Commit Generation           [${current_llm_status}]
+⚡ Toggle Force LLM Regeneration          [${current_force_status}]
+🔄 Toggle No Bypass Amending              [${current_amend_status}]
+🤖 Toggle Allow Non-Interactive           [${current_noninteractive_status}]
+🎨 Change Spinner Style                   [${current_spinner}]
+🌈 Configure Colors                       [${current_color_mode}]
+🔐 Toggle Secret Scan                     [${current_scan_status}]
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📊 Show Current Status
 ❓ Show Help
@@ -122,6 +297,9 @@ EOF
         ;;
       *"Change Spinner Style"*)
         _githooks_spinner_menu
+        ;;
+      *"Configure Colors"*)
+        _githooks_color_menu
         ;;
       *"Toggle Secret Scan"*)
         toggleSecretScan
@@ -148,16 +326,16 @@ EOF
 # Simple menu fallback when fzf is not available
 function _githooks_simple_menu {
   while true; do
-    echo "\n╔═══════════════════════════════════════════════════════════╗"
-    echo "║         Git Hooks Configuration Menu                     ║"
-    echo "╚═══════════════════════════════════════════════════════════╝"
+    echo ""
+    _githooks_box_header "Git Hooks Configuration Menu"
     echo ""
     echo "  1) Toggle LLM Commit Generation"
     echo "  2) Toggle Force LLM Regeneration"
     echo "  3) Toggle No Bypass Amending"
     echo "  4) Toggle Allow Non-Interactive"
     echo "  5) Change Spinner Style"
-    echo "  6) Toggle Secret Scan"
+    echo "  6) Configure Colors"
+    echo "  7) Toggle Secret Scan"
     echo "  ─────────────────────────────"
     echo "  s) Show Current Status"
     echo "  h) Show Help"
@@ -172,7 +350,8 @@ function _githooks_simple_menu {
       3) toggleNoBypassAmending ;;
       4) toggleAllowNonInteractive ;;
       5) _githooks_spinner_menu ;;
-      6) toggleSecretScan ;;
+      6) _githooks_color_menu ;;
+      7) toggleSecretScan ;;
       s|S) _githooks_show_status ;;
       h|H) _githooks_show_help ;;
       q|Q) echo "Exiting git hooks configuration."; break ;;
@@ -235,6 +414,192 @@ function _githooks_spinner_menu {
   fi
 }
 
+# Interactive color configuration (shimmer + spinner)
+function _githooks_color_menu {
+  local mode="$(_githooks_color_mode)"
+  local current_base="${LLM_GITHOOK_SHIMMER_BASE_COLOR:-255}"
+  local current_highlight="${LLM_GITHOOK_SHIMMER_HIGHLIGHT_COLOR:-240}"
+  local current_spinner="${LLM_GITHOOK_SPINNER_COLOR:-}"
+
+  if command -v fzf &> /dev/null; then
+    local header="Mode: ${mode} | Base: ${current_base} | Highlight: ${current_highlight} | Spinner: ${current_spinner:-same as base}"
+    local choice=$(cat <<EOF | fzf --ansi --height=12 --header="$header" --prompt="Colors > " --border --preview-window=hidden
+Set color mode (256/truecolor)
+Set shimmer base color
+Set shimmer highlight color
+Set spinner color (or unset)
+Reset color settings (unset all)
+Back
+EOF
+)
+    case "$choice" in
+      "Set color mode (256/truecolor)") _githooks_set_color_mode ;;
+      "Set shimmer base color") _githooks_set_color_var LLM_GITHOOK_SHIMMER_BASE_COLOR "Base" ;;
+      "Set shimmer highlight color") _githooks_set_color_var LLM_GITHOOK_SHIMMER_HIGHLIGHT_COLOR "Highlight" ;;
+      "Set spinner color (or unset)") _githooks_set_color_var LLM_GITHOOK_SPINNER_COLOR "Spinner" "allow-unset" ;;
+      "Reset color settings (unset all)")
+        unset LLM_GITHOOK_COLOR_MODE
+        unset LLM_GITHOOK_SHIMMER_BASE_COLOR
+        unset LLM_GITHOOK_SHIMMER_HIGHLIGHT_COLOR
+        unset LLM_GITHOOK_SPINNER_COLOR
+        echo "Reset color settings to defaults."
+        ;;
+      *) return 0 ;;
+    esac
+  else
+    echo "\nCurrent color mode: \033[36m${mode}\033[0m"
+    echo "  1) Set color mode (256/truecolor)"
+    echo "  2) Set shimmer base color"
+    echo "  3) Set shimmer highlight color"
+    echo "  4) Set spinner color (or unset)"
+    echo "  5) Reset color settings (unset all)"
+    echo "  q) Back"
+    echo ""
+    read "choice?Select option: "
+    case "$choice" in
+      1) _githooks_set_color_mode ;;
+      2) _githooks_set_color_var LLM_GITHOOK_SHIMMER_BASE_COLOR "Base" ;;
+      3) _githooks_set_color_var LLM_GITHOOK_SHIMMER_HIGHLIGHT_COLOR "Highlight" ;;
+      4) _githooks_set_color_var LLM_GITHOOK_SPINNER_COLOR "Spinner" "allow-unset" ;;
+      5)
+        unset LLM_GITHOOK_COLOR_MODE
+        unset LLM_GITHOOK_SHIMMER_BASE_COLOR
+        unset LLM_GITHOOK_SHIMMER_HIGHLIGHT_COLOR
+        unset LLM_GITHOOK_SPINNER_COLOR
+        echo "Reset color settings to defaults."
+        ;;
+      q|Q) return 0 ;;
+      *) echo "\033[31mInvalid option.\033[0m" ;;
+    esac
+  fi
+}
+
+function _githooks_set_color_mode {
+  local current="$(_githooks_color_mode)"
+  local selected=""
+
+  if command -v fzf &> /dev/null; then
+    selected=$(printf '%s\n' "256" "truecolor" "unset (default: 256)" | fzf --ansi --height=8 --header="Current: ${current}" --prompt="Mode > " --border --preview-window=hidden)
+  else
+    echo "\nCurrent mode: ${current}"
+    echo "  1) 256"
+    echo "  2) truecolor"
+    echo "  3) unset (default: 256)"
+    read "choice?Select mode: "
+    case "$choice" in
+      1) selected="256" ;;
+      2) selected="truecolor" ;;
+      3) selected="unset (default: 256)" ;;
+      *) echo "\033[31mInvalid selection.\033[0m"; return 1 ;;
+    esac
+  fi
+
+  case "$selected" in
+    256)
+      export LLM_GITHOOK_COLOR_MODE=256
+      echo "Color mode set to: \033[32m256\033[0m"
+      ;;
+    truecolor)
+      export LLM_GITHOOK_COLOR_MODE=truecolor
+      echo "Color mode set to: \033[32mtruecolor\033[0m"
+      ;;
+    "unset (default: 256)")
+      unset LLM_GITHOOK_COLOR_MODE
+      echo "Color mode unset (defaults to 256)."
+      ;;
+    *)
+      return 0
+      ;;
+  esac
+}
+
+function _githooks_set_color_var {
+  local var_name="$1"
+  local label="$2"
+  local allow_unset="${3:-}"
+  local mode="$(_githooks_color_mode)"
+
+  if [[ "$mode" == "truecolor" ]]; then
+    local current="${(P)var_name}"
+    echo "Current ${label} color: ${current:-"(not set)"}"
+    echo "Enter RGB as R,G,B (0-255), or leave empty to cancel."
+    if [[ "$allow_unset" == "allow-unset" ]]; then
+      echo "Enter 'unset' to revert to default behavior."
+    fi
+    local input=""
+    read "input?${label} RGB > "
+
+    if [[ -z "$input" ]]; then
+      return 0
+    fi
+    if [[ "$allow_unset" == "allow-unset" && "$input" == "unset" ]]; then
+      unset "$var_name"
+      echo "${label} color unset."
+      return 0
+    fi
+
+    local parsed="$(_githooks_parse_rgb "$input")" || {
+      echo "\033[31mInvalid RGB format. Expected R,G,B with 0-255.\033[0m"
+      return 1
+    }
+    export "$var_name"="$parsed"
+    echo "${label} color set to: \033[32m${parsed}\033[0m"
+    return 0
+  fi
+
+  # 256-color mode
+  local current="${(P)var_name}"
+  local selected=""
+
+  if command -v fzf &> /dev/null; then
+    local -a items
+    items+=("custom")
+    if [[ "$allow_unset" == "allow-unset" ]]; then
+      items+=("unset")
+    fi
+    local c
+    for c in {0..255}; do
+      items+=("$(printf '%3d %s' "$c" "$(printf '\033[38;5;%sm██\033[0m' "$c")")")
+    done
+
+    selected=$(printf '%s\n' "${items[@]}" | fzf --ansi --height=18 --header="Current: ${current:-"(not set)"}" --prompt="${label} > " --border --preview-window=hidden)
+  else
+    echo "\nCurrent ${label} color: ${current:-"(not set)"}"
+    if [[ "$allow_unset" == "allow-unset" ]]; then
+      echo "Enter 0-255, or 'unset' to clear, or empty to cancel."
+    else
+      echo "Enter 0-255, or empty to cancel."
+    fi
+    read "selected?${label} > "
+  fi
+
+  if [[ -z "$selected" ]]; then
+    return 0
+  fi
+
+  if [[ "$allow_unset" == "allow-unset" && "$selected" == "unset" ]]; then
+    unset "$var_name"
+    echo "${label} color unset."
+    return 0
+  fi
+
+  if [[ "$selected" == "custom" ]]; then
+    local input=""
+    read "input?Enter ${label} color (0-255): "
+    selected="$input"
+  else
+    selected="${selected%% *}"
+  fi
+
+  _githooks_is_uint8 "$selected" || {
+    echo "\033[31mInvalid 256-color value. Expected 0-255.\033[0m"
+    return 1
+  }
+
+  export "$var_name"="$selected"
+  echo "${label} color set to: \033[32m${selected}\033[0m"
+}
+
 # Get toggle label for menu display
 function _get_toggle_label {
   local var_value="$1"
@@ -257,11 +622,9 @@ function _get_toggle_label {
 
 # Show help information
 function _githooks_show_help {
+  echo ""
+  _githooks_box_header "Git Hooks Configuration Help"
   cat <<'EOF'
-
-╔═══════════════════════════════════════════════════════════╗
-║              Git Hooks Configuration Help                ║
-╚═══════════════════════════════════════════════════════════╝
 
 USAGE:
   githooks [action]
@@ -284,11 +647,21 @@ ENVIRONMENT VARIABLES:
   📝 Prepare-Commit-Msg Hook:
     LLM_GITHOOK_SKIP              Skip LLM generation entirely
     LLM_GITHOOK_FORCE             Force regeneration (bypass cache)
-    LLM_GITHOOK_NO_BYPASS_AMENDING  Don't bypass during amend
-    LLM_GITHOOK_ALLOW_NONINTERACTIVE  Allow in CI/agents
-    LLM_GITHOOK_SPINNER_STYLE     Spinner animation style
-    LLM_PROGRAM                   Custom llm executable path
-    LLM_PREPARE_COMMIT_MSG_PROMPT Custom prompt template
+	    LLM_GITHOOK_NO_BYPASS_AMENDING  Don't bypass during amend
+	    LLM_GITHOOK_ALLOW_NONINTERACTIVE  Allow in CI/agents
+	    LLM_GITHOOK_SPINNER_STYLE     Spinner animation style
+	    LLM_GITHOOK_FPS               Control animation FPS (default: 30)
+	    LLM_GITHOOK_STATUS_TEXT       Override animated status text
+	    LLM_GITHOOK_SHIMMER_SWEEP_SECONDS  Shimmer sweep duration (default: 2.0)
+	    LLM_GITHOOK_SHIMMER_PADDING   Shimmer padding characters (default: 10)
+	    LLM_GITHOOK_SHIMMER_BAND_WIDTH  Shimmer band half-width (default: 5.0)
+	    LLM_GITHOOK_COLOR_MODE        256 (default) or truecolor
+	    LLM_GITHOOK_SHIMMER_BASE_COLOR  Base text color (256: 0-255; truecolor: R,G,B)
+	    LLM_GITHOOK_SHIMMER_HIGHLIGHT_COLOR  Wave color (256: 0-255; truecolor: R,G,B)
+	    LLM_GITHOOK_SPINNER_COLOR     Spinner color (defaults to base)
+	    LLM_PROGRAM                   Custom llm executable path
+	    LLM_PREPARE_COMMIT_MSG_PROMPT Custom prompt template
+	    PYTHONIOENCODING              Force UTF-8 encoding (Windows compatibility)
 
   🔐 Pre-Commit Hook:
     SKIP_SCAN_GITHOOK             Skip credential scanning
@@ -306,6 +679,11 @@ EXAMPLES:
 
   # Set spinner style
   setSpinnerStyle dots
+
+  # Configure colors (examples)
+  export LLM_GITHOOK_COLOR_MODE=256
+  export LLM_GITHOOK_SHIMMER_BASE_COLOR=255
+  export LLM_GITHOOK_SHIMMER_HIGHLIGHT_COLOR=240
 
 For more information, see: git/git-hooks/README.md
 
