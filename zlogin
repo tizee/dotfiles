@@ -11,7 +11,8 @@ if [[ $PROLOGUE_LOGO && $- == *i* && -z $TMUX ]]; then
   echo "    ╚═╝   ╚═╝╚══════╝╚══════╝╚══════╝ ╚══════╝╚══════╝╚═╝  ╚═╝"
   echo "\033[m"
 fi
-if [[ $PROLOGUE_FORTUNE && $- == *i* ]]; then
+# Skip fortune in tmux skill sessions to save tokens (sockets in claude-tmux-sockets dir)
+if [[ $PROLOGUE_FORTUNE && $- == *i* && $TMUX != *claude-tmux-sockets* ]]; then
   # alan-kay
   # kk-99
   # song
