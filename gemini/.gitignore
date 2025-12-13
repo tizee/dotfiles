@@ -4,3 +4,4 @@ installation_id
 oauth_creds.json
 state.json
 GEMINI.md
+*.orig
