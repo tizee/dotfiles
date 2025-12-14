@@ -1,4 +1,5 @@
 {
+  "contextFileName": ["AGENTS.md","CLAUDE.md","GEMINI.md"],
   "context": {
     "includeDirectories": [
       "~/.gemini/skills"

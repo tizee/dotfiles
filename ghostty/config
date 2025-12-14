@@ -994,10 +994,6 @@ working-directory =
 # `two`, `three`, etc. and not `1`, `2`, `3`. This will also be improved in
 # the future.
 #
-# Valid modifiers are `shift`, `ctrl` (alias: `control`), `alt` (alias: `opt`,
-# `option`), and `super` (alias: `cmd`, `command`). You may use the modifier
-# or the alias. When debugging keybinds, the non-aliased modifier will always
-# be used in output.
 #
 # Note: The fn or "globe" key on keyboards are not supported as a
 # modifier. This is a limitation of the operating systems and GUI toolkits
@@ -1128,6 +1124,12 @@ working-directory =
 # Ghostty will attempt to request these permissions. If the permissions are
 # not granted, the keybind will not work. On macOS, you can find these
 # permissions in System Preferences -> Privacy & Security -> Accessibility.
+
+# Valid modifiers are `shift`, `ctrl` (alias: `control`), `alt` (alias: `opt`,
+# `option`), and `super` (alias: `cmd`, `command`). You may use the modifier
+# or the alias. When debugging keybinds, the non-aliased modifier will always
+# be used in output.
+
 keybind = super+page_up=scroll_page_up
 keybind = super+ctrl+equal=equalize_splits
 keybind = super+physical:four=goto_tab:4
@@ -1141,8 +1143,8 @@ keybind = super+physical:eight=goto_tab:8
 keybind = super+alt+right=goto_split:right
 keybind = shift+up=adjust_selection:up
 keybind = super+down=jump_to_prompt:1
-keybind = super+enter=toggle_fullscreen
-keybind = super+t=new_tab
+keybind = cmd+shift+f=toggle_fullscreen
+keybind = cmd+t=new_tab
 keybind = super+backslash=toggle_tab_overview
 keybind = super+c=copy_to_clipboard
 keybind = super+shift+right_bracket=next_tab
@@ -1165,7 +1167,7 @@ keybind = super+left=text:\x01
 keybind = super+shift+up=jump_to_prompt:-1
 keybind = shift+right=adjust_selection:right
 keybind = super+comma=open_config
-keybind = super+shift+comma=reload_config
+keybind = cmd+shift+comma=reload_config
 keybind = super+minus=decrease_font_size:1
 keybind = shift+page_down=adjust_selection:page_down
 keybind = ctrl+tab=next_tab
