@@ -1,8 +1,12 @@
 {
-  "contextFileName": ["AGENTS.md","CLAUDE.md","GEMINI.md"],
   "context": {
     "includeDirectories": [
       "~/.gemini/skills"
+    ],
+    "fileName": [
+      "AGENTS.md",
+      "CLAUDE.md",
+      "GEMINI.md"
     ]
   },
   "mcpServers": {
