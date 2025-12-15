@@ -177,7 +177,7 @@ font-codepoint-map =
 
 # Draw fonts with a thicker stroke, if supported. This is only supported
 # currently on macOS.
-font-thicken = false
+font-thicken = true
 
 # All of the configurations behavior adjust various metrics determined by the
 # font. The values can be integers (1, -1, etc.) or a percentage (20%, -15%,
@@ -678,6 +678,7 @@ cursor-opacity = 1
 #   * `block_hollow`
 #
 cursor-style = block
+# cursor-style = block_hollow
 
 # Sets the default blinking state of the cursor. This is just the default
 # state; running programs may override the cursor style using `DECSCUSR` (`CSI
@@ -697,7 +698,7 @@ cursor-style = block
 #   * `true`
 #   * `false`
 #
-cursor-style-blink =
+cursor-style-blink = true
 
 # The color of the text under the cursor. If this is not set, a default will
 # be chosen.
@@ -1171,7 +1172,7 @@ keybind = super+comma=open_config
 keybind = cmd+shift+comma=reload_config
 keybind = super+minus=decrease_font_size:1
 keybind = shift+page_down=adjust_selection:page_down
-keybind = shift+tab=next_tab
+keybind = super+shift+1=next_tab
 keybind = super+a=select_all
 keybind = alt+right=esc:f
 keybind = super+shift+enter=toggle_split_zoom
@@ -1180,7 +1181,7 @@ keybind = super+ctrl+f=toggle_fullscreen
 keybind = super+ctrl+right=resize_split:right,10
 keybind = super+alt+shift+j=write_scrollback_file:open
 keybind = shift+down=adjust_selection:down
-keybind = ctrl+shift+tab=previous_tab
+keybind = super+shift+2=previous_tab
 keybind = super+n=new_window
 keybind = super+alt+left=goto_split:left
 keybind = super+page_down=scroll_page_down
@@ -1829,6 +1830,7 @@ vt-kam-allowed = false
 # from https://github.com/sahaj-b/ghostty-cursor-shaders
 custom-shader = shaders/cursor_tail.glsl
 custom-shader = shaders/ripple_cursor.glsl
+custom-shader = shaders/ripple_rectangle_cursor.glsl
 
 # If `true` (default), the focused terminal surface will run an animation
 # loop when custom shaders are used. This uses slightly more CPU (generally
