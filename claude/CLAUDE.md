@@ -8,6 +8,7 @@ This document outlines best practices for working with coding agents to ensure e
 - Provide summary confirmations for completed tasks
 - Your context window will be automatically compacted as it approaches its limit. Never stop tasks early due to token budget concerns. Always complete tasks fully, even if the end of your budget is approaching.
 - Always write code comments in English unless the user explicitly specifies otherwise
+- No backward compatibility unless the user explicitly specifies otherwise
 
 ## Project Knowledge Base
 
