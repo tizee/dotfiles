@@ -535,5 +535,5 @@ if $is_macOS; then
   # tmux-capture
   source "$HOME/projects/project-python/tizee-packages/tmux-capture/tmux-capture.plugin.zsh"
 
-  export CCPROXY_PROVIDER="kimi-sub"
+  export CCPROXY_PROVIDER="deepseek"
 fi
