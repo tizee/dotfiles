@@ -15,7 +15,7 @@ CONFIG_FILE="$HOME/.config/llm/cc-proxy.json"
 
 # Default provider name, can be overridden via CCPROXY_PROVIDER env var or --provider flag
 # Defaults to 'kimi-sub' if no environment variable is set
-DEFAULT_PROVIDER="${CCPROXY_PROVIDER:-kimi-sub}"
+DEFAULT_PROVIDER="${CCPROXY_PROVIDER:-deepseek}"
 PROVIDER_NAME="$DEFAULT_PROVIDER"
 
 # Function to display help message
