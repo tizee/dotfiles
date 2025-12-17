@@ -49,6 +49,10 @@
       "command": "sourcekit-lsp"
     },
     // python lsp
+    "ty": {
+      "command": "ty",
+      "filetypes": ["python"]
+    },
     "pylsp": {
       "command": "pylsp",
       "filetypes": [
