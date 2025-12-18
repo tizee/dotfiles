@@ -777,6 +777,8 @@ background-opacity = 1
 # rendering issues as well as performance issues.
 #
 # This is only supported on macOS.
+
+# background-blur = macos-glass-regular
 background-blur-radius = 0
 
 # The opacity level (opposite of transparency) of an unfocused split.
@@ -1972,7 +1974,9 @@ macos-titlebar-proxy-icon = visible
 # key, respectively.
 #
 # This does not work with GLFW builds.
-macos-option-as-alt =
+
+# 2.0.72 (Claude Code) use Alt + t for toggling thinking mode
+macos-option-as-alt = true
 
 # Whether to enable the macOS window shadow. The default value is true.
 # With some window managers and window transparency settings, you may
