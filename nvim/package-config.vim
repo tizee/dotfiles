@@ -179,7 +179,7 @@ endif
 " COC CONFIG {{{
 
 " debug for coc.nvim development
-let $NVIM_COC_LOG_LEVEL='debug'
+"let $NVIM_COC_LOG_LEVEL='debug'
 
 function! g:CheckBackSpace() abort
   let col = col('.') - 1
