@@ -33,13 +33,15 @@ project-level skills folder.
 
 ## Shell Command Execution
 
-When running shell commands with potentially verbose output:
-- Redirect stdout/stderr to `/tmp/<descriptive_name>.log`
-- Use `tail` to retrieve results
+**For build/compile commands** with verbose output (e.g., `cargo build`, `npm run build`, `make`):
+- Redirect stdout/stderr to `/tmp/<descriptive_name>.log` to avoid flooding context
+- Use `tail` to retrieve relevant results
 
 ```bash
-command args > /tmp/output.log 2>&1; tail -n 50 /tmp/output.log
+cargo build --release > /tmp/build.log 2>&1; tail -n 50 /tmp/build.log
 ```
+
+**For other commands**: Run directly without redirection to preserve full output visibility.
 
 ## Commit Messages
 
