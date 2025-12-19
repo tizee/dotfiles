@@ -115,7 +115,7 @@ else
 endif
 
 function! s:load_packages()
-  let l:packages=g:vim_config_dir . "configs/init-packages.vim"
+  let l:packages=g:vim_config_dir . "package-config.vim"
   execute "source " . l:packages
 endfunction
 
@@ -168,22 +168,8 @@ augroup VimPlugPlus
   autocmd! FileType vim-plug nnoremap <buffer> <silent> <Tab> :call <SID>plug_gx()<cr>
 augroup end
 
-function! s:source_helper(name)
-  let plugin_prefix=get(g:,'vim_config_dir') . a:name . "/"
-  let plugins=readdir(plugin_prefix)
-  for plugin_filename in plugins
-    let plugin = plugin_prefix . plugin_filename
-    if isdirectory(plugin)
-      continue
-    endif
-    execute 'source '. plugin
-  endfor
-endfunction
-
 " plugin prototype
 " set rtp+=~/dev/grepo_vim/coc-packages/coc-flutter
-" source each config file under configs directory
-call s:source_helper('configs')
 " }}}
 
 " }}}
