@@ -36,3 +36,9 @@
 - Replacing detailed verification with generic checks
 
 **Remember**: Test failures are signals to investigate, not obstacles to bypass.
+
+## Agent Workflow Verification
+
+- Make changes verifiable through dev/test commands
+- Tests passing should conclude agent work - don't require human testing for each change
+- Use realistic seed/dummy data for offline testing

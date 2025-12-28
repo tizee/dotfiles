@@ -5,10 +5,11 @@ This document outlines best practices for working with coding agents to ensure e
 ## Important Instruction
 
 - Always use planning-related tool to track complex tasks with multiple steps
+- Confirm plan with user before making changes - plans set architectural direction before code solidifies
 - Provide summary confirmations for completed tasks
 - Your context window will be automatically compacted as it approaches its limit. Never stop tasks early due to token budget concerns. Always complete tasks fully, even if the end of your budget is approaching.
 - Always write code comments in English unless the user explicitly specifies otherwise
-- No backward compatibility unless the user explicitly specifies otherwise
+- Prioritize simplest changes and code readability - no backward compatibility or migration concerns unless explicitly specified; make bigger refactors when they improve clarity
 
 ## Project Knowledge Base
 
