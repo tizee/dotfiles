@@ -22,12 +22,16 @@
       "TodoWrite",
       "TodoRead",
       "mcp__nowledge-mem__memory_add",
-      "mcp__nowledge-mem__thread_persist"
+      "mcp__nowledge-mem__thread_persist",
+      "Bash(kimi:*)",
+      "Bash(tmux -S '/var/folders/qf/ggwmlqts7hxbl633fmmzc2l80000gn/T//claude-tmux-sockets/python.sock' send-keys -l --:*)",
+      "Bash(tmux -S:*)"
     ],
     "deny": [
       "Bash(rm -rf:*)",
       "Bash(sudo:*)"
     ],
+    "ask": [],
     "defaultMode": "default"
   },
   "model": "opus",

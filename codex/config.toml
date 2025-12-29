@@ -17,6 +17,8 @@ approval_policy = "never"
 rmcp_client = true
 skills = true
 web_search_request = true
+unified_exec = true
+shell_snapshot = true
 
 [mcp_servers.nowledge-mem]
 url = "http://127.0.0.1:14242/mcp/"
