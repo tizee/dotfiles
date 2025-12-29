@@ -1,0 +1,71 @@
+#!/bin/bash
+
+# Colors and styles
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+DIM='\033[2m'
+BOLD='\033[1m'
+RESET='\033[0m'
+
+DRY_RUN=false
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    -n|--dry-run)
+      DRY_RUN=true
+      shift
+      ;;
+    -h|--help)
+      echo -e "${BOLD}Usage:${RESET} kill-adobe [-n|--dry-run]"
+      echo "  -n, --dry-run  Show what would be killed without killing"
+      exit 0
+      ;;
+    *)
+      echo -e "${RED}Unknown option:${RESET} $1"
+      exit 1
+      ;;
+  esac
+done
+
+ADOBE_PROCESSES=(
+  "AdobeIPCBroker"
+  "Adobe Desktop Service"
+  "Adobe Crash Processor"
+  "Adobe Crash Reporter"
+  "CCXProcess"
+  "CCLibrary"
+  "Core Sync"
+  "Creative Cloud Helper"
+  "Creative Cloud UI Helper"
+  "LogTransport"
+)
+
+if $DRY_RUN; then
+  echo -e "${BOLD}${YELLOW}[DRY RUN]${RESET} ${DIM}No processes will be killed${RESET}"
+  echo
+fi
+
+killed=0
+for proc in "${ADOBE_PROCESSES[@]}"; do
+  if pgrep -f "$proc" > /dev/null; then
+    if $DRY_RUN; then
+      echo -e "  ${YELLOW}○${RESET} Would kill: ${BOLD}$proc${RESET}"
+    else
+      echo -e "  ${RED}✗${RESET} Killing: ${BOLD}$proc${RESET}"
+      pkill -f "$proc"
+    fi
+    ((killed++))
+  else
+    echo -e "  ${DIM}· $proc not running${RESET}"
+  fi
+done
+
+echo
+if $DRY_RUN; then
+  echo -e "${YELLOW}Found $killed process(es) to kill${RESET}"
+elif [[ $killed -gt 0 ]]; then
+  echo -e "${GREEN}✓${RESET} Killed $killed process(es)"
+else
+  echo -e "${DIM}No Adobe processes were running${RESET}"
+fi
