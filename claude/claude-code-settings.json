@@ -8,7 +8,8 @@
     "CLAUDE_CODE_ENABLE_TELEMETRY": "0",
     "DISABLE_NON_ESSENTIAL_MODEL_CALLS": "1",
     "HTTPS_PROXY": "http://127.0.0.1:1080",
-    "HTTP_PROXY": "http://127.0.0.1:1080"
+    "HTTP_PROXY": "http://127.0.0.1:1080",
+    "ENABLE_TOOL_SEARCH": true
   },
   "includeCoAuthoredBy": false,
   "permissions": {
