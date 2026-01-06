@@ -141,10 +141,10 @@ function yogit::help() {
   printf "  git clone with depth 1 (without submodules)\n\n"
 
   printf "${_yogit_color_green}${_yogit_basic_prefix}ghsc${_yogit_color_reset}\n"
-  printf "  git clone a github repo using <username>/<repo-name> with submodules\n\n"
+  printf "  git clone a github repo using <username>/<repo-name> or GitHub SSH/HTTPS URL with submodules\n\n"
 
   printf "${_yogit_color_green}${_yogit_basic_prefix}ghsc!${_yogit_color_reset}\n"
-  printf "  git clone a github repo using <username>/<repo-name> (without submodules)\n\n"
+  printf "  git clone a github repo using <username>/<repo-name> or GitHub SSH/HTTPS URL (without submodules)\n\n"
 
   printf "${_yogit_color_green}${_yogit_basic_prefix}pickclone${_yogit_color_reset}\n"
   printf "  git clone --sparse --filter=blob:none --depth=1 --no-checkout\n"
@@ -677,24 +677,59 @@ alias "${_yogit_basic_prefix}ghsc"='yogit::ghclone'
 
 function yogit::ghclone(){
   if [[ $# -lt 1 ]]; then
-    yogit::error "Usage: ${_yogit_basic_prefix}ghsc <username>/<repo> [destination-dir]"
+    yogit::error "Usage: ${_yogit_basic_prefix}ghsc <username>/<repo> or <github-url> [destination-dir]"
     return 1
   fi
 
-  local username=$(echo "$1" | sed -E 's/(.*)\/(.*)$/\1/')
-  local repo=$(echo "$1" | sed -E 's/(.*)\/(.*)$/\2/')
+  local repo_ref="${1%/}"
+  local username=""
+  local repo=""
+  local clone_url=""
+  local repo_path=""
 
-  if [[ -z "$username" || -z "$repo" ]]; then
-    yogit::error "Invalid format. Use <username>/<repo>"
+  case "$repo_ref" in
+    git@github.com:*)
+      repo_path="${repo_ref#git@github.com:}"
+      ;;
+    ssh://git@github.com/*)
+      repo_path="${repo_ref#ssh://git@github.com/}"
+      ;;
+    https://github.com/*|http://github.com/*)
+      repo_path="${repo_ref#https://github.com/}"
+      repo_path="${repo_path#http://github.com/}"
+      ;;
+    */*)
+      username="${repo_ref%%/*}"
+      repo="${repo_ref#*/}"
+      repo="${repo%.git}"
+      clone_url="git@github.com:${username}/${repo}.git"
+      ;;
+  esac
+
+  if [[ -n "$repo_path" && "$repo_path" == */* ]]; then
+    username="${repo_path%%/*}"
+    repo="${repo_path#*/}"
+    repo="${repo%.git}"
+    clone_url="$repo_ref"
+  fi
+
+  if [[ -z "$username" || -z "$repo" || "$repo" == */* ]]; then
+    yogit::error "Invalid format. Use <username>/<repo> or a GitHub SSH/HTTPS URL"
     return 1
   fi
+
+  local dest_dir="${repo}.${username}"
 
   # remove the first parameter
   shift
 
-  yogit::info "Cloning github.com:${username}/${repo}.git with submodules..."
+  yogit::info "Cloning ${clone_url} with submodules..."
 
-  git clone --depth 1 --recurse-submodules -j${CORES} --shallow-submodules "git@github.com:${username}/${repo}.git" "$@"
+  if [[ $# -gt 0 ]]; then
+    git clone --depth 1 --recurse-submodules -j${CORES} --shallow-submodules "$clone_url" "$@"
+  else
+    git clone --depth 1 --recurse-submodules -j${CORES} --shallow-submodules "$clone_url" "$dest_dir"
+  fi
 
   if [[ $? -ne 0 ]]; then
     yogit::error "Clone failed"
@@ -708,24 +743,59 @@ alias "${_yogit_basic_prefix}ghsc!"='yogit::ghclone_without_submodules'
 
 function yogit::ghclone_without_submodules(){
   if [[ $# -lt 1 ]]; then
-    yogit::error "Usage: ${_yogit_basic_prefix}ghsc! <username>/<repo> [destination-dir]"
+    yogit::error "Usage: ${_yogit_basic_prefix}ghsc! <username>/<repo> or <github-url> [destination-dir]"
     return 1
   fi
 
-  local username=$(echo "$1" | sed -E 's/(.*)\/(.*)$/\1/')
-  local repo=$(echo "$1" | sed -E 's/(.*)\/(.*)$/\2/')
+  local repo_ref="${1%/}"
+  local username=""
+  local repo=""
+  local clone_url=""
+  local repo_path=""
 
-  if [[ -z "$username" || -z "$repo" ]]; then
-    yogit::error "Invalid format. Use <username>/<repo>"
+  case "$repo_ref" in
+    git@github.com:*)
+      repo_path="${repo_ref#git@github.com:}"
+      ;;
+    ssh://git@github.com/*)
+      repo_path="${repo_ref#ssh://git@github.com/}"
+      ;;
+    https://github.com/*|http://github.com/*)
+      repo_path="${repo_ref#https://github.com/}"
+      repo_path="${repo_path#http://github.com/}"
+      ;;
+    */*)
+      username="${repo_ref%%/*}"
+      repo="${repo_ref#*/}"
+      repo="${repo%.git}"
+      clone_url="git@github.com:${username}/${repo}.git"
+      ;;
+  esac
+
+  if [[ -n "$repo_path" && "$repo_path" == */* ]]; then
+    username="${repo_path%%/*}"
+    repo="${repo_path#*/}"
+    repo="${repo%.git}"
+    clone_url="$repo_ref"
+  fi
+
+  if [[ -z "$username" || -z "$repo" || "$repo" == */* ]]; then
+    yogit::error "Invalid format. Use <username>/<repo> or a GitHub SSH/HTTPS URL"
     return 1
   fi
+
+  local dest_dir="${repo}.${username}"
 
   # remove the first parameter
   shift
 
-  yogit::info "Cloning github.com:${username}/${repo}.git (without submodules)..."
+  yogit::info "Cloning ${clone_url} (without submodules)..."
 
-  git clone --depth 1 "git@github.com:${username}/${repo}.git" "$@"
+  if [[ $# -gt 0 ]]; then
+    git clone --depth 1 "$clone_url" "$@"
+  else
+    git clone --depth 1 "$clone_url" "$dest_dir"
+  fi
 
   if [[ $? -ne 0 ]]; then
     yogit::error "Clone failed"
