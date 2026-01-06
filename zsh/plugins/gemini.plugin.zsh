@@ -88,6 +88,11 @@ function __gemini_needs_regeneration() {
   local output_file="${3:-$GEMINI_CONFIG_DIR/GEMINI.md}"
   local output_mtime base_mtime skill_mtime dir_mtime
 
+  # Resolve symlinks to get real path (fixes mtime check for symlinked dirs)
+  if [[ -L "$skills_dir" ]]; then
+    skills_dir=$(realpath "$skills_dir" 2>/dev/null || readlink -f "$skills_dir" 2>/dev/null || echo "$skills_dir")
+  fi
+
   # Always regenerate if output doesn't exist
   [[ ! -f "$output_file" ]] && return 0
 
