@@ -1,7 +1,14 @@
 #!/usr/bin/env zsh
 
+# Terminal size detection for adaptive display
+local term_cols=${COLUMNS:-$(tput cols 2>/dev/null || echo 80)}
+local term_rows=${LINES:-$(tput lines 2>/dev/null || echo 24)}
+local is_small_term=false
+(( term_cols < 65 || term_rows < 20 )) && is_small_term=true
+
 # use ANSI shadow style logo - only show in interactive terminals (not in tmux)
-if [[ $PROLOGUE_LOGO && $- == *i* && -z $TMUX ]]; then
+# Logo requires 62 columns, skip on small terminals
+if [[ $PROLOGUE_LOGO && $- == *i* && -z $TMUX ]] && ! $is_small_term; then
   echo "\033[94m"
   echo " ████████╗██╗███████╗███████╗███████╗ ███████╗███████╗██╗  ██╗"
   echo " ╚══██╔══╝██║╚══███╔╝██╔════╝██╔════╝ ╚══███╔╝██╔════╝██║  ██║"
@@ -24,7 +31,13 @@ if [[ $PROLOGUE_FORTUNE && $- == *i* && $TMUX != *claude-tmux-sockets* ]]; then
     naval-bonus
     the-art-of-doing-science-and-engineering
   )
-  fortune "${quotes[@]}" | bubblesay
+  if $is_small_term; then
+    # Small terminal: plain fortune with word-wrap, no box decoration
+    fortune -s "${quotes[@]}" 2>/dev/null | fold -s -w $((term_cols - 2))
+  else
+    # Large terminal: use bubblesay box decoration
+    fortune "${quotes[@]}" | bubblesay
+  fi
 fi
 
 # Execute code in the background to not affect the current session
