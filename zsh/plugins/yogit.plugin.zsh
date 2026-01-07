@@ -570,7 +570,11 @@ function yogit::shallowclone() {
     return 1
   fi
 
-  yogit::info "Starting clone operation..."
+  if [[ $# -gt 1 ]]; then
+    yogit::info "Starting clone operation for $1 with additional arguments: ${*[2,-1]}..."
+  else
+    yogit::info "Starting clone operation for $1..."
+  fi
   git clone --depth 1 --recurse-submodules -j${CORES} --shallow-submodules "$@"
 
   if [[ $? -ne 0 ]]; then
@@ -598,15 +602,29 @@ function yogit::shallowclone_github_gitlab() {
   fi
 
   yogit::info "Cloning with --depth 1 --recurse-submodules -j${CORES} --shallow-submodules"
-  yogit::info "Cloning ${organ}/${repo_name}..."
+  if [[ $# -gt 1 ]]; then
+    yogit::info "Cloning ${organ}/${repo_name} with additional arguments: ${*[2,-1]}..."
+  else
+    yogit::info "Cloning ${organ}/${repo_name}..."
+  fi
 
   local dest_dir="${repo_name}.${organ}"
+  local use_default_dir=true
   if [[ $# -gt 1 ]]; then
+    # Check if the second argument (presumably destination) starts with -
+    # If it doesn't, we assume it's a directory
+    if [[ "$2" != -* ]]; then
+       use_default_dir=false
+       dest_dir="$2"
+    fi
+  fi
+
+  if $use_default_dir; then
+    # Use default destination with potential flags
+    git clone --depth 1 --recurse-submodules -j${CORES} --shallow-submodules "$@" "$dest_dir"
+  else
     # Use provided destination
     git clone --depth 1 --recurse-submodules -j${CORES} --shallow-submodules "$@"
-  else
-    # Use default destination
-    git clone $1 --depth 1 --recurse-submodules -j${CORES} --shallow-submodules "$dest_dir"
   fi
 
   if [[ $? -ne 0 ]]; then
@@ -659,7 +677,11 @@ function yogit::shallowclone_without_submodules() {
   fi
 
   yogit::info "Cloning with --depth 1 (without submodules)"
-  yogit::info "Starting clone operation..."
+  if [[ $# -gt 1 ]]; then
+    yogit::info "Starting clone operation for $1 with additional arguments: ${*[2,-1]}..."
+  else
+    yogit::info "Starting clone operation for $1..."
+  fi
 
   git clone --depth 1 "$@"
 
@@ -723,12 +745,25 @@ function yogit::ghclone(){
   # remove the first parameter
   shift
 
-  yogit::info "Cloning ${clone_url} with submodules..."
-
   if [[ $# -gt 0 ]]; then
-    git clone --depth 1 --recurse-submodules -j${CORES} --shallow-submodules "$clone_url" "$@"
+    yogit::info "Cloning ${clone_url} with submodules and additional arguments: $*..."
   else
-    git clone --depth 1 --recurse-submodules -j${CORES} --shallow-submodules "$clone_url" "$dest_dir"
+    yogit::info "Cloning ${clone_url} with submodules..."
+  fi
+
+  local use_default_dir=true
+  if [[ $# -gt 0 ]]; then
+    # Check if the first argument (after shift) starts with -
+    if [[ "$1" != -* ]]; then
+       use_default_dir=false
+       dest_dir="$1"
+    fi
+  fi
+
+  if $use_default_dir; then
+    git clone --depth 1 --recurse-submodules -j${CORES} --shallow-submodules "$clone_url" "$@" "$dest_dir"
+  else
+    git clone --depth 1 --recurse-submodules -j${CORES} --shallow-submodules "$clone_url" "$@"
   fi
 
   if [[ $? -ne 0 ]]; then
@@ -789,12 +824,25 @@ function yogit::ghclone_without_submodules(){
   # remove the first parameter
   shift
 
-  yogit::info "Cloning ${clone_url} (without submodules)..."
-
   if [[ $# -gt 0 ]]; then
-    git clone --depth 1 "$clone_url" "$@"
+    yogit::info "Cloning ${clone_url} (without submodules) with additional arguments: $*..."
   else
-    git clone --depth 1 "$clone_url" "$dest_dir"
+    yogit::info "Cloning ${clone_url} (without submodules)..."
+  fi
+
+  local use_default_dir=true
+  if [[ $# -gt 0 ]]; then
+    # Check if the first argument (after shift) starts with -
+    if [[ "$1" != -* ]]; then
+       use_default_dir=false
+       dest_dir="$1"
+    fi
+  fi
+
+  if $use_default_dir; then
+    git clone --depth 1 "$clone_url" "$@" "$dest_dir"
+  else
+    git clone --depth 1 "$clone_url" "$@"
   fi
 
   if [[ $? -ne 0 ]]; then
