@@ -9,7 +9,7 @@
     "DISABLE_NON_ESSENTIAL_MODEL_CALLS": "1",
     "HTTPS_PROXY": "http://127.0.0.1:1080",
     "HTTP_PROXY": "http://127.0.0.1:1080",
-    "ENABLE_TOOL_SEARCH": true
+    "ENABLE_TOOL_SEARCH": "true"
   },
   "includeCoAuthoredBy": false,
   "permissions": {
@@ -133,7 +133,8 @@
     "learning-output-style@claude-code-plugins": true,
     "security-guidance@claude-code-plugins": true,
     "nowledge-mem@nowledge-community": true,
-    "feature-dev@claude-code-plugins": true
+    "feature-dev@claude-code-plugins": true,
+    "ralph-wiggum@claude-plugins-official": true
   },
   "alwaysThinkingEnabled": true
 }
