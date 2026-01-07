@@ -1,0 +1,213 @@
+#!/usr/bin/env zsh
+# Get local and public IP addresses
+# Usage:
+#   myip                    # Show both local and public IPs
+#   myip local              # Show only local network IPs
+#   myip public             # Show only public IP
+#   myip local -c           # Copy local IP to clipboard
+#   myip public -print0     # Output public IP raw (no formatting)
+
+set -euo pipefail
+
+# Get first local IP (raw, no newline)
+_get_local() {
+  if [[ "$OSTYPE" == darwin* ]]; then
+    local iface ip
+    for iface in en0 en1 en2 en3 en4 en5; do
+      ip=$(ipconfig getifaddr "$iface" 2>/dev/null || true)
+      if [[ -n "$ip" ]]; then
+        printf '%s' "$ip"
+        return 0
+      fi
+    done
+  elif command -v ip &>/dev/null; then
+    ip -4 addr show scope global 2>/dev/null | awk '/inet /{print $2}' | cut -d/ -f1 | head -1 | tr -d '\n'
+  elif command -v hostname &>/dev/null; then
+    hostname -I 2>/dev/null | awk '{printf "%s", $1}'
+  fi
+}
+
+# Get public IP (raw, no newline)
+_get_public() {
+  command -v curl &>/dev/null || return 1
+  local ip service
+  for service in "https://api.ipify.org" "https://ifconfig.me" "https://icanhazip.com"; do
+    ip=$(curl -s --connect-timeout 3 --max-time 5 "$service" 2>/dev/null | tr -d '[:space:]')
+    if [[ "$ip" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+      printf '%s' "$ip"
+      return 0
+    fi
+  done
+  return 1
+}
+
+# Formatted local output (shows all interfaces)
+_formatted_local() {
+  printf '\033[1;34m📡 Local Network\033[0m\n'
+  local found=0
+
+  if [[ "$OSTYPE" == darwin* ]]; then
+    local iface ip
+    for iface in en0 en1 en2 en3 en4 en5; do
+      ip=$(ipconfig getifaddr "$iface" 2>/dev/null || true)
+      if [[ -n "$ip" ]]; then
+        case "$iface" in
+          en0) printf '  └─ en0 (Wi-Fi): \033[32m%s\033[0m\n' "$ip" ;;
+          en1) printf '  └─ en1 (Ethernet): \033[32m%s\033[0m\n' "$ip" ;;
+          *)   printf '  └─ %s: \033[32m%s\033[0m\n' "$iface" "$ip" ;;
+        esac
+        found=1
+      fi
+    done
+    # VPN/Tailscale interfaces
+    local utun_ips=$(ifconfig 2>/dev/null | grep -A1 '^utun' | awk '/inet /{print $2}' || true)
+    if [[ -n "$utun_ips" ]]; then
+      echo "$utun_ips" | while read -r ip; do
+        if [[ -n "$ip" ]]; then
+          printf '  └─ utun (VPN/Tailscale): \033[36m%s\033[0m\n' "$ip"
+        fi
+      done
+      found=1
+    fi
+  elif command -v ip &>/dev/null; then
+    local linux_ips=$(ip -4 addr show scope global 2>/dev/null | awk '/inet /{print $2}' | cut -d/ -f1)
+    if [[ -n "$linux_ips" ]]; then
+      echo "$linux_ips" | while read -r ip; do
+        printf '  └─ \033[32m%s\033[0m\n' "$ip"
+      done
+      found=1
+    fi
+  elif command -v hostname &>/dev/null; then
+    local ip=$(hostname -I 2>/dev/null | awk '{print $1}')
+    if [[ -n "$ip" ]]; then
+      printf '  └─ \033[32m%s\033[0m\n' "$ip"
+      found=1
+    fi
+  fi
+
+  if [[ $found -eq 0 ]]; then
+    printf '  └─ \033[90mNo active network interface found\033[0m\n'
+  fi
+}
+
+# Formatted public output
+_formatted_public() {
+  printf '\033[1;34m🌐 Public Network\033[0m\n'
+  local ip
+  ip="$(_get_public 2>/dev/null || true)"
+  if [[ -n "$ip" ]]; then
+    printf '  └─ IPv4: \033[32m%s\033[0m\n' "$ip"
+  else
+    printf '  └─ \033[90mCould not determine public IP\033[0m\n'
+  fi
+}
+
+# Copy to clipboard
+_copy() {
+  local ip="$1" label="$2" raw="${3:-0}"
+
+  if [[ "$OSTYPE" == darwin* ]]; then
+    printf '%s' "$ip" | pbcopy
+  elif command -v xclip &>/dev/null; then
+    printf '%s' "$ip" | xclip -selection clipboard
+  elif command -v xsel &>/dev/null; then
+    printf '%s' "$ip" | xsel --clipboard
+  else
+    if [[ $raw -eq 0 ]]; then
+      printf '\033[33mClipboard tool not available\033[0m\n'
+    fi
+    printf '%s' "$ip"
+    return 1
+  fi
+
+  if [[ $raw -eq 1 ]]; then
+    printf '%s' "$ip"
+  else
+    printf '%s \033[32m%s\033[0m copied to clipboard\n' "$label" "$ip"
+  fi
+}
+
+# Unified dispatch
+_dispatch() {
+  local target="$1" raw="$2" copy="$3"
+  local ip label
+
+  case "$target" in
+    local)  ip="$(_get_local 2>/dev/null || true)"; label="Local IP" ;;
+    public) ip="$(_get_public 2>/dev/null || true)"; label="Public IP" ;;
+  esac
+
+  if [[ -z "$ip" ]]; then
+    if [[ $raw -eq 0 ]]; then
+      printf '\033[31mError: Could not determine %s IP\033[0m\n' "$target"
+    fi
+    return 1
+  fi
+
+  if [[ $copy -eq 1 ]]; then
+    _copy "$ip" "$label" "$raw"
+  elif [[ $raw -eq 1 ]]; then
+    printf '%s' "$ip"
+  else
+    "_formatted_$target"
+  fi
+}
+
+# Show help
+_help() {
+  cat <<'EOF'
+Usage: myip [target] [options]
+
+TARGETS:
+  (no args)     Show both local and public IP addresses
+  local, l      Show only local network IP
+  public, p     Show only public IP
+  all, a        Show both (default)
+
+OPTIONS:
+  -print0, -0   Output raw IP only (no formatting, no newline)
+  -c, --copy    Copy IP to clipboard
+  help, -h      Show this help message
+
+EXAMPLES:
+  myip                  # Show all IPs (formatted)
+  myip local            # Show local IP (formatted)
+  myip public           # Show public IP (formatted)
+  myip local -print0    # Output local IP raw
+  myip public -print0   # Output public IP raw
+  myip local -c         # Copy local IP to clipboard
+  myip public -c        # Copy public IP to clipboard
+EOF
+}
+
+# Main
+main() {
+  local target="all" copy=0 raw=0
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      local|l) target="local" ;;
+      public|p|external|ext) target="public" ;;
+      all|a) target="all" ;;
+      -c|--copy) copy=1 ;;
+      -print0|--raw|-0) raw=1 ;;
+      help|--help|-h) _help; exit 0 ;;
+      *) printf '\033[31mUnknown option: %s\033[0m\n' "$1"; _help; exit 1 ;;
+    esac
+    shift
+  done
+
+  case "$target" in
+    local)  _dispatch local "$raw" "$copy" ;;
+    public) _dispatch public "$raw" "$copy" ;;
+    all)
+      _dispatch local "$raw" 0
+      if [[ $raw -eq 0 ]]; then
+        echo ""
+      fi
+      _dispatch public "$raw" 0
+      ;;
+  esac
+}
+
+main "$@"

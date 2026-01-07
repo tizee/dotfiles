@@ -81,6 +81,22 @@ A curated collection of useful command-line tools and utilities for daily develo
 **Usage**: `machineid`
 **Details**: Retrieves system UUID from platform-specific sources (ioreg on macOS, /var/lib/dbus/machine-id on Linux, /etc/hostid on BSD)
 
+#### `myip`
+**Purpose**: Display local and public IP addresses
+**Usage**: `myip [target] [options]`
+**Targets**:
+- `local`, `l` - Show only local network IP
+- `public`, `p` - Show only public IP
+- `all`, `a` - Show both (default)
+**Options**:
+- `-print0`, `-0` - Output raw IP only (no formatting, no newline)
+- `-c`, `--copy` - Copy IP to clipboard
+**Examples**:
+- `myip` - Show all IPs (formatted)
+- `myip local -print0` - Output local IP raw (for scripting)
+- `myip public -c` - Copy public IP to clipboard
+**Details**: Cross-platform (macOS/Linux). Shows all active interfaces (Wi-Fi, Ethernet, VPN/Tailscale). Uses multiple fallback services for public IP detection (ipify, ifconfig.me, icanhazip)
+
 ### 🔧 Development Tools
 
 #### `dart_lsp_server`
@@ -223,7 +239,7 @@ Most scripts are self-contained and require no additional setup. Some may need:
 - **Media Processing** (3): ascii, clip-ytb-video, clipvideo
 - **Search & Navigation** (3): findr, pfzf, search_tmux_binding
 - **Security & Encoding** (4): bashfuck, caesar, gentoken, uriencoder
-- **Network Tools** (2): ip4to6, machineid
+- **Network Tools** (3): ip4to6, machineid, myip
 - **Development** (2): dart_lsp_server, git-sview
 - **AI/LLM Tools** (1): llm-update
 - **File Management** (4): catcopy, mark, open, osccp

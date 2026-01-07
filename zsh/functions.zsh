@@ -820,3 +820,4 @@ function setSpinnerStyle {
     return 1
   fi
 }
+
