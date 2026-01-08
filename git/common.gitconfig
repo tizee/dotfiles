@@ -109,6 +109,9 @@
   adogr = log --all --decorate --reverse --date=relative --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %n%C(bold blue)<%an> %ae%Creset [%G?]%n' --stat
   # Graph + signatures + reverse (original adogrs)
   adogrs = log --all --decorate --graph --date=relative --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %n%C(bold blue)<%an> %ae%Creset [%G?]%n' --stat --show-signature --reverse
+  # Full commit message view (shows subject + body)
+  adogf = log --all --decorate --graph --date=relative --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s%n%n%b %Cgreen(%cr) %n%C(bold blue)<%an> %ae%Creset [%G?]%n' --stat
+  logf = log --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s%n%n%b %Cgreen(%cr) %n%C(bold blue)<%an> %ae%Creset [%G?]%n' --stat
   # pull rebase remote main by default
   sync= "!f(){git pull origin ${1-main} --rebase}; f"
   unstage= reset HEAD --
