@@ -266,6 +266,12 @@
   "json.schemas": [
     {
       "fileMatch": [
+        "/cc-proxy.json"
+      ],
+      "url": "file:///Users/tizee/.config/local_json_schema/cc-proxy.json"
+    },
+    {
+      "fileMatch": [
         "claude-code-settings.json"
       ],
       "url": "file:///Users/tizee/.config/local_json_schema/claude-code-settings.json"

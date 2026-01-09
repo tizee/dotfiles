@@ -1,0 +1,94 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ccproxy configuration",
+  "description": "Schema for cc-proxy.json used by the ccproxy wrapper script.",
+  "type": "object",
+  "minProperties": 1,
+  "propertyNames": {
+    "description": "Provider name used with --provider or CCPROXY_PROVIDER.",
+    "type": "string",
+    "minLength": 1
+  },
+  "additionalProperties": {
+    "$ref": "#/definitions/provider"
+  },
+  "definitions": {
+    "provider": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "base_url": {
+          "description": "Base URL for the API endpoint (ANTHROPIC_BASE_URL).",
+          "type": "string",
+          "format": "uri",
+          "examples": [
+            "https://api.example.com"
+          ]
+        },
+        "auth_key": {
+          "description": "Authentication token (ANTHROPIC_AUTH_TOKEN).",
+          "type": "string",
+          "examples": [
+            "sk-ant-..."
+          ]
+        },
+        "api_key": {
+          "description": "Optional API key field (currently unused by ccproxy).",
+          "type": "string",
+          "examples": [
+            "sk-..."
+          ]
+        },
+        "model": {
+          "description": "Primary model identifier (ANTHROPIC_MODEL).",
+          "type": "string",
+          "examples": [
+            "claude-3-5-sonnet-20241022"
+          ]
+        },
+        "small_model": {
+          "description": "Optional Haiku-class model for background tasks (ANTHROPIC_SMALL_FAST_MODEL).",
+          "type": "string",
+          "examples": [
+            "claude-3-5-haiku-20241022"
+          ]
+        },
+        "ANTHROPIC_DEFAULT_HAIKU_MODEL": {
+          "description": "Model for the haiku alias.",
+          "type": "string"
+        },
+        "ANTHROPIC_DEFAULT_SONNET_MODEL": {
+          "description": "Model for the sonnet alias.",
+          "type": "string"
+        },
+        "ANTHROPIC_DEFAULT_OPUS_MODEL": {
+          "description": "Model for the opus alias.",
+          "type": "string"
+        },
+        "CLAUDE_CODE_SUBAGENT_MODEL": {
+          "description": "Model used by Claude Code subagents.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "base_url",
+        "auth_key",
+        "model"
+      ]
+    }
+  },
+  "examples": [
+    {
+      "provider-name": {
+        "base_url": "https://api.example.com",
+        "auth_key": "sk-ant-...",
+        "api_key": "sk-...",
+        "model": "claude-3-5-sonnet-20241022",
+        "ANTHROPIC_DEFAULT_HAIKU_MODEL": "claude-3-5-haiku-20241022",
+        "ANTHROPIC_DEFAULT_SONNET_MODEL": "claude-3-5-sonnet-20241022",
+        "ANTHROPIC_DEFAULT_OPUS_MODEL": "claude-3-opus-20240229",
+        "CLAUDE_CODE_SUBAGENT_MODEL": "claude-3-5-haiku-20241022"
+      }
+    }
+  ]
+}
