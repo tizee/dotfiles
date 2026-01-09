@@ -125,7 +125,7 @@
   },
   "statusLine": {
     "type": "command",
-    "command": "pnpm dlx ccusage statusline",
+    "command": "~/.config/claude/cc-statusline.sh",
     "padding": 0
   },
   "enabledPlugins": {
