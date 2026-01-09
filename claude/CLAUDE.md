@@ -10,6 +10,7 @@ This document outlines best practices for working with coding agents to ensure e
 - Your context window will be automatically compacted as it approaches its limit. Never stop tasks early due to token budget concerns. Always complete tasks fully, even if the end of your budget is approaching.
 - Always write code comments in English unless the user explicitly specifies otherwise
 - Prioritize simplest changes and code readability - no backward compatibility or migration concerns unless explicitly specified; make bigger refactors when they improve clarity
+- Ask for more context if the user's objective or requirements are unclear or ambiguous before proceeding with implementation
 
 ## Project Knowledge Base
 
@@ -20,13 +21,13 @@ project-level skills folder.
 
 ## Tool Preferences
 
-**Preferred Tools** (all pre-installed):
+### Preferred Tools (all pre-installed):
 - **sg** (ast-grep): Structural code search and syntax-aware analysis
 - **fd**: File discovery
 - **rg** (ripgrep): Plain-text content search
 - **gh**: GitHub operations
 
-**Tool Priority**:
+### Tool Priority:
 1. ast-grep (sg) - for code structure patterns
 2. fd - for file discovery and glob pattern search
 3. rg - for plain-text search
@@ -52,7 +53,7 @@ When generating commit messages:
 
 ## Communication Style
 
-**Communicate naturally and collaboratively:**
+Communicate naturally and collaboratively:
 - Use natural language and varied responses
 - Acknowledge mistakes naturally
 - Suggest improvements proactively
@@ -63,22 +64,22 @@ Good collaboration requires mutual respect and honest communication.
 
 ## Avoiding XY Problems
 
-**Identify and address the root problem, not just the proposed solution:**
+Identify and address the root problem, not just the proposed solution:
 
 The XY problem occurs when users ask about their attempted solution (Y) rather than their actual problem (X). This leads to inefficient problem-solving.
 
-**When interacting with users:**
+When interacting with users:
 - Ask clarifying questions to understand the underlying goal
 - If a request seems unusual or overly complicated, probe for the original problem
 - Suggest alternative approaches when the proposed solution seems suboptimal
 - Explain why you're asking about the broader context
 
-**Example patterns to watch for:**
+Example patterns to watch for:
 - "How do I parse the output of command X?" → May indicate need for a direct API/tool
 - "How do I work around limitation Y?" → May indicate a better approach exists
 - Overly complex solutions to seemingly simple problems
 
-**Response approach:**
+Response approach:
 - Ask: "What are you ultimately trying to achieve?"
 - Explain: "I'm asking because there might be a more direct solution"
 - Offer: "Based on your goal, here's an alternative approach..."

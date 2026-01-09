@@ -1,12 +1,9 @@
 {
   "context": {
     "includeDirectories": [
-      "~/.gemini/skills"
     ],
     "fileName": [
-      "AGENTS.md",
-      "CLAUDE.md",
-      "GEMINI.md"
+      "AGENTS.md"
     ]
   },
   "mcpServers": {
@@ -33,5 +30,9 @@
   },
   "ui": {
     "hideBanner": true
+  },
+  "experimental": {
+    "enableAgents": true,
+    "skills": true
   }
 }

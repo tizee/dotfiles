@@ -1,8 +1,8 @@
 #!/usr/bin/env zsh
 
-# ========== gemini-cli with dynamic skills ========== {{{
-# Runtime composition: generate GEMINI.md with base prompt + skills list
-# Maintains Single Source of Truth (CLAUDE.md) while enabling skill discovery
+# ========== gemini-cli wrapper (skills disabled) ========== {{{
+# Runtime composition: generate GEMINI.md with base prompt only
+# Skills functionality disabled due to native Gemini CLI skills support (v0.23.0+)
 
 # Configuration
 GEMINI_SKILLS_DIR="${GEMINI_SKILLS_DIR:-$HOME/.gemini/skills}"
@@ -88,7 +88,10 @@ function __gemini_needs_regeneration() {
   local output_file="${3:-$GEMINI_CONFIG_DIR/GEMINI.md}"
   local output_mtime base_mtime skill_mtime dir_mtime
 
-  # Resolve symlinks to get real path (fixes mtime check for symlinked dirs)
+  # Resolve symlinks to get real path (fixes mtime check for symlinked files/dirs)
+  if [[ -L "$base_file" ]]; then
+    base_file=$(realpath "$base_file" 2>/dev/null || readlink -f "$base_file" 2>/dev/null || echo "$base_file")
+  fi
   if [[ -L "$skills_dir" ]]; then
     skills_dir=$(realpath "$skills_dir" 2>/dev/null || readlink -f "$skills_dir" 2>/dev/null || echo "$skills_dir")
   fi
@@ -106,19 +109,19 @@ function __gemini_needs_regeneration() {
     [[ -n "$base_mtime" && "$base_mtime" -gt "$output_mtime" ]] && return 0
   fi
 
-  # Check all SKILL.md files modification time
-  if [[ -d "$skills_dir" ]]; then
-    for skill_file in "$skills_dir"/*/SKILL.md(N); do
-      if [[ -f "$skill_file" ]]; then
-        skill_mtime=$(stat -f %m "$skill_file" 2>/dev/null || stat -c %Y "$skill_file" 2>/dev/null)
-        [[ -n "$skill_mtime" && "$skill_mtime" -gt "$output_mtime" ]] && return 0
-      fi
-    done
+  # Check all SKILL.md files modification time - disabled
+  # if [[ -d "$skills_dir" ]]; then
+  #   for skill_file in "$skills_dir"/*/SKILL.md(N); do
+  #     if [[ -f "$skill_file" ]]; then
+  #       skill_mtime=$(stat -f %m "$skill_file" 2>/dev/null || stat -c %Y "$skill_file" 2>/dev/null)
+  #       [[ -n "$skill_mtime" && "$skill_mtime" -gt "$output_mtime" ]] && return 0
+  #     fi
+  #   done
 
-    # Check if skills directory itself was modified (new skill added/removed)
-    dir_mtime=$(stat -f %m "$skills_dir" 2>/dev/null || stat -c %Y "$skills_dir" 2>/dev/null)
-    [[ -n "$dir_mtime" && "$dir_mtime" -gt "$output_mtime" ]] && return 0
-  fi
+  #   # Check if skills directory itself was modified (new skill added/removed)
+  #   dir_mtime=$(stat -f %m "$skills_dir" 2>/dev/null || stat -c %Y "$skills_dir" 2>/dev/null)
+  #   [[ -n "$dir_mtime" && "$dir_mtime" -gt "$output_mtime" ]] && return 0
+  # fi
 
   # No regeneration needed
   return 1
@@ -153,8 +156,8 @@ function __gemini_generate_config() {
       echo "*Base prompt not found at: ${base_file}*"
     fi
 
-    # Dynamic skills list
-    __gemini_generate_skills_list "$skills_dir"
+    # Dynamic skills list - disabled due to native Gemini CLI skills support
+    # __gemini_generate_skills_list "$skills_dir"
   } > "$output_file"
 
   return 0
