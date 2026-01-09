@@ -134,7 +134,8 @@
     "security-guidance@claude-code-plugins": true,
     "nowledge-mem@nowledge-community": true,
     "feature-dev@claude-code-plugins": true,
-    "ralph-wiggum@claude-plugins-official": true
+    "ralph-wiggum@claude-plugins-official": true,
+    "code-simplifier@claude-plugins-official": true
   },
   "alwaysThinkingEnabled": true
 }
