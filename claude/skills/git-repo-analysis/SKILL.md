@@ -1,6 +1,7 @@
 ---
 name: git-repo-analysis
 description: Analyze git repositories and generate comprehensive markdown documentation for quick understanding. Use when user asks to "analyze this repo", "document the codebase", "explain how this project works", "generate repo docs", "understand this codebase", or wants documentation about project architecture and modules. Triggers on requests for codebase analysis, architecture documentation, module documentation, or project understanding.
+context: fork
 ---
 
 # Git Repository Analysis
