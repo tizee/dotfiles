@@ -536,6 +536,6 @@ if $is_macOS; then
   # tmux-capture
   source "$HOME/projects/project-python/tizee-packages/tmux-capture/tmux-capture.plugin.zsh"
 
-  export CCPROXY_PROVIDER="deepseek"
+  export CCPROXY_PROVIDER="doubao"
   alias tailscale="/Applications/Tailscale.app/Contents/MacOS/Tailscale"
 fi
