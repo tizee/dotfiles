@@ -29,7 +29,7 @@
       "Bash(tmux -S:*)"
     ],
     "deny": [
-      "Search",
+      "Glob",
       "Bash(rm -rf:*)",
       "Bash(sudo:*)"
     ],

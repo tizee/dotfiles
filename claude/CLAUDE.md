@@ -28,7 +28,7 @@ project-level skills folder.
 
 **Tool Priority**:
 1. ast-grep (sg) - for code structure patterns
-2. fd - for file discovery
+2. fd - for file discovery and glob pattern search
 3. rg - for plain-text search
 4. Agent - for semantic exploration when needed
 
