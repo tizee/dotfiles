@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S uv --no-managed-python --no-python-downloads run --script
 #vim: ft=python
 
 import sys
