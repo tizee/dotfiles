@@ -20,6 +20,8 @@
       "Bash(which:*)",
       "Bash(ls:*)",
       "Bash(rg:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
       "TodoWrite",
       "TodoRead",
       "mcp__nowledge-mem__memory_add",
@@ -37,7 +39,7 @@
     "ask": [],
     "defaultMode": "default"
   },
-  "model": "opus",
+  "model": "haiku",
   "hooks": {
     "PreToolUse": [
       {

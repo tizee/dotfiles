@@ -25,7 +25,6 @@ SENSITIVE_PATTERNS = [
     (r"\.docker/", "Docker config access blocked"),
     (r"/etc/", "System configuration access blocked"),
     (r"/usr/", "System directory access blocked"),
-    (r"/var/", "System directory access blocked"),
     (r"/proc/", "System process directory access blocked"),
     (r"/sys/", "System directory access blocked"),
 ]

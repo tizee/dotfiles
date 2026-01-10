@@ -7,37 +7,39 @@ version: 0.1.0
 # Local Webfetch Skill
 
 ## Overview
-Use this skill to fetch web content using the `playwrightmd` tool, a specialized HTML-to-Markdown downloader that can render JavaScript-rendered content. This skill provides AI agents with efficient, token-aware workflows for handling web content.
+Use this skill to fetch web content using the `playwrightmd` tool, a specialized HTML-to-Markdown downloader that can render JavaScript-rendered content. This skill provides AI agents with flexible, token-aware strategies and the autonomy to choose the best approach for each situation.
 
 ## Core Principles for AI Agents
 
-When retrieving web content, always follow these token-efficient workflows to avoid consuming excessive context:
+When retrieving web content, use your judgment to choose the most efficient approach based on the page size, user needs, and context constraints. You have full autonomy to decide which strategy to use:
 
-### 1. Download to Temporary File (Recommended)
-Never return large web pages directly. Always download to a temporary file first, then read in chunks:
+### Flexible Retrieval Strategies
+Choose from these approaches based on the situation:
 
 ```bash
-# Download page content
+# Option 1: Return full content directly (best for small to medium pages)
+playwrightmd https://example.com
+
+# Option 2: Filter content before returning (focus on relevant parts)
+playwrightmd https://example.com | rg "Important Section" -A 10 -B 2
+
+# Option 3: Use temporary files for large pages or multiple processing passes
 tmp_file=$(mktemp -t page.XXXXXX.md)
 playwrightmd https://example.com -o "$tmp_file"
+cat "$tmp_file"
 
-# Check size first
-lines=$(wc -l < "$tmp_file")
-echo "Downloaded $lines lines to $tmp_file"
-
-# Read in manageable chunks
-if [ "$lines" -gt 100 ]; then
-    echo "First 100 lines:"
-    head -100 "$tmp_file"
-    echo "
-... Use head/tail/sed/grep to view more"
-else
-    cat "$tmp_file"
-fi
+# Option 4: Provide summary or key sections for very large pages
+playwrightmd https://example.com | rg -E '(# |## )' | head -50  # Show document structure
 ```
 
-### 2. Pipe to Filtering Tools
-Process content directly with filtering tools to avoid loading full text:
+### Key Considerations
+- **User intent**: If the user wants the full page content, return it directly when feasible
+- **Context limits**: For very large pages, consider returning only relevant sections or a summary
+- **Efficiency**: Use filtering tools to avoid sending unnecessary tokens to the user
+- **Flexibility**: There's no single "right" approach - adapt to each unique situation
+
+### Filtering and Processing Techniques
+Use these techniques to process content efficiently when needed:
 
 ```bash
 # Get specific sections with rg (ripgrep)
@@ -50,8 +52,8 @@ playwrightmd https://example.com --raw | htmlq "article h2"
 playwrightmd https://example.com | grep -q "important pattern" && echo "Page contains pattern"
 ```
 
-### 3. Use Raw Mode for JavaScript-rendered Pages
-Get full HTML after JavaScript execution when needed:
+### Handling Dynamic/JavaScript-rendered Content
+Use raw mode to get full HTML after JavaScript execution when needed:
 
 ```bash
 # Render SPA content
@@ -179,14 +181,14 @@ playwrightmd https://example.com --raw | head -5
 ## Best Practices Summary
 
 **DO**:
-- Always download to temporary files first
-- Use filtering tools (head, tail, rg, grep) before reading full content
-- Use `--raw` mode to get raw html content if required
-- Handle large pages with chunked reading
-- Validate content before processing
+- Use judgment to choose the right approach for each situation
+- Consider user intent when deciding how much content to return
+- Use filtering tools to focus on relevant content when appropriate
+- Use `--raw` mode to get raw HTML content for dynamic pages
+- Validate content before processing if needed
 
 **DON'T**:
-- Return full pages directly to users
-- Pipe large output without filtering
+- Rigidly follow workflows without considering context
+- Overly restrict content unless context limits require it
 - Assume all pages are static HTML
-- Ignore token limits when handling content
+- Ignore token limits when handling very large content
