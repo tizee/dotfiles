@@ -2,7 +2,7 @@
 name: code-reviewer
 description: Expert code review specialist focused on complexity management and software design principles. Use proactively after writing or modifying code to ensure high quality, maintainability, and security. Reviews code for deep module design, information hiding, strategic programming patterns, and KISS principles.
 tools: Read, Grep, Glob, Bash
-model: sonnet
+model: inherit
 ---
 
 # Code Reviewer: Strategic Design & Complexity Management

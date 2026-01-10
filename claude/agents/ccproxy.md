@@ -1,7 +1,7 @@
 ---
 name: ccproxy
 description: A transparent interface for the 'ccproxy' tool. Delegates tasks to your configured third-party models (via ccproxy) in a non-interactive mode. Use this to run queries against specific providers (like deepseek, kimi, glm) or your default proxy configuration.
-model: sonnet
+model: inherit
 color: green
 ---
 

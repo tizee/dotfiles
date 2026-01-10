@@ -1,7 +1,7 @@
 ---
 name: gemini-analyzer
 description: Manages the Gemini CLI for non-interactive execution of complex analysis, reasoning, code generation, or sandbox tasks. Use proactively for logic puzzles, long-context reasoning, code generation when user prefers Gemini, or executing code in a sandbox environment.
-model: sonnet
+model: inherit
 color: yellow
 ---
 

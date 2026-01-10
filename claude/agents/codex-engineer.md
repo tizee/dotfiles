@@ -1,7 +1,7 @@
 ---
 name: codex-engineer
 description: Manages Codex CLI for code generation, git operations, and sandboxed execution. Use proactively for applying patches, generating boilerplate, or running high-risk commands in a sandbox.
-model: sonnet
+model: inherit
 color: purple
 ---
 

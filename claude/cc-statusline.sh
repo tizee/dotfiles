@@ -15,14 +15,12 @@ current_usage=$(echo "$input" | jq '.context_window.current_usage')
 
 # Calculate context percentage
 if [ "$current_usage" != "null" ]; then
-    # Correct calculation: cache_read_input_tokens should NOT be included in context window usage
-    # Only include tokens that need to be processed by the model
-    current_tokens=$(echo "$current_usage" | jq '.input_tokens + .cache_creation_input_tokens')
+    current_tokens=$(echo "$current_usage" | jq '.input_tokens + .cache_creation_input_tokens + .cache_read_input_tokens')
 
     # For debugging purposes, show the breakdown
-    input_tokens=$(echo "$current_usage" | jq '.input_tokens')
-    cache_creation=$(echo "$current_usage" | jq '.cache_creation_input_tokens')
-    cache_read=$(echo "$current_usage" | jq '.cache_read_input_tokens')
+    # input_tokens=$(echo "$current_usage" | jq '.input_tokens')
+    # cache_creation=$(echo "$current_usage" | jq '.cache_creation_input_tokens')
+    # cache_read=$(echo "$current_usage" | jq '.cache_read_input_tokens')
 
     # Format context size for display using (1K = 1000), uppercase K
     format_context_size() {

@@ -1,7 +1,7 @@
 ---
 name: kimi-researcher
 description: Manages Kimi CLI for all long-context tasks including documentation analysis, summarization, code generation, refactoring, and engineering work. Use proactively for processing large text files, Chinese content interpretation, complex code transformations, applying patches, generating boilerplate, or any task benefiting from long-context awareness.
-model: sonnet
+model: inherit
 color: blue
 ---
 

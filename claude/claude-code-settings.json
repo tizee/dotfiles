@@ -29,6 +29,7 @@
       "Bash(tmux -S:*)"
     ],
     "deny": [
+      "WebFetch",
       "Glob",
       "Bash(rm -rf:*)",
       "Bash(sudo:*)"
@@ -136,7 +137,8 @@
     "nowledge-mem@nowledge-community": true,
     "feature-dev@claude-code-plugins": true,
     "code-simplifier@claude-plugins-official": true,
-    "ralph-loop@claude-plugins-official": true
+    "ralph-loop@claude-plugins-official": true,
+    "plugin-dev@claude-plugins-official": true
   },
   "alwaysThinkingEnabled": true
 }
