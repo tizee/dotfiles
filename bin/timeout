@@ -1,0 +1,376 @@
+#!/usr/bin/env python3
+"""
+timeout - GNU Coreutils Compatible timeout command
+A standalone implementation for macOS without full GNU Coreutils.
+
+Inspired by the Haskell implementation at:
+https://github.com/aisk/timeout
+
+            DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE
+                    Version 2, December 2004
+
+ Copyright (C) 2025
+
+ Everyone is permitted to copy and distribute verbatim or modified
+ copies of this license document, and changing it is allowed as long
+ as the name is changed.
+
+            DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE
+   TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
+
+  0. You just DO WHAT THE FUCK YOU WANT TO.
+"""
+
+import argparse
+import errno
+import os
+import signal
+import subprocess
+import sys
+import time
+from typing import Optional
+
+
+# Exit codes
+EXIT_TIMEOUT = 124
+EXIT_TIMEOUT_FAILURE = 125
+EXIT_COMMAND_NOT_EXECUTABLE = 126
+EXIT_COMMAND_NOT_FOUND = 127
+EXIT_KILLED_BY_KILL = 137
+
+
+def parse_duration(duration: str) -> float:
+    """Parse duration string to seconds.
+
+    Supports suffixes:
+    - ms: milliseconds
+    - s: seconds (default)
+    - m: minutes
+    - h: hours
+    - d: days
+    """
+    duration = duration.strip()
+    if duration.endswith("ms"):
+        return float(duration[:-2]) / 1000
+    if duration.endswith("s"):
+        return float(duration[:-1])
+    if duration.endswith("m"):
+        return float(duration[:-1]) * 60
+    if duration.endswith("h"):
+        return float(duration[:-1]) * 3600
+    if duration.endswith("d"):
+        return float(duration[:-1]) * 86400
+    # Default to seconds if no suffix
+    return float(duration)
+
+
+def str_to_signal(sig_str: str) -> int:
+    """Convert signal string or number to signal value."""
+    sig_map = {
+        "TERM": signal.SIGTERM,
+        "KILL": signal.SIGKILL,
+        "INT": signal.SIGINT,
+        "HUP": signal.SIGHUP,
+        "USR1": signal.SIGUSR1,
+        "USR2": signal.SIGUSR2,
+    }
+    sig_str_upper = sig_str.upper()
+    if sig_str_upper in sig_map:
+        return sig_map[sig_str_upper]
+    # Try to parse as number
+    try:
+        return int(sig_str)
+    except ValueError:
+        return signal.SIGTERM
+
+
+def send_signal_verbose(proc: subprocess.Popen, sig: int, verbose: bool) -> None:
+    """Send signal to process group and optionally log to stderr."""
+    if verbose:
+        print(f"sending signal {sig} to process {proc.pid}", file=sys.stderr)
+    try:
+        # Send to process group to handle child processes
+        os.killpg(os.getpgid(proc.pid), sig)
+    except ProcessLookupError:
+        # Process already terminated
+        pass
+
+
+def signal_to_exit_code(sig: int) -> int:
+    """Convert signal number to standard exit code (128 + signal)."""
+    return 128 + sig
+
+
+def run_timeout(
+    duration: float,
+    command: list[str],
+    kill_after: Optional[float] = None,
+    sig: int = signal.SIGTERM,
+    foreground: bool = False,
+    preserve_status: bool = False,
+    verbose: bool = False,
+) -> int:
+    """Run command with timeout, returning exit code."""
+    timeout_occurred = False
+    killed_by_kill_sig = False
+
+    try:
+        # Start the process
+        proc = subprocess.Popen(
+            command,
+            stdin=sys.stdin if foreground else subprocess.DEVNULL,
+            stdout=sys.stdout if foreground else subprocess.PIPE,
+            stderr=sys.stderr if foreground else subprocess.PIPE,
+            start_new_session=True,  # Create new process group
+        )
+    except FileNotFoundError:
+        print(f"timeout: '{command[0]}': command not found", file=sys.stderr)
+        return EXIT_COMMAND_NOT_FOUND
+    except PermissionError:
+        print(f"timeout: '{command[0]}': permission denied", file=sys.stderr)
+        return EXIT_COMMAND_NOT_EXECUTABLE
+
+    try:
+        exit_code = proc.wait(timeout=duration)
+        return exit_code
+    except subprocess.TimeoutExpired:
+        # Timeout occurred - send first signal
+        timeout_occurred = True
+        send_signal_verbose(proc, sig, verbose)
+
+        # If kill-after is specified, wait and then send KILL
+        if kill_after is not None:
+            try:
+                exit_code = proc.wait(timeout=kill_after)
+                # Process terminated after signal
+                if not preserve_status:
+                    return EXIT_TIMEOUT
+                # Convert negative exit code (signal) to standard format
+                if exit_code < 0:
+                    return signal_to_exit_code(-exit_code)
+                return exit_code
+            except subprocess.TimeoutExpired:
+                # Still running, send KILL
+                if verbose:
+                    print(f"sending signal {signal.SIGKILL} to process {proc.pid}", file=sys.stderr)
+                try:
+                    os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
+                except ProcessLookupError:
+                    pass
+                killed_by_kill_sig = True
+                # Wait for process to actually terminate
+                proc.wait()
+
+        # Wait for process to terminate after signal
+        else:
+            proc.wait()
+
+    except KeyboardInterrupt:
+        # Forward Ctrl+C to the process
+        try:
+            os.killpg(os.getpgid(proc.pid), signal.SIGINT)
+        except ProcessLookupError:
+            pass
+        proc.wait()
+        return 130  # Standard exit code for SIGINT
+
+    finally:
+        # Clean up any remaining output
+        if not foreground:
+            if proc.stdout:
+                proc.stdout.close()
+            if proc.stderr:
+                proc.stderr.close()
+
+    # Handle exit codes based on options
+    if killed_by_kill_sig:
+        return EXIT_KILLED_BY_KILL if not preserve_status else signal_to_exit_code(signal.SIGKILL)
+    if timeout_occurred and not preserve_status:
+        return EXIT_TIMEOUT
+    # Convert negative exit code (signal) to standard format
+    if proc.returncode < 0:
+        return signal_to_exit_code(-proc.returncode)
+    return proc.returncode
+
+
+def parse_args() -> argparse.Namespace:
+    """Parse command line arguments."""
+    parser = argparse.ArgumentParser(
+        prog="timeout",
+        description="Run a command with a time limit.",
+        add_help=False,
+    )
+
+    parser.add_argument(
+        "-f",
+        "--foreground",
+        action="store_true",
+        help="allow COMMAND to read from TTY and get TTY signals",
+    )
+    parser.add_argument(
+        "-k",
+        "--kill-after",
+        metavar="DURATION",
+        help="also send KILL signal after DURATION",
+    )
+    parser.add_argument(
+        "-p",
+        "--preserve-status",
+        action="store_true",
+        help="exit with same status as COMMAND",
+    )
+    parser.add_argument(
+        "-s",
+        "--signal",
+        metavar="SIGNAL",
+        help="specify signal to send on timeout",
+        default="TERM",
+    )
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        action="store_true",
+        help="diagnose to stderr any signal sent",
+    )
+    parser.add_argument(
+        "--help",
+        action="store_true",
+        help="display this help and exit",
+    )
+    parser.add_argument(
+        "--version",
+        action="store_true",
+        help="output version information and exit",
+    )
+
+    # Parse known args only - everything after duration is the command
+    args, remaining = parser.parse_known_args()
+
+    # First remaining arg should be duration, rest is command
+    duration = None
+    command = []
+    if remaining:
+        duration = remaining[0]
+        command = remaining[1:]
+
+    # Attach duration and command to args for convenience
+    args.duration = duration
+    args.command = command
+
+    return args
+
+
+def show_help() -> None:
+    """Display comprehensive help message."""
+    prog_name = os.path.basename(sys.argv[0])
+    print(f"""Usage: {prog_name} [OPTION] DURATION COMMAND [ARG]...
+Run COMMAND with a time limit.
+
+Mandatory arguments:
+  DURATION        Time limit before sending signal
+  COMMAND         Command to run
+  ARG             Optional arguments for COMMAND
+
+Options:
+  -f, --foreground
+                  Allow COMMAND to read from TTY and get TTY signals;
+                  this is the default when COMMAND is not run in a terminal
+  -k, --kill-after=DURATION
+                  Also send KILL signal after DURATION if COMMAND is still
+                  running
+  -p, --preserve-status
+                  Exit with the same status as COMMAND, even if COMMAND
+                  exits due to a signal; also exit 124 if timeout occurs
+  -s, --signal=SIGNAL
+                  Specify the signal to send on timeout;
+                  SIGNAL may be a name like 'TERM' or a number like '15'
+                  (default: TERM)
+  -v, --verbose
+                  Diagnose to stderr any signal sent
+      --help      Display this help and exit
+      --version   Output version information and exit
+
+Duration format:
+  DURATION is a floating point number with an optional suffix:
+  's' for seconds (default), 'm' for minutes, 'h' for hours,
+  'd' for days, 'ms' for milliseconds.
+
+Exit codes:
+  124     if COMMAND times out
+  125     if timeout command itself fails
+  126     if COMMAND is found but cannot be invoked
+  127     if COMMAND cannot be found
+  137     if COMMAND is killed by KILL signal (128+9)
+  1-255   Exit status of COMMAND if it terminates normally
+
+Examples:
+  {prog_name} 5s long-running-command
+  {prog_name} 2m backup-script.sh
+  {prog_name} -k 3s 1s command
+  {prog_name} -s INT 5s command
+
+For more information, see the GNU coreutils timeout manual.""")
+
+
+def main() -> None:
+    """Main entry point."""
+    args = parse_args()
+
+    if args.help:
+        show_help()
+        return
+
+    if args.version:
+        print("timeout (Python implementation) 0.1.0")
+        print("Inspired by https://github.com/aisk/timeout")
+        print("Licensed under the WTFPLv2")
+        return
+
+    # Validate required arguments
+    if not args.duration:
+        print("timeout: missing operand\nTry 'timeout --help' for more information.", file=sys.stderr)
+        sys.exit(EXIT_TIMEOUT_FAILURE)
+
+    if not args.command:
+        print("timeout: missing command\nTry 'timeout --help' for more information.", file=sys.stderr)
+        sys.exit(EXIT_TIMEOUT_FAILURE)
+
+    # Parse duration
+    try:
+        duration = parse_duration(args.duration)
+    except ValueError:
+        print(f"timeout: invalid time interval: '{args.duration}'\nTry 'timeout --help' for more information.", file=sys.stderr)
+        sys.exit(EXIT_TIMEOUT_FAILURE)
+
+    # Parse kill-after duration
+    kill_after: Optional[float] = None
+    if args.kill_after:
+        try:
+            kill_after = parse_duration(args.kill_after)
+        except ValueError:
+            print(f"timeout: invalid time interval: '{args.kill_after}'\nTry 'timeout --help' for more information.", file=sys.stderr)
+            sys.exit(EXIT_TIMEOUT_FAILURE)
+
+    # Parse signal
+    sig = str_to_signal(args.signal)
+
+    # Run timeout
+    exit_code = run_timeout(
+        duration=duration,
+        command=args.command,
+        kill_after=kill_after,
+        sig=sig,
+        foreground=args.foreground,
+        preserve_status=args.preserve_status,
+        verbose=args.verbose,
+    )
+
+    sys.exit(exit_code)
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except Exception as e:
+        print(f"timeout: {e}", file=sys.stderr)
+        sys.exit(EXIT_TIMEOUT_FAILURE)
