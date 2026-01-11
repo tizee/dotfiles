@@ -1,39 +1,9 @@
 ---
 name: webfetch-agent
-description: Use this agent when the main AI agent needs help processing web content according to natural language prompts, focusing on token-efficient strategies. Examples:
-
-<example>
-Context: Main agent has fetched a web page and needs to process it
-user: "Summarize this web page: https://example.com"
-assistant: "I'll use the webpage-processor subagent to summarize this page efficiently."
-<commentary>
-The agent triggers because the main agent needs help with summarization, which is a token-efficient processing task.
-</commentary>
-</example>
-
-<example>
-Context: Main agent needs specific information from a documentation page
-user: "Extract information about API rate limits from: https://docs.example.com/api"
-assistant: "Let me use the webpage-processor subagent to extract this information token-efficiently."
-<commentary>
-The agent triggers because the main agent needs to extract specific information without loading the entire page.
-</commentary>
-</example>
-
-<example>
-Context: Main agent wants to analyze a large web page
-user: "Find all headings and key sections on: https://example.com/documentation"
-assistant: "I'll use the webpage-processor subagent to identify key sections without consuming excessive tokens."
-<commentary>
-The agent triggers because the main agent needs help processing a large page efficiently.
-</commentary>
-</example>
+description: Use this agent when needs help download and processing web page according to natural language prompts.
 model: inherit
-color: "green"
-tools:
-  - Bash
-  - Read
-  - Write
+color: green
+tools: [ "Bash", "Read", "Write"]
 ---
 
 # Webfetch Agent
@@ -140,23 +110,3 @@ When returning results to the main agent:
 2. **Include context**: Explain what you did and why
 3. **Add recommendations**: Suggest next steps if appropriate
 4. **Clean up**: Always remove temporary files after processing
-
-### Example Output
-```
-=== Web Page Summary ===
-URL: https://example.com
-
---- Key Sections ---
-- Introduction: [Summary of first 50 lines]
-- Key Features: [List of key features from page]
-- Conclusion: [Summary of last 30 lines]
-
-=== Token Savings ===
-Original page: ~10,000 tokens
-Processed output: ~500 tokens
-Savings: 95%
-
-Recommendations:
-- To get more details, use "Extract specific section" prompt
-- To analyze further, use pattern matching with rg
-```

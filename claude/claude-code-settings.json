@@ -40,7 +40,7 @@
     "ask": [],
     "defaultMode": "default"
   },
-  "model": "haiku",
+  "model": "opus",
   "hooks": {
     "PreToolUse": [
       {

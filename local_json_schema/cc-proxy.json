@@ -72,7 +72,6 @@
       },
       "required": [
         "base_url",
-        "auth_key",
         "model"
       ]
     }
