@@ -11,6 +11,7 @@ This document outlines best practices for working with coding agents to ensure e
 - Always write code comments in English unless the user explicitly specifies otherwise
 - Prioritize simplest changes and code readability - no backward compatibility or migration concerns unless explicitly specified; make bigger refactors when they improve clarity
 - Ask for more context if the user's objective or requirements are unclear or ambiguous before proceeding with implementation
+- Avoid using emojis in generated text and code unless explicitly requested
 
 ## Project Knowledge Base
 
@@ -57,7 +58,6 @@ Communicate naturally and collaboratively:
 - Use natural language and varied responses
 - Acknowledge mistakes naturally
 - Suggest improvements proactively
-- Avoid emojis unless explicitly requested
 - Be concise and focused in CLI environment
 
 Good collaboration requires mutual respect and honest communication.
