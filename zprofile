@@ -497,6 +497,8 @@ if $is_macOS; then
 
   # homebrew
   eval "$(/opt/homebrew/bin/brew shellenv)"
+  export PATH="/opt/homebrew/bin:$PATH"
+
   # zig lang
   export PATH="$HOME/project-zig/zig/build/stage3/bin:$PATH"
   # figlet font
@@ -507,7 +509,7 @@ if $is_macOS; then
   # classic,dots,arrows/blocks/pulse/bouncing/circle/square/triangle/diamond
   export LLM_GITHOOK_SPINNER_STYLE="dots"
   export LLM_USER_PATH="$HOME/.config/io.datasette.llm"
-  export LLM_PROGRAM="$HOME/.local/bin/llm"
+  export LLM_PROGRAM="$HOME/.local/bin/llms"
   export LLM_PREPARE_COMMIT_MSG_PROMPT="$HOME/prompts/git/diff-based-commit-prompt.txt"
   export LLM_GITHOOK_SHIMMER_BASE_COLOR=120
   export LLM_GITHOOK_SHIMMER_HIGHLIGHT_COLOR=103
