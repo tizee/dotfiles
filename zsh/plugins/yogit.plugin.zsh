@@ -1220,7 +1220,7 @@ function yogit::url_copy(){
   if [[ $? -ne 0 ]]; then
     return 1
   fi
-  echo "$url" | pbcopy
+  printf "$url" | pbcopy
   yogit::success "Remote URL copied to clipboard"
 }
 alias "${_yogit_basic_prefix}urlcp"='yogit::url_copy'
