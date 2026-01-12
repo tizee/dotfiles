@@ -1,18 +1,43 @@
 #!/usr/bin/env zsh
 
 function _pbcopy(){
+  local strip_newline=0
+  local -a args
+
+  # Parse arguments: check for -0 flag (strip trailing newline)
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -0)
+        strip_newline=1
+        shift
+        ;;
+      *)
+        args+=("$1")
+        shift
+        ;;
+    esac
+  done
+
   case $(uname -s) in
     Darwin*)
       if [ -t 0 ]; then
-        /usr/bin/pbcopy "$@"
+        /usr/bin/pbcopy "${args[@]}"
       else
-        /usr/bin/pbcopy -"$@"
+        if [[ $strip_newline -eq 1 ]]; then
+          tr -d '\n' | /usr/bin/pbcopy "${args[@]}"
+        else
+          /usr/bin/pbcopy -"${args[@]}"
+        fi
       fi
       ;;
     Linux*)
        # xclip is avaliable in most Linux distributions
        # TODO test in Linux
-       xclip -selection clipboard
+       if [[ $strip_newline -eq 1 ]]; then
+         tr -d '\n' | xclip -selection clipboard
+       else
+         xclip -selection clipboard
+       fi
       ;;
     *)
       exit 1
