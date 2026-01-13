@@ -97,4 +97,6 @@ _tmuxrawcapture() {
 1. Create file in `autoloaded/_cmdname`
 2. Add `#compdef cmdname` shebang
 3. Define `_cmdname()` function with completion logic
-4. Reload shell or run `compinit`
+4. Reinitialize: `rm -f ~/.zcompdump* && exec zsh`
+
+**Note:** `which _func` shows `# undefined` - this is normal. Functions are lazy-loaded via `autoload -X` to speed up shell startup.
