@@ -1,6 +1,5 @@
 # Claude
 
-
 ## Claude Code
 
 ### Quick Setup with Makefile
@@ -48,6 +47,30 @@ ln -sv ~/.config/claude/commands ~/.claude/commands
 ```bash
 ln -sv ~/.config/claude/skills ~/.claude/skills
 ```
+
+**Skill Hook Commands:**
+
+When defining hook commands in skill frontmatter, use absolute paths or environment variables to ensure scripts are found correctly:
+
+```yaml
+# Use absolute path (recommended)
+hooks:
+  PreToolUse: "~/.claude/skills/your-skill/scripts/check.sh"
+
+# Or use ${CLAUDE_PLUGIN_ROOT} for plugin-based skills
+hooks:
+  PreToolUse: "${CLAUDE_PLUGIN_ROOT}/scripts/check.sh"
+
+# Or use $CLAUDE_PROJECT_DIR for project-relative scripts
+hooks:
+  PreToolUse: "$CLAUDE_PROJECT_DIR/scripts/check.sh"
+```
+
+**Important:** Relative paths (e.g., `./scripts/check.sh`) execute relative to Claude's current working directory, not the skill's folder. Always use absolute paths or environment variables.
+
+References:
+- [Plugins Reference](https://code.claude.com/docs/en/plugins-reference)
+- [Settings Documentation](https://code.claude.com/docs/en/settings)
 
 **Agents:**
 
