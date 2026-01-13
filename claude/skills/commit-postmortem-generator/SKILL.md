@@ -14,7 +14,7 @@ To generate postmortems:
 1. Fetch the latest N fix commits (default: 100)
 2. Group commits by related issues
 3. Generate markdown postmortem reports with key details
-4. Store reports in ./postmortem/ directory
+4. Store reports in ./.postmortem/ directory
 
 ## Usage
 

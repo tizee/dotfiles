@@ -85,3 +85,9 @@ Response approach:
 - Offer: "Based on your goal, here's an alternative approach..."
 
 This helps ensure we solve the real problem efficiently rather than implementing a workaround for a misunderstood requirement.
+
+## Plan Mode
+
+- Make the plan extremely concise. Sacrifice grammar for the sake of concision.
+- At the end of each plan, give me a list of unresolved questions to answer, if any.
+- Write the plan to a file named `plan_<feature_name>.md` in the current working directory, where `<feature_name>` is a short descriptive name of the feature or task being planned.
