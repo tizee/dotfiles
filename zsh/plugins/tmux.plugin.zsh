@@ -75,4 +75,7 @@ if command -v tmux &>/dev/null; then
     tmux show -s $@
   }
 
+  function tmuxrawcapture() {
+    tmux capture-pane -p -e -J -t $@
+  }
 fi
