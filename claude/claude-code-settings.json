@@ -13,7 +13,6 @@
     "ENABLE_TOOL_SEARCH": "true",
     "CLAUDE_CODE_DISABLE_BACKGROUND_TASKS": "true"
   },
-  "plansDirectory": ".claude/plans",
   "includeCoAuthoredBy": false,
   "permissions": {
     "allow": [
@@ -144,5 +143,6 @@
     "ralph-loop@claude-plugins-official": false,
     "plugin-dev@claude-plugins-official": false
   },
-  "alwaysThinkingEnabled": true
+  "alwaysThinkingEnabled": true,
+  "plansDirectory": ".claude/plans"
 }

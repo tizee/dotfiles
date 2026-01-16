@@ -46,6 +46,8 @@ cargo build --release > /tmp/build.log 2>&1; tail -n 50 /tmp/build.log
 
 **For other commands**: Run directly without redirection to preserve full output visibility.
 
+**When reading config files that may contain tokens**: Use `jq 'del(.. | .field_name?)' file.json` to exclude sensitive fields. Identify field names from codebase patterns (e.g., `auth_key`, `token`, `password`, `api_key`).
+
 ## Commit Messages
 
 When generating commit messages:
