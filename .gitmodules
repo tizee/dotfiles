@@ -14,7 +14,3 @@
 	path = git/git-hooks
 	url = git@github.com:tizee/git-hooks
 	shallow = true
-[submodule "claude/plugins/planning-with-files"]
-	path = claude/plugins/planning-with-files
-	url = https://github.com/OthmanAdi/planning-with-files.git
-	shallow = true

@@ -90,6 +90,9 @@ This helps ensure we solve the real problem efficiently rather than implementing
 
 ## Plan Mode
 
+For simple planning tasks (not requiring long-time analysis, debugging, or complex exploration):
 - Make the plan extremely concise. Sacrifice grammar for the sake of concision.
 - At the end of each plan, give me a list of unresolved questions to answer, if any.
-- Write the plan to a file named `plan_<feature_name>.md` in the current working directory, where `<feature_name>` is a short descriptive name of the feature or task being planned.
+- Write the plan to a file named `plan_<feature_name>.md` in the current working directory.
+
+For complex tasks requiring long-time analysis or debugging, use the plan-with-files skill instead (`.plans/<feature-name>-yymmdd/` structure).
