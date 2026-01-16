@@ -14,8 +14,25 @@ Usage:
 import argparse
 import json
 import os
+import subprocess
 import sys
 from pathlib import Path
+
+
+def run_claude(claude_args: list, env: dict) -> None:
+    """Run claude as a subprocess, waiting for it to complete like shell scripts do."""
+    # Run claude in same process group so signals (Ctrl-C, Ctrl-Z) work correctly
+    proc = subprocess.Popen(
+        ["claude"] + claude_args,
+        env=env,
+        # Use parent's stdin/stdout/stderr directly (no pipes)
+        stdin=None,
+        stdout=None,
+        stderr=None,
+    )
+    # Wait for claude to exit, then this script will exit too
+    proc.wait()
+    sys.exit(proc.returncode)
 
 
 # Default paths
@@ -202,8 +219,8 @@ def main():
     elif unknown:
         claude_args = unknown + claude_args
 
-    # Execute claude command (replace current process)
-    os.execvpe("claude", ["claude"] + claude_args, env)
+    # Execute claude command (wait for completion like shell scripts do)
+    run_claude(claude_args, env)
 
 
 if __name__ == "__main__":

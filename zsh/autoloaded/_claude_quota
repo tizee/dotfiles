@@ -1,0 +1,50 @@
+#compdef claude-quota
+
+_claude_quota() {
+  local -a commands
+  commands=(
+    'start:Start daemon'
+    'stop:Stop daemon'
+    'status:Show status'
+    'continue:Switch to continuous mode'
+    'schedule:Update schedule (switch to scheduled mode)'
+    'interval:Set interval (switch to interval mode)'
+  )
+
+  if (( CURRENT == 2 )); then
+    _describe 'command' commands
+    return
+  fi
+
+  local -a args
+  case ${words[2]} in
+    start)
+      args=(
+        '(--time --interval)'{--time,-t}'[Start in scheduled mode (HH:MM or duration)]:time'
+        '(--time --interval)'{--interval,-i}'[Start in interval mode]:duration'
+        '(-h --help)'{-h,--help}'[Show help message]'
+      )
+      ;;
+    schedule)
+      args=(
+        ':time: _message "schedule time (HH:MM or duration)"'
+        '(-h --help)'{-h,--help}'[Show help message]'
+      )
+      ;;
+    interval)
+      args=(
+        ':duration: _message "interval duration (e.g. 1h30m, 45m)"'
+        '(-h --help)'{-h,--help}'[Show help message]'
+      )
+      ;;
+    stop|status|continue)
+      args=(
+        '(-h --help)'{-h,--help}'[Show help message]'
+      )
+      ;;
+  esac
+
+  _arguments $args
+}
+
+_claude_quota "$@"
