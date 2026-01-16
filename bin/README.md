@@ -140,6 +140,34 @@ A curated collection of useful command-line tools and utilities for daily develo
 
 **Note**: If updates fail, verify the package names above are still correct. Package names may change over time.
 
+#### `claude-quota`
+**Purpose**: Claude quota refresh daemon - keeps Claude Code quota window active
+**Usage**:
+- `claude-quota start [--time HH:MM]` - Start daemon (default: continuous mode)
+- `claude-quota start --interval 1h30m` - Start with interval mode
+- `claude-quota stop` - Stop daemon
+- `claude-quota status` - Check status
+- `claude-quota schedule HH:MM` - Update schedule (scheduled mode)
+- `claude-quota interval 1h30m` - Set interval (interval mode)
+- `claude-quota continue` - Switch to continuous mode
+
+**Three modes**:
+1. **Continuous mode** (default): Healthcheck ping every 30 minutes at :00 and :30 marks
+2. **Scheduled mode**: Ping at specified time, then auto-schedule next ping 5h later (aligns with Claude Code's sliding window quota reset)
+3. **Interval mode**: Ping at regular intervals (e.g., every 1h30m)
+
+**Time format**: 24-hour format (HH:MM, e.g., 08:00, 20:30) or duration (e.g., 1h, 30m, 45s)
+**Duration format**: XhYmZs (e.g., 1h30m, 45m, 2h, 90s)
+
+**Examples**:
+- `claude-quota start --time 08:00` - Start with scheduled mode at 8:00 AM
+- `claude-quota start --interval 1h30m` - Start with interval mode every 1.5 hours
+- `claude-quota schedule 1h` - Schedule next ping 1 hour from now
+- `claude-quota interval 45m` - Set interval to 45 minutes
+- `claude-quota status` - Show daemon status in systemctl-style format
+
+**Details**: Daemon runs in background using minimal Haiku tokens to ping Claude Code, keeping quota window active. Uses PID file tracking and signal-based wake-up for dynamic mode changes. Logs to `~/.claude-quota/daemon.log`.
+
 ### 📁 File Management
 
 #### `catcopy`
@@ -241,7 +269,7 @@ Most scripts are self-contained and require no additional setup. Some may need:
 - **Security & Encoding** (4): bashfuck, caesar, gentoken, uriencoder
 - **Network Tools** (3): ip4to6, machineid, myip
 - **Development** (2): dart_lsp_server, git-sview
-- **AI/LLM Tools** (1): llm-update
+- **AI/LLM Tools** (2): llm-update, claude-quota
 - **File Management** (4): catcopy, mark, open, osccp
 - **Clipboard** (3): pbcopy, pbpaste, osccp
 - **Utilities** (7): num2str, num2zh, temperature, truecolor, unix, yearp
