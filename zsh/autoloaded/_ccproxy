@@ -1,0 +1,38 @@
+#compdef ccproxy
+
+_ccproxy() {
+  local -a providers
+  local providers_file="$HOME/.config/ccproxy/providers.json"
+
+  # Load providers from config file
+  if [[ -f "$providers_file" ]]; then
+    providers=(${(f)"$(command jq -r 'keys[]' "$providers_file" 2>/dev/null)"})
+  fi
+
+  local -a subcommands
+  subcommands=(list)
+
+  _arguments -C \
+    '(-h --help)'{-h,--help}'[Show help message]' \
+    '(-P --provider)'{-P,--provider}'[Provider key]:provider:->providers' \
+    '--default[Set default provider]:provider:->providers' \
+    '1: :->subcommand' \
+    '*:: :->args'
+
+  case $state in
+    providers)
+      if [[ $#providers -gt 0 ]]; then
+        _describe 'provider' providers
+      else
+        _message 'provider name'
+      fi
+      ;;
+    subcommand)
+      if [[ -n "$words[$CURRENT]" ]]; then
+        _describe 'subcommand' subcommands
+      fi
+      ;;
+  esac
+}
+
+_ccproxy "$@"

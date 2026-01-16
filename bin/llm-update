@@ -28,9 +28,8 @@ typeset -A BOX=(
 typeset -a TOOLS=(
   'claude|Claude Code CLI|pnpm add -g @anthropic-ai/claude-code@latest|pnpm'
   'codex|OpenAI Codex CLI|pnpm add -g @openai/codex@latest|pnpm'
-  'gemini|Google Gemini CLI|pnpm add -g @google/gemini-cli@latest|pnpm'
+  'gemini|Google Gemini CLI|pnpm install -g @google/gemini-cli@nightly|pnpm'
   'kimi-cli|Kimi CLI|uv tool upgrade --no-cache kimi-cli|uv'
-  'llm|LLM CLI by Simon Willison|uv tool upgrade --no-cache llm|uv'
 )
 
 # Parse tool array into associative arrays
