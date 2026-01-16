@@ -1,6 +1,6 @@
 # see https://developers.openai.com/codex/local-config#cli
 model = "gpt-5.2-codex"
-model_reasoning_effort = "medium"
+model_reasoning_effort = "high"
 model_reasoning_summary = "detailed"
 # read-only | workspace-write | danger-full-access
 sandbox_mode = "danger-full-access"

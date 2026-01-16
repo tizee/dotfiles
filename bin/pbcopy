@@ -24,7 +24,7 @@ function _pbcopy(){
         /usr/bin/pbcopy "${args[@]}"
       else
         if [[ $strip_newline -eq 1 ]]; then
-          tr -d '\n' | /usr/bin/pbcopy "${args[@]}"
+          perl -pe 'chomp if eof' | /usr/bin/pbcopy "${args[@]}"
         else
           /usr/bin/pbcopy -"${args[@]}"
         fi
@@ -34,7 +34,7 @@ function _pbcopy(){
        # xclip is avaliable in most Linux distributions
        # TODO test in Linux
        if [[ $strip_newline -eq 1 ]]; then
-         tr -d '\n' | xclip -selection clipboard
+         perl -pe 'chomp if eof' | xclip -selection clipboard
        else
          xclip -selection clipboard
        fi

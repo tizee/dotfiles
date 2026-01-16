@@ -1,7 +1,6 @@
 {
   "context": {
-    "includeDirectories": [
-    ],
+    "includeDirectories": [],
     "fileName": [
       "AGENTS.md"
     ]
@@ -21,6 +20,9 @@
   "security": {
     "auth": {
       "selectedType": "oauth-personal"
+    },
+    "folderTrust": {
+      "enabled": false
     }
   },
   "general": {
@@ -29,7 +31,10 @@
     "disableAutoUpdate": true
   },
   "ui": {
-    "hideBanner": true
+    "hideBanner": true,
+    "footer": {
+      "hideContextPercentage": false
+    }
   },
   "experimental": {
     "enableAgents": true,

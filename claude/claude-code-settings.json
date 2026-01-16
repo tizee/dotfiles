@@ -1,4 +1,5 @@
 {
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "env": {
     "API_TIMEOUT_MS": "3000000",
     "BASH_DEFAULT_TIMEOUT_MS": "300000",
@@ -12,6 +13,7 @@
     "ENABLE_TOOL_SEARCH": "true",
     "CLAUDE_CODE_DISABLE_BACKGROUND_TASKS": "true"
   },
+  "plansDirectory": ".claude/plans",
   "includeCoAuthoredBy": false,
   "permissions": {
     "allow": [
@@ -24,7 +26,6 @@
       "Bash(head:*)",
       "Bash(tail:*)",
       "TodoWrite",
-      "TodoRead",
       "mcp__nowledge-mem__memory_add",
       "mcp__nowledge-mem__thread_persist",
       "Bash(kimi:*)",
@@ -133,15 +134,15 @@
     "padding": 0
   },
   "enabledPlugins": {
-    "explanatory-output-style@claude-code-plugins": true,
-    "frontend-design@claude-code-plugins": true,
-    "learning-output-style@claude-code-plugins": true,
-    "security-guidance@claude-code-plugins": true,
+    "explanatory-output-style@claude-code-plugins": false,
+    "frontend-design@claude-code-plugins": false,
+    "learning-output-style@claude-code-plugins": false,
+    "security-guidance@claude-code-plugins": false,
     "nowledge-mem@nowledge-community": true,
     "feature-dev@claude-code-plugins": true,
     "code-simplifier@claude-plugins-official": true,
-    "ralph-loop@claude-plugins-official": true,
-    "plugin-dev@claude-plugins-official": true
+    "ralph-loop@claude-plugins-official": false,
+    "plugin-dev@claude-plugins-official": false
   },
   "alwaysThinkingEnabled": true
 }

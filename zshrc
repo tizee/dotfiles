@@ -239,3 +239,6 @@ fi
 
 # zsh profiling end
 #zprof
+
+# Added by Antigravity
+export PATH="/Users/tizee/.antigravity/antigravity/bin:$PATH"
