@@ -39,6 +39,7 @@ LOG_FILE = CONFIG_DIR / "daemon.log"
 STATE_FILE = CONFIG_DIR / "state.json"
 
 SLIDING_WINDOW_HOURS = 5  # Claude Code quota window duration
+FALLBACK_RETRY_MINUTES = 30  # Retry interval after all retries exhausted
 
 # ANSI colors
 RESET = "\033[0m"
@@ -76,15 +77,15 @@ def parse_duration(duration_str: str) -> int:
 
     # Pattern matches: optional digits+h, optional digits+m, optional digits+s
     # Each component is optional but at least one must be present
-    pattern = r'^((?P<hours>\d+)h)?((?P<minutes>\d+)m)?((?P<seconds>\d+)s)?$'
+    pattern = r"^((?P<hours>\d+)h)?((?P<minutes>\d+)m)?((?P<seconds>\d+)s)?$"
     match = re.match(pattern, duration_str)
 
     if not match:
         raise ValueError(f"Invalid duration format: {duration_str}")
 
-    hours = int(match.group('hours') or 0)
-    minutes = int(match.group('minutes') or 0)
-    seconds = int(match.group('seconds') or 0)
+    hours = int(match.group("hours") or 0)
+    minutes = int(match.group("minutes") or 0)
+    seconds = int(match.group("seconds") or 0)
 
     if hours == 0 and minutes == 0 and seconds == 0:
         raise ValueError(f"Duration must be > 0: {duration_str}")
@@ -106,16 +107,14 @@ def format_duration(seconds: int) -> str:
         parts.append(f"{minutes}m")
     if secs > 0 or not parts:
         parts.append(f"{secs}s")
-    return ''.join(parts)
+    return "".join(parts)
 
 
 def check_claude_available() -> bool:
     """Check if Claude CLI is available and working."""
     try:
         result = subprocess.run(
-            ["claude", "--version"],
-            capture_output=True,
-            timeout=10
+            ["claude", "--version"], capture_output=True, timeout=10
         )
         return result.returncode == 0
     except Exception:
@@ -126,6 +125,7 @@ def get_state() -> dict:
     """Load daemon state."""
     if STATE_FILE.exists():
         import json
+
         with open(STATE_FILE) as f:
             return json.load(f)
     return {"mode": "continuous"}  # Default: every 30 minutes
@@ -135,6 +135,7 @@ def save_state(state: dict):
     """Save daemon state."""
     CONFIG_DIR.mkdir(parents=True, exist_ok=True)
     import json
+
     with open(STATE_FILE, "w") as f:
         json.dump(state, f)
 
@@ -146,15 +147,20 @@ def ping_claude() -> bool:
         result = subprocess.run(
             [
                 "claude",
-                "--model", "haiku",
-                "--system-prompt", "ok",
-                "--tools", "",
+                "--model",
+                "haiku",
+                "--system-prompt",
+                "Reply pong",
+                "--tools",
+                "",
                 "--no-session-persistence",
-                "--permission-mode", "bypassPermissions",
-                "-p", "hi"
+                "--permission-mode",
+                "bypassPermissions",
+                "-p",
+                "ping",
             ],
             capture_output=True,
-            timeout=30
+            timeout=30,
         )
         if result.returncode == 0:
             log("Ping successful! Quota window triggered.")
@@ -167,8 +173,8 @@ def ping_claude() -> bool:
         return False
 
 
-def wait_for_next_slot(state: dict, state_mtime: float) -> tuple:
-    """Calculate wait time until next ping slot. Returns (next_time_str, new_state_mtime)."""
+def wait_for_next_slot(state: dict) -> str:
+    """Calculate wait time until next ping slot. Returns next_time_str."""
     while True:
         now = datetime.now()
         mode = state.get("mode", "continuous")
@@ -207,7 +213,9 @@ def wait_for_next_slot(state: dict, state_mtime: float) -> tuple:
             log(f"Next ping in {next_time_str}")
         else:
             next_time_str = target.strftime("%H:%M:%S")
-            log(f"Next ping at {target.strftime('%Y-%m-%d %H:%M:%S')} (in {wait_seconds:.0f}s)")
+            log(
+                f"Next ping at {target.strftime('%Y-%m-%d %H:%M:%S')} (in {wait_seconds:.0f}s)"
+            )
 
         # Wait until target time or signal
         WAKEUP_EVENT.clear()
@@ -216,20 +224,20 @@ def wait_for_next_slot(state: dict, state_mtime: float) -> tuple:
         if signaled:
             log("Wake-up signal received, reloading state...")
             state = get_state()
-            if STATE_FILE.exists():
-                state_mtime = STATE_FILE.stat().st_mtime
-            
+
             mode = state.get("mode", "continuous")
             if mode == "scheduled":
-                log(f"Mode changed to: scheduled at {state.get('scheduled_time', 'N/A')}")
+                log(
+                    f"Mode changed to: scheduled at {state.get('scheduled_time', 'N/A')}"
+                )
             elif mode == "interval":
-                interval_str = format_duration(state.get('interval_seconds', 1800))
+                interval_str = format_duration(state.get("interval_seconds", 1800))
                 log(f"Mode changed to: interval every {interval_str}")
             else:
                 log("Mode changed to: continuous")
             continue  # Recalculate with new state
 
-        return next_time_str, state_mtime
+        return next_time_str
 
 
 def update_next_scheduled_time(state: dict):
@@ -240,16 +248,18 @@ def update_next_scheduled_time(state: dict):
         h = parts[0]
         m = parts[1]
         s = parts[2] if len(parts) > 2 else 0
-        
+
         # Base next time on the scheduled time that just triggered
         base_time = datetime.now().replace(hour=h, minute=m, second=s, microsecond=0)
         if base_time > datetime.now():
             base_time -= timedelta(days=1)
-            
+
         next_time = base_time + timedelta(hours=SLIDING_WINDOW_HOURS)
         state["scheduled_time"] = next_time.strftime("%H:%M:%S")
         save_state(state)
-        log(f"Next scheduled time updated to {state['scheduled_time']} (+{SLIDING_WINDOW_HOURS}h)")
+        log(
+            f"Next scheduled time updated to {state['scheduled_time']} (+{SLIDING_WINDOW_HOURS}h)"
+        )
 
 
 def daemon_loop():
@@ -260,41 +270,59 @@ def daemon_loop():
     signal.signal(signal.SIGUSR1, lambda sig, frame: WAKEUP_EVENT.set())
 
     state = get_state()
-    # Get initial state file modification time
-    state_mtime = 0
-    if STATE_FILE.exists():
-        state_mtime = STATE_FILE.stat().st_mtime
-
     mode = state.get("mode", "continuous")
     if mode == "scheduled":
         log(f"Mode: scheduled at {state.get('scheduled_time', 'N/A')}")
     elif mode == "interval":
-        interval_str = format_duration(state.get('interval_seconds', 1800))
+        interval_str = format_duration(state.get("interval_seconds", 1800))
         log(f"Mode: interval every {interval_str}")
     else:
         log("Mode: continuous (every 30 min)")
 
     while True:
-        next_time, state_mtime = wait_for_next_slot(state, state_mtime)
+        # Check if we're in fallback retry mode (previous attempts all failed)
+        in_fallback = state.get("fallback_retry", False)
+
+        if in_fallback:
+            # Fallback mode: wait shorter interval before retrying
+            fallback_seconds = FALLBACK_RETRY_MINUTES * 60
+            log(f"Fallback mode: retrying in {FALLBACK_RETRY_MINUTES}m...")
+            WAKEUP_EVENT.clear()
+            WAKEUP_EVENT.wait(timeout=fallback_seconds)
+        else:
+            # Normal mode: wait for next scheduled slot
+            wait_for_next_slot(state)
+
         # Reload state after wait
         state = get_state()
 
         # Retry logic for rate limiting
         max_retries = 12
         retry_interval = 300  # 5 minutes
+        success = False
 
         for i in range(1, max_retries + 1):
             if ping_claude():
+                success = True
                 break
             if i < max_retries:
                 log(f"Retry {i}/{max_retries} in {retry_interval}s...")
                 time.sleep(retry_interval)
 
-        # Update next scheduled time for scheduled mode
-        update_next_scheduled_time(state)
-        # Update state_mtime because we just modified the state file
-        if STATE_FILE.exists():
-            state_mtime = STATE_FILE.stat().st_mtime
+        if success:
+            # Clear fallback mode and update to next +5h slot
+            if state.get("fallback_retry"):
+                log("Recovered from fallback mode")
+                state.pop("fallback_retry", None)
+                save_state(state)
+            update_next_scheduled_time(state)
+        else:
+            # All retries failed - enter fallback mode, don't skip to +5h
+            log(
+                f"WARNING: All {max_retries} retries failed! Entering fallback mode (retry every {FALLBACK_RETRY_MINUTES}m)"
+            )
+            state["fallback_retry"] = True
+            save_state(state)
 
 
 def start_daemon():
@@ -302,8 +330,8 @@ def start_daemon():
     # Check if Claude CLI is available
     if not check_claude_available():
         print(f"● {RED}error{RESET} - claude CLI not found or not working")
-        print(f"   Please install Claude Code CLI first:")
-        print(f"   https://code.anthropic.com/docs")
+        print("   Please install Claude Code CLI first:")
+        print("   https://code.anthropic.com/docs")
         sys.exit(1)
 
     if PID_FILE.exists():
@@ -362,7 +390,7 @@ def show_status():
     """Show daemon status in systemctl-style format."""
     if not PID_FILE.exists():
         print(f"● {RED}inactive{RESET} (dead)")
-        print(f"   Loaded: not running")
+        print("   Loaded: not running")
         return
 
     pid = int(PID_FILE.read_text())
@@ -383,6 +411,12 @@ def show_status():
             print(f"   {BOLD}Mode:{RESET} interval every {CYAN}{interval_str}{RESET}")
         else:
             print(f"   {BOLD}Mode:{RESET} continuous (every 30 min at :00/:30)")
+
+        # Show fallback status if active
+        if state.get("fallback_retry"):
+            print(
+                f"   {BOLD}Status:{RESET} {YELLOW}FALLBACK{RESET} (retrying every {FALLBACK_RETRY_MINUTES}m until success)"
+            )
 
         print(f"   {BOLD}Log:{RESET} {LOG_FILE}")
         print(f"   {BOLD}State:{RESET} {STATE_FILE}")
@@ -419,7 +453,7 @@ def _change_mode(new_mode: str, new_mode_display: str, state_updater: callable):
     old_mode_info = _format_mode_info(state)
     state_updater(state)
     save_state(state)
-    
+
     # Signal daemon to wake up if it's running
     if PID_FILE.exists():
         try:
@@ -440,7 +474,7 @@ def resolve_scheduled_time(input_str: str) -> str:
             return dt.strftime("%H:%M:%S")
         except ValueError:
             continue
-    
+
     try:
         seconds = parse_duration(input_str)
         target_dt = datetime.now() + timedelta(seconds=seconds)
@@ -459,18 +493,25 @@ def schedule_time(time_str: str):
         state["mode"] = "scheduled"
         state["scheduled_time"] = target_time
 
-    _change_mode("scheduled", f"{CYAN}scheduled at {target_time}{RESET} (auto +5h)", update_state)
+    _change_mode(
+        "scheduled", f"{CYAN}scheduled at {target_time}{RESET} (auto +5h)", update_state
+    )
     # If daemon is running, it will pick up the change on next loop
 
 
 def continue_mode():
     """Switch to continuous mode (every 30 minutes)."""
+
     def update_state(state):
         state["mode"] = "continuous"
         state.pop("scheduled_time", None)
         state.pop("interval_seconds", None)
 
-    _change_mode("continuous", f"{GREEN}continuous{RESET} (every 30 min at :00/:30)", update_state)
+    _change_mode(
+        "continuous",
+        f"{GREEN}continuous{RESET} (every 30 min at :00/:30)",
+        update_state,
+    )
     # If daemon is running, it will pick up the change on next loop
 
 
@@ -480,7 +521,7 @@ def interval_mode(duration_str: str):
         interval_seconds = parse_duration(duration_str)
     except ValueError as e:
         print(f"Invalid duration format: {e}")
-        print(f"Expected format: 1h30m, 45m, 90s, etc.")
+        print("Expected format: 1h30m, 45m, 90s, etc.")
         sys.exit(1)
 
     interval_display = format_duration(interval_seconds)
@@ -490,7 +531,9 @@ def interval_mode(duration_str: str):
         state["interval_seconds"] = interval_seconds
         state.pop("scheduled_time", None)
 
-    _change_mode("interval", f"{CYAN}interval every {interval_display}{RESET}", update_state)
+    _change_mode(
+        "interval", f"{CYAN}interval every {interval_display}{RESET}", update_state
+    )
     # If daemon is running, it will pick up the change on next loop
 
 
@@ -506,42 +549,52 @@ Duration format (for interval):
     parser = argparse.ArgumentParser(
         description="Claude quota refresh daemon - keeps quota window active",
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog=f"{format_info}\nExamples:\n  ./claude-quota start --time 08:00\n  ./claude-quota schedule 1h30m\n  ./claude-quota interval 45m\n  ./claude-quota status"
+        epilog=f"{format_info}\nExamples:\n  ./claude-quota start --time 08:00\n  ./claude-quota schedule 1h30m\n  ./claude-quota interval 45m\n  ./claude-quota status",
     )
     subparsers = parser.add_subparsers(dest="command", help="Command")
 
     # Start command
     start_parser = subparsers.add_parser(
-        "start", 
+        "start",
         help="Start daemon",
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog=format_info
+        epilog=format_info,
     )
-    start_parser.add_argument("--time", metavar="TIME",
-                             help="Start in scheduled mode (HH:MM or duration, e.g., 1h)")
-    start_parser.add_argument("--interval", metavar="DURATION",
-                             help="Start in interval mode, e.g., 1h30m, 45m, 90s")
+    start_parser.add_argument(
+        "--time",
+        metavar="TIME",
+        help="Start in scheduled mode (HH:MM or duration, e.g., 1h)",
+    )
+    start_parser.add_argument(
+        "--interval",
+        metavar="DURATION",
+        help="Start in interval mode, e.g., 1h30m, 45m, 90s",
+    )
 
     # Other commands
     subparsers.add_parser("stop", help="Stop daemon")
     subparsers.add_parser("status", help="Show status")
     subparsers.add_parser("continue", help="Switch to continuous mode")
-    
+
     schedule_parser = subparsers.add_parser(
-        "schedule", 
+        "schedule",
         help="Update schedule (switch to scheduled mode)",
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog=format_info
+        epilog=format_info,
     )
-    schedule_parser.add_argument("time", metavar="TIME", help="Schedule time (HH:MM or duration, e.g., 1h)")
-    
+    schedule_parser.add_argument(
+        "time", metavar="TIME", help="Schedule time (HH:MM or duration, e.g., 1h)"
+    )
+
     interval_parser = subparsers.add_parser(
-        "interval", 
+        "interval",
         help="Set interval (switch to interval mode)",
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog=format_info
+        epilog=format_info,
     )
-    interval_parser.add_argument("duration", metavar="DURATION", help="Interval duration (e.g., 1h30m, 45m)")
+    interval_parser.add_argument(
+        "duration", metavar="DURATION", help="Interval duration (e.g., 1h30m, 45m)"
+    )
 
     args = parser.parse_args()
 

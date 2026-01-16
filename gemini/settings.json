@@ -28,7 +28,11 @@
   "general": {
     "previewFeatures": true,
     "vimMode": true,
-    "disableAutoUpdate": true
+    "disableAutoUpdate": true,
+    "preferredEditor": "neovim",
+    "checkpointing": {
+      "enabled": true
+    }
   },
   "ui": {
     "hideBanner": true,
@@ -39,5 +43,8 @@
   "experimental": {
     "enableAgents": true,
     "skills": true
+  },
+  "model": {
+    "name": "gemini-3-pro-preview"
   }
 }
