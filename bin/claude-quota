@@ -440,6 +440,19 @@ def _format_mode_info(state: dict) -> str:
         return f"{YELLOW}continuous{RESET}"
 
 
+def _is_daemon_running() -> tuple[bool, int | None]:
+    """Check if daemon is running. Returns (is_running, pid)."""
+    if not PID_FILE.exists():
+        return False, None
+    try:
+        pid = int(PID_FILE.read_text())
+        os.kill(pid, 0)  # Check if process exists
+        return True, pid
+    except (ValueError, OSError):
+        PID_FILE.unlink(missing_ok=True)
+        return False, None
+
+
 def _change_mode(new_mode: str, new_mode_display: str, state_updater: callable):
     """Common logic for changing daemon mode.
 
@@ -454,16 +467,21 @@ def _change_mode(new_mode: str, new_mode_display: str, state_updater: callable):
     state_updater(state)
     save_state(state)
 
-    # Signal daemon to wake up if it's running
-    if PID_FILE.exists():
-        try:
-            pid = int(PID_FILE.read_text())
-            os.kill(pid, signal.SIGUSR1)
-        except (ValueError, ProcessLookupError, PermissionError):
-            pass
+    running, pid = _is_daemon_running()
 
-    log(f"Mode changed: {old_mode} -> {new_mode}")
-    print(f"● Mode changed: {old_mode_info} {RESET}-> {new_mode_display}")
+    if running:
+        # Signal daemon to wake up
+        try:
+            os.kill(pid, signal.SIGUSR1)
+        except (ProcessLookupError, PermissionError):
+            pass
+        log(f"Mode changed: {old_mode} -> {new_mode}")
+        print(f"● Mode changed: {old_mode_info} {RESET}-> {new_mode_display}")
+    else:
+        # Auto-start daemon if not running
+        log(f"Mode set: {new_mode}, starting daemon...")
+        print(f"● Mode set: {new_mode_display}")
+        start_daemon()
 
 
 def resolve_scheduled_time(input_str: str) -> str:
@@ -496,7 +514,6 @@ def schedule_time(time_str: str):
     _change_mode(
         "scheduled", f"{CYAN}scheduled at {target_time}{RESET} (auto +5h)", update_state
     )
-    # If daemon is running, it will pick up the change on next loop
 
 
 def continue_mode():
@@ -512,7 +529,6 @@ def continue_mode():
         f"{GREEN}continuous{RESET} (every 30 min at :00/:30)",
         update_state,
     )
-    # If daemon is running, it will pick up the change on next loop
 
 
 def interval_mode(duration_str: str):
@@ -534,7 +550,6 @@ def interval_mode(duration_str: str):
     _change_mode(
         "interval", f"{CYAN}interval every {interval_display}{RESET}", update_state
     )
-    # If daemon is running, it will pick up the change on next loop
 
 
 def main():
