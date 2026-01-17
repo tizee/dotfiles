@@ -68,6 +68,20 @@
 |------|-------|----------|--------|--------|
 |      |       |          |        |        |
 
+## TDD Cycles
+<!--
+  WHAT: Track Test-Driven Development loops: RED → GREEN → REFACTOR
+  WHY: Documents the TDD process, ensuring tests drive development.
+  WHEN: Update during TDD workflow for feature development.
+  EXAMPLE:
+    | add(x, y) returns sum | Green | Passed first attempt |
+    | add handles null inputs | Green | Added null check |
+    | add validates types | Red | Need to add type validation |
+-->
+| Behavior | Status | Notes |
+|----------|--------|-------|
+|          |        |       |
+
 ## Error Log
 <!-- 
   WHAT: Detailed log of every error encountered, with timestamps and resolution attempts.

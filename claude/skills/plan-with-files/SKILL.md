@@ -198,6 +198,37 @@ Helper scripts for automation:
 - **Manus Principles:** See [reference.md](reference.md)
 - **Real Examples:** See [examples.md](examples.md)
 
+## TDD for Feature Development
+
+When developing a new feature, follow Test-Driven Development:
+
+```
+RED → GREEN → REFACTOR → REPEAT
+```
+
+### The TDD Loop
+
+1. **RED** — Write a failing test for the behavior you want
+2. **GREEN** — Write minimal code to make the test pass
+3. **REFACTOR** — Clean up the code while keeping tests green
+4. **REPEAT** — Move to the next behavior
+
+### Test-First Rule
+
+Before writing implementation code, ensure:
+- Test is written and failing
+- Test describes behavior, not implementation
+- Test is isolated (no external dependencies)
+
+### When to Apply TDD
+
+| Use TDD For | Skip TDD For |
+|-------------|--------------|
+| Business logic | Configuration files |
+| Algorithms | Pure data structures (DTOs) |
+| API contracts | Exploratory spikes |
+| Stateful components | One-off scripts |
+
 ## Anti-Patterns
 
 | Don't | Do Instead |
