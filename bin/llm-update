@@ -1,5 +1,6 @@
 #!/usr/bin/env zsh
 setopt ERR_EXIT PIPE_FAIL
+unsetopt XTRACE VERBOSE
 
 # Interactive TUI upgrader for AI CLI tools
 # Colors and formatting
@@ -24,22 +25,24 @@ typeset -A BOX=(
   arrow '→' spin '⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
 )
 
-# Tool definitions
+# Tool definitions: name|desc|cmd|dep|package|tag
 typeset -a TOOLS=(
-  'claude|Claude Code CLI|pnpm add -g @anthropic-ai/claude-code@latest|pnpm'
-  'codex|OpenAI Codex CLI|pnpm add -g @openai/codex@latest|pnpm'
-  'gemini|Google Gemini CLI|pnpm install -g @google/gemini-cli@nightly|pnpm'
-  'kimi-cli|Kimi CLI|uv tool upgrade --no-cache kimi-cli|uv'
+  'claude|Claude Code CLI|pnpm install -g @anthropic-ai/claude-code@latest|pnpm|@anthropic-ai/claude-code|latest'
+  'codex|OpenAI Codex CLI|pnpm install -g @openai/codex@latest|pnpm|@openai/codex|latest'
+  'gemini|Google Gemini CLI|pnpm install -g @google/gemini-cli@nightly|pnpm|@google/gemini-cli|nightly'
+  'kimi-cli|Kimi CLI|uv tool upgrade --no-cache kimi-cli|uv|kimi-cli|'
 )
 
 # Parse tool array into associative arrays
-typeset -A TOOL_NAME TOOL_DESC TOOL_CMD TOOL_DEP
+typeset -A TOOL_NAME TOOL_DESC TOOL_CMD TOOL_DEP TOOL_PKG TOOL_TAG
 for i in {1..$#TOOLS}; do
-  IFS='|' read -r name desc cmd dep <<< "${TOOLS[$i]}"
+  IFS='|' read -r name desc cmd dep pkg tag <<< "${TOOLS[$i]}"
   TOOL_NAME[$i]="$name"
   TOOL_DESC[$i]="$desc"
   TOOL_CMD[$i]="$cmd"
   TOOL_DEP[$i]="$dep"
+  TOOL_PKG[$i]="$pkg"
+  TOOL_TAG[$i]="$tag"
 done
 
 # Utility functions
@@ -105,6 +108,63 @@ check_dependency() {
   command -v "$dep" &>/dev/null
 }
 
+# Get current installed version of a package
+get_current_version() {
+  local idx="$1"
+  local name="${TOOL_NAME[$idx]}"
+  local dep="${TOOL_DEP[$idx]}"
+  local pkg="${TOOL_PKG[$idx]}"
+
+  # Check if dependency is available first
+  if ! check_dependency "$dep"; then
+    return 1
+  fi
+
+  if [[ "$dep" == "pnpm" ]]; then
+    # Use pnpm to get installed version
+    # Output format: "package-name version"
+    pnpm list -g "$pkg" --depth=0 2>/dev/null | awk -v pkg="$pkg" '$1 == pkg {print $2}'
+  elif [[ "$dep" == "uv" ]]; then
+    # Use uv tool list
+    uv tool list 2>/dev/null | awk -v pkg="$pkg" '$1 == pkg {print $2}'
+  fi
+}
+
+# Get latest available version from registry
+get_latest_version() {
+  local idx="$1"
+  local dep="${TOOL_DEP[$idx]}"
+  local pkg="${TOOL_PKG[$idx]}"
+  local tag="${TOOL_TAG[$idx]}"
+
+  if [[ "$dep" == "pnpm" ]]; then
+    # Use pnpm to view version with tag
+    local target="${pkg}"
+    [[ -n "$tag" ]] && target="${pkg}@${tag}"
+    pnpm view "$target" version 2>/dev/null
+  elif [[ "$dep" == "uv" ]]; then
+    # For uv/PyPI packages, use pip index API
+    local url="https://pypi.org/pypi/${pkg}/json"
+    curl -s "$url" | jq -r '.info.version' 2>/dev/null
+  fi
+}
+
+# Compare versions and return status indicator
+get_version_status() {
+  local current="$1"
+  local latest="$2"
+
+  if [[ -z "$current" ]]; then
+    echo "not_installed"
+  elif [[ -z "$latest" ]]; then
+    echo "unknown"
+  elif [[ "$current" == "$latest" ]]; then
+    echo "current"
+  else
+    echo "update_available"
+  fi
+}
+
 print_header() {
   clear
   local width=$(tput cols)
@@ -124,16 +184,44 @@ print_menu() {
     local desc="${TOOL_DESC[$i]}"
     local dep="${TOOL_DEP[$i]}"
 
-    # Check if dependency is available
-    local status_icon="${COLOR[green]}${BOX[check]}${COLOR[reset]}"
+    # Get version info
+    local current_ver=$(get_current_version "$i")
+    local latest_ver=$(get_latest_version "$i")
+    local ver_status=$(get_version_status "$current_ver" "$latest_ver")
+
+    # Determine status icon and colors
+    local status_icon=""
     local status_text=""
+    local version_text=""
+
+    case "$ver_status" in
+      not_installed)
+        status_icon="${COLOR[yellow]}!${COLOR[reset]}"
+        version_text=" ${COLOR[dim]}(not installed)${COLOR[reset]}"
+        ;;
+      unknown)
+        status_icon="${COLOR[yellow]}?${COLOR[reset]}"
+        version_text=" ${COLOR[dim]}(ver: ${current_ver})${COLOR[reset]}"
+        ;;
+      current)
+        status_icon="${COLOR[green]}${BOX[check]}${COLOR[reset]}"
+        version_text=" ${COLOR[green]}${current_ver}${COLOR[reset]} ${COLOR[dim]}(latest: ${latest_ver})${COLOR[reset]}"
+        ;;
+      update_available)
+        status_icon="${COLOR[yellow]}${BOX[arrow]}${COLOR[reset]}"
+        version_text=" ${COLOR[yellow]}${current_ver}${COLOR[reset]} ${COLOR[dim]}->${COLOR[reset]} ${COLOR[green]}${latest_ver}${COLOR[reset]}"
+        ;;
+    esac
+
+    # Check if dependency is available (overrides version status)
     if ! check_dependency "$dep"; then
-      status_icon="${COLOR[yellow]}!${COLOR[reset]}"
+      status_icon="${COLOR[red]}!${COLOR[reset]}"
       status_text=" ${COLOR[dim]}(${dep} not found)${COLOR[reset]}"
+      version_text=""
     fi
 
-    printf "  ${COLOR[bold]}%d)${COLOR[reset]} %s %-15s ${COLOR[gray]}%s${COLOR[reset]}%s\n" \
-      "$i" "$status_icon" "$name" "$desc" "$status_text"
+    printf "  ${COLOR[bold]}%d)${COLOR[reset]} %s %-12s ${COLOR[gray]}%-20s${COLOR[reset]}%s%s\n" \
+      "$i" "$status_icon" "$name" "$desc" "$version_text" "$status_text"
   done
 
   echo
