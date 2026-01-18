@@ -20,19 +20,15 @@ from pathlib import Path
 
 
 def run_claude(claude_args: list, env: dict) -> None:
-    """Run claude as a subprocess, waiting for it to complete like shell scripts do."""
-    # Run claude in same process group so signals (Ctrl-C, Ctrl-Z) work correctly
-    proc = subprocess.Popen(
-        ["claude"] + claude_args,
-        env=env,
-        # Use parent's stdin/stdout/stderr directly (no pipes)
-        stdin=None,
-        stdout=None,
-        stderr=None,
-    )
-    # Wait for claude to exit, then this script will exit too
-    proc.wait()
-    sys.exit(proc.returncode)
+    """Run claude, replacing the current process (exec)."""
+    # Use execvpe to replace the python process with claude.
+    # This ensures signals (Ctrl-C, SIGWINCH), TTY control, and I/O
+    # are handled directly by claude without python interfering.
+    try:
+        os.execvpe("claude", ["claude"] + claude_args, env)
+    except OSError as e:
+        print(f"Error executing claude: {e}", file=sys.stderr)
+        sys.exit(1)
 
 
 # Default paths
