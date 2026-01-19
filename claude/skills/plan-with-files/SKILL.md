@@ -229,6 +229,82 @@ Before writing implementation code, ensure:
 | API contracts | Exploratory spikes |
 | Stateful components | One-off scripts |
 
+## Architecture Decision Making
+
+When facing multiple valid approaches to a problem, **ALWAYS present options to the user before proceeding**. Never assume the "recommended" option is what the user wants.
+
+### Decision Template
+
+```markdown
+## Solution Design
+
+### Option A: [Short Name]
+
+[Description of the approach]
+
+**Implementation:**
+1. Step 1
+2. Step 2
+3. Step 3
+
+**Pros:**
+- Pro 1
+- Pro 2
+
+**Cons:**
+- Con 1
+- Con 2
+
+### Option B: [Short Name]
+
+[Description of the approach]
+
+**Implementation:**
+1. Step 1
+2. Step 2
+3. Step 3
+
+**Pros:**
+- Pro 1
+- Pro 2
+
+**Cons:**
+- Con 1
+- Con 2
+
+### Option C: [Short Name]
+
+[Description of the approach]
+
+**Implementation:**
+1. Step 1
+2. Step 2
+3. Step 3
+
+**Pros:**
+- Pro 1
+- Pro 2
+
+**Cons:**
+- Con 1
+- Con 2
+```
+
+### Critical Rule
+
+- **Ask user before choosing**: Present ALL viable options, let the user decide
+- **Don't pre-select**: Even if you think one option is "better", the user's context matters
+- **Document the decision**: Once user chooses, write the decision rationale to `.plans/<feature>-yymmdd/findings.md`
+
+### Why This Matters
+
+| Issue | Example | Resolution |
+|-------|---------|------------|
+| User has different priorities | Simplicity vs performance | Ask which they value |
+| Future constraints unknown | Quick hack vs proper architecture | User knows their timeline |
+| Integration requirements | Internal API vs external service | User knows ecosystem |
+| Maintenance considerations | One-off script vs reusable module | User knows project scope |
+
 ## Anti-Patterns
 
 | Don't | Do Instead |
@@ -240,3 +316,4 @@ Before writing implementation code, ensure:
 | Start executing immediately | Create .plans/<feature>-yymmdd/ directory FIRST |
 | Repeat failed actions | Track attempts, mutate approach |
 | Create files in skill directory | Create .plans/<feature>-yymmdd/ in your project |
+| Choose architecture without asking | Present options, let user decide |
