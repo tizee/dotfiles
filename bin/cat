@@ -1,0 +1,229 @@
+#!/usr/bin/env python3
+"""
+cat - GNU Coreutils Compatible cat command
+A wrapper for macOS/BSD cat adding missing -A option.
+
+-A option is equivalent to -vET:
+  -v: show non-printing characters (except LFD and TAB)
+  -E: display $ at end of each line
+  -T: display TAB as ^I
+"""
+
+import argparse
+import os
+import sys
+
+
+def show_all(content: str) -> str:
+    """Apply -A transformation: TAB -> ^I, line ending -> $"""
+    lines = content.splitlines(keepends=True)
+    result = []
+    for line in lines:
+        line = line.replace('\t', '^I')
+        if line.endswith('\n'):
+            line = line[:-1] + '$\n'
+        elif line.endswith('\r\n'):
+            line = line[:-2] + '$\r\n'
+        elif line:
+            line = line + '$'
+        result.append(line)
+    return ''.join(result)
+
+
+def parse_args() -> argparse.Namespace:
+    """Parse command line arguments."""
+    parser = argparse.ArgumentParser(
+        prog="cat",
+        description="Concatenate and print files.",
+        add_help=False,
+    )
+
+    parser.add_argument(
+        "-A",
+        "--show-all",
+        action="store_true",
+        help="equivalent to -vET"
+    )
+    parser.add_argument(
+        "-b",
+        "--number-nonblank",
+        action="store_true",
+        help="number nonempty output lines, overrides -n"
+    )
+    parser.add_argument(
+        "-e",
+        action="store_true",
+        help="equivalent to -vE"
+    )
+    parser.add_argument(
+        "-E",
+        "--show-ends",
+        action="store_true",
+        help="display $ at end of each line"
+    )
+    parser.add_argument(
+        "-n",
+        "--number",
+        action="store_true",
+        help="number all output lines"
+    )
+    parser.add_argument(
+        "-s",
+        "--squeeze-blank",
+        action="store_true",
+        help="suppress repeated empty output lines"
+    )
+    parser.add_argument(
+        "-t",
+        action="store_true",
+        help="equivalent to -vT"
+    )
+    parser.add_argument(
+        "-T",
+        "--show-tabs",
+        action="store_true",
+        help="display TAB characters as ^I"
+    )
+    parser.add_argument(
+        "-u",
+        action="store_true",
+        help="(ignored)"
+    )
+    parser.add_argument(
+        "-v",
+        "--show-nonprinting",
+        action="store_true",
+        help="use ^ and M- notation, except for LFD and TAB"
+    )
+    parser.add_argument(
+        "--help",
+        action="store_true",
+        help="display this help and exit",
+    )
+    parser.add_argument(
+        "--version",
+        action="store_true",
+        help="output version information and exit",
+    )
+
+    args, files = parser.parse_known_args()
+    args.files = files
+    return args
+
+
+def show_help() -> None:
+    """Display comprehensive help message."""
+    print("""Usage: cat [OPTION]... [FILE]...
+Concatenate FILE(s) to standard output.
+
+With no FILE, or when FILE is -, read standard input.
+
+Options:
+  -A, --show-all       equivalent to -vET
+  -b, --number-nonblank  number nonempty output lines, overrides -n
+  -e                   equivalent to -vE
+  -E, --show-ends      display $ at end of each line
+  -n, --number         number all output lines
+  -s, --squeeze-blank  suppress repeated empty output lines
+  -t                   equivalent to -vT
+  -T, --show-tabs      display TAB characters as ^I
+  -u                   (ignored)
+  -v, --show-nonprinting  use ^ and M- notation, except for LFD and TAB
+      --help           display this help and exit
+      --version        output version information and exit
+
+Examples:
+  cat f - g  Output f's contents, then stdin, then g's contents.
+  cat        Copy standard input to standard output.
+  cat -A file    Show all non-printing characters in file.
+
+This wrapper adds -A support for macOS. Other options are passed to system cat.""")
+
+
+def run_with_native_cat(args: argparse.Namespace) -> int:
+    """Run with system cat for options we don't handle."""
+    cmd = ["/bin/cat"]
+
+    # Build native cat args (only pass supported options)
+    for opt, attr in [
+        ("-b", "number_nonblank"),
+        ("-n", "number"),
+        ("-s", "squeeze_blank"),
+    ]:
+        if getattr(args, attr, False):
+            cmd.append(opt)
+
+    cmd.extend(args.files)
+
+    try:
+        # Use exec to replace current process (like timeout does)
+        os.execvp("/bin/cat", cmd)
+    except OSError as e:
+        print(f"cat: {e}", file=sys.stderr)
+        return 1
+
+
+def run_with_python(args: argparse.Namespace) -> int:
+    """Run using Python implementation for -A option."""
+    sources = args.files if args.files else ["-"]
+
+    for filepath in sources:
+        try:
+            if filepath == "-":
+                content = sys.stdin.read()
+            else:
+                with open(filepath, "r") as f:
+                    content = f.read()
+
+            if args.show_all or args.show_tabs:
+                content = content.replace("\t", "^I")
+
+            if args.show_all or args.show_ends:
+                lines = content.splitlines(keepends=True)
+                result = []
+                for line in lines:
+                    if line.endswith("\n"):
+                        line = line[:-1] + "$\n"
+                    elif line.endswith("\r\n"):
+                        line = line[:-2] + "$\r\n"
+                    elif line:
+                        line = line + "$"
+                    result.append(line)
+                content = "".join(result)
+
+            sys.stdout.write(content)
+        except OSError as e:
+            print(f"cat: {filepath}: {e}", file=sys.stderr)
+            return 1
+
+    return 0
+
+
+def main() -> None:
+    """Main entry point."""
+    args = parse_args()
+
+    if args.help:
+        show_help()
+        return
+
+    if args.version:
+        print("cat (Python wrapper) 0.1.0")
+        print("Adds -A support for macOS. Passes through to system cat otherwise.")
+        return
+
+    # Check if we need Python implementation
+    uses_python_option = args.show_all or args.show_tabs or args.show_ends
+
+    if uses_python_option:
+        sys.exit(run_with_python(args))
+    else:
+        sys.exit(run_with_native_cat(args))
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except Exception as e:
+        print(f"cat: {e}", file=sys.stderr)
+        sys.exit(1)
