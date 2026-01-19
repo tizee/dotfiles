@@ -6,3 +6,21 @@
   extra_body:
     thinking:
       type: "disabled"
+- model_id: glm-4.7-thinking
+  model_name: glm-4.7
+  api_base: "https://open.bigmodel.cn/api/paas/v4/"
+  can_stream: true
+  api_key_name: zhipu
+  extra_body:
+    thinking:
+      type: "enabled"
+- model_id: ark-code
+  model_name: ark-code-latest
+  api_base: "https://ark.cn-beijing.volces.com/api/coding/v3/"
+  can_stream: true
+  api_key_name: doubao
+  extra_body:
+    thinking:
+      type: "enabled"
+    reasoning:
+      effort: "high"

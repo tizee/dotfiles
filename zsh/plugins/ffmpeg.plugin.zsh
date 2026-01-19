@@ -4,94 +4,198 @@
 (( ${+_FFMPEG_PLUGIN_LOADED} )) && return
 typeset -g _FFMPEG_PLUGIN_LOADED=1
 
-get_simple_audio() {
-    # Check if required arguments are provided
-  if [ $# -lt 2 ]; then
-    echo "Usage: $0 <input_file> <output_name>"
-    exit 1
-  fi
+# ============================================================================
+# Constants
+# ============================================================================
 
-  # Check if input file exists
-  if [ ! -f "$1" ]; then
-    echo "Error: Input file '$1' not found"
-    exit 1
-  fi
+typeset -r FFMPEG_DEFAULT_PRESET='medium'
+typeset -r FFMPEG_DEFAULT_CRF=18
+typeset -r FFMPEG_DEFAULT_AUDIO_RATE=16000
+typeset -r FFMPEG_DEFAULT_AUDIO_CHANNELS=1
 
-  # Create output directory if it doesn't exist
-  output_dir=$(dirname "$2")
-  if [ "$output_dir" != "." ] && [ ! -d "$output_dir" ]; then
-    mkdir -p "$output_dir"
-  fi
+# ============================================================================
+# Helper Functions
+# ============================================================================
 
-  # Use ffmpeg with error handling
-  ffmpeg -v error \
-    -i "$1" \
-    -ar 16000 \
-    -ac 1 \
-    -map 0:a \
-    -c:a mp3 \
-    "${2}.mp3" || { echo "Error: ffmpeg conversion failed"; exit 1; }
-
-  echo "Conversion complete: ${2}.mp3"
+# Check if a file exists
+# Returns 0 if exists, 1 otherwise
+_ffmpeg_check_file() {
+    [[ -f "$1" ]] && return 0
+    print "Error: File '$1' does not exist" >&2
+    return 1
 }
 
-# Function to extract audio from video
-extract_video_audio() {
-    if [[ $# -lt 2 ]]; then
-        echo "Usage: extract_video_audio input_file output_file"
-        echo "  input_file: Path to the input video file"
-        echo "  output_file: Path to the output audio file (without extension)"
-        return 1
-    fi
+# Check if VideoToolbox encoder is available
+# Returns 0 if available, 1 otherwise
+_ffmpeg_is_videotoolbox_available() {
+    local codec="${1:-h264}"
+    ffmpeg -hide_banner -encoders 2>&1 | command grep -q "${codec}_videotoolbox"
+}
 
-    local file="$1"
+# Convert time (HH:MM:SS or seconds) to seconds
+_ffmpeg_time_to_seconds() {
+    local time="$1"
+    if [[ "$time" == *":"* ]]; then
+        local h m s
+        IFS=: read -r h m s <<< "$time"
+        print $(( 10#$h * 3600 + 10#$m * 60 + 10#$s ))
+    else
+        print "$time"
+    fi
+}
+
+# ============================================================================
+# Audio Functions
+# ============================================================================
+
+# Extract audio from video file to MP3 format
+# Usage: get_simple_audio <input_file> <output_name>
+get_simple_audio() {
+    (( $# < 2 )) && {
+        print "Usage: get_simple_audio <input_file> <output_name>" >&2
+        return 1
+    }
+
+    local input="$1"
     local output="$2"
 
-    # Check if file exists
-    if [[ ! -f "$file" ]]; then
-        echo "Error: Input file '$file' does not exist"
-        return 1
-    fi
+    _ffmpeg_check_file "$input" || return 1
 
-    ffmpeg -i "$file" -c:a aac -q:a 2 "${output}.m4a"
+    # Create output directory if needed
+    local output_dir="${output:h}"
+    [[ "$output_dir" != "." && ! -d "$output_dir" ]] && command mkdir -p "$output_dir"
+
+    ffmpeg -v error \
+        -i "$input" \
+        -ar "$FFMPEG_DEFAULT_AUDIO_RATE" \
+        -ac "$FFMPEG_DEFAULT_AUDIO_CHANNELS" \
+        -map 0:a \
+        -c:a mp3 \
+        "${output}.mp3" || return 1
+
+    print "Conversion complete: ${output}.mp3"
 }
 
-# Function to get ffmpeg encoders in JSON format
+# Extract audio from video to AAC format
+# Usage: extract_video_audio <input_file> <output_file>
+extract_video_audio() {
+    (( $# < 2 )) && {
+        print "Usage: extract_video_audio <input_file> <output_file>" >&2
+        print "  input_file: Path to the input video file" >&2
+        print "  output_file: Path to the output audio file (without extension)" >&2
+        return 1
+    }
+
+    _ffmpeg_check_file "$1" || return 1
+
+    ffmpeg -i "$1" -c:a aac -q:a 2 "${2}.m4a"
+}
+
+# Clip an audio/video file
+# Usage: clip_audio <input_file> <output_file> <start_time> [duration]
+#   start_time: Seconds or HH:MM:SS format
+#   duration: (Optional) Seconds or HH:MM:SS format
+clip_audio() {
+    (( $# < 3 )) && {
+        print "Usage: clip_audio <input_file> <output_file> <start_time> [duration]" >&2
+        print "  start_time: Start time in seconds or HH:MM:SS format" >&2
+        print "  duration: (Optional) Duration in seconds or HH:MM:SS format" >&2
+        return 1
+    }
+
+    local input="$1" output="$2" start_time="$3" duration="$4"
+
+    _ffmpeg_check_file "$input" || return 1
+
+    # Get total duration
+    local total_duration
+    total_duration=$(ffprobe -v error -show_entries format=duration \
+        -of default=noprint_wrappers=1:nokey=1 "$input")
+
+    [[ -z "$total_duration" ]] && {
+        print "Error: Could not determine input file duration" >&2
+        return 1
+    }
+
+    # Convert times to seconds
+    start_time=$(_ffmpeg_time_to_seconds "$start_time")
+    [[ -n "$duration" ]] && duration=$(_ffmpeg_time_to_seconds "$duration")
+
+    # Validate start time
+    (( start_time > total_duration )) && {
+        print "Error: Start time ($start_time) exceeds total duration ($total_duration)" >&2
+        return 1
+    }
+
+    # Handle duration
+    local duration_flag=""
+    if [[ -n "$duration" ]]; then
+        local end_time=$(( start_time + duration ))
+        if (( end_time > total_duration )); then
+            print "Warning: End time ($end_time) exceeds total duration ($total_duration)" >&2
+            print "Clipping from $start_time to end of file" >&2
+        else
+            duration_flag="-t $duration"
+        fi
+    fi
+
+    # Check for existing output
+    if [[ -f "$output" ]]; then
+        print -n "Output file '$output' exists. Overwrite? (y/N): " >&2
+        read -r overwrite
+        [[ "$overwrite" != "y" && "$overwrite" != "Y" ]] && {
+            print "Operation cancelled" >&2
+            return 1
+        }
+    fi
+
+    print "Clipping $input -> $output (from ${start_time}s ${duration:+for ${duration}s })" >&2
+
+    # Try stream copy first
+    if ffmpeg -i "$input" -ss "$start_time" $duration_flag -c copy "$output" 2>/dev/null; then
+        print "Success: $output" >&2
+        return 0
+    fi
+
+    # Fall back to re-encoding
+    print "Stream copy failed, trying re-encoding..." >&2
+    if ffmpeg -i "$input" -ss "$start_time" $duration_flag "$output"; then
+        print "Success: $output" >&2
+        return 0
+    fi
+
+    print "Error: Failed to clip file" >&2
+    return 1
+}
+
+# ============================================================================
+# Encoder Info Functions
+# ============================================================================
+
+# Get all encoders in JSON format
 ffmpeg_encoders_json() {
-    # 捕获 ffmpeg 输出，同时将标准输入指向 /dev/null，防止 ffmpeg 误判交互式终端
-    local ffmpeg_output
-    ffmpeg_output=$(ffmpeg -hide_banner -encoders </dev/null 2>&1)
+    local output
+    output=$(ffmpeg -hide_banner -encoders </dev/null 2>&1)
 
-    # 初始化编码器数组
-    local video_encoders=()
-    local audio_encoders=()
-    local subtitle_encoders=()
-
+    local -a video_encoders=() audio_encoders=() subtitle_encoders=()
     local found_separator=false
 
-    # 使用 split 函数（zsh 特有）按行分割输出
-    local -a lines=("${(@f)ffmpeg_output}")
+    local -a lines=("${(@f)output}")
 
     for line in "${lines[@]}"; do
-        # 使用 zsh 参数扩展进行修剪，避免使用 echo 和 xargs
-        local trimmed_line="${line##[[:space:]]}"
-        trimmed_line="${trimmed_line%%[[:space:]]}"
+        local trimmed="${line##[[:space:]]}"
+        trimmed="${trimmed%%[[:space:]]}"
 
-        if [[ "$found_separator" == "false" ]]; then
-            if [[ "$trimmed_line" =~ ^------ ]]; then
-                found_separator=true
-            fi
+        [[ "$found_separator" == "false" ]] && {
+            [[ "$trimmed" =~ ^------ ]] && found_separator=true
             continue
-        fi
+        }
 
-        # 使用 zsh 的数组分割功能
-        local -a fields=("${(@s: :)trimmed_line}")
-        [[ ${#fields[@]} -lt 2 ]] && continue
+        local -a fields=("${(@s: :)trimmed}")
+        (( ${#fields[@]} < 2 )) && continue
 
-        local code="${fields[1]}"
-        local encoder="${fields[2]}"
+        local code="${fields[1]}" encoder="${fields[2]}"
 
-        # 根据 code 首字符判断编码器类型
         case "${code:0:1}" in
             V) video_encoders+=("$encoder") ;;
             A) audio_encoders+=("$encoder") ;;
@@ -99,39 +203,33 @@ ffmpeg_encoders_json() {
         esac
     done
 
-    # 生成 JSON 输出，仅输出 JSON 内容
     jq -n \
-        --argjson video_encoder "$(printf '%s\n' "${video_encoders[@]}" | jq -R . | jq -s .)" \
-        --argjson audio_encoder "$(printf '%s\n' "${audio_encoders[@]}" | jq -R . | jq -s .)" \
-        --argjson subtitle_encoder "$(printf '%s\n' "${subtitle_encoders[@]}" | jq -R . | jq -s .)" \
-        '{video_encoder: $video_encoder, audio_encoder: $audio_encoder, subtitle_encoder: $subtitle_encoder}'
+        --argjson video "$(printf '%s\n' "${video_encoders[@]}" | jq -R . | jq -s .)" \
+        --argjson audio "$(printf '%s\n' "${audio_encoders[@]}" | jq -R . | jq -s .)" \
+        --argjson subtitle "$(printf '%s\n' "${subtitle_encoders[@]}" | jq -R . | jq -s .)" \
+        '{video_encoder: $video, audio_encoder: $audio, subtitle_encoder: $subtitle}'
 }
 
-# Function to get video encoder list
+# Get video encoder list
 get_video_encoder_list() {
     ffmpeg_encoders_json | jq '.video_encoder'
 }
 
-# Function to get audio encoder list
+# Get audio encoder list
 get_audio_encoder_list() {
     ffmpeg_encoders_json | jq '.audio_encoder'
 }
 
-# Function to search for encoders
+# Search for encoders by name
+# Usage: ffmpeg_search_encoder <encoder_name> [--audio]
 ffmpeg_search_encoder() {
-    if [[ $# -lt 1 ]]; then
-        echo "Usage: ffmpeg_search_encoder encoder_name [--audio]"
-        echo "  encoder_name: Name or partial name of the encoder to search for"
-        echo "  --audio: Search in audio encoders instead of video encoders"
+    (( $# < 1 )) && {
+        print "Usage: ffmpeg_search_encoder <encoder_name> [--audio]" >&2
         return 1
-    fi
+    }
 
-    local encoder="$1"
-    local audio=false
-
-    if [[ "$2" == "--audio" ]]; then
-        audio=true
-    fi
+    local encoder="$1" audio=false
+    [[ "$2" == "--audio" ]] && audio=true
 
     if [[ "$audio" == "true" ]]; then
         get_audio_encoder_list | jq -r ".[] | select(contains(\"${encoder}\"))"
@@ -140,471 +238,246 @@ ffmpeg_search_encoder() {
     fi
 }
 
-# Function to get video information
+# ============================================================================
+# Video Info Functions
+# ============================================================================
+
+# Get video information in JSON format
+# Usage: get_video_info <input_file>
 get_video_info() {
-    if [[ $# -lt 1 ]]; then
-        echo "Usage: get_video_info input_file"
-        echo "  input_file: Path to the input video file"
+    (( $# < 1 )) && {
+        print "Usage: get_video_info <input_file>" >&2
         return 1
-    fi
+    }
 
-    local file="$1"
+    _ffmpeg_check_file "$1" || return 1
 
-    # Check if file exists
-    if [[ ! -f "$file" ]]; then
-        echo "Error: Input file '$file' does not exist"
-        return 1
-    fi
-
-    ffprobe -v error -select_streams v:0 -show_entries stream=codec_name,codec_long_name,profile,codec_type,codec_tag_string,codec_tag,width,height,coded_width,coded_height,display_aspect_ratio -of json "$file"
+    ffprobe -v error -select_streams v:0 \
+        -show_entries stream=codec_name,codec_long_name,profile,codec_type,codec_tag_string,codec_tag,width,height,coded_width,coded_height,display_aspect_ratio \
+        -of json "$1"
 }
 
-# Function to get video codec information
+# Get video codec information
+# Usage: get_video_codec <input_file>
 get_video_codec() {
-    if [[ $# -lt 1 ]]; then
-        echo "Usage: get_video_codec input_file"
-        echo "  input_file: Path to the input video file"
+    (( $# < 1 )) && {
+        print "Usage: get_video_codec <input_file>" >&2
         return 1
-    fi
+    }
 
-    local file="$1"
-    get_video_info "$file" | jq '.streams[] | {codec_name, codec_long_name, codec_tag_string}'
+    _ffmpeg_check_file "$1" || return 1
+
+    get_video_info "$1" | jq '.streams[] | {codec_name, codec_long_name, codec_tag_string}'
 }
 
-# Function to convert video with (optional) hardware acceleration
-# Now using CRF (or -q:v) instead of manually setting bitrate
-convert_video() {
-    if [[ $# -lt 2 ]]; then
-        echo "Usage: convert_video input_file output_file [format] [quality] [crf]"
-        echo "  input_file : Path to the input video file"
-        echo "  output_file: Path to the output video file"
-        echo "  format     : h264 or h265 (default: h264)"
-        echo "  quality    : ultrafast, superfast, veryfast, faster, fast, medium, slow, slower, veryslow (default: medium)"
-        echo "  crf        : CRF value (0~51, default: 18)."
-        echo "               - For hardware mode, we will use '-q:v' to approximate."
-        return 1
-    fi
+# ============================================================================
+# Video Conversion Functions
+# ============================================================================
 
-    local file="$1"
-    local output="$2"
+# Convert video with optional hardware acceleration
+# Usage: convert_video <input> <output> [format] [preset] [crf]
+#   format: h264 or h265 (default: h264)
+#   preset: ultrafast~veryslow (default: veryslow)
+#   crf: 0-51 (default: 18, lower = better quality)
+convert_video() {
+    (( $# < 2 )) && {
+        print "Usage: convert_video <input> <output> [format] [preset] [crf]" >&2
+        print "  format: h264 or h265 (default: h264)" >&2
+        print "  preset: ultrafast~veryslow (default: veryslow)" >&2
+        print "  crf: 0-51 (default: 18, lower = better quality)" >&2
+        return 1
+    }
+
+    local input="$1" output="$2"
     local format="${3:-h264}"
     local preset="${4:-veryslow}"
-    local crf="${5:-18}"  # 默认 CRF=18
+    local crf="${5:-$FFMPEG_DEFAULT_CRF}"
 
-    # Check if file exists
-    if [[ ! -f "$file" ]]; then
-        echo "Error: Input file '$file' does not exist"
-        return 1
-    fi
+    _ffmpeg_check_file "$input" || return 1
 
-    echo "Processing file: $file"
-    echo "Output file: $output"
+    print "Converting: $input -> $output" >&2
+    print "Format: $format, Preset: $preset, CRF: $crf" >&2
 
-    # Check if output file already exists
+    # Check existing output
     if [[ -f "$output" ]]; then
-        echo -n "Output file '$output' already exists. Overwrite? (Y/N): "
+        print -n "Output exists. Overwrite? (y/N): " >&2
         read -r overwrite
-        if [[ "$overwrite" != "Y" && "$overwrite" != "y" ]]; then
-            echo "Operation cancelled. File exists and overwrite denied."
+        [[ "$overwrite" != "y" && "$overwrite" != "Y" ]] && {
+            print "Cancelled" >&2
             return 1
-        fi
+        }
     fi
 
-    # Choose codec based on format
-    local codec=""
-    if [[ "$format" == "h265" ]]; then
-        codec="hevc"
-    else
-        codec="h264"
-    fi
+    # Determine codec
+    local sw_codec hw_codec
+    case "$format" in
+        h265|hevc) sw_codec="libx265"; hw_codec="hevc" ;;
+        *)          sw_codec="libx264"; hw_codec="h264" ;;
+    esac
 
-    # Check if VideoToolbox is available for the chosen codec
-    local hw_encoder="${codec}_videotoolbox"
-    local hw_available=false
-    if ffmpeg -hide_banner -encoders 2>&1 | grep -q "$hw_encoder"; then
-        hw_available=true
-    fi
-
-    # 如果是macOS硬件加速，VideoToolbox并没有libx264那样的CRF模式，
-    # 这里用 -q:v 来模拟一个相对恒定质量，但实际效果仍不同于真正CRF。
-    if [[ "$hw_available" == "true" ]]; then
-        echo "Attempting hardware acceleration with $hw_encoder..."
-        # Hardware encoding with approximate "constant quality"
-        # Note: -q:v 的数值范围跟CRF并不一致，需要自行调整测试。
-        # 常见可尝试范围：10~35（数值越低画质越好体积越大）
-        if ffmpeg -i "$file" \
-                   -c:v "$hw_encoder" \
-                   -q:v "$crf" \
-                   -preset "$preset" \
-                   -c:a copy \
-                   "$output"
-        then
-            echo "Hardware encoding successful."
+    # Try hardware encoding
+    if _ffmpeg_is_videotoolbox_available "$hw_codec"; then
+        print "Trying hardware encoding..." >&2
+        if ffmpeg -i "$input" \
+            -c:v "${hw_codec}_videotoolbox" \
+            -q:v "$crf" \
+            -preset "$preset" \
+            -c:a copy \
+            "$output" 2>/dev/null; then
+            print "Hardware encoding successful" >&2
             return 0
-        else
-            echo "Hardware encoding failed. Falling back to software encoding."
         fi
-    else
-        echo "Hardware encoder not found or not available for '$codec'. Using software encoding."
+        print "Hardware encoding failed, falling back to software..." >&2
     fi
 
-    # ---------------------------
-    # Software encoding with real CRF
-    # ---------------------------
-    local sw_codec="libx264"
-    [[ "$format" == "h265" ]] && sw_codec="libx265"
-
-    echo "Using software encoding: $sw_codec with CRF=$crf, preset=$preset"
-    ffmpeg -i "$file" \
-           -c:v "$sw_codec" \
-           -preset "$preset" \
-           -crf "$crf" \
-           -c:a copy \
-           "$output"
+    # Software encoding
+    print "Software encoding: $sw_codec CRF=$crf preset=$preset" >&2
+    ffmpeg -i "$input" \
+        -c:v "$sw_codec" \
+        -preset "$preset" \
+        -crf "$crf" \
+        -c:a copy \
+        "$output"
 }
 
-# Function to compress video
+# Compress video for web sharing
+# Usage: compress_video <input> <output> [preset]
 compress_video() {
-    if [[ $# -lt 2 ]]; then
-        echo "Usage: compress_video input_file output_file [quality]"
-        echo "  input_file: Path to the input video file"
-        echo "  output_file: Path to the output video file"
-        echo "  quality: ultrafast, superfast, veryfast, faster, fast, medium, slow, slower, veryslow (default: medium)"
+    (( $# < 2 )) && {
+        print "Usage: compress_video <input> <output> [preset]" >&2
         return 1
-    fi
+    }
 
-    local file="$1"
-    local output="$2"
-    local quality="${3:-medium}"
+    local input="$1" output="$2" preset="${3:-$FFMPEG_DEFAULT_PRESET}"
 
-    # Check if file exists
-    if [[ ! -f "$file" ]]; then
-        echo "Error: Input file '$file' does not exist"
-        return 1
-    fi
+    _ffmpeg_check_file "$input" || return 1
 
-    echo "Processing file: $file"
+    print "Compressing: $input -> $output" >&2
 
-    # Try with VideoToolbox hardware acceleration
-    local command="ffmpeg -i \"$file\" -movflags +faststart -preset $quality -crf 30 -r 30 -c:a copy \"$output\""
-    echo "Command: $command"
-
-    if eval $command; then
-        echo "Output file: $output"
-    else
-        echo "Hardware encoding failed. Falling back to software encoding."
-        command="ffmpeg -i \"$file\" -movflags +faststart -preset $quality -crf 30 -r 30 -c:a copy \"$output\""
-        echo "Command: $command"
-        eval $command
-        echo "Output file: $output"
-    fi
+    ffmpeg -i "$input" \
+        -movflags +faststart \
+        -preset "$preset" \
+        -crf 30 \
+        -r 30 \
+        -c:a copy \
+        "$output"
 }
 
-# Function to render subtitles
-render_subtitle() {
-    # ---------------------------
-    # 1. 定义默认值
-    # ---------------------------
-    local input_file=""
-    local src_srt=""
-    local trans_srt=""
-    local output_file=""
-    local target_width=1920
-    local target_height=1080
-    local quality="ultrafast"
-    local subtitle_mode="both"
+# ============================================================================
+# Subtitle Rendering
+# ============================================================================
 
-    # ---------------------------
-    # 2. 解析命令行参数
-    # ---------------------------
-    while [[ $# -gt 0 ]]; do
+# Render subtitles into video
+# Usage: render_subtitle <input> [options]
+#   --src-srt=FILE        Source subtitle file
+#   --trans-srt=FILE      Translation subtitle file
+#   --output=FILE         Output file (default: <input>-rendered.mp4)
+#   --width=WIDTH         Target width (default: 1920)
+#   --height=HEIGHT       Target height (default: 1080)
+#   --quality=PRESET       FFmpeg preset (default: medium)
+#   --subtitle-mode=MODE  both|src|trans (default: both)
+render_subtitle() {
+    local input="" src_srt="" trans_srt="" output_file=""
+    local width=1920 height=1080
+    local quality="medium" mode="both"
+
+    # Parse arguments
+    while (( $# > 0 )); do
         case "$1" in
-            --src-srt=*)
-                src_srt="${1#*=}"
-                shift
-                ;;
-            --trans-srt=*)
-                trans_srt="${1#*=}"
-                shift
-                ;;
-            --output=*)
-                output_file="${1#*=}"
-                shift
-                ;;
-            --width=*)
-                target_width="${1#*=}"
-                shift
-                ;;
-            --height=*)
-                target_height="${1#*=}"
-                shift
-                ;;
-            --quality=*)
-                quality="${1#*=}"
-                shift
-                ;;
-            --subtitle-mode=*)
-                subtitle_mode="${1#*=}"
-                shift
-                ;;
+            --src-srt=*)      src_srt="${1#*=}" ;;
+            --trans-srt=*)    trans_srt="${1#*=}" ;;
+            --output=*)       output_file="${1#*=}" ;;
+            --width=*)        width="${1#*=}" ;;
+            --height=*)       height="${1#*=}" ;;
+            --quality=*)      quality="${1#*=}" ;;
+            --subtitle-mode=*) mode="${1#*=}" ;;
             -h|--help)
-                echo "Usage: render_subtitle <input_file> [--src-srt=FILE] [--trans-srt=FILE] [--output=FILE]"
-                echo "                              [--width=WIDTH] [--height=HEIGHT] [--quality=PRESET] [--subtitle-mode=MODE]"
-                echo
-                echo "  <input_file>               : 视频输入文件（必须是第一个非 --flag 参数）"
-                echo "  --src-srt=FILE             : 原文字幕文件路径"
-                echo "  --trans-srt=FILE           : 翻译字幕文件路径"
-                echo "  --output=FILE              : 输出文件路径，默认为 input_file_name-渲染后.mp4"
-                echo "  --width=WIDTH              : 目标宽度，默认 1920"
-                echo "  --height=HEIGHT            : 目标高度，默认 1080"
-                echo "  --quality=PRESET           : ffmpeg 预设（ultrafast, superfast, ... , medium, slow, etc），默认 medium"
-                echo "  --subtitle-mode=MODE       : 渲染模式，可选 'both' (默认), 'src' (仅原文), 'trans' (仅翻译)"
-                echo
+                print "Usage: render_subtitle <input> [options]" >&2
+                print "  --src-srt=FILE        Source subtitle file" >&2
+                print "  --trans-srt=FILE      Translation subtitle file" >&2
+                print "  --output=FILE         Output file" >&2
+                print "  --width=WIDTH         Target width (default: 1920)" >&2
+                print "  --height=HEIGHT       Target height (default: 1080)" >&2
+                print "  --quality=PRESET       FFmpeg preset (default: medium)" >&2
+                print "  --subtitle-mode=MODE  both|src|trans (default: both)" >&2
                 return 0
                 ;;
             -*)
-                echo "Unknown option: $1"
+                print "Unknown option: $1" >&2
                 return 1
                 ;;
             *)
-                # 如果 input_file 还没赋值，就把当前参数作为 input_file
-                if [[ -z "$input_file" ]]; then
-                    input_file="$1"
-                else
-                    echo "Unexpected argument: $1"
+                [[ -z "$input" ]] && input="$1" || {
+                    print "Unexpected argument: $1" >&2
                     return 1
-                fi
-                shift
+                }
                 ;;
         esac
+        shift
     done
 
-    # ---------------------------
-    # 3. 检查必需参数
-    # ---------------------------
-    if [[ -z "$input_file" ]]; then
-        echo "Error: No input video file specified."
-        echo "Try '--help' for more information."
+    [[ -z "$input" ]] && {
+        print "Error: No input file specified" >&2
         return 1
-    fi
+    }
 
-    if [[ ! -f "$input_file" ]]; then
-        echo "Error: Input file '$input_file' does not exist"
-        return 1
-    fi
+    _ffmpeg_check_file "$input" || return 1
 
-    # 如果没有指定 output 文件，就自动生成一个带后缀的
-    if [[ -z "$output_file" ]]; then
-        # 去掉扩展名后再加后缀
-        local base_name="${input_file%.*}"
-        output_file="${base_name}-rendered.mp4"
-    fi
+    # Default output
+    [[ -z "$output_file" ]] && output_file="${input%.*}-rendered.mp4"
 
-    echo "Input file      : $input_file"
-    echo "Output file     : $output_file"
-    echo "Subtitle mode   : $subtitle_mode"
-    echo "Target width    : $target_width"
-    echo "Target height   : $target_height"
-    echo "Quality preset  : $quality"
-
-    # ---------------------------
-    # 4. 字幕样式设置
-    # ---------------------------
-    local src_font_color='&HFFFFFF'
-    local src_outline_color='&H000000'
-    local src_outline_width=1
-    local src_shadow_color='&H80000000'
-
-    local trans_font_color='&H00FFFE'
-    local trans_outline_color='&H000000'
-    local trans_outline_width=1
-    local trans_back_color='&H33000000'
-    local trans_border_style=1
-
-    local src_font_size=15
-    local trans_font_size=17
-    local font_name='Arial'
-    local trans_font_name='LXGW WenKai'
-
-    # ---------------------------
-    # 5. 构造 filter_graph
-    # ---------------------------
-    # 首先做缩放 + 填充，让视频满足 target_width x target_height 大小
-    local base_filter="scale=${target_width}:${target_height}:force_original_aspect_ratio=decrease,pad=${target_width}:${target_height}:(ow-iw)/2:(oh-ih)/2"
-    local filter_graph=""
-
-    case "$subtitle_mode" in
+    # Validate subtitle files based on mode
+    case "$mode" in
         both)
-            # 需要确保 src_srt 和 trans_srt 文件都给定了
-            if [[ ! -f "$src_srt" ]]; then
-                echo "Error: For 'both' mode, --src-srt must be specified and exist."
-                return 1
-            fi
-            if [[ ! -f "$trans_srt" ]]; then
-                echo "Error: For 'both' mode, --trans-srt must be specified and exist."
-                return 1
-            fi
-            filter_graph="${base_filter},subtitles=${src_srt}:force_style='FontSize=${src_font_size},FontName=${font_name},PrimaryColour=${src_font_color},OutlineColour=${src_outline_color},OutlineWidth=${src_outline_width},ShadowColour=${src_shadow_color},BorderStyle=1',subtitles=${trans_srt}:force_style='FontSize=${trans_font_size},FontName=${trans_font_name},PrimaryColour=${trans_font_color},OutlineColour=${trans_outline_color},OutlineWidth=${trans_outline_width},BackColour=${trans_back_color},Alignment=2,MarginV=27,ShadowColour=${src_shadow_color},BorderStyle=${trans_border_style}'"
+            _ffmpeg_check_file "$src_srt" || return 1
+            _ffmpeg_check_file "$trans_srt" || return 1
             ;;
         src)
-            # 仅原文字幕
-            if [[ ! -f "$src_srt" ]]; then
-                echo "Error: --src-srt must be specified and exist for 'src' mode."
-                return 1
-            fi
-            filter_graph="${base_filter},subtitles=${src_srt}:force_style='FontSize=${src_font_size},FontName=${font_name},PrimaryColour=${src_font_color},OutlineColour=${src_outline_color},OutlineWidth=${src_outline_width},ShadowColour=${src_shadow_color},BorderStyle=1'"
+            _ffmpeg_check_file "$src_srt" || return 1
             ;;
         trans)
-            # 仅翻译字幕
-            if [[ ! -f "$trans_srt" ]]; then
-                echo "Error: --trans-srt must be specified and exist for 'trans' mode."
-                return 1
-            fi
-            filter_graph="${base_filter},subtitles=${trans_srt}:force_style='FontSize=${trans_font_size},FontName=${trans_font_name},PrimaryColour=${trans_font_color},OutlineColour=${trans_outline_color},OutlineWidth=${trans_outline_width},BackColour=${trans_back_color},Alignment=2,MarginV=27,ShadowColour=${src_shadow_color},BorderStyle=${trans_border_style}'"
+            _ffmpeg_check_file "$trans_srt" || return 1
             ;;
         *)
-            echo "Error: Unknown subtitle_mode '$subtitle_mode'. Use 'both', 'src', or 'trans'."
+            print "Error: Invalid mode '$mode'. Use: both, src, or trans" >&2
             return 1
             ;;
     esac
 
-    echo "Filter graph    : $filter_graph"
+    # Build filter graph
+    local base_filter="scale=${width}:${height}:force_original_aspect_ratio=decrease,pad=${width}:${height}:(ow-iw)/2:(oh-ih)/2"
+    local filter_graph
 
-    # ---------------------------
-    # 8. 尝试硬件加速 (VideoToolbox)，失败则回退软件编码
-    # ---------------------------
-    if ffmpeg -hide_banner -encoders 2>&1 | grep -q "h264_videotoolbox"; then
-        echo "Attempting VideoToolbox hardware encoding..."
-        if ffmpeg -i "$input_file" \
-                   -vf "$filter_graph" \
-                   -c:v h264_videotoolbox \
-                   -preset "$quality" \
-                   -c:a copy \
-                   "$output_file"
-        then
-            echo "Hardware encoding successful."
-        else
-            echo "Hardware encoding failed. Falling back to software encoding..."
-            ffmpeg -i "$input_file" \
-                   -vf "$filter_graph" \
-                   -c:v libx264 \
-                   -preset "$quality" \
-                   -c:a copy \
-                   "$output_file"
+    # Subtitle styles
+    local src_style='FontSize=15,FontName=Arial,PrimaryColour=&HFFFFFF,OutlineColour=&H000000,OutlineWidth=1,ShadowColour=&H80000000,BorderStyle=1'
+    local trans_style='FontSize=17,FontName=LXGW WenKai,PrimaryColour=&H00FFFE,OutlineColour=&H000000,OutlineWidth=1,BackColour=&H33000000,Alignment=2,MarginV=27,ShadowColour=&H80000000,BorderStyle=1'
+
+    case "$mode" in
+        both)
+            filter_graph="${base_filter},subtitles=${src_srt}:force_style='${src_style}',subtitles=${trans_srt}:force_style='${trans_style}'"
+            ;;
+        src)
+            filter_graph="${base_filter},subtitles=${src_srt}:force_style='${src_style}'"
+            ;;
+        trans)
+            filter_graph="${base_filter},subtitles=${trans_srt}:force_style='${trans_style}'"
+            ;;
+    esac
+
+    print "Rendering: $input -> $output_file" >&2
+
+    # Try hardware encoding first
+    if _ffmpeg_is_videotoolbox_available h264; then
+        print "Trying hardware encoding..." >&2
+        if ffmpeg -i "$input" -vf "$filter_graph" \
+            -c:v h264_videotoolbox -preset "$quality" -c:a copy "$output_file" 2>/dev/null; then
+            print "Done" >&2
+            return 0
         fi
-    else
-        echo "VideoToolbox not available. Using software encoding..."
-        ffmpeg -i "$input_file" \
-               -vf "$filter_graph" \
-               -c:v libx264 \
-               -preset "$quality" \
-               -c:a copy \
-               "$output_file"
+        print "Hardware failed, using software..." >&2
     fi
+
+    # Software encoding
+    ffmpeg -i "$input" -vf "$filter_graph" \
+        -c:v libx264 -preset "$quality" -c:a copy "$output_file"
 }
-
-
-# Function to clip an audio file
-clip_audio() {
-    if [[ $# -lt 3 ]]; then
-        echo "Usage: clip_audio input_file output_file start_time [duration]"
-        echo "  input_file: Path to the input audio file"
-        echo "  output_file: Path to the output audio file"
-        echo "  start_time: Start time in seconds or in HH:MM:SS format"
-        echo "  duration: (Optional) Duration in seconds or in HH:MM:SS format"
-        echo "            If not provided, will clip from start_time to the end of the file"
-        return 1
-    fi
-
-    local input_file="$1"
-    local output_file="$2"
-    local start_time="$3"
-    local duration="$4"
-
-    # Check if input file exists
-    if [[ ! -f "$input_file" ]]; then
-        echo "Error: Input file '$input_file' does not exist"
-        return 1
-    fi
-
-    # Get total duration of the input file
-    local total_duration=$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$input_file")
-    if [[ -z "$total_duration" ]]; then
-        echo "Error: Could not determine the duration of the input file"
-        return 1
-    fi
-
-    # Convert start_time to seconds if in HH:MM:SS format
-    if [[ "$start_time" == *":"* ]]; then
-        local h m s
-        IFS=: read -r h m s <<< "$start_time"
-        start_time=$(( 10#$h * 3600 + 10#$m * 60 + 10#$s ))
-    fi
-
-    # Handle start time overflow
-    if (( $(echo "$start_time > $total_duration" | bc -l) )); then
-        echo "Error: Start time ($start_time seconds) exceeds the total duration of the file ($total_duration seconds)"
-        return 1
-    fi
-
-    # Handle duration
-    local end_flag=""
-    if [[ -n "$duration" ]]; then
-        # Convert duration to seconds if in HH:MM:SS format
-        if [[ "$duration" == *":"* ]]; then
-            local h m s
-            IFS=: read -r h m s <<< "$duration"
-            duration=$(( 10#$h * 3600 + 10#$m * 60 + 10#$s ))
-        fi
-
-        # Calculate end time
-        local end_time=$(echo "$start_time + $duration" | bc -l)
-
-        # Handle duration overflow
-        if (( $(echo "$end_time > $total_duration" | bc -l) )); then
-            echo "Warning: Requested end time ($end_time seconds) exceeds the total duration of the file ($total_duration seconds)"
-            echo "Clipping from $start_time seconds to the end of the file"
-        else
-            end_flag="-t $duration"
-        fi
-    fi
-
-    # Check if output file already exists
-    if [[ -f "$output_file" ]]; then
-        echo -n "Output file '$output_file' already exists. Do you want to overwrite it? (Y/N): "
-        read -r overwrite
-        if [[ "$overwrite" != "Y" && "$overwrite" != "y" ]]; then
-            echo "Operation cancelled. File exists and overwrite denied."
-            return 1
-        fi
-    fi
-
-    echo "Clipping audio from $start_time seconds ${duration:+for $duration seconds }to '$output_file'"
-
-    # Perform the clip
-    local command="ffmpeg -i \"$input_file\" -ss $start_time $end_flag -c copy \"$output_file\""
-    echo "Command: $command"
-
-    if eval $command; then
-        echo "Successfully clipped to: $output_file"
-    else
-        echo "Warning: Fast copy failed. Trying with re-encoding."
-        # If copy codec fails, try with re-encoding
-        command="ffmpeg -i \"$input_file\" -ss $start_time $end_flag \"$output_file\""
-        echo "Command: $command"
-        if eval $command; then
-            echo "Successfully clipped to: $output_file"
-        else
-            echo "Error: Failed to clip audio file"
-            return 1
-        fi
-    fi
-}
-
-# Usage examples
-# extract_video_audio "input.mp4" "output"
-# get_video_codec "input.mp4"
-# convert_video "input.mp4" "output.mp4" "h264" "medium"
-# compress_video "input.mp4" "output.mp4" "medium"
-# render_subtitle "input.mp4" "en.srt" "fr.srt" "output.mp4" 1920 1080 "medium"
-# clip_audio "input.mp3" "output.mp3" "00:01:30" "00:02:00"

@@ -189,6 +189,8 @@ def main():
     # Required variables
     if "auth_key" in provider:
         env["ANTHROPIC_AUTH_TOKEN"] = provider["auth_key"]
+    if "api_key" in provider:
+        env["ANTHROPIC_API_KEY"] = provider["api_key"]
     if "base_url" in provider:
         env["ANTHROPIC_BASE_URL"] = provider["base_url"]
     if "model" in provider:

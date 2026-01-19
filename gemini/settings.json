@@ -32,7 +32,8 @@
     "preferredEditor": "neovim",
     "checkpointing": {
       "enabled": true
-    }
+    },
+    "enableAutoUpdate": false
   },
   "ui": {
     "hideBanner": true,

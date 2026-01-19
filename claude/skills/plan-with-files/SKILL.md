@@ -21,7 +21,7 @@ hooks:
     - matcher: "Write|Edit|Bash"
       hooks:
         - type: command
-          command: "find .plans -name 'task_plan.md' 2>/dev/null | head -1 | xargs cat 2>/dev/null | head -30 || true"
+          command: "find .plans -name 'task_plan.md' -type f 2>/dev/null | xargs ls -t 2>/dev/null | head -1 | xargs cat 2>/dev/null | head -30 || true"
   PostToolUse:
     - matcher: "Write|Edit"
       hooks:
