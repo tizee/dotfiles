@@ -1,0 +1,254 @@
+#!/usr/bin/env python3
+"""
+Clean conversation log by removing tool outputs while keeping tool calls.
+
+Compression principle:
+- Keep tool calls: "⏺ Read(file_path)" - shows what was done
+- Remove tool outputs: "  ⎿  <output>" - outdated result info
+- Keep user/assistant dialogue - essential context
+"""
+
+import re
+import sys
+from pathlib import Path
+from dataclasses import dataclass
+from typing import List, Optional
+
+
+@dataclass
+class Message:
+    """A message in the conversation."""
+    role: str  # 'user', 'assistant', 'tool_call'
+    content: str
+
+
+def parse_conversation(lines: List[str]) -> List[Message]:
+    """
+    Parse the conversation log into structured messages.
+
+    Format patterns:
+    - User message:      "❯ <message>" - may have multiple non-indented continuation lines
+    - Assistant message: "⏺ <message>" (not a tool call)
+    - Tool call:         "⏺ <ToolName>(...)" - KEEP THIS
+    - Tool output:       "  ⎿  <output>" - REMOVE THIS
+    """
+    messages: List[Message] = []
+    i = 0
+    n = len(lines)
+
+    while i < n:
+        line = lines[i]
+
+        # Skip empty lines
+        if not line.strip():
+            i += 1
+            continue
+
+        # Skip "Running PostToolUse hook" lines
+        if "Running PostToolUse hook" in line:
+            i += 1
+            continue
+
+        # Skip header/banner lines (Claude Code version info)
+        if re.match(r'.*Claude Code.*|.*▐▛███▜.*|.*▝▜█████▛.*', line):
+            i += 1
+            continue
+
+        # User message (starts with "❯ ")
+        if line.startswith("❯ "):
+            content = line[2:].strip()
+            # Multi-line user messages - collect all lines until next "❯ " or "⏺ "
+            i += 1
+            while i < n:
+                next_line = lines[i]
+                # Stop at next user/assistant message
+                if next_line.startswith("❯ ") or next_line.startswith("⏺ "):
+                    break
+                # Skip tool output lines even if they appear
+                if next_line.startswith("  ⎿  ") or next_line.startswith("  ..."):
+                    i += 1
+                    continue
+                # Collect non-empty lines
+                stripped = next_line.strip()
+                if stripped and not stripped.startswith("⎿"):
+                    content += "\n" + stripped
+                i += 1
+            messages.append(Message(role="user", content=content))
+            continue
+
+        # Assistant message or tool call (starts with "⏺ ")
+        if line.startswith("⏺ "):
+            content = line[2:].strip()
+
+            # Check if this is a tool call (has pattern like "Read(", "Bash(" etc)
+            # But exclude cases where it's clearly assistant speech
+            tool_match = re.match(r'(\w+)\(', content)
+            if tool_match:
+                tool_name = tool_match.group(1)
+                # It's a tool call - KEEP the call line, skip the output
+                # Clean up the tool call line
+                clean_call = content
+                # Remove timeout parameter
+                clean_call = re.sub(r',?\s*timeout:\s*\d+[smh]?\s*', '', clean_call)
+                # Remove "description:" suffix
+                clean_call = re.sub(r'\s+--\s+description:.*', '', clean_call)
+
+                messages.append(Message(role="tool_call", content=f"⏺ {clean_call}"))
+
+                # Skip all tool output lines
+                i += 1
+                while i < n:
+                    next_line = lines[i]
+                    if next_line.startswith("  ⎿  ") or next_line.startswith("  ..."):
+                        i += 1
+                        # Skip "(ctrl+o to expand)" indicators
+                        if re.match(r'.*\(ctrl\+o to expand\)', next_line):
+                            continue
+                    elif re.match(r'  \.+ \+\d+ lines?', next_line):
+                        # Lines count indicator - skip
+                        i += 1
+                    elif next_line.strip() and not next_line.startswith("  "):
+                        # End of tool output
+                        break
+                    else:
+                        i += 1
+                        break
+            else:
+                # Regular assistant message - check for continuation lines
+                # Assistant messages may have multi-line content with 2-space indentation
+                i += 1
+                while i < n:
+                    next_line = lines[i]
+                    # Check for continuation lines (start with 2 spaces, not tool output)
+                    # Use original line to check indentation, but strip for content
+                    if next_line.startswith("  ") and not next_line.startswith("  ⎿  ") and not next_line.startswith("  ..."):
+                        # It's a continuation line - remove the 2-space indent
+                        continuation = next_line[2:].rstrip()
+                        if continuation:
+                            content += "\n" + continuation
+                        i += 1
+                    elif not next_line.strip():
+                        # Empty line - include as paragraph break
+                        content += "\n"
+                        i += 1
+                    else:
+                        # End of continuation (next "⏺ " or "❯ " line)
+                        break
+                messages.append(Message(role="assistant", content=content))
+            continue
+
+        # Standalone tool output (shouldn't happen if parsing correctly)
+        if line.startswith("  ⎿  "):
+            i += 1
+            continue
+
+        i += 1
+
+    return messages
+
+
+def format_cleaned_conversation(messages: List[Message]) -> str:
+    """Format the cleaned conversation for output."""
+    output = []
+    output.append("# Cleaned Conversation Context")
+    output.append("")
+    output.append("## Summary")
+    output.append(f"- Total messages: {len([m for m in messages if m.role != 'tool_call'])}")
+    output.append(f"- Tool calls: {len([m for m in messages if m.role == 'tool_call'])}")
+    output.append("")
+
+    # Compress consecutive identical tool calls
+    compressed_messages: List[Message] = []
+    prev_tool = None
+    tool_count = 0
+
+    for msg in messages:
+        if msg.role == "tool_call":
+            # Remove leading "⏺ " for comparison
+            current_tool = msg.content[2:] if msg.content.startswith("⏺ ") else msg.content
+
+            if prev_tool == current_tool:
+                # Same tool - increment count
+                tool_count += 1
+            else:
+                # Different tool - output previous if any
+                if prev_tool is not None:
+                    if tool_count > 1:
+                        output.append(f"[TOOL] {prev_tool} (x{tool_count})")
+                    else:
+                        output.append(f"[TOOL] {prev_tool}")
+                    output.append("")
+                prev_tool = current_tool
+                tool_count = 1
+        else:
+            # Non-tool message - flush any pending tool first
+            if prev_tool is not None:
+                if tool_count > 1:
+                    output.append(f"[TOOL] {prev_tool} (x{tool_count})")
+                else:
+                    output.append(f"[TOOL] {prev_tool}")
+                output.append("")
+                prev_tool = None
+                tool_count = 0
+
+            # Output user/assistant message
+            if msg.role == "user":
+                output.append(f"[USER] {msg.content}")
+                output.append("")
+            elif msg.role == "assistant":
+                output.append(f"[ASSISTANT] {msg.content}")
+                output.append("")
+
+    # Don't forget the last tool
+    if prev_tool is not None:
+        if tool_count > 1:
+            output.append(f"[TOOL] {prev_tool} (x{tool_count})")
+        else:
+            output.append(f"[TOOL] {prev_tool}")
+        output.append("")
+
+    return "\n".join(output)
+
+
+def main():
+    if len(sys.argv) < 2:
+        print("Usage: python clean_context.py <input_file> [output_file]")
+        sys.exit(1)
+
+    input_path = Path(sys.argv[1])
+    if not input_path.exists():
+        print(f"Error: File not found: {input_path}")
+        sys.exit(1)
+
+    # Read input file
+    with open(input_path, "r", encoding="utf-8") as f:
+        lines = f.readlines()
+
+    # Parse and compress
+    messages = parse_conversation(lines)
+
+    # Format output
+    cleaned = format_cleaned_conversation(messages)
+
+    # Write output
+    if len(sys.argv) >= 3:
+        output_path = Path(sys.argv[2])
+    else:
+        output_path = input_path.with_suffix(".cleaned.txt")
+
+    with open(output_path, "w", encoding="utf-8") as f:
+        f.write(cleaned)
+
+    original_lines = len(lines)
+    cleaned_lines = cleaned.count("\n") + 1
+    compression_ratio = (1 - cleaned_lines / original_lines) * 100
+    tool_calls = len([m for m in messages if m.role == "tool_call"])
+
+    print(f"Cleaned conversation written to: {output_path}")
+    print(f"Original: {original_lines} lines -> Cleaned: {cleaned_lines} lines")
+    print(f"Tool calls preserved: {tool_calls}")
+    print(f"Compression: {compression_ratio:.1f}% reduction")
+
+
+if __name__ == "__main__":
+    main()
