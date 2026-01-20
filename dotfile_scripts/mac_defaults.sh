@@ -193,6 +193,7 @@ if [[ $(uname -s) = "Darwin" ]]; then
 
   # Screenshot {{{
   # killall SystemUIServer to activate
+  defaults write com.apple.screencapture name "tizee_"
   # do not include date and time in screenshot files
   defaults write com.apple.screencapture "include-date" -bool false
   # disable shadow effect
