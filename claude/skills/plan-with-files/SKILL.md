@@ -317,3 +317,30 @@ When facing multiple valid approaches to a problem, **ALWAYS present options to 
 | Repeat failed actions | Track attempts, mutate approach |
 | Create files in skill directory | Create .plans/<feature>-yymmdd/ in your project |
 | Choose architecture without asking | Present options, let user decide |
+
+## Archiving Completed Plans
+
+When all phases in `.plans/<feature>-yymmdd/task_plan.md` are marked `complete`:
+
+1. **Verify completion** — Ensure all phases are done, errors resolved, and findings documented
+2. **Archive the plan** — Move the `.plans/<feature>-yymmdd/` directory to `.plans/archived/`
+3. **Clean up active plans** — Remove old completed plans from `.plans/` root to keep workspace clean
+
+### Archive Command
+
+```bash
+# Move completed plan to archived
+mv .plans/<feature>-yymmdd .plans/archived/
+
+# Or archive multiple at once
+mkdir -p .plans/archived
+mv .plans/*-yymmdd .plans/archived/
+```
+
+### When to Archive
+
+| Status | Action |
+|--------|--------|
+| All phases `complete` | Archive |
+| Remaining phases in `in_progress` | Keep in `.plans/` |
+| Abandoned/cancelled | Archive with note in `task_plan.md` |

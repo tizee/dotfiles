@@ -1,10 +1,18 @@
 # Code Review: Complexity Management Focus
 
+Principles:
+- Correctness & invariants
+- Simplicity (KISS > DRY)
+- Testability / verifiability
+- Maintainability (low coupling, high cohesion)
+- Performance (measure first)
+
 Analyze code systematically to **reduce complexity** and improve long-term maintainability. Focus on these areas in priority order:
 
 ## 1. Module Depth Analysis
 
 ### Basic Code Smells Detection
+
 First, identify and flag these critical quality issues:
 - **Long functions** (>20 lines deserve scrutiny, >50 lines require refactoring)
 - **Deep nesting** (>3 levels indicates complexity problems)
