@@ -36,16 +36,16 @@ class Tool:
 
 
 TOOLS = [
-    Tool("claude", "Claude Code CLI",
-         "pnpm install -g @anthropic-ai/claude-code@latest",
-         "pnpm", "@anthropic-ai/claude-code", "latest"),
-    Tool("codex", "OpenAI Codex CLI",
+    Tool("claude(brew)", "Claude Code CLI",
+         "brew upgrade claude-code",
+         "brew", "claude-code", "latest"),
+    Tool("codex(pnpm)", "OpenAI Codex CLI",
          "pnpm install -g @openai/codex@latest",
          "pnpm", "@openai/codex", "latest"),
-    Tool("gemini", "Google Gemini CLI",
+    Tool("gemini(pnpm)", "Google Gemini CLI",
          "pnpm install -g @google/gemini-cli@nightly",
          "pnpm", "@google/gemini-cli", "nightly"),
-    Tool("kimi-cli", "Kimi CLI",
+    Tool("kimi-cli(uv)", "Kimi CLI",
          "uv tool upgrade --no-cache kimi-cli",
          "uv", "kimi-cli", ""),
 ]
@@ -172,7 +172,20 @@ def format_tool_line_with_state(index: int, spinner: str = None) -> str:
 async def get_current_version(tool: Tool) -> Optional[str]:
     """Get current installed version async."""
     try:
-        if tool.dep == "pnpm":
+        if tool.dep == "brew":
+            proc = await asyncio.create_subprocess_exec(
+                "brew", "info", tool.pkg,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.DEVNULL
+            )
+            stdout, _ = await proc.communicate()
+            output = stdout.decode().strip()
+            # Output format: "==> claude-code: 2.0.37"
+            match = re.search(r'(\d+\.\d+\.\d+)', output)
+            if match:
+                return match.group(1)
+
+        elif tool.dep == "pnpm":
             proc = await asyncio.create_subprocess_exec(
                 "pnpm", "list", "-g", tool.pkg, "--depth=0",
                 stdout=asyncio.subprocess.PIPE,
@@ -226,7 +239,25 @@ def fetch_pypi_version(pkg: str) -> Optional[str]:
 async def get_latest_version(tool: Tool) -> Optional[str]:
     """Get latest version from registry async."""
     try:
-        if tool.dep == "pnpm":
+        if tool.dep == "brew":
+            # For Homebrew-installed Claude Code, parse output of 'claude update'
+            proc = await asyncio.create_subprocess_exec(
+                "claude", "update",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
+            )
+            stdout, _ = await proc.communicate()
+            output = stdout.decode().strip()
+            # Look for "Update available: x.y.z -> a.b.c"
+            match = re.search(r'Update available: [\d.]+\s*->\s*([\d.]+)', output)
+            if match:
+                return match.group(1)
+            # If already up to date, get current version
+            match = re.search(r'Current version: ([\d.]+)', output)
+            if match:
+                return match.group(1)
+
+        elif tool.dep == "pnpm":
             target = f"{tool.pkg}@{tool.tag}" if tool.tag else tool.pkg
             proc = await asyncio.create_subprocess_exec(
                 "pnpm", "view", target, "version",
