@@ -41,7 +41,7 @@ return {
 	quickActionMappings = {
 		modifiers = { "ctrl" },
 		showHelp = true,
-		trigger = "t",
+		trigger = "\\",
 		mappings = {
 			{ {}, "q", "quickNavigation", "Quick Navigation" },
 			{ {}, "p", "pasteInPlainText", "Paste as Plain Text" },
