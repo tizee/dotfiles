@@ -36,9 +36,9 @@ class Tool:
 
 
 TOOLS = [
-    Tool("claude(brew)", "Claude Code CLI",
-         "brew upgrade claude-code",
-         "brew", "claude-code", "latest"),
+    Tool("claude(pnpm)", "Claude Code CLI",
+         "pnpm install -g @anthropic-ai/claude-code@latest",
+         "pnpm", "@anthropic-ai/claude-code", "latest"),
     Tool("codex(pnpm)", "OpenAI Codex CLI",
          "pnpm install -g @openai/codex@latest",
          "pnpm", "@openai/codex", "latest"),
@@ -113,7 +113,7 @@ async def update_line(index: int, total: int, content: str):
         # Offset from prompt to bottom of list is about 8 lines (help text)
         # We use SCO/RCO to be safer.
         up = (total - index + 1) + 8  # 8 is the size of help section
-        
+
         sys.stdout.write("\033[s")  # Save cursor position
         sys.stdout.write(f"\033[{up}A")  # Move up to target line
         sys.stdout.write("\r\033[K")  # Clear line
@@ -139,7 +139,7 @@ def format_tool_line_with_state(index: int, spinner: str = None) -> str:
     """Format a tool line based on the current global TOOL_DATA state."""
     tool = TOOLS[index - 1]
     data = TOOL_DATA[index - 1]
-    
+
     status_icon = ""
     version_text = ""
     status_text = ""
@@ -300,12 +300,12 @@ async def run_upgrade_serial(tool: Tool) -> bool:
         proc = await asyncio.create_subprocess_shell(tool.cmd)
         await proc.wait()
         success = proc.returncode == 0
-        
+
         if success:
             print(f"\n{Colors.GREEN}{BOX['check']} Successfully upgraded {tool.name}{Colors.RESET}")
         else:
             print(f"\n{Colors.RED}{BOX['cross']} Failed to upgrade {tool.name}{Colors.RESET}")
-            
+
     except Exception as e:
         print(f"\n{Colors.RED}{BOX['cross']} Error: {e}{Colors.RESET}")
         success = False
@@ -338,7 +338,7 @@ async def fetch_tool_info_background(index: int):
     """Fetch tool info and update global state."""
     tool = TOOLS[index - 1]
     has_dep = check_dependency(tool.dep)
-    
+
     if not has_dep:
         TOOL_DATA[index - 1].update({'loading': False, 'has_dep': False})
         content = format_tool_line_with_state(index)
@@ -357,7 +357,7 @@ async def fetch_tool_info_background(index: int):
         'latest': latest,
         'has_dep': True
     })
-    
+
     content = format_tool_line_with_state(index)
     await update_line(index, len(TOOLS), content)
 
@@ -366,7 +366,7 @@ async def main_async():
     """Main async function."""
     width = get_terminal_width()
     print_header(width)
-    
+
     # Initialize global state
     global TOOL_DATA
     TOOL_DATA = [{
@@ -379,7 +379,7 @@ async def main_async():
     print(f"{Colors.BOLD}Available tools:{Colors.RESET}\n")
     for i in range(1, len(TOOLS) + 1):
         print(format_tool_line_with_state(i))
-    
+
     print_help(width)
 
     # Start background tasks

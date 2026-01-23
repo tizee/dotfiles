@@ -76,6 +76,48 @@ if command -v tmux &>/dev/null; then
   }
 
   function tmuxrawcapture() {
-    tmux capture-pane -p -e -J -t $@
+      local target="%0"
+      local start="-"
+      local end="-"
+      local output=""
+
+      # 第一个非选项参数作为target
+      if [[ $# -gt 0 ]] && [[ ! "$1" =~ ^- ]]; then
+          target="$1"
+          shift
+      fi
+
+      # 解析选项参数
+      while [[ $# -gt 0 ]]; do
+          case $1 in
+              -s) start="$2"; shift 2 ;;
+              -e) end="$2"; shift 2 ;;
+              -o) output="$2"; shift 2 ;;
+              *) shift ;;
+          esac
+      done
+
+      # 获取history大小
+      local history_size=$(tmux display-message -p -t "$target" '#{history_size}')
+
+      # 百分比转换
+      if [[ "$start" =~ ^[0-9]+%$ ]]; then
+          local percent=${start%\%}
+          start=$(( -history_size * percent / 100 ))
+      fi
+
+      if [[ "$end" =~ ^[0-9]+%$ ]]; then
+          local percent=${end%\%}
+          end=$(( -history_size * percent / 100 ))
+      fi
+
+      # 执行捕获
+      if [[ -n "$output" ]]; then
+          tmux capture-pane -p -e -J -S "$start" -E "$end" -t "$target" > "$output"
+          echo "saved to: $output" >&2
+      else
+          tmux capture-pane -p -e -J -S "$start" -E "$end" -t "$target"
+      fi
   }
+
 fi
