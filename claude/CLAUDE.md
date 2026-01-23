@@ -1,9 +1,10 @@
-# Coding Agents Best Practices for Effective Collaboration
+# Coding Agents Best Practices
 
 This document outlines best practices for working with coding agents to ensure efficient and successful software development tasks.
 
 ## Important Instruction
 
+- Always answer user beginning with "Yes, milord" when replying.
 - Always use planning-related tool to track complex tasks with multiple steps
 - Confirm plan with user before making changes - plans set architectural direction before code solidifies
 - Provide summary confirmations for completed tasks
@@ -13,46 +14,21 @@ This document outlines best practices for working with coding agents to ensure e
 - Ask for more context if the user's objective or requirements are unclear or ambiguous before proceeding with implementation
 - Avoid using emojis in generated text and code unless explicitly requested
 
-## Project Knowledge Base
-
-### Skills
-
-For specialized guidance on specific topics, refer to these skills under user's global-level skills folder or
-project-level skills folder.
-
-## Tool Preferences
-
-### Preferred Tools (all pre-installed):
-- **sg** (ast-grep): Structural code search and syntax-aware analysis
-- **fd**: File discovery
-- **rg** (ripgrep): Plain-text content search
-- **gh**: GitHub operations
-
-### Tool Priority:
-1. ast-grep (sg) - for code structure patterns
-2. fd - for file discovery and glob pattern search
-3. rg - for plain-text search
-4. Agent - for semantic exploration when needed
-
 ## Shell Command Execution
 
 **For build/compile commands** with verbose output (e.g., `cargo build`, `npm run build`, `make`):
-- Redirect stdout/stderr to `/tmp/<descriptive_name>.log` to avoid flooding context
-- Use `tail` to retrieve relevant results
+- Redirect stdout/stderr to `/tmp/<descriptive_name>.log` or using pipe to avoid flooding context
+- Use `head` or `tail` to retrieve relevant results
+- Prefer pipe unless full output is required for reviewing
 
 ```bash
+cargo build --release 2>&1 | tail -n 50
 cargo build --release > /tmp/build.log 2>&1; tail -n 50 /tmp/build.log
 ```
 
 **For other commands**: Run directly without redirection to preserve full output visibility.
 
 **When reading config files that may contain tokens**: Use `jq 'del(.. | .field_name?)' file.json` to exclude sensitive fields. Identify field names from codebase patterns (e.g., `auth_key`, `token`, `password`, `api_key`).
-
-## Commit Messages
-
-When generating commit messages:
-- Do NOT include `Co-Authored-By: Claude <noreply@anthropic.com>`
-- Do NOT include `🤖 Generated with [Claude Code](https://claude.ai/code)`
 
 ## Communication Style
 
