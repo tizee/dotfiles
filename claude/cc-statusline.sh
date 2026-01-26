@@ -71,6 +71,7 @@ GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 YELLOW='\033[0;33m'
 CYAN='\033[0;36m'
+MAGENTA='\033[0;35m'
 GRAY='\033[0;90m'
 NC='\033[0m' # No Color
 
@@ -118,7 +119,77 @@ else
 fi
 
 # Build context bar display with k notation
-context_info="${GRAY}${bar}${NC} ${current_tokens_formatted}/${context_size_k} (${context_percent}%)"
+context_info="${GRAY}${bar}${NC} ${current_tokens_formatted} / ${context_size_k} (${context_percent}%)"
+
+# Get quota refresh progress bar and remaining time
+get_quota_bar() {
+    local bar=""
+    local remaining=""
+    
+    # Check if claude-quota is available and running
+    if command -v claude-quota >/dev/null 2>&1; then
+        local quota_status=$(claude-quota status 2>/dev/null)
+        
+        if echo "$quota_status" | grep -q "active (running)"; then
+            # Extract next refresh time and interval
+            local mode_line=$(echo "$quota_status" | grep 'Mode:')
+            local refresh_time=$(echo "$mode_line" | grep -oE '[0-9]{2}:[0-9]{2}:[0-9]{2}')
+            local interval=$(echo "$mode_line" | grep -oE '\+[0-9]+h' | tr -d '+h')
+            
+            if [ -n "$refresh_time" ] && [ -n "$interval" ]; then
+                # Calculate time difference in seconds
+                local current_epoch=$(date +%s)
+                local refresh_epoch=$(date -j -f "%H:%M:%S" "$refresh_time" +%s 2>/dev/null)
+                
+                # If refresh time is earlier than current time, it means it's tomorrow
+                if [ "$refresh_epoch" -lt "$current_epoch" ]; then
+                    refresh_epoch=$((refresh_epoch + 86400))
+                fi
+                
+                local interval_seconds=$((interval * 3600))
+                local elapsed=$((current_epoch - (refresh_epoch - interval_seconds)))
+                local remaining_seconds=$((refresh_epoch - current_epoch))
+                
+                # Calculate percent
+                local percent=$((elapsed * 100 / interval_seconds))
+                
+                # Clamp percent between 0 and 100
+                [ "$percent" -lt 0 ] && percent=0
+                [ "$percent" -gt 100 ] && percent=100
+                
+                # Build progress bar (10 chars wide)
+                local bar_width=10
+                local filled=$((percent * bar_width / 100))
+                local empty=$((bar_width - filled))
+                
+                for ((i=0; i<filled; i++)); do bar+="▮"; done
+                for ((i=0; i<empty; i++)); do bar+="▯"; done
+                
+                # Calculate remaining time in hours and minutes
+                local remaining_hours=$((remaining_seconds / 3600))
+                local remaining_minutes=$(((remaining_seconds % 3600) / 60))
+                
+                # Format remaining time
+                if [ "$remaining_hours" -gt 0 ]; then
+                    remaining="${remaining_hours}h ${remaining_minutes}m"
+                else
+                    remaining="${remaining_minutes}m"
+                fi
+                
+                echo "${MAGENTA}${bar}${NC} ${percent}% ${GRAY}(${remaining} to reset)${NC}"
+            fi
+        fi
+    fi
+    
+    echo ""
+}
+
+# Get quota bar
+quota_bar=$(get_quota_bar)
 
 # Output the status line
-echo -e "${BLUE}${dir_name}${NC} ${GRAY}|${NC} ${CYAN}${model_name}${NC} ${GRAY}|${NC} ${context_info}${git_info:+ ${GRAY}|${NC}}${git_info}"
+if [ -n "$quota_bar" ]; then
+    echo -e "${BLUE}${dir_name}${NC} ${GRAY}|${NC} ${CYAN}${model_name}${NC} ${GRAY}|${NC} ${context_info} ${GRAY}|${NC} ${quota_bar}${git_info:+ ${GRAY}|${NC}}${git_info}"
+else
+    echo -e "${BLUE}${dir_name}${NC} ${GRAY}|${NC} ${CYAN}${model_name}${NC} ${GRAY}|${NC} ${context_info}${git_info:+ ${GRAY}|${NC}}${git_info}"
+fi

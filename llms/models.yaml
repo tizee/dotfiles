@@ -14,6 +14,30 @@
   extra_body:
     thinking:
       type: "enabled"
+- model_id: glm-4.5-air
+  model_name: glm-4.5-air
+  api_base: "https://open.bigmodel.cn/api/anthropic"
+  can_stream: true
+  api_format: anthropic
+  api_key_name: zhipu
+- model_id: ark-code-claude
+  model_name: ark-code-latest
+  api_base: "https://ark.cn-beijing.volces.com/api/coding"
+  can_stream: true
+  api_format: anthropic
+  api_key_name: doubao
+  max_tokens: 131072
+  extra_body:
+    thinking:
+      type: "enabled"
+- model_id: ark-code-nothinking
+  model_name: ark-code-latest
+  api_base: "https://ark.cn-beijing.volces.com/api/coding/v3/"
+  can_stream: true
+  api_key_name: doubao
+  extra_body:
+    thinking:
+      type: "disabled"
 - model_id: ark-code
   model_name: ark-code-latest
   api_base: "https://ark.cn-beijing.volces.com/api/coding/v3/"

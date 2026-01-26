@@ -1,4 +1,10 @@
 {
   "debug": false,
-  "default_model": "glm-4.7"
+  "default_model": "glm-4.7",
+  "agent": {
+     "background_model": "glm-4.5-air",
+     "session": {
+        "cleanup_period_days": 2
+      }
+  }
 }
