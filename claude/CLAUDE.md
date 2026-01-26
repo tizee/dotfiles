@@ -72,3 +72,7 @@ For simple planning tasks (not requiring long-time analysis, debugging, or compl
 - Write the plan to a file named `plan_<feature_name>.md` in the current working directory.
 
 For complex tasks requiring long-time analysis or debugging, use the plan-with-files skill instead (`.plans/<feature-name>-yymmdd/` structure).
+
+## Fail Fast – No Silent Defaults
+
+**NEVER create defaults that mask failures.** If a required config, env var, or dependency is missing, RAISE AN EXCEPTION AT INIT. Do not silently substitute a "safe" fallback that makes code appear to work while actually being broken. Swallowing errors to avoid exceptions is not defensive programming—it's sabotage. Your collaborators will waste hours debugging phantom failures that surface far from the root cause. A loud crash at startup is infinitely preferable to silent corruption downstream. If the system cannot operate correctly, it must refuse to operate at all.
