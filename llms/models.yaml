@@ -1,3 +1,12 @@
+- model_id: kimi-for-coding
+  model_name: kimi-for-coding
+  api_base: "https://api.kimi.com/coding/"
+  can_stream: true
+  api_format: anthropic
+  api_key_name: kimi
+  extra_body:
+    thinking:
+      type: "enabled"
 - model_id: glm-4.7
   model_name: glm-4.7
   api_base: "https://open.bigmodel.cn/api/paas/v4/"
