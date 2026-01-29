@@ -18,11 +18,11 @@ pathcp() {
 
     if [[ ${#paths[@]} -eq 1 ]]; then
         printf '%s' "${paths[1]}" | pbcopy
+        echo "${paths[1]}"
     else
         printf '%s\n' "${paths[@]}" | pbcopy
+        printf '%s\n' "${paths[@]}"
     fi
-
-    echo "Copied path(s) to clipboard"
 }
 
 pathcp "$@"
