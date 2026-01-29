@@ -1,6 +1,7 @@
 #!/bin/zsh
 
-pathcp() {
+# copy files realpath
+cpath() {
     if [[ $# -eq 0 ]]; then
         echo "Usage: pathcp <file-or-directory> [...]" >&2
         echo "Copy absolute path(s) to clipboard" >&2
@@ -25,4 +26,4 @@ pathcp() {
     fi
 }
 
-pathcp "$@"
+cpath "$@"

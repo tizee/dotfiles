@@ -185,13 +185,13 @@ A curated collection of useful command-line tools and utilities for daily develo
 - `mark` - list all bookmarks
 **Details**: Uses symbolic links in ~/.local/share/marks for persistent bookmarks across sessions
 
-#### `pathcp`
+#### `cpath`
 **Purpose**: Copy absolute path of file or directory to clipboard
-**Usage**: `pathcp <file-or-directory> [...]`
+**Usage**: `cpath <file-or-directory> [...]`
 **Example**:
-- `pathcp file.txt` - Copy single file path
-- `pathcp file1.txt file2.txt` - Copy multiple paths (one per line)
-**Details**: Resolves relative paths to absolute paths using `realpath`, supports multiple files
+- `cpath file.txt` - Copy single file path
+- `cpath file1.txt file2.txt` - Copy multiple paths (one per line)
+**Details**: Resolves relative paths to absolute paths using `realpath`, prints path(s) to stdout and copies to clipboard
 
 #### `open`
 **Purpose**: Cross-platform file opener
@@ -278,7 +278,7 @@ Most scripts are self-contained and require no additional setup. Some may need:
 - **Network Tools** (3): ip4to6, machineid, myip
 - **Development** (2): dart_lsp_server, git-sview
 - **AI/LLM Tools** (2): llm-update, claude-quota
-- **File Management** (5): catcopy, mark, pathcp, open, osccp
+- **File Management** (5): catcopy, mark, cpath, open, osccp
 - **Clipboard** (3): pbcopy, pbpaste, osccp
 - **Utilities** (7): num2str, num2zh, temperature, truecolor, unix, yearp
 - **Network Tunneling** (2): ggclonet, sshtunnel
