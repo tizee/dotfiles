@@ -1,4 +1,4 @@
-#/bin/zsh
+#!/bin/zsh
 
 catcopy() {
     if [[ $# -eq 0 ]]; then

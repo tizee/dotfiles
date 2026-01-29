@@ -1,0 +1,28 @@
+#!/bin/zsh
+
+pathcp() {
+    if [[ $# -eq 0 ]]; then
+        echo "Usage: pathcp <file-or-directory> [...]" >&2
+        echo "Copy absolute path(s) to clipboard" >&2
+        return 1
+    fi
+
+    local paths=()
+    for arg in "$@"; do
+        if [[ ! -e "$arg" ]]; then
+            echo "Error: '$arg' does not exist" >&2
+            return 1
+        fi
+        paths+=("$(realpath "$arg")")
+    done
+
+    if [[ ${#paths[@]} -eq 1 ]]; then
+        printf '%s' "${paths[1]}" | pbcopy
+    else
+        printf '%s\n' "${paths[@]}" | pbcopy
+    fi
+
+    echo "Copied path(s) to clipboard"
+}
+
+pathcp "$@"
