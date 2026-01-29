@@ -1,4 +1,12 @@
+---
+name: tdd
+description: test-driven development workflow
+---
+
 # Testing Guidelines
+
+- Fail fast: Write test unit case first, expect it to fail.
+- Fix bug: reproduce the bug first, then fix the root cause.
 
 ## Core Principle
 **Tests are living documentation.** Preserve test integrity and purpose.
