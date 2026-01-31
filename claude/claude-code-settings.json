@@ -140,5 +140,9 @@
     "swift-lsp@claude-plugins-official": true
   },
   "alwaysThinkingEnabled": true,
-  "plansDirectory": ".claude/plans"
+  "companyAnnouncements": [
+    "The more you know, the less you diversify. "
+  ],
+  "plansDirectory": ".claude/plans",
+  "promptSuggestionEnabled": false
 }
