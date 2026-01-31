@@ -243,3 +243,5 @@ fi
 # Added by Antigravity
 export PATH="/Users/tizee/.antigravity/antigravity/bin:$PATH"
 alias ccyl='claude --allow-dangerously-skip-permissions --dangerously-skip-permissions '
+alias playmd='playwrightmd'
+alias cclaude='claude-chill -a 5000 claude'
