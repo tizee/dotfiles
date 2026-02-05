@@ -9,6 +9,7 @@
       },
       "bash": {
           "defaultTimeoutMs": 20000,
+          "subagent_model": "kimi-for-coding",
           "sandbox": {
             "mode": "regular",
             "allowed_read_paths": ["~/.cache/uv"]
