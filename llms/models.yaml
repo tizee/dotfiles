@@ -19,6 +19,16 @@
     reasoning:
       effort: medium
 - model_id: opus
+  model_name: claude-code/claude-opus-4-6
+  api_base: "http://127.0.0.1:8082/anthropic/"
+  can_stream: true
+  api_format: anthropic
+  api_key_name: cc
+  image: true
+  extra_body:
+    thinking:
+      type: "enabled"
+- model_id: opus45
   model_name: claude-code/claude-opus-4-5
   api_base: "http://127.0.0.1:8082/anthropic/"
   can_stream: true
