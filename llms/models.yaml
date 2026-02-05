@@ -1,9 +1,30 @@
+- model_id: test
+  model_name: test
+  api_base: "http://127.0.0.1:8642"
+  can_stream: true
+  api_format: anthropic
+  api_key_name: cc
+  image: true
+  extra_body:
+    thinking:
+      type: "enabled"
+
+- model_id: codex
+  model_name: codex/gpt-5.2-codex
+  api_base: "http://127.0.0.1:8082/openai/"
+  can_stream: true
+  api_format: openai_responses
+  image: true
+  extra_body:
+    reasoning:
+      effort: medium
 - model_id: opus
   model_name: claude-code/claude-opus-4-5
   api_base: "http://127.0.0.1:8082/anthropic/"
   can_stream: true
   api_format: anthropic
   api_key_name: cc
+  image: true
   extra_body:
     thinking:
       type: "enabled"
@@ -12,12 +33,14 @@
   api_base: "http://127.0.0.1:8082/anthropic/"
   can_stream: true
   api_format: anthropic
+  image: true
   api_key_name: cc
 - model_id: kimi-for-coding
   model_name: kimi-for-coding
   api_base: "https://api.kimi.com/coding/"
   can_stream: true
   api_format: anthropic
+  image: true
   max_tokens: 262144
   api_key_name: kimi
   extra_body:
@@ -28,6 +51,7 @@
   api_base: "https://api.kimi.com/coding/"
   can_stream: true
   api_format: anthropic
+  image: true
   max_tokens: 262144
   api_key_name: kimi
   extra_body:
@@ -55,17 +79,17 @@
   can_stream: true
   api_format: anthropic
   api_key_name: zhipu
-- model_id: ark-code-claude
+- model_id: doubao
   model_name: ark-code-latest
   api_base: "https://ark.cn-beijing.volces.com/api/coding"
   can_stream: true
   api_format: anthropic
   api_key_name: doubao
-  max_tokens: 131072
+  max_tokens: 32768
   extra_body:
     thinking:
       type: "enabled"
-- model_id: ark-code-nothinking
+- model_id: doubao-oai-nothinking
   model_name: ark-code-latest
   api_base: "https://ark.cn-beijing.volces.com/api/coding/v3/"
   can_stream: true
@@ -73,7 +97,7 @@
   extra_body:
     thinking:
       type: "disabled"
-- model_id: ark-code
+- model_id: doubao-oai
   model_name: ark-code-latest
   api_base: "https://ark.cn-beijing.volces.com/api/coding/v3/"
   can_stream: true
@@ -81,5 +105,4 @@
   extra_body:
     thinking:
       type: "enabled"
-    reasoning:
-      effort: "high"
+    reasoning_effort: "high"
