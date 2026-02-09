@@ -1,11 +1,21 @@
 {
   "debug": false,
   "agent": {
+    "ui": {
+       "statusline": {
+         "command": "~/.config/llms/statusline.sh",
+         "updateIntervalMs": 300
+      }
+    },
     "image_model": "kimi-for-coding-instant",
     "model": "kimi-for-coding-instant",
      "background_model": "glm-4.5-air",
      "session": {
         "cleanup_period_days": 2
+      },
+      "persistent_debug": {
+        "enabled": true,
+        "cleanup_period_days": 1
       },
       "bash": {
           "defaultTimeoutMs": 20000,

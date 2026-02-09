@@ -10,6 +10,15 @@
       type: "enabled"
 
 - model_id: codex
+  model_name: codex/gpt-5.3-codex
+  api_base: "http://127.0.0.1:8082/openai/"
+  can_stream: true
+  api_format: openai_responses
+  image: true
+  extra_body:
+    reasoning:
+      effort: medium
+- model_id: codex52
   model_name: codex/gpt-5.2-codex
   api_base: "http://127.0.0.1:8082/openai/"
   can_stream: true
@@ -25,9 +34,7 @@
   api_format: anthropic
   api_key_name: cc
   image: true
-  extra_body:
-    thinking:
-      type: "enabled"
+  thinking_mode: "adaptive"
 - model_id: opus45
   model_name: claude-code/claude-opus-4-5
   api_base: "http://127.0.0.1:8082/anthropic/"
@@ -51,7 +58,7 @@
   can_stream: true
   api_format: anthropic
   image: true
-  max_tokens: 262144
+  context_window: 262144
   api_key_name: kimi
   extra_body:
     thinking:
@@ -62,7 +69,7 @@
   can_stream: true
   api_format: anthropic
   image: true
-  max_tokens: 262144
+  context_window: 262144
   api_key_name: kimi
   extra_body:
     thinking:
