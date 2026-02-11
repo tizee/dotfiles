@@ -1,12 +1,14 @@
 # see https://developers.openai.com/codex/local-config#cli
-model = "gpt-5.2"
-model_reasoning_effort = "xhigh"
+model = "gpt-5.3-codex"
+model_reasoning_effort = "medium"
 model_reasoning_summary = "detailed"
 # read-only | workspace-write | danger-full-access
 sandbox_mode = "danger-full-access"
 approval_policy = "never"
 tool_output_token_limit = 25000
 model_auto_compact_token_limit = 233000
+personality = "pragmatic"
+web_search = "live"
 
 [notice]
 "hide_gpt-5.1-codex-max_migration_prompt" = true
@@ -21,7 +23,6 @@ skills = true
 skill_snapshot = true
 apply_patch_freeform = true
 ghost_commit = false
-web_search_request = true
 unified_exec = true
 shell_snapshot = true
 steer = true

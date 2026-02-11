@@ -74,17 +74,28 @@
   extra_body:
     thinking:
       type: "disabled"
-- model_id: glm-4.7
-  model_name: glm-4.7
-  api_base: "https://open.bigmodel.cn/api/paas/v4/"
+- model_id: glm-nothinking
+  model_name: glm-5
+  api_base: "https://open.bigmodel.cn/api/anthropic"
+  api_format: anthropic
   can_stream: true
   api_key_name: zhipu
   extra_body:
     thinking:
       type: "disabled"
-- model_id: glm-4.7-thinking
+- model_id: glm
+  model_name: glm-5
+  api_base: "https://open.bigmodel.cn/api/anthropic"
+  api_format: anthropic
+  can_stream: true
+  api_key_name: zhipu
+  extra_body:
+    thinking:
+      type: "enabled"
+- model_id: glm-4.7
   model_name: glm-4.7
-  api_base: "https://open.bigmodel.cn/api/paas/v4/"
+  api_base: "https://open.bigmodel.cn/api/anthropic"
+  api_format: anthropic
   can_stream: true
   api_key_name: zhipu
   extra_body:

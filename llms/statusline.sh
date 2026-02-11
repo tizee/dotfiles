@@ -220,9 +220,15 @@ if cd "$cwd" 2>/dev/null && git rev-parse --is-inside-work-tree >/dev/null 2>&1;
         git_cache_lock="${GIT_CACHE_DIR}/${cache_key}.lock"
 
         if _is_git_cache_stale "$git_cache_file"; then
-            # Stale or missing -- read whatever we have, then refresh in background
-            _read_git_cache "$git_cache_file"  # ok if this fails (no cache yet)
-            needs_git_refresh=true
+            # Cache is stale or missing
+            if [ ! -f "$git_cache_file" ]; then
+                # First call: collect synchronously so we have data immediately
+                _collect_git_info "$cwd" "$git_cache_file"
+            else
+                # Cache exists but stale: read stale data, refresh in background
+                _read_git_cache "$git_cache_file"
+                needs_git_refresh=true
+            fi
         else
             # Cache is fresh
             _read_git_cache "$git_cache_file"
