@@ -7,12 +7,12 @@
          "updateIntervalMs": 300
       }
     },
-    "model": "kimi-for-coding-instant",
+    "model": "glm-nothinking",
     "image_model": "kimi-for-coding-instant",
-     "background_model": "glm-4.5-air",
-     "compact_model": "kimi-for-coding",
-      "subagent_model": "kimi-for-coding",
-     "session": {
+    "background_model": "glm-4.5-air",
+    "compact_model": "kimi-for-coding",
+    "subagent_model": "glm",
+    "session": {
         "cleanup_period_days": 2
       },
       "persistent_debug": {

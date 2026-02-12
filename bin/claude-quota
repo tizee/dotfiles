@@ -110,11 +110,11 @@ def format_duration(seconds: int) -> str:
     return "".join(parts)
 
 
-def check_claude_available() -> bool:
-    """Check if Claude CLI is available and working."""
+def check_llms_available() -> bool:
+    """Check if LLMs CLI is available and working."""
     try:
         result = subprocess.run(
-            ["claude", "--version"], capture_output=True, timeout=10
+            ["llms", "--version"], capture_output=True, timeout=10
         )
         return result.returncode == 0
     except Exception:
@@ -140,23 +140,17 @@ def save_state(state: dict):
         json.dump(state, f)
 
 
-def ping_claude() -> bool:
-    """Ping Claude Code using Haiku with minimal tokens."""
-    log("Pinging Claude Code (haiku)...")
+def ping_llms() -> bool:
+    """Ping LLMs using Opus with minimal tokens."""
+    log("Pinging LLMs (haiku)...")
     try:
         result = subprocess.run(
             [
-                "claude",
-                "--model",
+                "llms",
+                "-m",
                 "haiku",
-                "--system-prompt",
+                "-s",
                 "Reply pong",
-                "--tools",
-                "",
-                "--no-session-persistence",
-                "--permission-mode",
-                "bypassPermissions",
-                "-p",
                 "ping",
             ],
             capture_output=True,
@@ -302,7 +296,7 @@ def daemon_loop():
         success = False
 
         for i in range(1, max_retries + 1):
-            if ping_claude():
+            if ping_llms():
                 success = True
                 break
             if i < max_retries:
@@ -327,11 +321,11 @@ def daemon_loop():
 
 def start_daemon():
     """Start the daemon in background."""
-    # Check if Claude CLI is available
-    if not check_claude_available():
-        print(f"● {RED}error{RESET} - claude CLI not found or not working")
-        print("   Please install Claude Code CLI first:")
-        print("   https://code.anthropic.com/docs")
+    # Check if LLMs CLI is available
+    if not check_llms_available():
+        print(f"● {RED}error{RESET} - llms CLI not found or not working")
+        print("   Please install LLMs CLI first:")
+        print("   https://github.com/tizee/llms")
         sys.exit(1)
 
     if PID_FILE.exists():

@@ -74,11 +74,25 @@
   extra_body:
     thinking:
       type: "disabled"
+- model_id: minimax
+  model_name: MiniMax-M2.5
+  api_base: "https://api.minimaxi.com/anthropic"
+  image: false
+  context_window: 204800
+  max_tokens: 128000
+  api_format: anthropic
+  can_stream: true
+  api_key_name: minimax
+  extra_body:
+    thinking:
+      type: "enabled"
 - model_id: glm-nothinking
   model_name: glm-5
   api_base: "https://open.bigmodel.cn/api/anthropic"
   api_format: anthropic
   can_stream: true
+  context_window: 200000
+  max_tokens: 128000
   api_key_name: zhipu
   extra_body:
     thinking:
@@ -86,6 +100,9 @@
 - model_id: glm
   model_name: glm-5
   api_base: "https://open.bigmodel.cn/api/anthropic"
+  image: false
+  context_window: 200000
+  max_tokens: 128000
   api_format: anthropic
   can_stream: true
   api_key_name: zhipu
@@ -96,6 +113,7 @@
   model_name: glm-4.7
   api_base: "https://open.bigmodel.cn/api/anthropic"
   api_format: anthropic
+  image: false
   can_stream: true
   api_key_name: zhipu
   extra_body:
@@ -110,6 +128,7 @@
 - model_id: doubao
   model_name: ark-code-latest
   api_base: "https://ark.cn-beijing.volces.com/api/coding"
+  image: true
   can_stream: true
   api_format: anthropic
   api_key_name: doubao
@@ -120,6 +139,7 @@
 - model_id: doubao-oai-nothinking
   model_name: ark-code-latest
   api_base: "https://ark.cn-beijing.volces.com/api/coding/v3/"
+  image: true
   can_stream: true
   api_key_name: doubao
   extra_body:
@@ -128,6 +148,7 @@
 - model_id: doubao-oai
   model_name: ark-code-latest
   api_base: "https://ark.cn-beijing.volces.com/api/coding/v3/"
+  image: true
   can_stream: true
   api_key_name: doubao
   extra_body:
