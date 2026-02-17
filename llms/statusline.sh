@@ -109,8 +109,11 @@ if [ -f "$QUOTA_SCRIPT" ]; then
                 QUOTA_COLOR="$RED"
             fi
             resets_in=$(echo "$quota_json" | jq -r '.five_hour.resets_in // empty')
+            resets_at_local=$(echo "$quota_json" | jq -r '.five_hour.resets_at_local // empty')
             if [ -n "$resets_in" ]; then
-                quota_info="${QUOTA_COLOR}Q:${quota_pct}%${NC} ${GRAY}${resets_in}${NC}"
+                quota_info="${QUOTA_COLOR}Q:${quota_pct}%${NC} ${GRAY}${resets_in}"
+                [ -n "$resets_at_local" ] && quota_info+=" @${resets_at_local}"
+                quota_info+="${NC}"
             else
                 quota_info="${QUOTA_COLOR}Q:${quota_pct}%${NC}"
             fi

@@ -21,7 +21,7 @@ web_search = "live"
 rmcp_client = true
 skills = true
 skill_snapshot = true
-apply_patch_freeform = true
+apply_patch_freeform = false
 ghost_commit = false
 unified_exec = true
 shell_snapshot = true
@@ -38,3 +38,6 @@ APP = "Codex"
 
 [projects."/Users/tizee/projects/project-conf/dotfiles/tizee-dotfiles"]
 trust_level = "untrusted"
+
+[tui]
+status_line = ["model-with-reasoning", "five-hour-limit", "weekly-limit"]

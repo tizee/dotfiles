@@ -5,3 +5,8 @@ auth.json
 history.jsonl
 version.json
 shell_snapshots
+sqlite
+vendor_imports
+.codex-global-state.json
+.personality_migration
+models_cache.json

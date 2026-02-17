@@ -75,11 +75,10 @@
     thinking:
       type: "disabled"
 - model_id: minimax
-  model_name: MiniMax-M2.5
+  model_name: MiniMax-M2.5-highspeed
   api_base: "https://api.minimaxi.com/anthropic"
   image: false
   context_window: 204800
-  max_tokens: 128000
   api_format: anthropic
   can_stream: true
   api_key_name: minimax
@@ -92,7 +91,6 @@
   api_format: anthropic
   can_stream: true
   context_window: 200000
-  max_tokens: 128000
   api_key_name: zhipu
   extra_body:
     thinking:
@@ -102,7 +100,6 @@
   api_base: "https://open.bigmodel.cn/api/anthropic"
   image: false
   context_window: 200000
-  max_tokens: 128000
   api_format: anthropic
   can_stream: true
   api_key_name: zhipu

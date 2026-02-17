@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Check which model Codex routes to online
+
+RUST_LOG='codex_api::sse::responses=trace' codex exec --skip-git-repo-check -s read-only -m 'gpt-5.3-codex' 'Say exactly this sentence and nothing else: "Hello, this is the answer."' 2>&1 >/dev/null | rg -o --replace '$1' '"model":"([^"]+)"' | head -n1

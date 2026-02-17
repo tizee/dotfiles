@@ -20,6 +20,10 @@ function M.setup()
 	-- nvim treesitter
 	local treesitter = require("tizee.plugins.nvim-treesitter")
 	treesitter.setup()
+	-- llms agent
+	vim.opt.runtimepath:append('/Users/tizee/projects/project-AI/tools/llm.tizee/examples/integrations/neovim')
+	vim.cmd('runtime plugin/llms.lua')
+	require("llms").setup()
 end
 
 return M

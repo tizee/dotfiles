@@ -223,7 +223,7 @@ function yogit::help() {
   printf "  git rev-parse [input] | cut -c 1-7\n\n"
 
   printf "${_yogit_color_green}${_yogit_basic_prefix}resetupdate${_yogit_color_reset}\n"
-  printf "  git fetch --depth=1 then reset to FETCH_HEAD\n\n"
+  printf "  git fetch --depth=1 then reset to FETCH_HEAD (default: origin <current-branch>, optional: <remote> [<branch>])\n\n"
 
   printf "${_yogit_color_green}${_yogit_basic_prefix}htest${_yogit_color_reset}\n"
   printf "  ssh -T git@github.com\n\n"
@@ -1374,8 +1374,15 @@ alias "${_yogit_basic_prefix}rt"='yogit::cd_to_root'
 function yogit::reset_update() {
   yogit::is_git_repo || return 1
 
-  local branch=$(yogit::current_branch)
-  git fetch --depth=1 origin "$branch" && git reset --hard FETCH_HEAD
+  local remote="${1:-origin}"
+  local branch="${2:-}"
+  
+  # If no branch specified, use current branch
+  if [[ -z "$branch" ]]; then
+    branch=$(yogit::current_branch)
+  fi
+  
+  git fetch --depth=1 "$remote" "$branch" && git reset --hard FETCH_HEAD
 }
 alias "${_yogit_basic_prefix}resetupdate"='yogit::reset_update'
 # }}}

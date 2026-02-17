@@ -530,7 +530,7 @@ def convert_times_to_local(data: dict) -> dict:
 
 
 def add_resets_in(data: dict) -> dict:
-    """Add human-readable 'resets_in' field next to each 'resets_at' timestamp"""
+    """Add human-readable 'resets_in' and 'resets_at_local' fields next to each 'resets_at' timestamp"""
     import copy
     from datetime import datetime, timezone
     result = copy.deepcopy(data)
@@ -544,6 +544,10 @@ def add_resets_in(data: dict) -> dict:
             continue
         try:
             dt = datetime.fromisoformat(resets_at.replace("Z", "+00:00"))
+            # Add local reset time as short HH:MM format
+            local_tz = get_system_timezone()
+            local_dt = dt.astimezone(local_tz)
+            value["resets_at_local"] = local_dt.strftime("%H:%M")
             delta = dt - now
             total_seconds = int(delta.total_seconds())
             if total_seconds <= 0:

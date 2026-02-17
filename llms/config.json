@@ -7,11 +7,11 @@
          "updateIntervalMs": 300
       }
     },
-    "model": "glm-nothinking",
+    "model": "minimax",
     "image_model": "kimi-for-coding-instant",
     "background_model": "glm-4.5-air",
     "compact_model": "kimi-for-coding",
-    "subagent_model": "glm",
+    "subagent_model": "minimax",
     "session": {
         "cleanup_period_days": 2
       },
@@ -20,10 +20,10 @@
         "cleanup_period_days": 1
       },
       "bash": {
-          "defaultTimeoutMs": 20000,
+          "defaultTimeoutMs": 60000,
           "sandbox": {
             "mode": "regular",
-            "allowed_read_paths": ["~/.cache/uv"]
+            "allowed_read_paths": ["~/.cache/uv", "/tmp"]
           }
       }
   }
