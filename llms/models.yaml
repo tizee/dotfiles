@@ -1,14 +1,3 @@
-- model_id: test
-  model_name: test
-  api_base: "http://127.0.0.1:8642"
-  can_stream: true
-  api_format: anthropic
-  api_key_name: cc
-  image: true
-  extra_body:
-    thinking:
-      type: "enabled"
-
 - model_id: codex
   model_name: codex/gpt-5.3-codex
   api_base: "http://127.0.0.1:8082/openai/"
@@ -35,16 +24,14 @@
   api_key_name: cc
   image: true
   thinking_mode: "adaptive"
-- model_id: opus45
-  model_name: claude-code/claude-opus-4-5
+- model_id: sonnet
+  model_name: claude-code/claude-sonnet-4-6
   api_base: "http://127.0.0.1:8082/anthropic/"
   can_stream: true
   api_format: anthropic
   api_key_name: cc
   image: true
-  extra_body:
-    thinking:
-      type: "enabled"
+  thinking_mode: "adaptive"
 - model_id: haiku
   model_name: claude-code/claude-haiku-4-5
   api_base: "http://127.0.0.1:8082/anthropic/"
