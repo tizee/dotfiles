@@ -1,3 +1,14 @@
+- model_id: gpt-5.1-codex-mini
+  model_name: gpt-5.1-codex-mini
+  api_base: "https://api.openai.com/v1/"
+  can_stream: true
+  api_key_name: oai-api
+  api_format: openai_responses
+  image: true
+  extra_body:
+    reasoning:
+      effort: medium
+
 - model_id: codex
   model_name: codex/gpt-5.3-codex
   api_base: "http://127.0.0.1:8082/openai/"
@@ -47,9 +58,7 @@
   image: true
   context_window: 262144
   api_key_name: kimi
-  extra_body:
-    thinking:
-      type: "enabled"
+  thinking_mode: "enabled"
 - model_id: kimi-for-coding-instant
   model_name: kimi-for-coding
   api_base: "https://api.kimi.com/coding/"
@@ -69,9 +78,7 @@
   api_format: anthropic
   can_stream: true
   api_key_name: minimax
-  extra_body:
-    thinking:
-      type: "enabled"
+  thinking_mode: "enabled"
 - model_id: glm-nothinking
   model_name: glm-5
   api_base: "https://open.bigmodel.cn/api/anthropic"
@@ -79,9 +86,7 @@
   can_stream: true
   context_window: 200000
   api_key_name: zhipu
-  extra_body:
-    thinking:
-      type: "disabled"
+  thinking_mode: "disabled"
 - model_id: glm
   model_name: glm-5
   api_base: "https://open.bigmodel.cn/api/anthropic"
@@ -90,9 +95,8 @@
   api_format: anthropic
   can_stream: true
   api_key_name: zhipu
-  extra_body:
-    thinking:
-      type: "enabled"
+  thinking_mode: "enabled"
+  effort: high
 - model_id: glm-4.7
   model_name: glm-4.7
   api_base: "https://open.bigmodel.cn/api/anthropic"
@@ -100,9 +104,7 @@
   image: false
   can_stream: true
   api_key_name: zhipu
-  extra_body:
-    thinking:
-      type: "enabled"
+  thinking_mode: "enabled"
 - model_id: glm-4.5-air
   model_name: glm-4.5-air
   api_base: "https://open.bigmodel.cn/api/anthropic"
@@ -117,9 +119,7 @@
   api_format: anthropic
   api_key_name: doubao
   max_tokens: 32768
-  extra_body:
-    thinking:
-      type: "enabled"
+  thinking_mode: "enabled"
 - model_id: doubao-oai-nothinking
   model_name: ark-code-latest
   api_base: "https://ark.cn-beijing.volces.com/api/coding/v3/"

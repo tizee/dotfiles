@@ -1,6 +1,6 @@
 # see https://developers.openai.com/codex/local-config#cli
 model = "gpt-5.3-codex"
-model_reasoning_effort = "medium"
+model_reasoning_effort = "high"
 model_reasoning_summary = "detailed"
 # read-only | workspace-write | danger-full-access
 sandbox_mode = "danger-full-access"
@@ -26,7 +26,7 @@ ghost_commit = false
 unified_exec = true
 shell_snapshot = true
 steer = true
-collab = true
+multi_agent = true
 
 [mcp_servers.nowledge-mem]
 url = "http://127.0.0.1:14242/mcp/"

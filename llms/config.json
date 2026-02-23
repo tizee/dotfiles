@@ -11,7 +11,12 @@
     "image_model": "kimi-for-coding-instant",
     "background_model": "glm-4.5-air",
     "compact_model": "kimi-for-coding",
-    "subagent_model": "minimax",
+    "subagent_model": "kimi-for-coding",
+    "micro_compact": {
+      "enabled": false,
+      "keep_recent_turns": 6,
+      "threshold": 70
+    },
     "session": {
         "cleanup_period_days": 2
       },

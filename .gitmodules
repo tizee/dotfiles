@@ -14,3 +14,6 @@
 	path = git/git-hooks
 	url = git@github.com:tizee/git-hooks
 	shallow = true
+[submodule "claude/skills/taste-skill"]
+	path = claude/skills/taste-skill
+	url = git@github.com:Leonxlnx/taste-skill.git
