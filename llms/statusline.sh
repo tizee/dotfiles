@@ -98,6 +98,7 @@ quota_info=""
 if [ -f "$QUOTA_SCRIPT" ]; then
     quota_json=$(python3 "$QUOTA_SCRIPT" --profile "$QUOTA_PROFILE" --raw --debounce "$QUOTA_DEBOUNCE" 2>/dev/null)
     if [ -n "$quota_json" ]; then
+        # 5-hour quota
         quota_util=$(echo "$quota_json" | jq -r '.five_hour.utilization // empty')
         if [ -n "$quota_util" ]; then
             quota_pct=$(printf "%.0f" "$quota_util")
@@ -120,8 +121,52 @@ if [ -f "$QUOTA_SCRIPT" ]; then
         else
             quota_info="${GRAY}Q:--${NC}"
         fi
+
+        # Weekly quota (seven_day)
+        weekly_util=$(echo "$quota_json" | jq -r '.seven_day.utilization // empty')
+        if [ -n "$weekly_util" ] && [ "$weekly_util" != "null" ]; then
+            weekly_pct=$(printf "%.0f" "$weekly_util")
+            if (( weekly_pct < 50 )); then
+                WEEKLY_COLOR="$GREEN"
+            elif (( weekly_pct < 80 )); then
+                WEEKLY_COLOR="$YELLOW"
+            else
+                WEEKLY_COLOR="$RED"
+            fi
+            weekly_resets_at=$(echo "$quota_json" | jq -r '.seven_day.resets_at // empty')
+            weekly_resets_at_local=$(echo "$quota_json" | jq -r '.seven_day.resets_at_local // empty')
+            if [ -n "$weekly_resets_at" ] && [ -n "$weekly_resets_at_local" ]; then
+                # Extract day of week from resets_at (e.g., "2026-02-27 22:00:00 UTC+08:00")
+                week_day=$(echo "$weekly_resets_at" | cut -d' ' -f1 | xargs -I{} date -j -f "%Y-%m-%d" "{}" "+%a" 2>/dev/null)
+                if [ -n "$week_day" ]; then
+                    quota_info+=" ${WEEKLY_COLOR}W:${weekly_pct}%${NC} ${GRAY}${week_day} @${weekly_resets_at_local}${NC}"
+                fi
+            fi
+        fi
+
+        # Sonnet quota (seven_day_sonnet)
+        sonnet_util=$(echo "$quota_json" | jq -r '.seven_day_sonnet.utilization // empty')
+        if [ -n "$sonnet_util" ] && [ "$sonnet_util" != "null" ]; then
+            sonnet_pct=$(printf "%.0f" "$sonnet_util")
+            if (( sonnet_pct < 50 )); then
+                SONNET_COLOR="$GREEN"
+            elif (( sonnet_pct < 80 )); then
+                SONNET_COLOR="$YELLOW"
+            else
+                SONNET_COLOR="$RED"
+            fi
+            sonnet_resets_at=$(echo "$quota_json" | jq -r '.seven_day_sonnet.resets_at // empty')
+            sonnet_resets_at_local=$(echo "$quota_json" | jq -r '.seven_day_sonnet.resets_at_local // empty')
+            if [ -n "$sonnet_resets_at" ] && [ -n "$sonnet_resets_at_local" ]; then
+                # Extract day of week from resets_at (e.g., "2026-02-27 22:00:00 UTC+08:00")
+                week_day=$(echo "$sonnet_resets_at" | cut -d' ' -f1 | xargs -I{} date -j -f "%Y-%m-%d" "{}" "+%a" 2>/dev/null)
+                if [ -n "$week_day" ]; then
+                    quota_info+=" ${SONNET_COLOR}Son:${sonnet_pct}%${NC} ${GRAY}${week_day} @${sonnet_resets_at_local}${NC}"
+                fi
+            fi
+        fi
     else
-        quota_info="${GRAY}Q:--${NC}"
+        quota_info="${GRAY}Q:-- W:-- Son:--${NC}"
     fi
 fi
 

@@ -1,3 +1,12 @@
+- model_id: gptws
+  model_name: gpt-5.1-codex-mini
+  api_base: wss://api.openai.com/v1
+  api_format: openai_responses_websocket
+  can_stream: true
+  api_key_name: oai-api
+  effort: medium
+  thinking_mode: enabled
+  image: true
 - model_id: gpt-5.1-codex-mini
   model_name: gpt-5.1-codex-mini
   api_base: "https://api.openai.com/v1/"
@@ -79,6 +88,7 @@
   can_stream: true
   api_key_name: minimax
   thinking_mode: "enabled"
+  effort: high
 - model_id: glm-nothinking
   model_name: glm-5
   api_base: "https://open.bigmodel.cn/api/anthropic"

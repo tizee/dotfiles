@@ -10,7 +10,6 @@ This document outlines best practices for working with coding agents to ensure e
 - Provide summary confirmations for completed tasks
 - Your context window will be automatically compacted as it approaches its limit. Never stop tasks early due to token budget concerns. Always complete tasks fully, even if the end of your budget is approaching.
 - Always write code comments and docs in English unless the user explicitly specifies otherwise
-- Always reply in Chinese unless unless the user explicitly specifies otherwise
 - Prioritize simplest changes and code readability - no backward compatibility or migration concerns unless explicitly specified; make bigger refactors when they improve clarity
 - Ask for more context if the user's objective or requirements are unclear or ambiguous before proceeding with implementation
 - Avoid using emojis in generated text and code unless explicitly requested
