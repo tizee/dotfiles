@@ -8,6 +8,8 @@
 - SOLID review checks
 - KISS / over-engineering checks (from `kiss`)
 - Production robustness checks
+- Code smells quick reference
+- Testing best practices
 - Reporting heuristics
 
 ## Severity Rubric (`P0`..`P3`)
@@ -260,6 +262,22 @@ The goal is to decide whether the codebase can operate safely in real production
 - Are interfaces stable and meaningful, or leaky and fragile?
 - Can behavior be tested without full infrastructure boot?
 
+## Testing Best Practices
+
+### What to Test
+- Unit tests for business logic
+- Integration tests for data access
+- Test names describe behavior (Given_When_Then)
+- Tests are independent (no shared state)
+- Fast execution (< 10ms per unit test)
+- Meaningful assertions (not just coverage)
+
+### Testing Rules
+- **Never** mock value objects (they're cheap to create)
+- **Never** test private methods directly (test through public API)
+- **Never** share state between tests
+- **Always** test behavior, not implementation
+
 ## Reporting Heuristics
 
 - Findings first, sorted by severity.
@@ -267,3 +285,49 @@ The goal is to decide whether the codebase can operate safely in real production
 - Prefer "move logic to X layer" over broad rewrite advice.
 - If architecture is mostly sound, say so and highlight the strongest design choices.
 - Distinguish immediate remediation from strategic refactor opportunities.
+
+## Code Smells Quick Reference
+
+### Bloaters (Code that's too big)
+
+| Smell | Detection Rule | Quick Fix |
+|-------|---------------|-----------|
+| Long Method | > 20 lines | Extract Method |
+| Large Class | > 200 lines or > 20 methods | Extract Class |
+| Primitive Obsession | Related primitives used together | Introduce Value Object |
+| Long Parameter List | > 4 parameters | Introduce Parameter Object |
+| Data Clumps | Same data group in multiple places | Extract Class |
+
+### Object-Orientation Abusers
+
+| Smell | Detection Rule | Quick Fix |
+|-------|---------------|-----------|
+| Switch Statements | Complex switch/if-else on type | Replace with Polymorphism |
+| Temporary Field | Fields null in most states | Extract Class |
+| Refused Bequest | Subclass ignores inheritance | Replace with Delegation |
+
+### Change Preventers
+
+| Smell | Detection Rule | Quick Fix |
+|-------|---------------|-----------|
+| Divergent Change | Class changes for multiple reasons | Split Class (SRP) |
+| Shotgun Surgery | One change touches many classes | Move methods/fields |
+
+### Dispensables
+
+| Smell | Detection Rule | Quick Fix |
+|-------|---------------|-----------|
+| Duplicate Code | Similar code in 2+ places | Extract Method/Class |
+| Lazy Class | < 3 methods, < 50 lines | Inline or remove |
+| Data Class | Only getters/setters | Add behavior, encapsulate |
+| Dead Code | Unused methods/variables | Delete |
+| Speculative Generality | Unused abstractions | Collapse hierarchy |
+
+### Couplers
+
+| Smell | Detection Rule | Quick Fix |
+|-------|---------------|-----------|
+| Feature Envy | Method uses other class more | Move Method |
+| Inappropriate Intimacy | Classes access private details | Reduce coupling |
+| Message Chains | a.b.c.d calls | Hide Delegate |
+| Middle Man | Mostly delegates | Remove or inline |
