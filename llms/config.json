@@ -1,13 +1,21 @@
 {
   "debug": false,
   "agent": {
+    "model": "minimax",
     "ui": {
-       "statusline": {
-         "command": "~/.config/llms/statusline.sh",
-         "updateIntervalMs": 300
+      "statusline": {
+        "command": "~/.config/llms/statusline.sh",
+        "updateIntervalMs": 300
       }
     },
-    "model": "minimax",
+    "permissions": {
+      "allow": [],
+      "deny": [
+        "Read(./.env)",
+        "Read(./keys.json)"
+      ],
+      "ask": []
+    },
     "image_model": "kimi-for-coding-instant",
     "background_model": "glm-4.5-air",
     "compact_model": "kimi-for-coding",
@@ -18,18 +26,20 @@
       "threshold": 70
     },
     "session": {
-        "cleanup_period_days": 2
-      },
-      "persistent_debug": {
-        "enabled": true,
-        "cleanup_period_days": 1
-      },
-      "bash": {
-          "defaultTimeoutMs": 60000,
-          "sandbox": {
-            "mode": "regular",
-            "allowed_read_paths": ["~/.cache/uv", "/tmp"]
-          }
+      "cleanup_period_days": 60
+    },
+    "persistent_debug": {
+      "enabled": true,
+      "cleanup_period_days": 1
+    },
+    "bash": {
+      "defaultTimeoutMs": 60000,
+      "sandbox": {
+        "mode": "regular",
+        "additional_allowed_write_paths": [
+          "~/.osay"
+        ]
       }
+    }
   }
 }

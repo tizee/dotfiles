@@ -286,6 +286,54 @@ The goal is to decide whether the codebase can operate safely in real production
 - If architecture is mostly sound, say so and highlight the strongest design choices.
 - Distinguish immediate remediation from strategic refactor opportunities.
 
+## AI Over-Engineering Code Smell Checklist
+
+AI-generated code has characteristic failure modes distinct from human code smells. Use this checklist to catch patterns that LLM-authored code introduces systematically.
+
+- **重复代码类**
+  结构重复 (structural_duplication): near-identical blocks differing only by variable names — LLMs copy-paste across call sites instead of extracting;
+  骨架重复 (boilerplate_skeleton): scaffolding classes/interfaces generated "just in case" with no runtime path that exercises them
+
+- **噪音代码类**
+  空函数体 (empty_function_body): methods with `pass` / `{}` / `throw NotImplemented` that were never filled in;
+  注释掉的代码 (commented_out_code): entire blocks left as `// old approach` with no explanation;
+  死分支 (dead_branch): `if False:` / `if (false) {` guards or version flags that can never be true;
+  不可达代码 (unreachable_code): statements after unconditional `return`/`throw`;
+  废话注释 (trivial_comment): `// increment i by 1` — restates code without adding intent;
+  过度注释 (excessive_comments): every line annotated, obscuring signal with noise;
+  未使用导入 (unused_import): imports added speculatively and never referenced;
+  残留样板 (leftover_boilerplate): `TODO: implement`, `YOUR_API_KEY_HERE`, placeholder strings shipped to production
+
+- **过度防御类**
+  冗余类型检查 (redundant_type_check): `if isinstance(x, str) and isinstance(x, str)` / double null-guards on the same value in the same scope;
+  不必要默认值 (unnecessary_default): silently substituting `""` / `0` / `{}` for missing required config instead of raising at init — masks misconfiguration
+
+- **错误处理类**
+  吞没异常 (swallowed_error): `except Exception: pass` or `catch (e) {}` — failures disappear silently;
+  过宽捕获 (broad_catch): catching `Exception`/`Throwable`/`Error` at a low level, then continuing as if nothing happened — converts hard faults into subtle corruption
+
+- **类型系统逃逸类**
+  滥用 Any 类型 (any_type_escape): 明明有现成的类型声明（接口、类、枚举、Union 等），却用 `Any` / `object` / `unknown` 绕过类型检查——LLM 在不确定类型时倾向于用 Any 快速通过编译器，导致类型安全在边界处悄然失效；
+  强制类型断言 (unsafe_cast): 无条件 `as SomeType` / `(<T>value)` / `cast()` 而不验证实际运行时类型，将类型错误推迟到运行时
+
+- **安全风险类**
+  硬编码凭证 (hardcoded_credential): API keys, passwords, tokens embedded in source;
+  注入风险 (injection_risk): unsanitised user input concatenated into SQL/shell/eval;
+  不安全反序列化 (unsafe_deserialization): `pickle.loads(user_data)` / `YAML.load` without safe loader;
+  弱加密算法 (weak_crypto): MD5/SHA1 for integrity, ECB mode, custom RNG seeded from time;
+  敏感数据日志泄露 (sensitive_data_log): passwords, tokens, PII written to structured logs or tracing spans
+
+### Severity Mapping for AI Smells
+
+| Category | Default Severity | Escalate to P0 when… |
+|---|---|---|
+| 重复代码类 | P3 | duplication splits a business invariant across copies |
+| 噪音代码类 | P3 | leftover_boilerplate or dead_branch reaches production config/auth path |
+| 类型系统逃逸类 | P2 | unsafe_cast on data crossing a trust boundary (auth token, payment amount) |
+| 过度防御类 | P2 | unnecessary_default masks a required-but-missing secret |
+| 错误处理类 | P1 | swallowed_error in a payment, auth, or data-write path |
+| 安全风险类 | P0 | any hardcoded_credential, injection_risk, or unsafe_deserialization |
+
 ## Code Smells Quick Reference
 
 ### Bloaters (Code that's too big)

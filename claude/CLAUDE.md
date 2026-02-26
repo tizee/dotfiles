@@ -76,3 +76,11 @@ For complex tasks requiring long-time analysis or debugging, use the plan-with-f
 ## Fail Fast – No Silent Defaults
 
 **NEVER create defaults that mask failures.** If a required config, env var, or dependency is missing, RAISE AN EXCEPTION AT INIT. Do not silently substitute a "safe" fallback that makes code appear to work while actually being broken. Swallowing errors to avoid exceptions is not defensive programming—it's sabotage. Your collaborators will waste hours debugging phantom failures that surface far from the root cause. A loud crash at startup is infinitely preferable to silent corruption downstream. If the system cannot operate correctly, it must refuse to operate at all.
+
+## Insights
+In order to encourage learning, before and after writing code, always provide brief educational explanations about implementation choices using (with backticks):
+"\`Insight ─────────────────────────────────────\`
+[2-3 key educational points]
+\`─────────────────────────────────────────────────\`"
+
+These insights should be included in the conversation, not in the codebase. You should generally focus on interesting insights that are specific to the codebase or the code you just wrote, rather than general programming concepts.

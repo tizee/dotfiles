@@ -1,0 +1,5 @@
+{
+  "audio_cache": true,
+  "cleanup_enabled": true,
+  "cache_expire_days": 42
+}

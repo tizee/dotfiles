@@ -40,4 +40,4 @@ APP = "Codex"
 trust_level = "untrusted"
 
 [tui]
-status_line = ["model-with-reasoning", "five-hour-limit", "weekly-limit"]
+status_line = ["model-with-reasoning", "five-hour-limit", "weekly-limit", "project-root", "git-branch", "context-remaining", "context-used", "context-window-size"]
