@@ -23,10 +23,10 @@
     "micro_compact": {
       "enabled": false,
       "keep_recent_turns": 6,
-      "threshold": 70
+      "threshold": 80
     },
     "session": {
-      "cleanup_period_days": 60
+      "cleanup_period_days": 14
     },
     "persistent_debug": {
       "enabled": true,
