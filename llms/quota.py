@@ -440,13 +440,15 @@ class MiniMaxQuotaProvider(QuotaProvider):
                     session_key = model_name
 
                     total = model.get("current_interval_total_count", 0)
-                    used = model.get("current_interval_usage_count", 0)
+                    remaining = model.get("current_interval_usage_count", 0)
                     remains_ms = model.get("remains_time", 0)
                     end_time_ms = model.get("end_time", 0)
 
-                    # Calculate percentages (total and used are in seconds)
+                    # current_interval_usage_count is the REMAINING count
+                    # (API is coding_plan/remains), actual used = total - remaining
+                    used = total - remaining if total > 0 else 0
                     used_percent = (used / total * 100) if total > 0 else None
-                    remaining_percent = ((total - used) / total * 100) if total > 0 else None
+                    remaining_percent = (remaining / total * 100) if total > 0 else None
 
                     # Convert remains_time from milliseconds to seconds
                     remains_seconds = remains_ms / 1000 if remains_ms else None
@@ -484,8 +486,8 @@ class MiniMaxQuotaProvider(QuotaProvider):
                         resets_at=resets_at,
                         resets_at_local=resets_at_local,
                         resets_in=resets_in,
-                        limit=total,  # in seconds
-                        used=used,    # in seconds
+                        limit=total,
+                        used=used,  # actual used = total - remaining
                         extra={
                             "model_name": model_name,
                             "remains_seconds": remains_seconds,

@@ -205,17 +205,26 @@ if [ -f "$QUOTA_SCRIPT" ]; then
             first_model=$(echo "$quota_json" | jq -r '.sessions | keys[] | select(startswith("MiniMax"))' | head -1)
             if [ -n "$first_model" ]; then
                 current_pct=$(echo "$quota_json" | jq -r ".sessions[\"$first_model\"].used_percent // empty")
+                mm_used=$(echo "$quota_json" | jq -r ".sessions[\"$first_model\"].used // empty")
+                mm_limit=$(echo "$quota_json" | jq -r ".sessions[\"$first_model\"].limit // empty")
                 if [ -n "$current_pct" ] && [ "$current_pct" != "null" ]; then
                     quota_pct=$(printf "%.0f" "$current_pct")
                     QUOTA_COLOR=$(get_pct_color "$quota_pct")
                     resets_in=$(echo "$quota_json" | jq -r ".sessions[\"$first_model\"].resets_in // empty")
                     resets_at_local=$(echo "$quota_json" | jq -r ".sessions[\"$first_model\"].resets_at_local // empty")
+                    # Build prompt usage string (used/limit)
+                    prompt_str=""
+                    if [ -n "$mm_used" ] && [ "$mm_used" != "null" ] && [ -n "$mm_limit" ] && [ "$mm_limit" != "null" ]; then
+                        mm_used_int=$(printf "%.0f" "$mm_used")
+                        mm_limit_int=$(printf "%.0f" "$mm_limit")
+                        prompt_str=" ${GRAY}${mm_used_int}/${mm_limit_int}${NC}"
+                    fi
                     if [ -n "$resets_in" ]; then
-                        quota_info="${QUOTA_COLOR}MM:${quota_pct}%${NC} ${GRAY}${resets_in}"
+                        quota_info="${QUOTA_COLOR}MM:${quota_pct}%${NC}${prompt_str} ${GRAY}${resets_in}"
                         [ -n "$resets_at_local" ] && quota_info+=" @${resets_at_local}"
                         quota_info+="${NC}"
                     else
-                        quota_info="${QUOTA_COLOR}MM:${quota_pct}%${NC}"
+                        quota_info="${QUOTA_COLOR}MM:${quota_pct}%${NC}${prompt_str}"
                     fi
                 else
                     quota_info="${GRAY}MM:--${NC}"
