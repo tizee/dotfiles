@@ -3,6 +3,7 @@ antigravity
 tmp
 history
 google_accounts.json
+projects.json
 installation_id
 oauth_creds.json
 state.json

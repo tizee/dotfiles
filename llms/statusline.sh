@@ -365,15 +365,17 @@ _collect_git_info() {
         removed=$((staged_removed + unstaged_removed))
     fi
 
-    # Write cache as simple key=value
+    # Write cache atomically: write .tmp then mv (prevents partial reads)
     mkdir -p "$GIT_CACHE_DIR"
-    cat > "$cache_file" <<EOF
+    local tmp_file="${cache_file}.tmp.$$"
+    cat > "$tmp_file" <<EOF
 branch=$branch
 total_files=$total_files
 added=$added
 removed=$removed
 cache_time=$(date +%s)
 EOF
+    mv -f "$tmp_file" "$cache_file"
 }
 
 _read_git_cache() {
@@ -425,6 +427,13 @@ if cd "$cwd" 2>/dev/null && git rev-parse --is-inside-work-tree >/dev/null 2>&1;
 
         # Spawn background refresh if needed (with lock to prevent concurrent refreshes)
         if $needs_git_refresh; then
+            # Stale lock detection: if lock dir is older than 60s, remove it
+            if [ -d "$git_cache_lock" ]; then
+                lock_age=$(( $(date +%s) - $(stat -f %m "$git_cache_lock" 2>/dev/null || echo 0) ))
+                if (( lock_age > 60 )); then
+                    rmdir "$git_cache_lock" 2>/dev/null
+                fi
+            fi
             (
                 if mkdir "$git_cache_lock" 2>/dev/null; then
                     _collect_git_info "$cwd" "$git_cache_file"

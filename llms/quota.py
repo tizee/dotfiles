@@ -37,7 +37,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Callable, Optional
 
 
 # ============================================================================
@@ -1240,62 +1240,157 @@ def format_all_json(quotas: list[QuotaInfo], pretty: bool = True) -> str:
 
 
 class DebounceManager:
-    """Manages debounce mechanism for API calls with unified cache file"""
+    """Manages debounce mechanism for API calls with per-provider cache files.
+
+    Each provider gets its own cache file (e.g., claude.json, kimi.json) to
+    eliminate read-modify-write races when multiple agents query different
+    providers concurrently.  Writes are atomic (write .tmp then os.rename).
+
+    Same-provider concurrency is handled via fcntl.flock:
+    - First agent to acquire the lock performs the API fetch and writes cache.
+    - Other agents fail to acquire the lock (non-blocking LOCK_EX|LOCK_NB),
+      return stale cache immediately (stale-while-revalidate).
+    - If no stale cache exists (cold start), they block briefly on the lock
+      so they can read the freshly written cache.
+    """
 
     DEFAULT_CACHE_DIR = Path("/tmp/quota_cache")
     DEFAULT_INTERVAL = 60
-    CACHE_FILENAME = "quota_cache.json"
+    LOCK_STALE_SECONDS = 300  # consider lock stale after 5 minutes
 
     def __init__(self, interval_seconds: int = DEFAULT_INTERVAL, cache_dir: Optional[Path] = None):
         self.interval = interval_seconds
         self.cache_dir = cache_dir or self.DEFAULT_CACHE_DIR
         self.cache_dir.mkdir(parents=True, exist_ok=True)
-        self._cache_path = self.cache_dir / self.CACHE_FILENAME
 
-    def _load_cache(self) -> dict[str, Any]:
-        """Load entire cache file"""
+    def _provider_path(self, provider: str) -> Path:
+        return self.cache_dir / f"{provider}.json"
+
+    def _lock_path(self, provider: str) -> Path:
+        return self.cache_dir / f"{provider}.lock"
+
+    def _read_provider(self, provider: str) -> Optional[dict[str, Any]]:
+        """Read a single provider cache file. Returns None on missing/corrupt."""
+        path = self._provider_path(provider)
         try:
-            if self._cache_path.exists():
-                return json.loads(self._cache_path.read_text())
+            if path.exists():
+                return json.loads(path.read_text())
         except (json.JSONDecodeError, IOError):
             pass
-        return {"_providers": {}, "_times": {}}
+        return None
 
-    def _save_cache(self, cache: dict[str, Any]) -> None:
-        """Save entire cache file"""
-        self._cache_path.write_text(json.dumps(cache, ensure_ascii=False, indent=2))
+    def _write_provider(self, provider: str, data: dict[str, Any]) -> None:
+        """Atomically write provider cache: write .tmp then rename."""
+        path = self._provider_path(provider)
+        tmp_path = path.with_suffix(".tmp")
+        tmp_path.write_text(json.dumps(data, ensure_ascii=False, indent=2))
+        os.rename(str(tmp_path), str(path))
+
+    def _is_cache_fresh(self, entry: Optional[dict[str, Any]]) -> bool:
+        if entry is None:
+            return False
+        return time.time() - entry.get("_time", 0) < self.interval
+
+    def _get_stale_data(self, provider: str) -> Optional[dict]:
+        """Return cached data regardless of freshness (for stale-while-revalidate)."""
+        entry = self._read_provider(provider)
+        if entry is not None:
+            return entry.get("data")
+        return None
 
     def get_cached(self, provider: str) -> Optional[dict]:
         """Get cached result if still valid"""
-        cache = self._load_cache()
-        times = cache.get("_times", {})
-        providers = cache.get("_providers", {})
-
-        if provider in times and provider in providers:
-            last_time = times[provider]
-            if time.time() - last_time < self.interval:
-                return providers[provider]
+        entry = self._read_provider(provider)
+        if self._is_cache_fresh(entry):
+            return entry.get("data")
         return None
 
     def set_cache(self, provider: str, data: dict) -> None:
-        """Cache result for provider"""
-        cache = self._load_cache()
-        cache.setdefault("_providers", {})[provider] = data
-        cache.setdefault("_times", {})[provider] = time.time()
-        self._save_cache(cache)
+        """Cache result for provider (atomic write)"""
+        self._write_provider(provider, {"_time": time.time(), "data": data})
+
+    def fetch_or_cached(
+        self, provider: str, fetch_fn: "Callable[[], QuotaInfo]", force: bool = False
+    ) -> QuotaInfo:
+        """Fetch quota with lock-based deduplication across concurrent agents.
+
+        - If cache is fresh and not forced, return cached data immediately.
+        - If cache is stale, try to acquire a non-blocking lock:
+          - Won lock: fetch, write cache, release lock, return fresh data.
+          - Lost lock + have stale cache: return stale data (another agent is fetching).
+          - Lost lock + no cache (cold start): block on lock, then read fresh cache.
+        """
+        import fcntl
+
+        # Fast path: fresh cache
+        if not force:
+            entry = self._read_provider(provider)
+            if self._is_cache_fresh(entry):
+                return QuotaInfo.from_dict(entry["data"])
+
+        lock_path = self._lock_path(provider)
+        # Clean stale lock files (e.g., left by killed process)
+        try:
+            if lock_path.exists():
+                lock_age = time.time() - lock_path.stat().st_mtime
+                if lock_age > self.LOCK_STALE_SECONDS:
+                    lock_path.unlink(missing_ok=True)
+        except OSError:
+            pass
+
+        lock_fd = os.open(str(lock_path), os.O_CREAT | os.O_RDWR, 0o644)
+        try:
+            # Try non-blocking lock
+            try:
+                fcntl.flock(lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except (BlockingIOError, OSError):
+                # Another agent holds the lock -- stale-while-revalidate
+                stale = self._get_stale_data(provider)
+                if stale is not None:
+                    return QuotaInfo.from_dict(stale)
+                # Cold start: no stale data, must wait for the other agent
+                fcntl.flock(lock_fd, fcntl.LOCK_EX)  # blocking wait
+                fresh = self._read_provider(provider)
+                if fresh is not None and fresh.get("data"):
+                    return QuotaInfo.from_dict(fresh["data"])
+                # Fallback: other agent failed, we fetch ourselves below
+
+            # Re-check cache under lock (another agent may have just finished)
+            if not force:
+                entry = self._read_provider(provider)
+                if self._is_cache_fresh(entry):
+                    return QuotaInfo.from_dict(entry["data"])
+
+            # We hold the lock -- do the actual fetch
+            # Touch lock file mtime so stale detection works
+            os.utime(lock_fd)
+            quota_info = fetch_fn()
+            self.set_cache(provider, quota_info.to_dict())
+            return quota_info
+        finally:
+            fcntl.flock(lock_fd, fcntl.LOCK_UN)
+            os.close(lock_fd)
 
     def clear_cache(self, provider: Optional[str] = None) -> None:
         """Clear cache for provider or all"""
         if provider:
-            cache = self._load_cache()
-            cache.get("_providers", {}).pop(provider, None)
-            cache.get("_times", {}).pop(provider, None)
-            self._save_cache(cache)
+            for suffix in (".json", ".lock"):
+                path = self.cache_dir / f"{provider}{suffix}"
+                try:
+                    path.unlink(missing_ok=True)
+                except IOError:
+                    pass
         else:
-            try:
-                self._cache_path.unlink(missing_ok=True)
-            except IOError:
-                pass
+            for path in self.cache_dir.glob("*.json"):
+                try:
+                    path.unlink(missing_ok=True)
+                except IOError:
+                    pass
+            for path in self.cache_dir.glob("*.lock"):
+                try:
+                    path.unlink(missing_ok=True)
+                except IOError:
+                    pass
 
 
 # ============================================================================
@@ -1401,7 +1496,7 @@ Environment Variables:
     # Handle --clear-cache
     if args.clear_cache:
         if dm:
-            dm.clear_cache()
+            dm.clear_cache(provider=args.provider)
             print("Cache cleared", file=sys.stderr)
         return 0
 
@@ -1419,37 +1514,43 @@ Environment Variables:
     results: list[QuotaInfo] = []
 
     for provider_name in providers_to_query:
-        # Check cache
-        if dm and not args.force:
-            cached = dm.get_cached(provider_name)
-            if cached:
+        if dm:
+            # Debounce mode: use lock-based fetch_or_cached to deduplicate
+            # concurrent API calls from multiple agents
+            def make_fetcher(pname: str) -> Callable[[], QuotaInfo]:
+                def _fetch() -> QuotaInfo:
+                    try:
+                        cookie_header, source = cookie_manager.get_cookies_for_provider(pname)
+                        if not args.json:
+                            print(f"Credentials: {source}", file=sys.stderr)
+                    except Exception as e:
+                        return QuotaInfo(provider=pname, error=str(e))
+                    provider = ProviderRegistry.get(pname, cookie_header)
+                    if not provider:
+                        return QuotaInfo(provider=pname, error="Unknown provider")
+                    return provider.fetch_quota()
+                return _fetch
+
+            quota_info = dm.fetch_or_cached(
+                provider_name, make_fetcher(provider_name), force=args.force
+            )
+            results.append(quota_info)
+        else:
+            # No debounce: fetch directly
+            try:
+                cookie_header, source = cookie_manager.get_cookies_for_provider(provider_name)
                 if not args.json:
-                    print(f"Using cached data for {provider_name}", file=sys.stderr)
-                results.append(QuotaInfo.from_dict(cached))
+                    print(f"Credentials: {source}", file=sys.stderr)
+            except Exception as e:
+                results.append(QuotaInfo(provider=provider_name, error=str(e)))
                 continue
 
-        # Get credentials
-        try:
-            cookie_header, source = cookie_manager.get_cookies_for_provider(provider_name)
-            if not args.json:
-                print(f"Credentials: {source}", file=sys.stderr)
-        except Exception as e:
-            results.append(QuotaInfo(provider=provider_name, error=str(e)))
-            continue
+            provider = ProviderRegistry.get(provider_name, cookie_header)
+            if not provider:
+                results.append(QuotaInfo(provider=provider_name, error="Unknown provider"))
+                continue
 
-        # Get provider and fetch quota
-        provider = ProviderRegistry.get(provider_name, cookie_header)
-        if not provider:
-            results.append(QuotaInfo(provider=provider_name, error=f"Unknown provider"))
-            continue
-
-        quota_info = provider.fetch_quota()
-
-        # Cache result
-        if dm:
-            dm.set_cache(provider_name, quota_info.to_dict())
-
-        results.append(quota_info)
+            results.append(provider.fetch_quota())
 
     # Output results
     if args.json:
