@@ -1,7 +1,4 @@
 # see https://developers.openai.com/codex/local-config#cli
-model = "gpt-5.3-codex"
-model_reasoning_effort = "high"
-model_reasoning_summary = "detailed"
 # read-only | workspace-write | danger-full-access
 sandbox_mode = "danger-full-access"
 approval_policy = "never"
@@ -10,12 +7,19 @@ model_auto_compact_token_limit = 233000
 personality = "pragmatic"
 web_search = "live"
 
-[notice]
-"hide_gpt-5.1-codex-max_migration_prompt" = true
+model = "openai/gpt-5.3-codex"
+model_provider = "openrouter"
+profile = "openrouter"
+# preferred_auth_method = "apikey" # chatgpt/apikey
 
-[notice.model_migrations]
-"gpt-5.2" = "gpt-5.2-codex"
-"gpt-5.1-codex-mini" = "gpt-5.2-codex"
+model_reasoning_effort = "high"
+model_reasoning_summary = "detailed"
+
+experimental_use_freeform_apply_patch = false
+include_apply_patch_tool = false
+
+
+[profiles.openrouter]
 
 [features]
 rmcp_client = true
@@ -27,6 +31,7 @@ unified_exec = true
 shell_snapshot = true
 steer = true
 multi_agent = true
+# responses_websockets_v2 = true
 
 [mcp_servers.nowledge-mem]
 url = "http://127.0.0.1:14242/mcp/"
@@ -41,3 +46,28 @@ trust_level = "untrusted"
 
 [tui]
 status_line = ["model-with-reasoning", "five-hour-limit", "weekly-limit", "project-root", "git-branch", "context-remaining", "context-used", "context-window-size"]
+
+[model_providers.anyrouter]
+name = "Any Router"
+base_url = "https://anyrouter.top/v1"
+wire_api = "responses"
+
+[model_providers.cloud]
+name = "cloud"
+base_url = "https://chat.cloudapi.vip/v1"
+wire_api = "responses"
+
+[model_providers.openrouter]
+name = "OpenRouter"
+base_url = "https://openrouter.ai/api/v1"
+env_key = "OPENROUTER_API_KEY"
+wire_api = "responses"
+# wire_api = "chat"
+experimental_use_freeform_apply_patch = false
+include_apply_patch_tool = false
+
+[model_providers.openai]
+name = "OpenAI"
+base_url = "https://api.openai.com/v1"
+env_key = "OPENAI_API_KEY"
+wire_api = "responses"

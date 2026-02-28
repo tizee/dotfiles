@@ -19,7 +19,7 @@
     "image_model": "kimi-for-coding-instant",
     "background_model": "glm-4.5-air",
     "compact_model": "kimi-for-coding",
-    "subagent_model": "kimi-for-coding",
+    "subagent_model": "minimax",
     "micro_compact": {
       "enabled": false,
       "keep_recent_turns": 6,

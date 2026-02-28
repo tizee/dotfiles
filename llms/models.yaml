@@ -7,6 +7,7 @@
   effort: medium
   thinking_mode: enabled
   image: true
+
 - model_id: gpt-5.1-codex-mini
   model_name: gpt-5.1-codex-mini
   api_base: "https://api.openai.com/v1/"
@@ -14,9 +15,21 @@
   api_key_name: oai-api
   api_format: openai_responses
   image: true
-  extra_body:
-    reasoning:
-      effort: medium
+  thinking_mode: enabled
+  effort: medium
+
+- model_id: orcodex
+  model_name: openai/gpt-5.3-codex
+  api_base: "https://openrouter.ai/api/v1"
+  can_stream: true
+  context_window: 400000
+  api_format: openai
+  image: true
+  thinking_mode: enabled
+  effort: high
+  api_key_name: openrouter
+  headers:
+    X-Title: "LLMs Agent"
 
 - model_id: codex
   model_name: codex/gpt-5.3-codex
@@ -94,13 +107,14 @@
   api_base: "https://open.bigmodel.cn/api/anthropic"
   api_format: anthropic
   can_stream: true
+  image: true
   context_window: 200000
   api_key_name: zhipu
   thinking_mode: "disabled"
 - model_id: glm
   model_name: glm-5
   api_base: "https://open.bigmodel.cn/api/anthropic"
-  image: false
+  image: true
   context_window: 200000
   api_format: anthropic
   can_stream: true
@@ -111,7 +125,7 @@
   model_name: glm-4.7
   api_base: "https://open.bigmodel.cn/api/anthropic"
   api_format: anthropic
-  image: false
+  image: true
   can_stream: true
   api_key_name: zhipu
   thinking_mode: "enabled"

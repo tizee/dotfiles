@@ -7,6 +7,8 @@
 # in the background. This keeps statusline rendering fast even when
 # called at short fixed intervals.
 #
+# Supports multiple providers: Claude (sonnet/opus), MiniMax, GLM
+#
 # Setup:
 #   1. Copy to ~/.config/llms/statusline.sh
 #   2. chmod +x ~/.config/llms/statusline.sh
@@ -18,7 +20,7 @@
 
 # Path to the quota checker script (same directory as this script)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-QUOTA_SCRIPT="${SCRIPT_DIR}/claude_quota_curl.py"
+QUOTA_SCRIPT="${SCRIPT_DIR}/quota.py"
 QUOTA_PROFILE="rhhzhqpn.dev-edition-default"
 QUOTA_DEBOUNCE=120
 
@@ -32,6 +34,34 @@ input=$(cat)
 # Extract information from JSON
 cwd=$(echo "$input" | jq -r '.cwd')
 dir_name=$(basename "$cwd")
+
+# Extract model information to determine provider
+model_name=$(echo "$input" | jq -r '.model.model_name // ""')
+model_display=$(echo "$input" | jq -r '.model.display_name // ""')
+
+# Determine provider based on model name
+# Claude: sonnet, opus, or claude models
+# MiniMax: minimax models
+# GLM: glm models
+# Kimi: kimi models
+determine_provider() {
+    local model="$1"
+    local model_lower=$(echo "$model" | tr '[:upper:]' '[:lower:]')
+
+    if [[ "$model_lower" == *"claude"* ]] || [[ "$model_lower" == *"sonnet"* ]] || [[ "$model_lower" == *"opus"* ]]; then
+        echo "claude"
+    elif [[ "$model_lower" == *"minimax"* ]]; then
+        echo "minimax"
+    elif [[ "$model_lower" == *"glm"* ]]; then
+        echo "glm"
+    elif [[ "$model_lower" == *"kimi"* ]]; then
+        echo "kimi"
+    else
+        echo "claude"  # default to claude
+    fi
+}
+
+provider=$(determine_provider "$model_name")
 
 # Extract context window information
 context_size=$(echo "$input" | jq -r '.context_window.context_window_size // 200000')
@@ -93,80 +123,191 @@ else
     BAR_COLOR="$RED"
 fi
 
-# Fetch 5-hour quota info (debounced, non-blocking via stale-while-revalidate in python script)
+# Helper function to get color based on percentage
+get_pct_color() {
+    local pct=$1
+    if (( pct < 50 )); then
+        echo "$GREEN"
+    elif (( pct < 80 )); then
+        echo "$YELLOW"
+    else
+        echo "$RED"
+    fi
+}
+
+# Helper function to extract day of week from ISO date
+get_day_of_week() {
+    local iso_date="$1"
+    local date_part=$(echo "$iso_date" | cut -dT -f1)
+    date -j -f "%Y-%m-%d" "$date_part" "+%a" 2>/dev/null || echo ""
+}
+
+# Fetch quota info (debounced, non-blocking via stale-while-revalidate in python script)
 quota_info=""
 if [ -f "$QUOTA_SCRIPT" ]; then
-    quota_json=$(python3 "$QUOTA_SCRIPT" --profile "$QUOTA_PROFILE" --raw --debounce "$QUOTA_DEBOUNCE" 2>/dev/null)
+    quota_json=$(QUOTA_PROFILE="$QUOTA_PROFILE" python3 "$QUOTA_SCRIPT" -p "$provider" --json --debounce "$QUOTA_DEBOUNCE" 2>/dev/null)
     if [ -n "$quota_json" ]; then
-        # 5-hour quota
-        quota_util=$(echo "$quota_json" | jq -r '.five_hour.utilization // empty')
-        if [ -n "$quota_util" ]; then
-            quota_pct=$(printf "%.0f" "$quota_util")
-            if (( quota_pct < 50 )); then
-                QUOTA_COLOR="$GREEN"
-            elif (( quota_pct < 80 )); then
-                QUOTA_COLOR="$YELLOW"
+        # Parse quota based on provider
+        if [ "$provider" = "claude" ]; then
+            # Claude: current (5-hour), weekly, weekly_sonnet
+            current_pct=$(echo "$quota_json" | jq -r '.sessions.current.used_percent // empty')
+            if [ -n "$current_pct" ] && [ "$current_pct" != "null" ]; then
+                quota_pct=$(printf "%.0f" "$current_pct")
+                QUOTA_COLOR=$(get_pct_color "$quota_pct")
+                resets_in=$(echo "$quota_json" | jq -r '.sessions.current.resets_in // empty')
+                resets_at_local=$(echo "$quota_json" | jq -r '.sessions.current.resets_at_local // empty')
+                if [ -n "$resets_in" ]; then
+                    quota_info="${QUOTA_COLOR}Q:${quota_pct}%${NC} ${GRAY}${resets_in}"
+                    [ -n "$resets_at_local" ] && quota_info+=" @${resets_at_local}"
+                    quota_info+="${NC}"
+                else
+                    quota_info="${QUOTA_COLOR}Q:${quota_pct}%${NC}"
+                fi
             else
-                QUOTA_COLOR="$RED"
+                quota_info="${GRAY}Q:--${NC}"
             fi
-            resets_in=$(echo "$quota_json" | jq -r '.five_hour.resets_in // empty')
-            resets_at_local=$(echo "$quota_json" | jq -r '.five_hour.resets_at_local // empty')
-            if [ -n "$resets_in" ]; then
-                quota_info="${QUOTA_COLOR}Q:${quota_pct}%${NC} ${GRAY}${resets_in}"
-                [ -n "$resets_at_local" ] && quota_info+=" @${resets_at_local}"
-                quota_info+="${NC}"
-            else
-                quota_info="${QUOTA_COLOR}Q:${quota_pct}%${NC}"
-            fi
-        else
-            quota_info="${GRAY}Q:--${NC}"
-        fi
 
-        # Weekly quota (seven_day)
-        weekly_util=$(echo "$quota_json" | jq -r '.seven_day.utilization // empty')
-        if [ -n "$weekly_util" ] && [ "$weekly_util" != "null" ]; then
-            weekly_pct=$(printf "%.0f" "$weekly_util")
-            if (( weekly_pct < 50 )); then
-                WEEKLY_COLOR="$GREEN"
-            elif (( weekly_pct < 80 )); then
-                WEEKLY_COLOR="$YELLOW"
-            else
-                WEEKLY_COLOR="$RED"
-            fi
-            weekly_resets_at=$(echo "$quota_json" | jq -r '.seven_day.resets_at // empty')
-            weekly_resets_at_local=$(echo "$quota_json" | jq -r '.seven_day.resets_at_local // empty')
-            if [ -n "$weekly_resets_at" ] && [ -n "$weekly_resets_at_local" ]; then
-                # Extract day of week from resets_at (e.g., "2026-02-27 22:00:00 UTC+08:00")
-                week_day=$(echo "$weekly_resets_at" | cut -d' ' -f1 | xargs -I{} date -j -f "%Y-%m-%d" "{}" "+%a" 2>/dev/null)
-                if [ -n "$week_day" ]; then
-                    quota_info+=" ${WEEKLY_COLOR}W:${weekly_pct}%${NC} ${GRAY}${week_day} @${weekly_resets_at_local}${NC}"
+            # Weekly quota
+            weekly_pct=$(echo "$quota_json" | jq -r '.sessions.weekly.used_percent // empty')
+            if [ -n "$weekly_pct" ] && [ "$weekly_pct" != "null" ]; then
+                weekly_pct_int=$(printf "%.0f" "$weekly_pct")
+                WEEKLY_COLOR=$(get_pct_color "$weekly_pct_int")
+                weekly_resets_at=$(echo "$quota_json" | jq -r '.sessions.weekly.resets_at // empty')
+                weekly_resets_at_local=$(echo "$quota_json" | jq -r '.sessions.weekly.resets_at_local // empty')
+                if [ -n "$weekly_resets_at" ] && [ -n "$weekly_resets_at_local" ]; then
+                    week_day=$(get_day_of_week "$weekly_resets_at")
+                    if [ -n "$week_day" ]; then
+                        quota_info+=" ${WEEKLY_COLOR}W:${weekly_pct_int}%${NC} ${GRAY}${week_day} @${weekly_resets_at_local}${NC}"
+                    fi
                 fi
             fi
-        fi
 
-        # Sonnet quota (seven_day_sonnet)
-        sonnet_util=$(echo "$quota_json" | jq -r '.seven_day_sonnet.utilization // empty')
-        if [ -n "$sonnet_util" ] && [ "$sonnet_util" != "null" ]; then
-            sonnet_pct=$(printf "%.0f" "$sonnet_util")
-            if (( sonnet_pct < 50 )); then
-                SONNET_COLOR="$GREEN"
-            elif (( sonnet_pct < 80 )); then
-                SONNET_COLOR="$YELLOW"
-            else
-                SONNET_COLOR="$RED"
+            # Sonnet quota (if using sonnet model)
+            if [[ "$model_name" == *"sonnet"* ]] || [[ "$model_display" == *"sonnet"* ]] || [[ "$model_display" == *"Sonnet"* ]]; then
+                sonnet_pct=$(echo "$quota_json" | jq -r '.sessions.weekly_sonnet.used_percent // empty')
+                if [ -n "$sonnet_pct" ] && [ "$sonnet_pct" != "null" ]; then
+                    sonnet_pct_int=$(printf "%.0f" "$sonnet_pct")
+                    SONNET_COLOR=$(get_pct_color "$sonnet_pct_int")
+                    sonnet_resets_at=$(echo "$quota_json" | jq -r '.sessions.weekly_sonnet.resets_at // empty')
+                    sonnet_resets_at_local=$(echo "$quota_json" | jq -r '.sessions.weekly_sonnet.resets_at_local // empty')
+                    if [ -n "$sonnet_resets_at" ] && [ -n "$sonnet_resets_at_local" ]; then
+                        week_day=$(get_day_of_week "$sonnet_resets_at")
+                        if [ -n "$week_day" ]; then
+                            quota_info+=" ${SONNET_COLOR}Son:${sonnet_pct_int}%${NC} ${GRAY}${week_day} @${sonnet_resets_at_local}${NC}"
+                        fi
+                    fi
+                fi
             fi
-            sonnet_resets_at=$(echo "$quota_json" | jq -r '.seven_day_sonnet.resets_at // empty')
-            sonnet_resets_at_local=$(echo "$quota_json" | jq -r '.seven_day_sonnet.resets_at_local // empty')
-            if [ -n "$sonnet_resets_at" ] && [ -n "$sonnet_resets_at_local" ]; then
-                # Extract day of week from resets_at (e.g., "2026-02-27 22:00:00 UTC+08:00")
-                week_day=$(echo "$sonnet_resets_at" | cut -d' ' -f1 | xargs -I{} date -j -f "%Y-%m-%d" "{}" "+%a" 2>/dev/null)
-                if [ -n "$week_day" ]; then
-                    quota_info+=" ${SONNET_COLOR}Son:${sonnet_pct}%${NC} ${GRAY}${week_day} @${sonnet_resets_at_local}${NC}"
+
+        elif [ "$provider" = "minimax" ]; then
+            # MiniMax: show first model's quota (they all have same quota)
+            # Get the first session key that starts with "MiniMax"
+            first_model=$(echo "$quota_json" | jq -r '.sessions | keys[] | select(startswith("MiniMax"))' | head -1)
+            if [ -n "$first_model" ]; then
+                current_pct=$(echo "$quota_json" | jq -r ".sessions[\"$first_model\"].used_percent // empty")
+                if [ -n "$current_pct" ] && [ "$current_pct" != "null" ]; then
+                    quota_pct=$(printf "%.0f" "$current_pct")
+                    QUOTA_COLOR=$(get_pct_color "$quota_pct")
+                    resets_in=$(echo "$quota_json" | jq -r ".sessions[\"$first_model\"].resets_in // empty")
+                    resets_at_local=$(echo "$quota_json" | jq -r ".sessions[\"$first_model\"].resets_at_local // empty")
+                    if [ -n "$resets_in" ]; then
+                        quota_info="${QUOTA_COLOR}MM:${quota_pct}%${NC} ${GRAY}${resets_in}"
+                        [ -n "$resets_at_local" ] && quota_info+=" @${resets_at_local}"
+                        quota_info+="${NC}"
+                    else
+                        quota_info="${QUOTA_COLOR}MM:${quota_pct}%${NC}"
+                    fi
+                else
+                    quota_info="${GRAY}MM:--${NC}"
+                fi
+            else
+                quota_info="${GRAY}MM:--${NC}"
+            fi
+
+        elif [ "$provider" = "glm" ]; then
+            # GLM: current (5-hour), daily, weekly
+            current_pct=$(echo "$quota_json" | jq -r '.sessions.current.used_percent // empty')
+            if [ -n "$current_pct" ] && [ "$current_pct" != "null" ]; then
+                quota_pct=$(printf "%.0f" "$current_pct")
+                QUOTA_COLOR=$(get_pct_color "$quota_pct")
+                resets_in=$(echo "$quota_json" | jq -r '.sessions.current.resets_in // empty')
+                resets_at_local=$(echo "$quota_json" | jq -r '.sessions.current.resets_at_local // empty')
+                if [ -n "$resets_in" ]; then
+                    quota_info="${QUOTA_COLOR}GLM:${quota_pct}%${NC} ${GRAY}${resets_in}"
+                    [ -n "$resets_at_local" ] && quota_info+=" @${resets_at_local}"
+                    quota_info+="${NC}"
+                else
+                    quota_info="${QUOTA_COLOR}GLM:${quota_pct}%${NC}"
+                fi
+            else
+                quota_info="${GRAY}GLM:--${NC}"
+            fi
+
+            # Daily quota
+            daily_pct=$(echo "$quota_json" | jq -r '.sessions.daily.used_percent // empty')
+            if [ -n "$daily_pct" ] && [ "$daily_pct" != "null" ]; then
+                daily_pct_int=$(printf "%.0f" "$daily_pct")
+                DAILY_COLOR=$(get_pct_color "$daily_pct_int")
+                daily_resets_in=$(echo "$quota_json" | jq -r '.sessions.daily.resets_in // empty')
+                daily_resets_at_local=$(echo "$quota_json" | jq -r '.sessions.daily.resets_at_local // empty')
+                if [ -n "$daily_resets_in" ]; then
+                    quota_info+=" ${DAILY_COLOR}D:${daily_pct_int}%${NC} ${GRAY}${daily_resets_in}"
+                    [ -n "$daily_resets_at_local" ] && quota_info+=" @${daily_resets_at_local}"
+                    quota_info+="${NC}"
+                fi
+            fi
+
+            # Weekly quota
+            weekly_pct=$(echo "$quota_json" | jq -r '.sessions.weekly.used_percent // empty')
+            if [ -n "$weekly_pct" ] && [ "$weekly_pct" != "null" ]; then
+                weekly_pct_int=$(printf "%.0f" "$weekly_pct")
+                WEEKLY_COLOR=$(get_pct_color "$weekly_pct_int")
+                weekly_resets_at=$(echo "$quota_json" | jq -r '.sessions.weekly.resets_at // empty')
+                weekly_resets_at_local=$(echo "$quota_json" | jq -r '.sessions.weekly.resets_at_local // empty')
+                if [ -n "$weekly_resets_at" ] && [ -n "$weekly_resets_at_local" ]; then
+                    week_day=$(get_day_of_week "$weekly_resets_at")
+                    if [ -n "$week_day" ]; then
+                        quota_info+=" ${WEEKLY_COLOR}W:${weekly_pct_int}%${NC} ${GRAY}${week_day} @${weekly_resets_at_local}${NC}"
+                    fi
+                fi
+            fi
+
+        elif [ "$provider" = "kimi" ]; then
+            # Kimi: 5-hour session, weekly
+            current_pct=$(echo "$quota_json" | jq -r '.sessions.current.used_percent // empty')
+            if [ -n "$current_pct" ] && [ "$current_pct" != "null" ]; then
+                quota_pct=$(printf "%.0f" "$current_pct")
+                QUOTA_COLOR=$(get_pct_color "$quota_pct")
+                resets_in=$(echo "$quota_json" | jq -r '.sessions.current.resets_in // empty')
+                resets_at_local=$(echo "$quota_json" | jq -r '.sessions.current.resets_at_local // empty')
+                if [ -n "$resets_in" ]; then
+                    quota_info="${QUOTA_COLOR}Kimi:${quota_pct}%${NC} ${GRAY}${resets_in}"
+                    [ -n "$resets_at_local" ] && quota_info+=" @${resets_at_local}"
+                    quota_info+="${NC}"
+                else
+                    quota_info="${QUOTA_COLOR}Kimi:${quota_pct}%${NC}"
+                fi
+            else
+                quota_info="${GRAY}Kimi:--${NC}"
+            fi
+
+            # Weekly quota
+            weekly_pct=$(echo "$quota_json" | jq -r '.sessions.weekly.used_percent // empty')
+            if [ -n "$weekly_pct" ] && [ "$weekly_pct" != "null" ]; then
+                weekly_pct_int=$(printf "%.0f" "$weekly_pct")
+                WEEKLY_COLOR=$(get_pct_color "$weekly_pct_int")
+                weekly_resets_at=$(echo "$quota_json" | jq -r '.sessions.weekly.resets_at // empty')
+                weekly_resets_at_local=$(echo "$quota_json" | jq -r '.sessions.weekly.resets_at_local // empty')
+                if [ -n "$weekly_resets_at" ] && [ -n "$weekly_resets_at_local" ]; then
+                    week_day=$(get_day_of_week "$weekly_resets_at")
+                    if [ -n "$week_day" ]; then
+                        quota_info+=" ${WEEKLY_COLOR}W:${weekly_pct_int}%${NC} ${GRAY}${week_day} @${weekly_resets_at_local}${NC}"
+                    fi
                 fi
             fi
         fi
     else
-        quota_info="${GRAY}Q:-- W:-- Son:--${NC}"
+        quota_info="${GRAY}Q:--${NC}"
     fi
 fi
 
