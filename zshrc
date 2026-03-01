@@ -249,6 +249,7 @@ alias cclaude='claude-chill -a 5000 claude'
 # Added by Nowledge Mem
 export PATH="$HOME/.local/bin:$PATH"
 alias ask='llms -m gptws'
+alias askp='llms agent -p'
 
 # Load .env variables
 [[ -f $HOME/.config/zsh/env-loader.zsh ]] && source "$HOME/.config/zsh/env-loader.zsh"
