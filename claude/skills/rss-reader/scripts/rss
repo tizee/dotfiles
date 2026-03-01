@@ -11,7 +11,7 @@ Usage:
     rss add <url> [--title TITLE] [--category CATEGORY]
     rss remove <query>
     rss merge <file>
-    rss fetch <query> [--limit N] [--refresh] [--full] [--index N]
+    rss fetch <query> [--limit N] [--refresh] [--index N]
     rss search <keyword> [--limit N] [--refresh]
     rss digest [--since 24h] [--limit N] [--refresh]
     rss recategorize <query> --category CATEGORY
@@ -540,7 +540,7 @@ def md_feeds_list(feeds: list[dict]) -> str:
     return "\n".join(lines)
 
 
-def md_feed_content(feed: dict, limit: int, full: bool = False, index: int | None = None) -> str:
+def md_feed_content(feed: dict, limit: int, index: int | None = None) -> str:
     items = feed["items"]
     lines = [f"# {feed['title']}\n"]
     if feed["link"]:
@@ -560,38 +560,7 @@ def md_feed_content(feed: dict, limit: int, full: bool = False, index: int | Non
         return "\n".join(lines)
 
     for i, item in enumerate(items, 1):
-        if full:
-            lines.append(_md_item_detail(item, i))
-        else:
-            lines.append(_md_item_summary(item, i))
-    return "\n".join(lines)
-
-
-def _md_item_summary(item: dict, idx: int) -> str:
-    """Render item as a brief summary line."""
-    lines = []
-    title = item["title"]
-    link = item["link"]
-    if link:
-        lines.append(f"{idx}. [{title}]({link})")
-    else:
-        lines.append(f"{idx}. {title}")
-    meta = []
-    if item["author"]:
-        meta.append(f"by {item['author']}")
-    if item["pubDate"]:
-        meta.append(item["pubDate"])
-    if meta:
-        lines.append(f"   {' | '.join(meta)}")
-    desc = item.get("description") or ""
-    if desc:
-        # show first line of description as a brief hint
-        first_line = desc.split("\n")[0].strip()
-        if len(first_line) > 200:
-            first_line = first_line[:200] + "..."
-        if first_line:
-            lines.append(f"   {first_line}")
-    lines.append("")
+        lines.append(_md_item_detail(item, i))
     return "\n".join(lines)
 
 
@@ -748,7 +717,7 @@ def cmd_fetch(args):
             else:
                 print(f"Invalid index {idx}. Feed has {len(parsed['items'])} items.", file=sys.stderr)
                 sys.exit(1)
-        output(json_data, md_feed_content(parsed, args.limit, full=args.full, index=args.index), args.json)
+        output(json_data, md_feed_content(parsed, args.limit, index=args.index), args.json)
 
 
 def cmd_merge(args):
@@ -1020,7 +989,6 @@ def main():
     p_fetch.add_argument("--all", action="store_true", help="Fetch all subscribed feeds")
     p_fetch.add_argument("--limit", type=int, default=10, help="Max items per feed (default: 10)")
     p_fetch.add_argument("--refresh", action="store_true", help="Bypass cache and re-fetch")
-    p_fetch.add_argument("--full", action="store_true", help="Show full content instead of summary")
     p_fetch.add_argument("--index", type=int, help="Show a specific item by index (1-based)")
 
     # search
