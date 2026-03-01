@@ -1,0 +1,1054 @@
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.10"
+# dependencies = ["httpx", "defusedxml", "html-to-markdown"]
+# ///
+"""
+RSS subscription manager and feed fetcher.
+
+Usage:
+    rss list
+    rss add <url> [--title TITLE] [--category CATEGORY]
+    rss remove <query>
+    rss merge <file>
+    rss fetch <query> [--limit N] [--refresh] [--full] [--index N]
+    rss search <keyword> [--limit N] [--refresh]
+    rss digest [--since 24h] [--limit N] [--refresh]
+    rss recategorize <query> --category CATEGORY
+
+OPML file: ~/.config/llm/rss-reader.opml
+Cache dir: ~/.cache/rss-reader/
+
+Output: Markdown (default) or JSON (--json).
+"""
+
+import argparse
+import hashlib
+import json
+import os
+import re
+import sys
+import time
+from datetime import datetime, timezone
+from pathlib import Path
+
+import httpx
+from defusedxml import ElementTree as ET
+
+OPML_PATH = Path(os.environ.get("RSS_OPML_PATH", Path.home() / ".config" / "llm" / "rss-reader.opml"))
+CACHE_DIR = Path(os.environ.get("RSS_CACHE_DIR", Path.home() / ".cache" / "rss-reader"))
+CACHE_TTL = 1800  # 30 minutes
+
+
+# --- OPML handling ---
+
+
+OPML_TEMPLATE = """\
+<?xml version="1.0" encoding="UTF-8"?>
+<opml version="2.0">
+  <head>
+    <title>RSS Subscriptions</title>
+  </head>
+  <body>
+  </body>
+</opml>
+"""
+
+
+def ensure_opml() -> Path:
+    """Ensure OPML file exists, creating it if needed."""
+    if not OPML_PATH.exists():
+        OPML_PATH.parent.mkdir(parents=True, exist_ok=True)
+        OPML_PATH.write_text(OPML_TEMPLATE, encoding="utf-8")
+    return OPML_PATH
+
+
+def parse_opml(path: Path) -> list[dict]:
+    """Parse OPML file and return list of feed dicts with title, xmlUrl, htmlUrl, category."""
+    tree = ET.parse(str(path))
+    root = tree.getroot()
+    feeds = []
+
+    def walk(element, category=""):
+        for outline in element.findall("outline"):
+            xml_url = outline.get("xmlUrl")
+            if xml_url:
+                feeds.append({
+                    "title": outline.get("title") or outline.get("text") or xml_url,
+                    "xmlUrl": xml_url,
+                    "htmlUrl": outline.get("htmlUrl", ""),
+                    "category": category,
+                })
+            else:
+                # folder node
+                cat = outline.get("title") or outline.get("text") or ""
+                walk(outline, category=cat)
+
+    body = root.find("body")
+    if body is not None:
+        walk(body)
+    return feeds
+
+
+def add_feed_to_opml(path: Path, url: str, title: str | None, category: str | None) -> bool:
+    """Add a feed to the OPML file. Returns False if it already exists."""
+    # Use stdlib xml.etree for writing (defusedxml is parse-only guard)
+    import xml.etree.ElementTree as StdET
+
+    tree = StdET.parse(str(path))
+    root = tree.getroot()
+    body = root.find("body")
+    if body is None:
+        body = StdET.SubElement(root, "body")
+
+    # check for duplicate xmlUrl
+    for outline in body.iter("outline"):
+        if outline.get("xmlUrl") == url:
+            return False
+
+    # find or create category folder
+    parent = body
+    if category:
+        for outline in body.findall("outline"):
+            if not outline.get("xmlUrl") and (outline.get("title") == category or outline.get("text") == category):
+                parent = outline
+                break
+        else:
+            folder = StdET.SubElement(body, "outline")
+            folder.set("text", category)
+            folder.set("title", category)
+            parent = folder
+
+    outline = StdET.SubElement(parent, "outline")
+    outline.set("type", "rss")
+    outline.set("text", title or url)
+    outline.set("title", title or url)
+    outline.set("xmlUrl", url)
+
+    StdET.indent(tree, space="  ")
+    tree.write(str(path), encoding="unicode", xml_declaration=True)
+    return True
+
+
+def remove_feed_from_opml(path: Path, query: str) -> dict | None:
+    """Remove a feed matching query (by title or xmlUrl). Returns removed feed dict or None."""
+    import xml.etree.ElementTree as StdET
+
+    feeds = parse_opml(path)
+    q = query.lower()
+    matched = [f for f in feeds if q in f["title"].lower() or q in f["xmlUrl"].lower()]
+
+    if not matched:
+        return None
+    if len(matched) > 1:
+        return {"error": "multiple", "matches": matched}
+
+    target_url = matched[0]["xmlUrl"]
+
+    tree = StdET.parse(str(path))
+    root = tree.getroot()
+    body = root.find("body")
+
+    def remove_from(parent):
+        for outline in parent.findall("outline"):
+            if outline.get("xmlUrl") == target_url:
+                parent.remove(outline)
+                return True
+            if not outline.get("xmlUrl") and remove_from(outline):
+                # remove empty category folders
+                if len(outline.findall("outline")) == 0:
+                    parent.remove(outline)
+                return True
+        return False
+
+    if body is not None:
+        remove_from(body)
+
+    StdET.indent(tree, space="  ")
+    tree.write(str(path), encoding="unicode", xml_declaration=True)
+    return matched[0]
+
+
+def recategorize_feed(path: Path, query: str, new_category: str) -> dict | None:
+    """Move a feed to a different category. Returns feed dict or error."""
+    import xml.etree.ElementTree as StdET
+
+    feeds = parse_opml(path)
+    q = query.lower()
+    matched = [f for f in feeds if q in f["title"].lower() or q in f["xmlUrl"].lower()]
+
+    if not matched:
+        return None
+    if len(matched) > 1:
+        return {"error": "multiple", "matches": matched}
+
+    feed_info = matched[0]
+    target_url = feed_info["xmlUrl"]
+
+    tree = StdET.parse(str(path))
+    root = tree.getroot()
+    body = root.find("body")
+
+    # find and detach the outline element
+    detached = None
+
+    def detach_from(parent):
+        nonlocal detached
+        for outline in parent.findall("outline"):
+            if outline.get("xmlUrl") == target_url:
+                detached = outline
+                parent.remove(outline)
+                # remove empty category folders
+                if not outline.get("xmlUrl") is None:
+                    pass
+                if len(parent.findall("outline")) == 0 and parent is not body:
+                    # will be cleaned up by caller
+                    pass
+                return True
+            if not outline.get("xmlUrl") and detach_from(outline):
+                if len(outline.findall("outline")) == 0:
+                    parent.remove(outline)
+                return True
+        return False
+
+    if body is not None:
+        detach_from(body)
+
+    if detached is None:
+        return None
+
+    # find or create new category folder
+    parent = body
+    if new_category:
+        for outline in body.findall("outline"):
+            if not outline.get("xmlUrl") and (outline.get("title") == new_category or outline.get("text") == new_category):
+                parent = outline
+                break
+        else:
+            folder = StdET.SubElement(body, "outline")
+            folder.set("text", new_category)
+            folder.set("title", new_category)
+            parent = folder
+
+    parent.append(detached)
+
+    StdET.indent(tree, space="  ")
+    tree.write(str(path), encoding="unicode", xml_declaration=True)
+    feed_info["category"] = new_category
+    return feed_info
+
+
+def merge_opml(target_path: Path, source_path: Path) -> dict:
+    """Merge feeds from source OPML into target OPML. Dedup by xmlUrl.
+    Returns {"added": [...], "skipped": [...]}."""
+    import xml.etree.ElementTree as StdET
+
+    source_feeds = parse_opml(source_path)
+    if not source_feeds:
+        return {"added": [], "skipped": []}
+
+    tree = StdET.parse(str(target_path))
+    root = tree.getroot()
+    body = root.find("body")
+    if body is None:
+        body = StdET.SubElement(root, "body")
+
+    # collect existing xmlUrls
+    existing_urls = set()
+    for outline in body.iter("outline"):
+        xml_url = outline.get("xmlUrl")
+        if xml_url:
+            existing_urls.add(xml_url)
+
+    added = []
+    skipped = []
+
+    for feed in source_feeds:
+        if feed["xmlUrl"] in existing_urls:
+            skipped.append(feed)
+            continue
+
+        # find or create category folder
+        category = feed["category"]
+        parent = body
+        if category:
+            for outline in body.findall("outline"):
+                if not outline.get("xmlUrl") and (outline.get("title") == category or outline.get("text") == category):
+                    parent = outline
+                    break
+            else:
+                folder = StdET.SubElement(body, "outline")
+                folder.set("text", category)
+                folder.set("title", category)
+                parent = folder
+
+        outline = StdET.SubElement(parent, "outline")
+        outline.set("type", "rss")
+        outline.set("text", feed["title"])
+        outline.set("title", feed["title"])
+        outline.set("xmlUrl", feed["xmlUrl"])
+        if feed["htmlUrl"]:
+            outline.set("htmlUrl", feed["htmlUrl"])
+
+        existing_urls.add(feed["xmlUrl"])
+        added.append(feed)
+
+    StdET.indent(tree, space="  ")
+    tree.write(str(target_path), encoding="unicode", xml_declaration=True)
+    return {"added": added, "skipped": skipped}
+
+
+# --- Cache ---
+
+
+def cache_key(url: str) -> str:
+    return hashlib.sha256(url.encode()).hexdigest()[:16]
+
+
+def get_cached(url: str) -> str | None:
+    """Return cached XML content if fresh (within TTL), else None."""
+    cache_file = CACHE_DIR / f"{cache_key(url)}.xml"
+    if not cache_file.exists():
+        return None
+    age = time.time() - cache_file.stat().st_mtime
+    if age > CACHE_TTL:
+        return None
+    return cache_file.read_text(encoding="utf-8")
+
+
+def get_cached_any(url: str) -> str | None:
+    """Return cached XML regardless of age. For search/digest where stale is acceptable."""
+    cache_file = CACHE_DIR / f"{cache_key(url)}.xml"
+    if not cache_file.exists():
+        return None
+    return cache_file.read_text(encoding="utf-8")
+
+
+def write_cache(url: str, content: str):
+    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    cache_file = CACHE_DIR / f"{cache_key(url)}.xml"
+    cache_file.write_text(content, encoding="utf-8")
+
+
+# --- RSS/Atom parsing ---
+
+
+def _strip_tags(html: str) -> str:
+    """Fallback: strip HTML tags with regex."""
+    from html import unescape
+    text = re.sub(r"<[^>]+>", "", html)
+    return unescape(text).strip()
+
+
+def html_to_md(html: str | None) -> str:
+    """Convert HTML to markdown using html-to-markdown library."""
+    if not html:
+        return ""
+    from html_to_markdown import ConversionOptions, convert
+    try:
+        # suppress Rust panic output on stderr
+        fd = os.dup(2)
+        devnull = os.open(os.devnull, os.O_WRONLY)
+        os.dup2(devnull, 2)
+        try:
+            result = convert(html, ConversionOptions(heading_style="atx")).strip()
+        finally:
+            os.dup2(fd, 2)
+            os.close(fd)
+            os.close(devnull)
+        return result
+    except (RuntimeError, Exception):
+        return _strip_tags(html)
+
+
+def parse_rss_xml(xml_text: str, feed_title: str = "") -> dict:
+    """Parse RSS 2.0 or Atom XML into a normalized dict."""
+    root = ET.fromstring(xml_text)
+    tag = root.tag.split("}")[-1] if "}" in root.tag else root.tag
+
+    if tag == "feed":
+        return _parse_atom(root, feed_title)
+    else:
+        return _parse_rss2(root, feed_title)
+
+
+def _ns(tag: str, ns: str) -> str:
+    return f"{{{ns}}}{tag}"
+
+
+def _parse_rss2(root, feed_title: str) -> dict:
+    channel = root.find("channel")
+    if channel is None:
+        return {"title": feed_title or "Unknown", "link": "", "items": []}
+
+    title = feed_title or (channel.findtext("title") or "Unknown")
+    link = channel.findtext("link") or ""
+    description = channel.findtext("description") or ""
+
+    content_ns = "http://purl.org/rss/1.0/modules/content/"
+
+    items = []
+    for item in channel.findall("item"):
+        pub_date = item.findtext("pubDate") or ""
+        parsed_date = _parse_date(pub_date)
+        # prefer content:encoded (full content) over description (summary)
+        content_encoded = item.findtext(_ns("encoded", content_ns)) or ""
+        desc = item.findtext("description") or ""
+        items.append({
+            "title": item.findtext("title") or "(no title)",
+            "link": item.findtext("link") or "",
+            "description": html_to_md(desc),
+            "content": html_to_md(content_encoded),
+            "pubDate": parsed_date,
+            "author": item.findtext("author") or item.findtext("{http://purl.org/dc/elements/1.1/}creator") or "",
+        })
+
+    # sort newest first
+    items.sort(key=lambda x: x["pubDate"] or "", reverse=True)
+    return {"title": title, "link": link, "description": html_to_md(description), "items": items}
+
+
+def _parse_atom(root, feed_title: str) -> dict:
+    ns = "http://www.w3.org/2005/Atom"
+    title = feed_title or (root.findtext(_ns("title", ns)) or "Unknown")
+
+    link = ""
+    for link_el in root.findall(_ns("link", ns)):
+        rel = link_el.get("rel", "alternate")
+        if rel == "alternate":
+            link = link_el.get("href", "")
+            break
+    if not link:
+        link_el = root.find(_ns("link", ns))
+        if link_el is not None:
+            link = link_el.get("href", "")
+
+    items = []
+    for entry in root.findall(_ns("entry", ns)):
+        entry_link = ""
+        for el in entry.findall(_ns("link", ns)):
+            rel = el.get("rel", "alternate")
+            if rel == "alternate":
+                entry_link = el.get("href", "")
+                break
+        if not entry_link:
+            el = entry.find(_ns("link", ns))
+            if el is not None:
+                entry_link = el.get("href", "")
+
+        content_html = entry.findtext(_ns("content", ns)) or ""
+        summary_html = entry.findtext(_ns("summary", ns)) or ""
+        updated = entry.findtext(_ns("updated", ns)) or entry.findtext(_ns("published", ns)) or ""
+        author_el = entry.find(_ns("author", ns))
+        author = ""
+        if author_el is not None:
+            author = author_el.findtext(_ns("name", ns)) or ""
+
+        items.append({
+            "title": entry.findtext(_ns("title", ns)) or "(no title)",
+            "link": entry_link,
+            "description": html_to_md(summary_html),
+            "content": html_to_md(content_html),
+            "pubDate": _parse_date(updated),
+            "author": author,
+        })
+
+    items.sort(key=lambda x: x["pubDate"] or "", reverse=True)
+    return {"title": title, "link": link, "description": "", "items": items}
+
+
+def _parse_date(date_str: str) -> str:
+    """Best-effort date parsing to ISO format."""
+    if not date_str:
+        return ""
+    date_str = date_str.strip()
+    # normalize "UT" -> "UTC", "GMT" is already handled by %Z
+    if date_str.endswith(" UT"):
+        date_str = date_str + "C"
+    # RFC 2822 (RSS)
+    for fmt in (
+        "%a, %d %b %Y %H:%M:%S %z",
+        "%a, %d %b %Y %H:%M:%S %Z",
+        "%d %b %Y %H:%M:%S %z",
+        "%Y-%m-%dT%H:%M:%S%z",
+        "%Y-%m-%dT%H:%M:%SZ",
+        "%Y-%m-%d %H:%M:%S",
+        "%Y-%m-%d",
+    ):
+        try:
+            dt = datetime.strptime(date_str, fmt)
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            return dt.strftime("%Y-%m-%d %H:%M UTC")
+        except ValueError:
+            continue
+    # fallback: strip timezone suffix and try ISO
+    cleaned = re.sub(r"[+-]\d{2}:\d{2}$", "", date_str)
+    try:
+        dt = datetime.fromisoformat(cleaned).replace(tzinfo=timezone.utc)
+        return dt.strftime("%Y-%m-%d %H:%M UTC")
+    except ValueError:
+        return date_str
+
+
+# --- Fetch ---
+
+
+def fetch_feed(url: str, refresh: bool = False) -> str:
+    """Fetch RSS XML, using cache unless refresh is True."""
+    if not refresh:
+        cached = get_cached(url)
+        if cached is not None:
+            return cached
+
+    try:
+        resp = httpx.get(url, timeout=15, follow_redirects=True, headers={
+            "User-Agent": "rss-skill/1.0 (+https://github.com/tizee/dotfiles)",
+        })
+        resp.raise_for_status()
+        content = resp.text
+        write_cache(url, content)
+        return content
+    except httpx.HTTPError as e:
+        print(f"Error fetching {url}: {e}", file=sys.stderr)
+        sys.exit(1)
+
+
+# --- Markdown renderers ---
+
+
+def md_feeds_list(feeds: list[dict]) -> str:
+    if not feeds:
+        return "No subscriptions found. Add feeds with `rss add <url>`."
+    lines = [f"# RSS Subscriptions ({len(feeds)} feeds)\n"]
+    by_category: dict[str, list[dict]] = {}
+    for f in feeds:
+        cat = f["category"] or "Uncategorized"
+        by_category.setdefault(cat, []).append(f)
+
+    for cat in sorted(by_category):
+        cat_feeds = by_category[cat]
+        lines.append(f"## {cat}\n")
+        for f in cat_feeds:
+            title = f["title"]
+            xml_url = f["xmlUrl"]
+            lines.append(f"- {title}")
+            lines.append(f"  Feed: {xml_url}")
+            if f["htmlUrl"]:
+                lines.append(f"  Site: {f['htmlUrl']}")
+        lines.append("")
+    return "\n".join(lines)
+
+
+def md_feed_content(feed: dict, limit: int, full: bool = False, index: int | None = None) -> str:
+    items = feed["items"]
+    lines = [f"# {feed['title']}\n"]
+    if feed["link"]:
+        lines.append(f"Site: {feed['link']}\n")
+
+    if index is not None:
+        if index < 1 or index > len(items):
+            lines.append(f"Invalid index {index}. Feed has {len(items)} items.")
+            return "\n".join(lines)
+        item = items[index - 1]
+        lines.append(_md_item_detail(item, index))
+        return "\n".join(lines)
+
+    items = items[:limit]
+    if not items:
+        lines.append("No items found.")
+        return "\n".join(lines)
+
+    for i, item in enumerate(items, 1):
+        if full:
+            lines.append(_md_item_detail(item, i))
+        else:
+            lines.append(_md_item_summary(item, i))
+    return "\n".join(lines)
+
+
+def _md_item_summary(item: dict, idx: int) -> str:
+    """Render item as a brief summary line."""
+    lines = []
+    title = item["title"]
+    link = item["link"]
+    if link:
+        lines.append(f"{idx}. [{title}]({link})")
+    else:
+        lines.append(f"{idx}. {title}")
+    meta = []
+    if item["author"]:
+        meta.append(f"by {item['author']}")
+    if item["pubDate"]:
+        meta.append(item["pubDate"])
+    if meta:
+        lines.append(f"   {' | '.join(meta)}")
+    desc = item.get("description") or ""
+    if desc:
+        # show first line of description as a brief hint
+        first_line = desc.split("\n")[0].strip()
+        if len(first_line) > 200:
+            first_line = first_line[:200] + "..."
+        if first_line:
+            lines.append(f"   {first_line}")
+    lines.append("")
+    return "\n".join(lines)
+
+
+def _md_item_detail(item: dict, idx: int) -> str:
+    """Render item with full content."""
+    lines = []
+    title = item["title"]
+    link = item["link"]
+    if link:
+        lines.append(f"## {idx}. [{title}]({link})")
+    else:
+        lines.append(f"## {idx}. {title}")
+    meta = []
+    if item["author"]:
+        meta.append(f"by {item['author']}")
+    if item["pubDate"]:
+        meta.append(item["pubDate"])
+    if meta:
+        lines.append(" | ".join(meta))
+    lines.append("")
+    body = item.get("content") or item.get("description") or ""
+    if body:
+        lines.append(body)
+        lines.append("")
+    lines.append("---\n")
+    return "\n".join(lines)
+
+
+def md_all_feeds(results: list[dict], limit: int) -> str:
+    lines = [f"# All RSS Feeds ({len(results)} feeds)\n"]
+    for feed in results:
+        items = feed["items"][:limit]
+        lines.append(f"## {feed['title']}")
+        if feed["link"]:
+            lines.append(f"Site: {feed['link']}\n")
+        if not items:
+            lines.append("No items.\n")
+            continue
+        for i, item in enumerate(items, 1):
+            lines.append(_md_item_summary(item, i))
+        lines.append("")
+    return "\n".join(lines)
+
+
+# --- Output ---
+
+
+def output(data, md_text: str, use_json: bool):
+    if use_json:
+        print(json.dumps(data, indent=2, ensure_ascii=False))
+    else:
+        print(md_text)
+
+
+# --- Commands ---
+
+
+def cmd_list(args):
+    path = ensure_opml()
+    feeds = parse_opml(path)
+    output(feeds, md_feeds_list(feeds), args.json)
+
+
+def cmd_remove(args):
+    path = ensure_opml()
+    result = remove_feed_from_opml(path, args.query)
+    if result is None:
+        print(f"No feed matching '{args.query}'. Use `rss list` to see subscriptions.", file=sys.stderr)
+        sys.exit(1)
+    if isinstance(result, dict) and "error" in result:
+        lines = [f"Multiple feeds match '{args.query}':"]
+        for f in result["matches"]:
+            lines.append(f"  - {f['title']} ({f['xmlUrl']})")
+        lines.append("Narrow your query.")
+        print("\n".join(lines), file=sys.stderr)
+        sys.exit(1)
+    msg = f"Removed: {result['title']} ({result['xmlUrl']})"
+    output({"status": "removed", **result}, msg, args.json)
+
+
+def cmd_recategorize(args):
+    path = ensure_opml()
+    result = recategorize_feed(path, args.query, args.category)
+    if result is None:
+        print(f"No feed matching '{args.query}'. Use `rss list` to see subscriptions.", file=sys.stderr)
+        sys.exit(1)
+    if isinstance(result, dict) and "error" in result:
+        lines = [f"Multiple feeds match '{args.query}':"]
+        for f in result["matches"]:
+            lines.append(f"  - {f['title']} ({f['xmlUrl']})")
+        lines.append("Narrow your query.")
+        print("\n".join(lines), file=sys.stderr)
+        sys.exit(1)
+    msg = f"Moved: {result['title']} -> {args.category}"
+    output({"status": "moved", **result}, msg, args.json)
+
+
+def cmd_add(args):
+    path = ensure_opml()
+    added = add_feed_to_opml(path, args.url, args.title, args.category)
+    if added:
+        msg = f"Added: {args.title or args.url}"
+        if args.category:
+            msg += f" (category: {args.category})"
+        data = {"status": "added", "url": args.url, "title": args.title, "category": args.category}
+    else:
+        msg = f"Already exists: {args.url}"
+        data = {"status": "exists", "url": args.url}
+    output(data, msg, args.json)
+
+
+def cmd_fetch(args):
+    path = ensure_opml()
+    feeds = parse_opml(path)
+
+    if not feeds:
+        print("No subscriptions found. Add feeds with `rss add <url>`.", file=sys.stderr)
+        sys.exit(1)
+
+    if args.all:
+        results = []
+        for f in feeds:
+            try:
+                xml_text = fetch_feed(f["xmlUrl"], refresh=args.refresh)
+                parsed = parse_rss_xml(xml_text, f["title"])
+                results.append(parsed)
+            except SystemExit:
+                # fetch_feed exits on error; skip failed feeds in --all mode
+                print(f"Warning: skipping {f['title']}", file=sys.stderr)
+                continue
+        output(results, md_all_feeds(results, args.limit), args.json)
+    else:
+        query = args.query.lower()
+        matched = [f for f in feeds if query in f["title"].lower() or query in f["xmlUrl"].lower()]
+        if not matched:
+            print(f"No feed matching '{args.query}'. Use `rss list` to see subscriptions.", file=sys.stderr)
+            sys.exit(1)
+        if len(matched) > 1:
+            lines = [f"Multiple feeds match '{args.query}':"]
+            for f in matched:
+                lines.append(f"  - {f['title']} ({f['xmlUrl']})")
+            lines.append("Narrow your query or use the exact title/URL.")
+            print("\n".join(lines), file=sys.stderr)
+            sys.exit(1)
+
+        feed_info = matched[0]
+        xml_text = fetch_feed(feed_info["xmlUrl"], refresh=args.refresh)
+        parsed = parse_rss_xml(xml_text, feed_info["title"])
+        json_data = parsed
+        if args.index is not None:
+            idx = args.index
+            if 1 <= idx <= len(parsed["items"]):
+                json_data = parsed["items"][idx - 1]
+            else:
+                print(f"Invalid index {idx}. Feed has {len(parsed['items'])} items.", file=sys.stderr)
+                sys.exit(1)
+        output(json_data, md_feed_content(parsed, args.limit, full=args.full, index=args.index), args.json)
+
+
+def cmd_merge(args):
+    target_path = ensure_opml()
+    source_path = Path(args.file).expanduser().resolve()
+    if not source_path.exists():
+        print(f"File not found: {source_path}", file=sys.stderr)
+        sys.exit(1)
+
+    result = merge_opml(target_path, source_path)
+    added = result["added"]
+    skipped = result["skipped"]
+
+    lines = [f"Merged from {source_path.name}: {len(added)} added, {len(skipped)} skipped (duplicate)"]
+    if added:
+        lines.append("\nAdded:")
+        for f in added:
+            lines.append(f"  + {f['title']} ({f['xmlUrl']})")
+    if skipped:
+        lines.append(f"\nSkipped ({len(skipped)} existing):")
+        for f in skipped:
+            lines.append(f"  - {f['title']}")
+
+    data = {"added": added, "skipped": skipped, "added_count": len(added), "skipped_count": len(skipped)}
+    output(data, "\n".join(lines), args.json)
+
+
+def _parse_since(since_str: str) -> float:
+    """Parse a duration string like '24h', '7d', '30m' into seconds."""
+    m = re.match(r"^(\d+)\s*([hdm])$", since_str.strip().lower())
+    if not m:
+        print(f"Invalid --since format: '{since_str}'. Use e.g. 24h, 7d, 30m.", file=sys.stderr)
+        sys.exit(1)
+    value, unit = int(m.group(1)), m.group(2)
+    multiplier = {"m": 60, "h": 3600, "d": 86400}
+    return value * multiplier[unit]
+
+
+def _parse_item_date_to_ts(date_str: str) -> float | None:
+    """Parse an already-formatted date string back to Unix timestamp."""
+    if not date_str:
+        return None
+    try:
+        dt = datetime.strptime(date_str, "%Y-%m-%d %H:%M UTC")
+        return dt.replace(tzinfo=timezone.utc).timestamp()
+    except ValueError:
+        return None
+
+
+BATCH_CONCURRENCY = 10
+
+
+async def _async_fetch_feeds(urls_to_fetch: list[tuple[str, str]]) -> dict[str, str]:
+    """Fetch multiple feed URLs concurrently. Returns {url: xml_text}."""
+    import asyncio
+
+    results: dict[str, str] = {}
+    sem = asyncio.Semaphore(BATCH_CONCURRENCY)
+
+    async def fetch_one(client: httpx.AsyncClient, url: str, title: str):
+        async with sem:
+            try:
+                resp = await client.get(url, timeout=15, follow_redirects=True)
+                resp.raise_for_status()
+                content = resp.text
+                write_cache(url, content)
+                results[url] = content
+            except Exception:
+                print(f"Warning: failed to fetch {title} ({url})", file=sys.stderr)
+
+    async with httpx.AsyncClient(headers={
+        "User-Agent": "rss-skill/1.0 (+https://github.com/tizee/dotfiles)",
+    }) as client:
+        tasks = [fetch_one(client, url, title) for url, title in urls_to_fetch]
+        await asyncio.gather(*tasks)
+
+    return results
+
+
+def _collect_items(feeds: list[dict], refresh: bool) -> list[dict]:
+    """Collect items from feeds. Cache-first: uses any cached XML.
+    With refresh=True, async-fetches stale/uncached feeds in batch."""
+    import asyncio
+
+    all_items = []
+    to_fetch: list[tuple[str, str]] = []  # (url, title)
+
+    # Phase 1: scan cache
+    for f in feeds:
+        url = f["xmlUrl"]
+        cached = None if refresh else get_cached_any(url)
+        if cached:
+            try:
+                parsed = parse_rss_xml(cached, f["title"])
+                for item in parsed["items"]:
+                    item["feed_title"] = parsed["title"]
+                all_items.extend(parsed["items"])
+            except Exception:
+                to_fetch.append((url, f["title"]))
+        else:
+            to_fetch.append((url, f["title"]))
+
+    # Phase 2: batch-fetch uncached/stale feeds
+    if to_fetch:
+        n = len(to_fetch)
+        print(f"Fetching {n} feed{'s' if n > 1 else ''}...", file=sys.stderr)
+        fetched = asyncio.run(_async_fetch_feeds(to_fetch))
+        for url, title in to_fetch:
+            xml_text = fetched.get(url)
+            if xml_text:
+                try:
+                    parsed = parse_rss_xml(xml_text, title)
+                    for item in parsed["items"]:
+                        item["feed_title"] = parsed["title"]
+                    all_items.extend(parsed["items"])
+                except Exception:
+                    print(f"Warning: failed to parse {title}", file=sys.stderr)
+
+    return all_items
+
+
+def md_search_results(keyword: str, items: list[dict], limit: int) -> str:
+    items = items[:limit]
+    lines = [f"# Search: \"{keyword}\" ({len(items)} results)\n"]
+    if not items:
+        lines.append("No matching articles found.")
+        return "\n".join(lines)
+    for i, item in enumerate(items, 1):
+        title = item["title"]
+        link = item["link"]
+        feed = item.get("feed_title", "")
+        if link:
+            lines.append(f"{i}. [{title}]({link})")
+        else:
+            lines.append(f"{i}. {title}")
+        meta = []
+        if feed:
+            meta.append(f"from {feed}")
+        if item["author"]:
+            meta.append(f"by {item['author']}")
+        if item["pubDate"]:
+            meta.append(item["pubDate"])
+        if meta:
+            lines.append(f"   {' | '.join(meta)}")
+        desc = item.get("description") or ""
+        if desc:
+            first_line = desc.split("\n")[0].strip()
+            if len(first_line) > 200:
+                first_line = first_line[:200] + "..."
+            if first_line:
+                lines.append(f"   {first_line}")
+        lines.append("")
+    return "\n".join(lines)
+
+
+def md_digest(items: list[dict], since_label: str, limit: int) -> str:
+    items = items[:limit]
+    lines = [f"# Digest (last {since_label}, {len(items)} articles)\n"]
+    if not items:
+        lines.append("No new articles in this period.")
+        return "\n".join(lines)
+    # group by feed
+    by_feed: dict[str, list[tuple[int, dict]]] = {}
+    for i, item in enumerate(items, 1):
+        feed = item.get("feed_title", "Unknown")
+        by_feed.setdefault(feed, []).append((i, item))
+
+    for feed_name in sorted(by_feed):
+        feed_items = by_feed[feed_name]
+        lines.append(f"## {feed_name}\n")
+        for idx, item in feed_items:
+            title = item["title"]
+            link = item["link"]
+            if link:
+                lines.append(f"  {idx}. [{title}]({link})")
+            else:
+                lines.append(f"  {idx}. {title}")
+            meta = []
+            if item["pubDate"]:
+                meta.append(item["pubDate"])
+            if meta:
+                lines.append(f"     {' | '.join(meta)}")
+        lines.append("")
+    return "\n".join(lines)
+
+
+def _filter_feeds(feeds: list[dict], feeds_filter: str | None) -> list[dict]:
+    """Filter feeds by comma-separated queries matching title or URL."""
+    if not feeds_filter:
+        return feeds
+    queries = [q.strip().lower() for q in feeds_filter.split(",") if q.strip()]
+    return [f for f in feeds if any(q in f["title"].lower() or q in f["xmlUrl"].lower() for q in queries)]
+
+
+def cmd_search(args):
+    path = ensure_opml()
+    feeds = _filter_feeds(parse_opml(path), getattr(args, "feeds", None))
+    if not feeds:
+        print("No matching subscriptions. Use `rss list` to see feeds.", file=sys.stderr)
+        sys.exit(1)
+
+    all_items = _collect_items(feeds, refresh=args.refresh)
+
+    keyword = args.keyword.lower()
+    matched = [
+        item for item in all_items
+        if keyword in item["title"].lower()
+        or keyword in (item.get("description") or "").lower()
+        or keyword in (item.get("content") or "").lower()
+    ]
+    matched.sort(key=lambda x: x["pubDate"] or "", reverse=True)
+
+    output(matched[:args.limit], md_search_results(args.keyword, matched, args.limit), args.json)
+
+
+def cmd_digest(args):
+    path = ensure_opml()
+    feeds = _filter_feeds(parse_opml(path), getattr(args, "feeds", None))
+    if not feeds:
+        print("No matching subscriptions. Use `rss list` to see feeds.", file=sys.stderr)
+        sys.exit(1)
+
+    since_seconds = _parse_since(args.since)
+    cutoff = time.time() - since_seconds
+
+    all_items = _collect_items(feeds, refresh=args.refresh)
+
+    recent = []
+    for item in all_items:
+        ts = _parse_item_date_to_ts(item["pubDate"])
+        if ts is not None and ts >= cutoff:
+            recent.append(item)
+
+    recent.sort(key=lambda x: x["pubDate"] or "", reverse=True)
+
+    output(recent[:args.limit], md_digest(recent, args.since, args.limit), args.json)
+
+
+def main():
+    parser = argparse.ArgumentParser(description="RSS subscription manager and feed fetcher")
+    parser.add_argument("--json", action="store_true", help="Output JSON instead of markdown")
+    sub = parser.add_subparsers(dest="command", required=True)
+
+    # list
+    sub.add_parser("list", help="List all RSS subscriptions from OPML")
+
+    # add
+    p_add = sub.add_parser("add", help="Add a new RSS feed to OPML")
+    p_add.add_argument("url", help="RSS/Atom feed URL")
+    p_add.add_argument("--title", help="Display title for the feed")
+    p_add.add_argument("--category", help="Category/folder for the feed")
+
+    # remove
+    p_remove = sub.add_parser("remove", help="Remove a feed by title or URL match")
+    p_remove.add_argument("query", help="Feed title or URL to match")
+
+    # merge
+    p_merge = sub.add_parser("merge", help="Merge feeds from another OPML file (dedup by xmlUrl)")
+    p_merge.add_argument("file", help="Path to OPML file to merge from")
+
+    # recategorize
+    p_recat = sub.add_parser("recategorize", help="Move a feed to a different category")
+    p_recat.add_argument("query", help="Feed title or URL to match")
+    p_recat.add_argument("--category", required=True, help="New category")
+
+    # fetch
+    p_fetch = sub.add_parser("fetch", help="Fetch and display feed content")
+    p_fetch.add_argument("query", nargs="?", default="", help="Feed title or URL to match")
+    p_fetch.add_argument("--all", action="store_true", help="Fetch all subscribed feeds")
+    p_fetch.add_argument("--limit", type=int, default=10, help="Max items per feed (default: 10)")
+    p_fetch.add_argument("--refresh", action="store_true", help="Bypass cache and re-fetch")
+    p_fetch.add_argument("--full", action="store_true", help="Show full content instead of summary")
+    p_fetch.add_argument("--index", type=int, help="Show a specific item by index (1-based)")
+
+    # search
+    p_search = sub.add_parser("search", help="Search articles across all feeds")
+    p_search.add_argument("keyword", help="Keyword to search in titles and content")
+    p_search.add_argument("--limit", type=int, default=20, help="Max results (default: 20)")
+    p_search.add_argument("--refresh", action="store_true", help="Bypass cache and re-fetch uncached feeds")
+    p_search.add_argument("--feeds", help="Comma-separated feed filter (match title/URL), e.g. 'rust,simonwillison'")
+
+    # digest
+    p_digest = sub.add_parser("digest", help="Show recent articles across all feeds")
+    p_digest.add_argument("--since", default="24h", help="Time window: e.g. 24h, 7d, 30m (default: 24h)")
+    p_digest.add_argument("--limit", type=int, default=50, help="Max results (default: 50)")
+    p_digest.add_argument("--refresh", action="store_true", help="Bypass cache and re-fetch uncached feeds")
+    p_digest.add_argument("--feeds", help="Comma-separated feed filter (match title/URL), e.g. 'rust,simonwillison'")
+
+    args = parser.parse_args()
+
+    if args.command == "fetch" and not args.all and not args.query:
+        parser.error("Provide a feed query or use --all")
+
+    cmds = {
+        "list": cmd_list, "add": cmd_add, "remove": cmd_remove,
+        "merge": cmd_merge, "recategorize": cmd_recategorize,
+        "fetch": cmd_fetch, "search": cmd_search, "digest": cmd_digest,
+    }
+    cmds[args.command](args)
+
+
+if __name__ == "__main__":
+    main()

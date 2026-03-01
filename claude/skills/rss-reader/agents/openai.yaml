@@ -1,0 +1,4 @@
+interface:
+  display_name: "RSS Reader"
+  short_description: "Fetch and manage RSS subscriptions"
+  default_prompt: "Use $rss-reader to fetch latest articles from my RSS subscriptions."
