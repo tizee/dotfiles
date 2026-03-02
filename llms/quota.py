@@ -331,6 +331,12 @@ class ClaudeQuotaProvider(QuotaProvider):
 
             quota_info.raw_response = usage_data
 
+            # Check for error responses from the API
+            if error := usage_data.get("error"):
+                error_msg = error.get("message") if isinstance(error, dict) else str(error)
+                quota_info.error = error_msg
+                return quota_info
+
             # Parse quotas
             if five_hour := usage_data.get("five_hour"):
                 if session := self._parse_session_quota(five_hour):
@@ -1146,11 +1152,24 @@ def format_rich(quota_info: QuotaInfo, no_color: bool = False) -> str:
     lines.append(f"  {quota_info.provider.upper()} Coding Plan Quota")
     lines.append("=" * 55)
 
-    if quota_info.error:
-        lines.append(f"\n  Error: {quota_info.error}")
-        lines.append("")
-        lines.append("=" * 55)
-        return "\n".join(lines)
+    # Check for error - either at top level or nested in raw_response
+    error_msg = quota_info.error
+    if not error_msg and quota_info.raw_response:
+        raw_error = quota_info.raw_response.get("error")
+        if raw_error:
+            error_msg = raw_error.get("message") if isinstance(raw_error, dict) else str(raw_error)
+
+    if error_msg:
+        lines.append(f"\n  Error: {error_msg}")
+
+        # If there's cached session data, show it too
+        if quota_info.sessions:
+            lines.append(f"\n  (Showing cached data)")
+            # Continue to show cached sessions below
+        else:
+            lines.append("")
+            lines.append("=" * 55)
+            return "\n".join(lines)
 
     for session_key, session in quota_info.sessions.items():
         label = format_session_label(session_key)
@@ -1513,6 +1532,24 @@ Environment Variables:
         return 1
 
     cookie_manager = CookieManager(profile=args.profile)
+
+    # Pre-load cookies for all providers once to avoid repeated Firefox profile reads
+    cookies_cache: dict[str, tuple[str, str]] = {}
+    try:
+        for provider_name in providers_to_query:
+            try:
+                cookie_header, source = cookie_manager.get_cookies_for_provider(provider_name)
+                cookies_cache[provider_name] = (cookie_header, source)
+            except Exception as e:
+                cookies_cache[provider_name] = (None, str(e))
+    except Exception:
+        pass  # Will be handled per-provider below
+
+    # Print credentials info once
+    sources = [src for _, src in cookies_cache.values() if src and not src.startswith("Error")]
+    if sources and not args.json:
+        print(f"Credentials: {sources[0]}", file=sys.stderr)
+
     results: list[QuotaInfo] = []
 
     for provider_name in providers_to_query:
@@ -1521,12 +1558,9 @@ Environment Variables:
             # concurrent API calls from multiple agents
             def make_fetcher(pname: str) -> Callable[[], QuotaInfo]:
                 def _fetch() -> QuotaInfo:
-                    try:
-                        cookie_header, source = cookie_manager.get_cookies_for_provider(pname)
-                        if not args.json:
-                            print(f"Credentials: {source}", file=sys.stderr)
-                    except Exception as e:
-                        return QuotaInfo(provider=pname, error=str(e))
+                    cookie_header, _ = cookies_cache.get(pname, (None, ""))
+                    if not cookie_header:
+                        return QuotaInfo(provider=pname, error="No credentials found")
                     provider = ProviderRegistry.get(pname, cookie_header)
                     if not provider:
                         return QuotaInfo(provider=pname, error="Unknown provider")
@@ -1539,12 +1573,9 @@ Environment Variables:
             results.append(quota_info)
         else:
             # No debounce: fetch directly
-            try:
-                cookie_header, source = cookie_manager.get_cookies_for_provider(provider_name)
-                if not args.json:
-                    print(f"Credentials: {source}", file=sys.stderr)
-            except Exception as e:
-                results.append(QuotaInfo(provider=provider_name, error=str(e)))
+            cookie_header, source = cookies_cache.get(provider_name, (None, ""))
+            if not cookie_header:
+                results.append(QuotaInfo(provider=provider_name, error=source or "No credentials found"))
                 continue
 
             provider = ProviderRegistry.get(provider_name, cookie_header)
