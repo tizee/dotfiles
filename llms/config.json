@@ -37,7 +37,8 @@
       "sandbox": {
         "mode": "regular",
         "additional_allowed_write_paths": [
-          "~/.osay"
+          "~/.osay",
+          "~/.config/llm/"
         ]
       }
     }
