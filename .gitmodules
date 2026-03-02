@@ -17,3 +17,4 @@
 [submodule "skills"]
 	path = skills
 	url = git@github.com:tizee/skills.git
+	shallow = true
