@@ -1,4 +1,0 @@
-interface:
-  display_name: "Hacker News"
-  short_description: "Fetch HN stories, comments, and users"
-  default_prompt: "Use $hackernews to fetch the top stories from Hacker News."
