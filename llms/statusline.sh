@@ -169,7 +169,8 @@ if [ -f "$QUOTA_SCRIPT" ]; then
                     quota_info="${QUOTA_COLOR}Q:${quota_pct}%${NC}"
                 fi
             else
-                quota_info="${GRAY}Q:--${NC}"
+                # No valid data - hide quota info
+                quota_info=""
             fi
 
             # Weekly quota
@@ -179,10 +180,16 @@ if [ -f "$QUOTA_SCRIPT" ]; then
                 WEEKLY_COLOR=$(get_pct_color "$weekly_pct_int")
                 weekly_resets_at=$(echo "$quota_json" | jq -r '.sessions.weekly.resets_at // empty')
                 weekly_resets_at_local=$(echo "$quota_json" | jq -r '.sessions.weekly.resets_at_local // empty')
+                weekly_resets_in=$(echo "$quota_json" | jq -r '.sessions.weekly.resets_in // empty')
                 if [ -n "$weekly_resets_at" ] && [ -n "$weekly_resets_at_local" ]; then
                     week_day=$(get_day_of_week "$weekly_resets_at")
                     if [ -n "$week_day" ]; then
-                        quota_info+=" ${WEEKLY_COLOR}W:${weekly_pct_int}%${NC} ${GRAY}${week_day} @${weekly_resets_at_local}${NC}"
+                        quota_info+=" ${WEEKLY_COLOR}W:${weekly_pct_int}%${NC} ${GRAY}${week_day} @${weekly_resets_at_local}"
+                        # Add remaining time if available (e.g., "in 2d 3h")
+                        if [ -n "$weekly_resets_in" ] && [ "$weekly_resets_in" != "null" ]; then
+                            quota_info+=" (in ${weekly_resets_in})"
+                        fi
+                        quota_info+="${NC}"
                     fi
                 fi
             fi
@@ -195,10 +202,16 @@ if [ -f "$QUOTA_SCRIPT" ]; then
                     SONNET_COLOR=$(get_pct_color "$sonnet_pct_int")
                     sonnet_resets_at=$(echo "$quota_json" | jq -r '.sessions.weekly_sonnet.resets_at // empty')
                     sonnet_resets_at_local=$(echo "$quota_json" | jq -r '.sessions.weekly_sonnet.resets_at_local // empty')
+                    sonnet_resets_in=$(echo "$quota_json" | jq -r '.sessions.weekly_sonnet.resets_in // empty')
                     if [ -n "$sonnet_resets_at" ] && [ -n "$sonnet_resets_at_local" ]; then
                         week_day=$(get_day_of_week "$sonnet_resets_at")
                         if [ -n "$week_day" ]; then
-                            quota_info+=" ${SONNET_COLOR}Son:${sonnet_pct_int}%${NC} ${GRAY}${week_day} @${sonnet_resets_at_local}${NC}"
+                            quota_info+=" ${SONNET_COLOR}Son:${sonnet_pct_int}%${NC} ${GRAY}${week_day} @${sonnet_resets_at_local}"
+                            # Add remaining time if available (e.g., "in 2d 3h")
+                            if [ -n "$sonnet_resets_in" ] && [ "$sonnet_resets_in" != "null" ]; then
+                                quota_info+=" (in ${sonnet_resets_in})"
+                            fi
+                            quota_info+="${NC}"
                         fi
                     fi
                 fi
@@ -232,10 +245,12 @@ if [ -f "$QUOTA_SCRIPT" ]; then
                         quota_info="${QUOTA_COLOR}MM:${quota_pct}%${NC}${prompt_str}"
                     fi
                 else
-                    quota_info="${GRAY}MM:--${NC}"
+                    # No valid data - hide quota info
+                    quota_info=""
                 fi
             else
-                quota_info="${GRAY}MM:--${NC}"
+                # No MiniMax session found - hide quota info
+                quota_info=""
             fi
 
         elif [ "$provider" = "glm" ]; then
@@ -254,7 +269,8 @@ if [ -f "$QUOTA_SCRIPT" ]; then
                     quota_info="${QUOTA_COLOR}GLM:${quota_pct}%${NC}"
                 fi
             else
-                quota_info="${GRAY}GLM:--${NC}"
+                # No valid data - hide quota info
+                quota_info=""
             fi
 
             # Daily quota
@@ -278,10 +294,16 @@ if [ -f "$QUOTA_SCRIPT" ]; then
                 WEEKLY_COLOR=$(get_pct_color "$weekly_pct_int")
                 weekly_resets_at=$(echo "$quota_json" | jq -r '.sessions.weekly.resets_at // empty')
                 weekly_resets_at_local=$(echo "$quota_json" | jq -r '.sessions.weekly.resets_at_local // empty')
+                weekly_resets_in=$(echo "$quota_json" | jq -r '.sessions.weekly.resets_in // empty')
                 if [ -n "$weekly_resets_at" ] && [ -n "$weekly_resets_at_local" ]; then
                     week_day=$(get_day_of_week "$weekly_resets_at")
                     if [ -n "$week_day" ]; then
-                        quota_info+=" ${WEEKLY_COLOR}W:${weekly_pct_int}%${NC} ${GRAY}${week_day} @${weekly_resets_at_local}${NC}"
+                        quota_info+=" ${WEEKLY_COLOR}W:${weekly_pct_int}%${NC} ${GRAY}${week_day} @${weekly_resets_at_local}"
+                        # Add remaining time if available (e.g., "in 2d 3h")
+                        if [ -n "$weekly_resets_in" ] && [ "$weekly_resets_in" != "null" ]; then
+                            quota_info+=" (in ${weekly_resets_in})"
+                        fi
+                        quota_info+="${NC}"
                     fi
                 fi
             fi
@@ -302,7 +324,8 @@ if [ -f "$QUOTA_SCRIPT" ]; then
                     quota_info="${QUOTA_COLOR}Kimi:${quota_pct}%${NC}"
                 fi
             else
-                quota_info="${GRAY}Kimi:--${NC}"
+                # No valid data - hide quota info
+                quota_info=""
             fi
 
             # Weekly quota
@@ -312,16 +335,23 @@ if [ -f "$QUOTA_SCRIPT" ]; then
                 WEEKLY_COLOR=$(get_pct_color "$weekly_pct_int")
                 weekly_resets_at=$(echo "$quota_json" | jq -r '.sessions.weekly.resets_at // empty')
                 weekly_resets_at_local=$(echo "$quota_json" | jq -r '.sessions.weekly.resets_at_local // empty')
+                weekly_resets_in=$(echo "$quota_json" | jq -r '.sessions.weekly.resets_in // empty')
                 if [ -n "$weekly_resets_at" ] && [ -n "$weekly_resets_at_local" ]; then
                     week_day=$(get_day_of_week "$weekly_resets_at")
                     if [ -n "$week_day" ]; then
-                        quota_info+=" ${WEEKLY_COLOR}W:${weekly_pct_int}%${NC} ${GRAY}${week_day} @${weekly_resets_at_local}${NC}"
+                        quota_info+=" ${WEEKLY_COLOR}W:${weekly_pct_int}%${NC} ${GRAY}${week_day} @${weekly_resets_at_local}"
+                        # Add remaining time if available (e.g., "in 2d 3h")
+                        if [ -n "$weekly_resets_in" ] && [ "$weekly_resets_in" != "null" ]; then
+                            quota_info+=" (in ${weekly_resets_in})"
+                        fi
+                        quota_info+="${NC}"
                     fi
                 fi
             fi
         fi
     else
-        quota_info="${GRAY}Q:--${NC}"
+        # No valid quota data - hide quota info entirely
+        quota_info=""
     fi
 fi
 
@@ -474,5 +504,25 @@ fi
 # Context info
 context_info="${BAR_COLOR}${bar}${NC} ${tokens_fmt} / ${size_fmt} (${pct_int}%)"
 
+# Session identity (FEAT-259)
+session_id=$(echo "$input" | jq -r '.session.id // ""')
+session_alias=$(echo "$input" | jq -r '.session.alias // ""')
+
+session_info=""
+if [ -z "$session_id" ]; then
+    session_info=" ${GRAY}|${NC} ${YELLOW}ephemeral${NC}"
+else
+    if [ -n "$session_alias" ]; then
+        session_info=" ${GRAY}|${NC} ${CYAN}${session_alias}${NC} ${GRAY}(${session_id})${NC}"
+    else
+        session_info=" ${GRAY}|${NC} ${GRAY}${session_id}${NC}"
+    fi
+fi
+
 # Output the status line
-echo -e "${BLUE}${dir_name}${NC} ${GRAY}|${NC} ${quota_info} ${GRAY}|${NC} ${context_info}${git_info}"
+if [ -n "$quota_info" ]; then
+    echo -e "${BLUE}${dir_name}${NC} ${GRAY}|${NC} ${quota_info} ${GRAY}|${NC} ${context_info}${git_info}${session_info}"
+else
+    # No quota info - hide that component
+    echo -e "${BLUE}${dir_name}${NC} ${GRAY}|${NC} ${context_info}${git_info}${session_info}"
+fi

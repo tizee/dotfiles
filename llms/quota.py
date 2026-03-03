@@ -286,16 +286,7 @@ class ClaudeQuotaProvider(QuotaProvider):
             now = datetime.now(timezone.utc)
             delta = dt - now
             total_seconds = int(delta.total_seconds())
-
-            if total_seconds <= 0:
-                duration_str = "now"
-            else:
-                hours, remainder = divmod(total_seconds, 3600)
-                minutes = remainder // 60
-                if hours > 0:
-                    duration_str = f"{hours}h {minutes}m"
-                else:
-                    duration_str = f"{minutes}m"
+            duration_str = format_duration(total_seconds)
 
             return local_str, duration_str
         except Exception:
@@ -476,15 +467,7 @@ class MiniMaxQuotaProvider(QuotaProvider):
                         now = datetime.now(timezone.utc)
                         delta = dt - now
                         total_seconds = int(delta.total_seconds())
-                        if total_seconds <= 0:
-                            resets_in = "now"
-                        else:
-                            hours, remainder = divmod(total_seconds, 3600)
-                            minutes = remainder // 60
-                            if hours > 0:
-                                resets_in = f"{hours}h {minutes}m"
-                            else:
-                                resets_in = f"{minutes}m"
+                        resets_in = format_duration(total_seconds)
 
                     quota_info.sessions[session_key] = SessionQuota(
                         used_percent=used_percent,
@@ -622,15 +605,7 @@ class GLMQuotaProvider(QuotaProvider):
                         now = datetime.now(timezone.utc)
                         delta = dt - now
                         total_seconds = int(delta.total_seconds())
-                        if total_seconds <= 0:
-                            resets_in = "now"
-                        else:
-                            hours, remainder = divmod(total_seconds, 3600)
-                            minutes = remainder // 60
-                            if hours > 0:
-                                resets_in = f"{hours}h {minutes}m"
-                            else:
-                                resets_in = f"{minutes}m"
+                        resets_in = format_duration(total_seconds)
 
                     if limit_type == "TIME_LIMIT":
                         # TIME_LIMIT is the MCP Monthly Quota
@@ -790,15 +765,7 @@ class KimiQuotaProvider(QuotaProvider):
             now = datetime.now(timezone.utc)
             delta = dt - now
             total_seconds = int(delta.total_seconds())
-            if total_seconds <= 0:
-                resets_in = "now"
-            else:
-                hours, remainder = divmod(total_seconds, 3600)
-                minutes = remainder // 60
-                if hours > 0:
-                    resets_in = f"{hours}h {minutes}m"
-                else:
-                    resets_in = f"{minutes}m"
+            resets_in = format_duration(total_seconds)
 
             return resets_at, resets_at_local, resets_in
         except Exception:
@@ -1082,6 +1049,23 @@ class CookieManager:
 # ============================================================================
 # Output Formatters
 # ============================================================================
+
+
+def format_duration(total_seconds: int) -> str:
+    """Format seconds into human-readable duration (e.g., '2d 3h', '5h 30m', '45m')."""
+    if total_seconds <= 0:
+        return "now"
+
+    days = total_seconds // 86400
+    hours = (total_seconds % 86400) // 3600
+    minutes = (total_seconds % 3600) // 60
+
+    if days > 0:
+        return f"{days}d {hours}h"
+    elif hours > 0:
+        return f"{hours}h {minutes}m"
+    else:
+        return f"{minutes}m"
 
 
 def format_percent(percent: Optional[float], no_color: bool = False) -> str:

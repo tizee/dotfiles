@@ -15,9 +15,14 @@ if [[ $(uname -s) = "Darwin" ]]; then
     sudo nvram SystemAudioVolume=" "
     sudo nvram StartupMute=%01
     # Disable swap memory
-    #VM_PAGER_COMPRESSOR_NO_SWAP 0x2 /* Active in-core compressor only. */
-    #VM_PAGER_COMPRESSOR_WITH_SWAP 0x4 /* Active in-core compressor + swap backend. */
-    sudo nvram boot-args="vm_compressor=2"
+    # VM_PAGER_COMPRESSOR_NO_SWAP 0x2 /* Active in-core compressor only. */
+    # VM_PAGER_COMPRESSOR_WITH_SWAP 0x4 /* Active in-core compressor + swap backend. */
+    # Mode 2 (in-core only) changes kernel memory compression strategy.
+    # Combined with swap=0 (single-level buffering), under memory pressure the system thrashes:
+    #   - Memory exhausts → only compression available → compression pool explodes
+    #   - kernel_task spikes CPU to compress/decompress → system becomes unresponsive
+    # Mode 4 (with swap) provides a safety valve: compression + swap backend = better balance
+    sudo nvram boot-args="vm_compressor=4"
   fi
 
   # Allow apps download from anywhere to be opened

@@ -99,6 +99,7 @@
     </outline>
     <outline text="AI" title="AI">
       <outline type="rss" text="AIGC Weekly" title="AIGC Weekly" xmlUrl="https://aigc-weekly.agi.li/rss.xml" />
+      <outline type="rss" text="OpenAI Blog" title="OpenAI Blog" xmlUrl="https://openai.com/news/rss.xml" />
     </outline>
     <outline text="Tech/AI" title="Tech/AI">
       <outline type="rss" text="simonwillison.net" title="simonwillison.net" xmlUrl="https://simonwillison.net/atom/everything/" htmlUrl="https://simonwillison.net" />
