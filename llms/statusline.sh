@@ -42,6 +42,7 @@ model_display=$(echo "$input" | jq -r '.model.display_name // ""')
 # MiniMax: minimax models
 # GLM: glm models
 # Kimi: kimi models
+# Codex: codex, gpt, o1, o3 models
 determine_provider() {
     local model="$1"
     local model_lower=$(echo "$model" | tr '[:upper:]' '[:lower:]')
@@ -54,6 +55,8 @@ determine_provider() {
         echo "glm"
     elif [[ "$model_lower" == *"kimi"* ]]; then
         echo "kimi"
+    elif [[ "$model_lower" == *"codex"* ]] || [[ "$model_lower" == *"gpt"* ]] || [[ "$model_lower" == "o1"* ]] || [[ "$model_lower" == "o3"* ]]; then
+        echo "codex"
     else
         echo "claude"  # default to claude
     fi
@@ -322,6 +325,47 @@ if [ -f "$QUOTA_SCRIPT" ]; then
                     quota_info+="${NC}"
                 else
                     quota_info="${QUOTA_COLOR}Kimi:${quota_pct}%${NC}"
+                fi
+            else
+                # No valid data - hide quota info
+                quota_info=""
+            fi
+
+            # Weekly quota
+            weekly_pct=$(echo "$quota_json" | jq -r '.sessions.weekly.used_percent // empty')
+            if [ -n "$weekly_pct" ] && [ "$weekly_pct" != "null" ]; then
+                weekly_pct_int=$(printf "%.0f" "$weekly_pct")
+                WEEKLY_COLOR=$(get_pct_color "$weekly_pct_int")
+                weekly_resets_at=$(echo "$quota_json" | jq -r '.sessions.weekly.resets_at // empty')
+                weekly_resets_at_local=$(echo "$quota_json" | jq -r '.sessions.weekly.resets_at_local // empty')
+                weekly_resets_in=$(echo "$quota_json" | jq -r '.sessions.weekly.resets_in // empty')
+                if [ -n "$weekly_resets_at" ] && [ -n "$weekly_resets_at_local" ]; then
+                    week_day=$(get_day_of_week "$weekly_resets_at")
+                    if [ -n "$week_day" ]; then
+                        quota_info+=" ${WEEKLY_COLOR}W:${weekly_pct_int}%${NC} ${GRAY}${week_day} @${weekly_resets_at_local}"
+                        # Add remaining time if available (e.g., "in 2d 3h")
+                        if [ -n "$weekly_resets_in" ] && [ "$weekly_resets_in" != "null" ]; then
+                            quota_info+=" (in ${weekly_resets_in})"
+                        fi
+                        quota_info+="${NC}"
+                    fi
+                fi
+            fi
+
+        elif [ "$provider" = "codex" ]; then
+            # Codex: 5-hour session (primary), weekly (secondary)
+            current_pct=$(echo "$quota_json" | jq -r '.sessions.current.used_percent // empty')
+            if [ -n "$current_pct" ] && [ "$current_pct" != "null" ]; then
+                quota_pct=$(printf "%.0f" "$current_pct")
+                QUOTA_COLOR=$(get_pct_color "$quota_pct")
+                resets_in=$(echo "$quota_json" | jq -r '.sessions.current.resets_in // empty')
+                resets_at_local=$(echo "$quota_json" | jq -r '.sessions.current.resets_at_local // empty')
+                if [ -n "$resets_in" ]; then
+                    quota_info="${QUOTA_COLOR}Codex:${quota_pct}%${NC} ${GRAY}${resets_in}"
+                    [ -n "$resets_at_local" ] && quota_info+=" @${resets_at_local}"
+                    quota_info+="${NC}"
+                else
+                    quota_info="${QUOTA_COLOR}Codex:${quota_pct}%${NC}"
                 fi
             else
                 # No valid data - hide quota info

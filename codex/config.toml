@@ -7,19 +7,19 @@ model_auto_compact_token_limit = 233000
 personality = "pragmatic"
 web_search = "live"
 
-model = "openai/gpt-5.3-codex"
-model_provider = "openrouter"
-profile = "openrouter"
-# preferred_auth_method = "apikey" # chatgpt/apikey
+model = "gpt-5.3-codex"
+preferred_auth_method = "chatgpt" # chatgpt/apikey
 
 model_reasoning_effort = "high"
 model_reasoning_summary = "detailed"
 
-experimental_use_freeform_apply_patch = false
-include_apply_patch_tool = false
 
+
+#model_provider = "openrouter"
+#profile = "openrouter"
 
 [profiles.openrouter]
+model = "openai/gpt-5.3-codex"
 
 [features]
 rmcp_client = true

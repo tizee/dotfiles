@@ -681,6 +681,198 @@ class GLMQuotaProvider(QuotaProvider):
 # ============================================================================
 
 
+class CodexQuotaProvider(QuotaProvider):
+    """Codex (ChatGPT API) quota provider"""
+
+    name = "codex"
+    description = "Codex (chatgpt.com)"
+    API_URL = "https://chatgpt.com/backend-api/wham/usage"
+
+    def __init__(self, auth_token: str, account_id: str):
+        super().__init__("")
+        self.auth_token = auth_token
+        self.account_id = account_id
+
+    def get_api_endpoints(self) -> list[str]:
+        return [self.API_URL]
+
+    @classmethod
+    def from_codex_config(cls) -> "CodexQuotaProvider":
+        """Create provider from Codex config files"""
+        codex_dir = Path.home() / ".codex"
+
+        # Read auth token
+        auth_file = codex_dir / "auth.json"
+        if not auth_file.exists():
+            raise Exception(f"Codex auth file not found: {auth_file}")
+
+        auth_data = json.loads(auth_file.read_text())
+
+        # Try different formats:
+        # 1. {"tokens": {"access_token": "...", "account_id": "..."}}
+        # 2. {"access_token": "...", "account_id": "..."}
+        # 3. {"access_token": "...", "expires_at": ...}
+
+        access_token = None
+        account_id = None
+
+        # Format 1: tokens key
+        if "tokens" in auth_data:
+            tokens = auth_data.get("tokens", {})
+            access_token = tokens.get("access_token")
+            account_id = tokens.get("account_id")
+
+        # Format 2: direct keys
+        if not access_token:
+            access_token = auth_data.get("access_token")
+        if not account_id:
+            account_id = auth_data.get("account_id")
+
+        if not access_token:
+            raise Exception("No access_token found in Codex auth file")
+
+        # Try to get account_id from token payload if not found
+        if not account_id:
+            try:
+                import base64
+                parts = access_token.split(".")
+                if len(parts) >= 2:
+                    payload = parts[1]
+                    # Add padding if needed
+                    padding = 4 - len(payload) % 4
+                    if padding != 4:
+                        payload += "=" * padding
+                    data = json.loads(base64.b64decode(payload))
+                    account_id = data.get("chatgpt_account_id")
+            except Exception:
+                pass
+
+        if not account_id:
+            raise Exception("No account_id found in Codex auth file")
+
+        return cls(access_token, account_id)
+
+    def _curl_request(self, url: str, timeout: int = 30) -> dict:
+        """Send request using curl with Bearer auth"""
+        cmd = [
+            "curl",
+            "-s",
+            "-L",
+            "--http1.1",
+            "-H", f"Authorization: Bearer {self.auth_token}",
+            "-H", f"ChatGPT-Account-Id: {self.account_id}",
+            "-H", "Accept: application/json",
+            "-H", "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "--max-time", str(timeout),
+            url,
+        ]
+
+        result = subprocess.run(cmd, capture_output=True, text=True)
+
+        if result.returncode != 0:
+            raise Exception(f"curl request failed: {result.stderr}")
+
+        text = result.stdout.strip()
+        if text.startswith(("<!DOCTYPE", "<!doctype", "<html", "<HTML")):
+            raise Exception(f"API returned HTML: {text[:200]}")
+
+        return json.loads(text)
+
+    def _parse_reset_time(self, reset_at: int) -> tuple[Optional[str], Optional[str], Optional[str]]:
+        """Parse reset timestamp (Unix) and calculate local time and duration"""
+        if not reset_at:
+            return None, None, None
+
+        try:
+            dt = datetime.fromtimestamp(reset_at, tz=timezone.utc)
+            resets_at = dt.isoformat()
+
+            # Local time
+            local_tz = self._get_system_timezone()
+            local_dt = dt.astimezone(local_tz)
+            resets_at_local = local_dt.strftime("%H:%M")
+
+            # Time until reset
+            now = datetime.now(timezone.utc)
+            delta = dt - now
+            total_seconds = int(delta.total_seconds())
+            resets_in = format_duration(total_seconds)
+
+            return resets_at, resets_at_local, resets_in
+        except Exception:
+            return None, None, None
+
+    def _get_system_timezone(self) -> timezone:
+        """Get system local timezone"""
+        try:
+            local_offset = -time.timezone
+            if time.daylight and time.localtime().tm_isdst > 0:
+                local_offset += 3600
+            return timezone(timedelta(seconds=local_offset))
+        except Exception:
+            return timezone(timedelta(hours=8))
+
+    def fetch_quota(self) -> QuotaInfo:
+        """Fetch Codex quota"""
+        quota_info = QuotaInfo(
+            provider=self.name,
+            fetched_at=datetime.now(timezone.utc).isoformat(),
+        )
+
+        try:
+            data = self._curl_request(self.API_URL)
+            quota_info.raw_response = data
+
+            # Parse Codex response structure
+            quota_info.plan_type = data.get("plan_type")
+            quota_info.account = data.get("email")
+
+            # Parse rate_limit (primary = session, secondary = weekly)
+            rate_limit = data.get("rate_limit", {})
+            if rate_limit:
+
+                # Primary window (session limit)
+                primary = rate_limit.get("primary_window", {})
+                if primary and not rate_limit.get("limit_reached", False):
+                    used_percent = primary.get("used_percent")
+                    reset_at = primary.get("reset_at", 0)
+                    resets_at, resets_at_local, resets_in = self._parse_reset_time(reset_at)
+
+                    quota_info.sessions["current"] = SessionQuota(
+                        used_percent=used_percent,
+                        remaining_percent=100 - used_percent if used_percent is not None else None,
+                        resets_at=resets_at,
+                        resets_at_local=resets_at_local,
+                        resets_in=resets_in,
+                        extra={
+                            "limit_window_seconds": primary.get("limit_window_seconds"),
+                        },
+                    )
+
+                # Secondary window (weekly)
+                secondary = rate_limit.get("secondary_window")
+                if secondary and not rate_limit.get("limit_reached", False):
+                    used_percent = secondary.get("used_percent")
+                    reset_at = secondary.get("reset_at", 0)
+                    resets_at, resets_at_local, resets_in = self._parse_reset_time(reset_at)
+
+                    quota_info.sessions["weekly"] = SessionQuota(
+                        used_percent=used_percent,
+                        remaining_percent=100 - used_percent if used_percent is not None else None,
+                        resets_at=resets_at,
+                        resets_at_local=resets_at_local,
+                        resets_in=resets_in,
+                        extra={
+                            "limit_window_seconds": secondary.get("limit_window_seconds"),
+                        },
+                    )
+
+        except Exception as e:
+            quota_info.error = str(e)
+
+        return quota_info
+
+
 class KimiQuotaProvider(QuotaProvider):
     """Kimi coding plan quota provider"""
 
@@ -886,6 +1078,13 @@ class ProviderRegistry:
         """Get a provider instance by name"""
         provider_class = cls._providers.get(name)
         if provider_class:
+            # Codex uses auth token, not cookies
+            if name == "codex":
+                try:
+                    return CodexQuotaProvider.from_codex_config()
+                except Exception as e:
+                    # Return a placeholder with error
+                    return None
             return provider_class(cookie_header)
         return None
 
@@ -905,6 +1104,7 @@ ProviderRegistry.register(ClaudeQuotaProvider)
 ProviderRegistry.register(MiniMaxQuotaProvider)
 ProviderRegistry.register(GLMQuotaProvider)
 ProviderRegistry.register(KimiQuotaProvider)
+ProviderRegistry.register(CodexQuotaProvider)
 
 
 # ============================================================================
@@ -1008,6 +1208,7 @@ class CookieManager:
             "minimax": "minimaxi.com",
             "glm": "bigmodel.cn",
             "kimi": "kimi.com",
+            "codex": "chatgpt.com",
         }
 
         host_pattern = host_patterns.get(provider_name)
@@ -1038,6 +1239,8 @@ class CookieManager:
                 if provider_name == "glm" and "bigmodel_token_production" not in cookies:
                     continue
                 if provider_name == "kimi" and "kimi-auth" not in cookies:
+                    continue
+                if provider_name == "codex" and "__Secure-next-auth.session-token" not in cookies:
                     continue
 
                 header = self.build_cookie_header(cookies)
@@ -1090,6 +1293,7 @@ def format_session_label(label: str) -> str:
         "daily": "Daily",
         "quota": "Prompt Quota",
         "mcp_monthly": "MCP Monthly Quota",
+        "code_review": "Code Review",
     }
     # Check for exact match first (like mcp_monthly)
     if label in labels:
@@ -1517,10 +1721,14 @@ Environment Variables:
 
     cookie_manager = CookieManager(profile=args.profile)
 
-    # Pre-load cookies for all providers once to avoid repeated Firefox profile reads
+    # Pre-load cookies for cookie-based providers (not codex which uses Codex config)
     cookies_cache: dict[str, tuple[str, str]] = {}
     try:
         for provider_name in providers_to_query:
+            # Skip codex - it uses its own auth from ~/.codex/
+            if provider_name == "codex":
+                cookies_cache[provider_name] = (None, "Codex config")
+                continue
             try:
                 cookie_header, source = cookie_manager.get_cookies_for_provider(provider_name)
                 cookies_cache[provider_name] = (cookie_header, source)
@@ -1529,8 +1737,8 @@ Environment Variables:
     except Exception:
         pass  # Will be handled per-provider below
 
-    # Print credentials info once
-    sources = [src for _, src in cookies_cache.values() if src and not src.startswith("Error")]
+    # Print credentials info once (exclude codex)
+    sources = [src for _, src in cookies_cache.values() if src and not src.startswith("Error") and src != "Codex config"]
     if sources and not args.json:
         print(f"Credentials: {sources[0]}", file=sys.stderr)
 
@@ -1542,6 +1750,13 @@ Environment Variables:
             # concurrent API calls from multiple agents
             def make_fetcher(pname: str) -> Callable[[], QuotaInfo]:
                 def _fetch() -> QuotaInfo:
+                    # Codex uses its own auth from ~/.codex/
+                    if pname == "codex":
+                        try:
+                            provider = CodexQuotaProvider.from_codex_config()
+                            return provider.fetch_quota()
+                        except Exception as e:
+                            return QuotaInfo(provider=pname, error=str(e))
                     cookie_header, _ = cookies_cache.get(pname, (None, ""))
                     if not cookie_header:
                         return QuotaInfo(provider=pname, error="No credentials found")
@@ -1557,6 +1772,15 @@ Environment Variables:
             results.append(quota_info)
         else:
             # No debounce: fetch directly
+            # Codex uses its own auth from ~/.codex/
+            if provider_name == "codex":
+                try:
+                    provider = CodexQuotaProvider.from_codex_config()
+                    results.append(provider.fetch_quota())
+                except Exception as e:
+                    results.append(QuotaInfo(provider=provider_name, error=str(e)))
+                continue
+
             cookie_header, source = cookies_cache.get(provider_name, (None, ""))
             if not cookie_header:
                 results.append(QuotaInfo(provider=provider_name, error=source or "No credentials found"))
