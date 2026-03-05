@@ -60,14 +60,17 @@ local function newModal(modeName,keycode,modeConfig,mappings,opTable)
         msgStr = msgStr .. (string.format('\n%11s => %s', action_trigger, showName))
       end
     end
-   local statusmessage = require('status-message')
-   hotkey_modal.statusMessage = statusmessage.new(msgStr)
 
-   -- bind action
-   hotkey_modal:bindWithAutomaticExit(modifier, action_trigger, function()
+    -- bind action
+    hotkey_modal.bindWithAutomaticExit(hotkey_modal, modifier, action_trigger, function()
       opTable[opName]()
     end)
   end
+
+  -- create status message after all mappings are processed
+  local statusmessage = require('status-message')
+  hotkey_modal.statusMessage = statusmessage.new(msgStr)
+
   return hotkey_modal
 end
 

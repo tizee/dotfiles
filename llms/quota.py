@@ -1208,7 +1208,7 @@ class CookieManager:
             "minimax": "minimaxi.com",
             "glm": "bigmodel.cn",
             "kimi": "kimi.com",
-            "codex": "chatgpt.com",
+            # Codex uses auth token from ~/.codex/auth.json, not cookies
         }
 
         host_pattern = host_patterns.get(provider_name)
@@ -1240,8 +1240,7 @@ class CookieManager:
                     continue
                 if provider_name == "kimi" and "kimi-auth" not in cookies:
                     continue
-                if provider_name == "codex" and "__Secure-next-auth.session-token" not in cookies:
-                    continue
+                # Codex uses auth token from ~/.codex/auth.json, verified separately
 
                 header = self.build_cookie_header(cookies)
                 return header, f"Firefox profile: {prof.name}"

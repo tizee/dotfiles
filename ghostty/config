@@ -132,7 +132,7 @@ font-feature = calt, liga, dlig, clig
 # depending on your `window-inherit-font-size` setting. If that setting is
 # true, only the first window will be affected by this change since all
 # subsequent windows will inherit the font size of the previous window.
-font-size = 20
+font-size = 14
 
 # A repeatable configuration to set one or more font variations values for
 # a variable font. A variable font is a single font, usually with a filename
@@ -2273,5 +2273,5 @@ auto-update = check
 # Ghostty to take effect.
 #
 # This only works on macOS since only macOS has an auto-update feature.
-auto-update-channel = stable
+auto-update-channel = tip
 
