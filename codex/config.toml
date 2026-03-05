@@ -10,7 +10,7 @@ web_search = "live"
 model = "gpt-5.3-codex"
 preferred_auth_method = "chatgpt" # chatgpt/apikey
 
-model_reasoning_effort = "high"
+model_reasoning_effort = "xhigh"
 model_reasoning_summary = "detailed"
 
 

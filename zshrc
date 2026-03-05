@@ -246,6 +246,11 @@ alias ccyl='claude --allow-dangerously-skip-permissions --dangerously-skip-permi
 alias playmd='playwrightmd'
 alias cclaude='claude-chill -a 5000 claude'
 
+# defuddle.md - Convert any URL to Markdown with YAML frontmatter
+defmd() {
+  curl "defuddle.md/$1"
+}
+
 # Added by Nowledge Mem
 export PATH="$HOME/.local/bin:$PATH"
 alias ask='llms -m gptws'

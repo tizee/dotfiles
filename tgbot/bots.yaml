@@ -1,0 +1,15 @@
+bots:
+- name: general-bot
+  key_name: general
+  description: my personal general purpose bot
+  default_target: null
+  allow_chats:
+  - type: group
+    id: -1001242440344
+    alias: "\u5495\u5495\u560E\u560E\u5168\u80FD\u795Eai-\u8D5B\u535A\u5766"
+  - type: channel
+    id: -1001215149427
+    alias: tizees-ideas
+  allow_users:
+  - id: 1264206497
+    alias: tizee
