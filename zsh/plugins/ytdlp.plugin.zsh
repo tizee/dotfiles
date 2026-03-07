@@ -9,7 +9,7 @@ function ytdl() {
         echo "Usage: ytdl <video URL> [options]"
         echo "Options:"
         echo "  --playlist          Download playlist"
-        echo "  --browser <browser> Use cookies from browser(chrome, firefox, edge, safari, brave...)"
+        echo "  --browser <browser> Use cookies from browser (default: firefox, chrome, edge, safari, brave...)"
         return 1
     fi
 
@@ -19,8 +19,8 @@ function ytdl() {
 
     # 默认设置
     local use_playlist=false
-    local use_browser_cookies=false
-    local browser=""
+    local use_browser_cookies=true
+    local browser="firefox"
 
     # 解析选项
     while [[ $# -gt 0 ]]; do
@@ -53,9 +53,30 @@ function ytdl() {
     # 添加URL
     cmd+=($VideoUrl)
 
-    # 执行命令
-    "${cmd[@]}"
+    # 执行命令，失败时自动fallback
+    local exit_code=0
+    "${cmd[@]}" || exit_code=$?
 
-    echo "Download completed!"
+    # 如果失败(403等)，尝试使用android客户端作为fallback
+    if [[ $exit_code -ne 0 ]]; then
+        echo "Primary format failed, trying fallback with android client..."
+
+        local fallback_cmd=(yt-dlp --no-mtime --extractor-args "youtube:player_client=android")
+        $use_playlist && fallback_cmd+=(--yes-playlist) || fallback_cmd+=(--no-playlist)
+        fallback_cmd+=(--format 'best[ext=mp4]/best')
+        fallback_cmd+=(--merge-output-format mp4)
+        $use_browser_cookies && fallback_cmd+=(--cookies-from-browser $browser)
+        fallback_cmd+=($VideoUrl)
+
+        "${fallback_cmd[@]}" || exit_code=$?
+    fi
+
+    if [[ $exit_code -eq 0 ]]; then
+        echo "Download completed!"
+    else
+        echo "Download failed!"
+    fi
+
+    return $exit_code
 }
 
