@@ -7,10 +7,10 @@ model_auto_compact_token_limit = 233000
 personality = "pragmatic"
 web_search = "live"
 
-model = "gpt-5.3-codex"
+model = "gpt-5.4"
 preferred_auth_method = "chatgpt" # chatgpt/apikey
 
-model_reasoning_effort = "xhigh"
+model_reasoning_effort = "high"
 model_reasoning_summary = "detailed"
 
 
@@ -19,7 +19,7 @@ model_reasoning_summary = "detailed"
 #profile = "openrouter"
 
 [profiles.openrouter]
-model = "openai/gpt-5.3-codex"
+model = "openai/gpt-5.4"
 
 [features]
 rmcp_client = true
@@ -31,6 +31,7 @@ unified_exec = true
 shell_snapshot = true
 steer = true
 multi_agent = true
+fast_mode = true
 # responses_websockets_v2 = true
 
 [mcp_servers.nowledge-mem]

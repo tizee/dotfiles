@@ -32,6 +32,20 @@
       "enabled": true,
       "cleanup_period_days": 1
     },
+    "hooks": {
+      "PreToolUse": [
+        {
+          "matcher": "*",
+          "hooks": [{"command": "python3 ~/projects/project-AI/tools/llm.tizee/examples/hooks/log_tool_use.py"}]
+        }
+      ],
+      "PostToolUse": [
+        {
+          "matcher": "*",
+          "hooks": [{"command": "python3 ~/projects/project-AI/tools/llm.tizee/examples/hooks/log_tool_result.py"}]
+        }
+      ]
+    },
     "bash": {
       "defaultTimeoutMs": 60000,
       "sandbox": {

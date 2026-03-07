@@ -1115,8 +1115,78 @@ ProviderRegistry.register(CodexQuotaProvider)
 class CookieManager:
     """Manages cookie extraction from Firefox"""
 
-    def __init__(self, profile: Optional[str] = None):
+    DEFAULT_CACHE_DIR = Path("/tmp/quota_cache")
+    COOKIE_CACHE_TTL = 86400  # 24 hours
+
+    # Only cache the essential cookie per provider (minimise exposure)
+    ESSENTIAL_COOKIES: dict[str, list[str]] = {
+        "claude": ["sessionKey"],
+        "minimax": ["HERTZ-SESSION"],
+        "glm": ["bigmodel_token_production"],
+        "kimi": ["kimi-auth"],
+    }
+
+    def __init__(self, profile: Optional[str] = None, cache_dir: Optional[Path] = None):
         self.profile = profile
+        self.cookie_cache_dir = cache_dir or self.DEFAULT_CACHE_DIR
+
+    def _ensure_cache_dir(self) -> None:
+        """Create cookie cache directory with user-only permissions (0o700)."""
+        if not self.cookie_cache_dir.exists():
+            self.cookie_cache_dir.mkdir(parents=True, exist_ok=True)
+            os.chmod(str(self.cookie_cache_dir), 0o700)
+        else:
+            # Fix permissions if directory already exists (e.g., created by DebounceManager)
+            try:
+                st = self.cookie_cache_dir.stat()
+                if st.st_mode & 0o077:  # group/other bits set
+                    os.chmod(str(self.cookie_cache_dir), 0o700)
+            except OSError:
+                pass
+
+    def _cookie_cache_path(self, provider_name: str) -> Path:
+        return self.cookie_cache_dir / f"cookies_{provider_name}.json"
+
+    def _load_cached_cookies(self, provider_name: str) -> Optional[dict[str, str]]:
+        """Load cached cookies for provider if fresh enough."""
+        path = self._cookie_cache_path(provider_name)
+        try:
+            if not path.exists():
+                return None
+            data = json.loads(path.read_text())
+            cached_at = data.get("_time", 0)
+            if time.time() - cached_at > self.COOKIE_CACHE_TTL:
+                return None
+            cookies = data.get("cookies")
+            if cookies and isinstance(cookies, dict):
+                return cookies
+        except (json.JSONDecodeError, IOError, KeyError):
+            pass
+        return None
+
+    def _save_cached_cookies(self, provider_name: str, cookies: dict[str, str]) -> None:
+        """Save essential cookies for provider with user-only permissions (0o600)."""
+        self._ensure_cache_dir()
+        essential_keys = self.ESSENTIAL_COOKIES.get(provider_name, [])
+        # Only persist the essential cookies
+        filtered = {k: v for k, v in cookies.items() if k in essential_keys}
+        if not filtered:
+            return
+
+        path = self._cookie_cache_path(provider_name)
+        tmp_path = path.with_suffix(".tmp")
+        try:
+            tmp_path.write_text(json.dumps(
+                {"_time": time.time(), "cookies": filtered},
+                ensure_ascii=False,
+            ))
+            os.chmod(str(tmp_path), 0o600)
+            os.rename(str(tmp_path), str(path))
+        except IOError:
+            try:
+                tmp_path.unlink(missing_ok=True)
+            except OSError:
+                pass
 
     def get_profiles_dir(self) -> Path:
         """Get Firefox profiles directory"""
@@ -1215,6 +1285,14 @@ class CookieManager:
         if not host_pattern:
             raise Exception(f"Unknown provider: {provider_name}")
 
+        # Try cookie cache first (avoids hitting Firefox SQLite)
+        cached_cookies = self._load_cached_cookies(provider_name)
+        if cached_cookies:
+            essential = self.ESSENTIAL_COOKIES.get(provider_name, [])
+            if all(k in cached_cookies for k in essential):
+                header = self.build_cookie_header(cached_cookies)
+                return header, "cookie cache"
+
         profiles_dir = self.get_profiles_dir()
 
         if profile:
@@ -1241,6 +1319,9 @@ class CookieManager:
                 if provider_name == "kimi" and "kimi-auth" not in cookies:
                     continue
                 # Codex uses auth token from ~/.codex/auth.json, verified separately
+
+                # Cache the essential cookies for next time
+                self._save_cached_cookies(provider_name, cookies)
 
                 header = self.build_cookie_header(cookies)
                 return header, f"Firefox profile: {prof.name}"
@@ -1469,7 +1550,9 @@ class DebounceManager:
     def __init__(self, interval_seconds: int = DEFAULT_INTERVAL, cache_dir: Optional[Path] = None):
         self.interval = interval_seconds
         self.cache_dir = cache_dir or self.DEFAULT_CACHE_DIR
-        self.cache_dir.mkdir(parents=True, exist_ok=True)
+        if not self.cache_dir.exists():
+            self.cache_dir.mkdir(parents=True, exist_ok=True)
+            os.chmod(str(self.cache_dir), 0o700)
 
     def _provider_path(self, provider: str) -> Path:
         return self.cache_dir / f"{provider}.json"
@@ -1580,14 +1663,15 @@ class DebounceManager:
             os.close(lock_fd)
 
     def clear_cache(self, provider: Optional[str] = None) -> None:
-        """Clear cache for provider or all"""
+        """Clear cache for provider or all (includes cookie cache)"""
         if provider:
-            for suffix in (".json", ".lock"):
-                path = self.cache_dir / f"{provider}{suffix}"
-                try:
-                    path.unlink(missing_ok=True)
-                except IOError:
-                    pass
+            for prefix in (provider, f"cookies_{provider}"):
+                for suffix in (".json", ".lock", ".tmp"):
+                    path = self.cache_dir / f"{prefix}{suffix}"
+                    try:
+                        path.unlink(missing_ok=True)
+                    except IOError:
+                        pass
         else:
             for path in self.cache_dir.glob("*.json"):
                 try:
