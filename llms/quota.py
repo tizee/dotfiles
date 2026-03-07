@@ -112,6 +112,9 @@ class QuotaInfo:
     # Common session keys: "current" (5-hour), "weekly", "weekly_opus", "weekly_sonnet"
     raw_response: Optional[dict[str, Any]] = None
     error: Optional[str] = None
+    # "client" = transient (curl/network failure, should retry)
+    # "server" = API returned an error response (should cache normally)
+    error_type: Optional[str] = None
     fetched_at: Optional[str] = None
 
     def to_dict(self) -> dict[str, Any]:
@@ -128,6 +131,8 @@ class QuotaInfo:
             result["raw_response"] = self.raw_response
         if self.error:
             result["error"] = self.error
+        if self.error_type:
+            result["error_type"] = self.error_type
         if self.fetched_at:
             result["fetched_at"] = self.fetched_at
         return result
@@ -150,6 +155,7 @@ class QuotaInfo:
             sessions=sessions,
             raw_response=data.get("raw_response"),
             error=data.get("error"),
+            error_type=data.get("error_type"),
             fetched_at=data.get("fetched_at"),
         )
 
@@ -326,6 +332,7 @@ class ClaudeQuotaProvider(QuotaProvider):
             if error := usage_data.get("error"):
                 error_msg = error.get("message") if isinstance(error, dict) else str(error)
                 quota_info.error = error_msg
+                quota_info.error_type = "server"
                 return quota_info
 
             # Parse quotas
@@ -364,6 +371,7 @@ class ClaudeQuotaProvider(QuotaProvider):
 
         except Exception as e:
             quota_info.error = str(e)
+            quota_info.error_type = "client"
 
         return quota_info
 
@@ -485,9 +493,11 @@ class MiniMaxQuotaProvider(QuotaProvider):
             else:
                 error_msg = data.get("base_resp", {}).get("status_msg", "Unknown error")
                 quota_info.error = error_msg
+                quota_info.error_type = "server"
 
         except Exception as e:
             quota_info.error = str(e)
+            quota_info.error_type = "client"
 
         return quota_info
 
@@ -659,9 +669,11 @@ class GLMQuotaProvider(QuotaProvider):
             else:
                 error_msg = data.get("msg") or data.get("message") or "Unknown error"
                 quota_info.error = error_msg
+                quota_info.error_type = "server"
 
         except Exception as e:
             quota_info.error = str(e)
+            quota_info.error_type = "client"
 
         return quota_info
 
@@ -869,6 +881,7 @@ class CodexQuotaProvider(QuotaProvider):
 
         except Exception as e:
             quota_info.error = str(e)
+            quota_info.error_type = "client"
 
         return quota_info
 
@@ -1053,6 +1066,7 @@ class KimiQuotaProvider(QuotaProvider):
 
         except Exception as e:
             quota_info.error = str(e)
+            quota_info.error_type = "client"
 
         return quota_info
 
@@ -1580,6 +1594,13 @@ class DebounceManager:
     def _is_cache_fresh(self, entry: Optional[dict[str, Any]]) -> bool:
         if entry is None:
             return False
+        # Client errors (curl/network failures) are transient -- always retry.
+        # Server errors (API error responses) are legitimate -- cache normally.
+        # Legacy entries without error_type but with error are treated as client errors.
+        data = entry.get("data", {})
+        if isinstance(data, dict) and "error" in data:
+            if data.get("error_type", "client") == "client":
+                return False
         return time.time() - entry.get("_time", 0) < self.interval
 
     def _get_stale_data(self, provider: str) -> Optional[dict]:

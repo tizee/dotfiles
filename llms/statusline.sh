@@ -154,6 +154,11 @@ get_day_of_week() {
 quota_info=""
 if [ -f "$QUOTA_SCRIPT" ]; then
     quota_json=$(QUOTA_PROFILE="$QUOTA_PROFILE" python3 "$QUOTA_SCRIPT" -p "$provider" --json --debounce "$QUOTA_DEBOUNCE" 2>/dev/null)
+    # Client errors (curl/network failures) are transient -- force-retry once
+    # Server errors (API error responses) are legitimate -- hide normally
+    if [ -n "$quota_json" ] && echo "$quota_json" | jq -e 'select(.error_type == "client")' >/dev/null 2>&1; then
+        quota_json=$(QUOTA_PROFILE="$QUOTA_PROFILE" python3 "$QUOTA_SCRIPT" -p "$provider" --json --debounce "$QUOTA_DEBOUNCE" --force 2>/dev/null)
+    fi
     if [ -n "$quota_json" ]; then
         # Parse quota based on provider
         if [ "$provider" = "claude" ]; then
