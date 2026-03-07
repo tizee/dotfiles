@@ -63,13 +63,8 @@ determine_provider() {
 }
 
 provider=$(determine_provider "$model_name")
-# Provider-specific debounce intervals (seconds)
-# Claude needs longer interval to avoid rate limiting
-if [ "$provider" = "claude" ]; then
-    QUOTA_DEBOUNCE=600  # 10 minutes for Claude
-else
-    QUOTA_DEBOUNCE=120   # 2 minutes for other providers
-fi
+# Unified debounce interval for all providers (seconds)
+QUOTA_DEBOUNCE=600  # 10 minutes
 
 # Extract context window information
 context_size=$(echo "$input" | jq -r '.context_window.context_window_size // 200000')

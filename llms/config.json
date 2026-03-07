@@ -1,7 +1,7 @@
 {
   "debug": false,
   "agent": {
-    "model": "minimax",
+    "model": "glm",
     "ui": {
       "statusline": {
         "command": "~/.config/llms/statusline.sh",
