@@ -1072,6 +1072,197 @@ class KimiQuotaProvider(QuotaProvider):
 
 
 # ============================================================================
+# Doubao Provider Implementation
+# ============================================================================
+
+
+class DoubaoQuotaProvider(QuotaProvider):
+    """Doubao (Volcengine/ByteDance) coding plan quota provider"""
+
+    name = "doubao"
+    description = "Doubao Coding Plan (volcengine.com)"
+    API_URL = "https://console.volcengine.com/api/top/ark/cn-beijing/2024-01-01/GetCodingPlanUsage"
+
+    # Path to doubao.key file (relative to this script or in llms config dir)
+    KEY_FILE = Path(__file__).parent / "doubao.key"
+
+    def __init__(self, cookie_header: str):
+        super().__init__(cookie_header)
+        # Try to get csrf_token from: 1) key file, 2) env var, 3) cookies
+        self.csrf_token = self._load_csrf_token()
+        self.x_web_id = self._extract_cookie_value("x-web-id") or self._extract_cookie_value("volcfe-uuid")
+
+    def _load_csrf_token(self) -> Optional[str]:
+        """Load CSRF token from key file, env var, or cookies"""
+        # 1. Try key file
+        if self.KEY_FILE.exists():
+            token = self.KEY_FILE.read_text().strip()
+            if token:
+                return token
+        # 2. Try environment variable
+        env_token = os.environ.get("DOUBAO_CSRF_TOKEN")
+        if env_token:
+            return env_token
+        # 3. Try extracting from cookies
+        return self._extract_cookie_value("csrfToken") or self._extract_cookie_value("_csrfToken")
+
+    def _extract_cookie_value(self, name: str) -> Optional[str]:
+        """Extract a specific cookie value from the cookie header"""
+        for part in self.cookie_header.split(";"):
+            part = part.strip()
+            if part.startswith(f"{name}="):
+                return part.split("=", 1)[1]
+        return None
+
+    def get_api_endpoints(self) -> list[str]:
+        return [self.API_URL]
+
+    def _curl_request(self, url: str, timeout: int = 30) -> dict:
+        """Send POST request using curl with cookie authentication"""
+        # Build cookie header, adding csrfToken if we have it from key file
+        cookie_header = self.cookie_header
+        if self.csrf_token and "csrfToken=" not in cookie_header:
+            cookie_header = f"{cookie_header}; csrfToken={self.csrf_token}"
+
+        headers = [
+            "-H", f"Cookie: {cookie_header}",
+            "-H", "Accept: application/json, text/plain, */*",
+            "-H", "Accept-Language: zh",
+            "-H", "Accept-Encoding: gzip, deflate, br, zstd",
+            "-H", "Content-Type: application/json",
+            "-H", "Referer: https://console.volcengine.com/ark/region:ark+cn-beijing/openManagement?LLM=%7B%7D&advancedActiveKey=subscribe",
+            "-H", "Origin: https://console.volcengine.com",
+            "-H", "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:149.0) Gecko/20100101 Firefox/149.0",
+        ]
+
+        # Add X-Csrf-Token header if available
+        if self.csrf_token:
+            headers.extend(["-H", f"X-Csrf-Token: {self.csrf_token}"])
+
+        # Add x-web-id header if available
+        if self.x_web_id:
+            headers.extend(["-H", f"x-web-id: {self.x_web_id}"])
+
+        cmd = [
+            "curl",
+            "-s",
+            "-L",
+            "--http1.1",
+            "-X", "POST",
+            *headers,
+            "--compressed",
+            "--max-time", str(timeout),
+            "-d", "{}",
+            url,
+        ]
+
+        result = subprocess.run(cmd, capture_output=True, text=True)
+
+        if result.returncode != 0:
+            raise Exception(f"curl request failed: {result.stderr}")
+
+        text = result.stdout.strip()
+        if text.startswith(("<!DOCTYPE", "<!doctype", "<html", "<HTML")):
+            raise Exception("API returned HTML page, authentication may be required")
+
+        return json.loads(text)
+
+    def _parse_reset_time(self, timestamp: int) -> tuple[Optional[str], Optional[str], Optional[str]]:
+        """Parse Unix timestamp and calculate local time and duration"""
+        if not timestamp:
+            return None, None, None
+
+        try:
+            dt = datetime.fromtimestamp(timestamp, tz=timezone.utc)
+            resets_at = dt.isoformat()
+
+            # Local time
+            local_tz = self._get_system_timezone()
+            local_dt = dt.astimezone(local_tz)
+            resets_at_local = local_dt.strftime("%H:%M")
+
+            # Time until reset
+            now = datetime.now(timezone.utc)
+            delta = dt - now
+            total_seconds = int(delta.total_seconds())
+            resets_in = format_duration(total_seconds)
+
+            return resets_at, resets_at_local, resets_in
+        except Exception:
+            return None, None, None
+
+    def _get_system_timezone(self) -> timezone:
+        """Get system local timezone"""
+        try:
+            local_offset = -time.timezone
+            if time.daylight and time.localtime().tm_isdst > 0:
+                local_offset += 3600
+            return timezone(timedelta(seconds=local_offset))
+        except Exception:
+            return timezone(timedelta(hours=8))
+
+    def fetch_quota(self) -> QuotaInfo:
+        """Fetch Doubao quota"""
+        quota_info = QuotaInfo(
+            provider=self.name,
+            fetched_at=datetime.now(timezone.utc).isoformat(),
+        )
+
+        try:
+            data = self._curl_request(self.API_URL)
+            quota_info.raw_response = data
+
+            # Parse Doubao response structure
+            # Response format: {"ResponseMetadata": {...}, "Result": {"Status": "Running", "QuotaUsage": [...]}}
+            result = data.get("Result", {})
+            quota_info.plan_type = result.get("Status")
+
+            quota_usage = result.get("QuotaUsage", [])
+
+            for usage in quota_usage:
+                level = usage.get("Level", "")
+                percent = usage.get("Percent", 0)
+                reset_timestamp = usage.get("ResetTimestamp", 0)
+
+                resets_at, resets_at_local, resets_in = self._parse_reset_time(reset_timestamp)
+
+                # Map level to session key
+                if level == "session":
+                    session_key = "current"  # 5-hour session
+                elif level == "weekly":
+                    session_key = "weekly"
+                elif level == "monthly":
+                    session_key = "monthly"
+                else:
+                    session_key = level
+
+                quota_info.sessions[session_key] = SessionQuota(
+                    used_percent=percent,
+                    remaining_percent=100 - percent,
+                    resets_at=resets_at,
+                    resets_at_local=resets_at_local,
+                    resets_in=resets_in,
+                    extra={
+                        "level": level,
+                    },
+                )
+
+            # Check for errors in ResponseMetadata
+            response_meta = data.get("ResponseMetadata", {})
+            if "Error" in response_meta:
+                error_info = response_meta["Error"]
+                error_msg = error_info.get("Message", "Unknown error")
+                quota_info.error = error_msg
+                quota_info.error_type = "server"
+
+        except Exception as e:
+            quota_info.error = str(e)
+            quota_info.error_type = "client"
+
+        return quota_info
+
+
+# ============================================================================
 # Provider Registry
 # ============================================================================
 
@@ -1119,6 +1310,7 @@ ProviderRegistry.register(MiniMaxQuotaProvider)
 ProviderRegistry.register(GLMQuotaProvider)
 ProviderRegistry.register(KimiQuotaProvider)
 ProviderRegistry.register(CodexQuotaProvider)
+ProviderRegistry.register(DoubaoQuotaProvider)
 
 
 # ============================================================================
@@ -1138,6 +1330,7 @@ class CookieManager:
         "minimax": ["HERTZ-SESSION"],
         "glm": ["bigmodel_token_production"],
         "kimi": ["kimi-auth"],
+        "doubao": ["digest", "connect.sid"],
     }
 
     def __init__(self, profile: Optional[str] = None, cache_dir: Optional[Path] = None):
@@ -1292,6 +1485,7 @@ class CookieManager:
             "minimax": "minimaxi.com",
             "glm": "bigmodel.cn",
             "kimi": "kimi.com",
+            "doubao": "volcengine.com",
             # Codex uses auth token from ~/.codex/auth.json, not cookies
         }
 
@@ -1331,6 +1525,8 @@ class CookieManager:
                 if provider_name == "glm" and "bigmodel_token_production" not in cookies:
                     continue
                 if provider_name == "kimi" and "kimi-auth" not in cookies:
+                    continue
+                if provider_name == "doubao" and "digest" not in cookies:
                     continue
                 # Codex uses auth token from ~/.codex/auth.json, verified separately
 

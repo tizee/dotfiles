@@ -1,7 +1,6 @@
 {
   "debug": false,
   "agent": {
-    "model": "glm",
     "ui": {
       "statusline": {
         "command": "~/.config/llms/statusline.sh",
@@ -16,6 +15,7 @@
       ],
       "ask": []
     },
+    "model": "minimax",
     "image_model": "kimi-for-coding-instant",
     "background_model": "glm-4.5-air",
     "compact_model": "kimi-for-coding",

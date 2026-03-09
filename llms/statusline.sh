@@ -55,6 +55,8 @@ determine_provider() {
         echo "glm"
     elif [[ "$model_lower" == *"kimi"* ]]; then
         echo "kimi"
+    elif [[ "$model_lower" == *"doubao"* ]] || [[ "$model_lower" == *"volcengine"* ]]; then
+        echo "doubao"
     elif [[ "$model_lower" == *"codex"* ]] || [[ "$model_lower" == *"gpt"* ]] || [[ "$model_lower" == "o1"* ]] || [[ "$model_lower" == "o3"* ]]; then
         echo "codex"
     else
@@ -387,6 +389,68 @@ if [ -f "$QUOTA_SCRIPT" ]; then
                         # Add remaining time if available (e.g., "in 2d 3h")
                         if [ -n "$weekly_resets_in" ] && [ "$weekly_resets_in" != "null" ]; then
                             quota_info+=" (in ${weekly_resets_in})"
+                        fi
+                        quota_info+="${NC}"
+                    fi
+                fi
+            fi
+
+        elif [ "$provider" = "doubao" ]; then
+            # Doubao: session (5-hour), weekly, monthly
+            current_pct=$(echo "$quota_json" | jq -r '.sessions.current.used_percent // empty')
+            if [ -n "$current_pct" ] && [ "$current_pct" != "null" ]; then
+                quota_pct=$(printf "%.0f" "$current_pct")
+                QUOTA_COLOR=$(get_pct_color "$quota_pct")
+                resets_in=$(echo "$quota_json" | jq -r '.sessions.current.resets_in // empty')
+                resets_at_local=$(echo "$quota_json" | jq -r '.sessions.current.resets_at_local // empty')
+                if [ -n "$resets_in" ]; then
+                    quota_info="${QUOTA_COLOR}DB:${quota_pct}%${NC} ${GRAY}${resets_in}"
+                    [ -n "$resets_at_local" ] && quota_info+=" @${resets_at_local}"
+                    quota_info+="${NC}"
+                else
+                    quota_info="${QUOTA_COLOR}DB:${quota_pct}%${NC}"
+                fi
+            else
+                # No valid data - hide quota info
+                quota_info=""
+            fi
+
+            # Weekly quota
+            weekly_pct=$(echo "$quota_json" | jq -r '.sessions.weekly.used_percent // empty')
+            if [ -n "$weekly_pct" ] && [ "$weekly_pct" != "null" ]; then
+                weekly_pct_int=$(printf "%.0f" "$weekly_pct")
+                WEEKLY_COLOR=$(get_pct_color "$weekly_pct_int")
+                weekly_resets_at=$(echo "$quota_json" | jq -r '.sessions.weekly.resets_at // empty')
+                weekly_resets_at_local=$(echo "$quota_json" | jq -r '.sessions.weekly.resets_at_local // empty')
+                weekly_resets_in=$(echo "$quota_json" | jq -r '.sessions.weekly.resets_in // empty')
+                if [ -n "$weekly_resets_at" ] && [ -n "$weekly_resets_at_local" ]; then
+                    week_day=$(get_day_of_week "$weekly_resets_at")
+                    if [ -n "$week_day" ]; then
+                        quota_info+=" ${WEEKLY_COLOR}W:${weekly_pct_int}%${NC} ${GRAY}${week_day} @${weekly_resets_at_local}"
+                        # Add remaining time if available (e.g., "in 2d 3h")
+                        if [ -n "$weekly_resets_in" ] && [ "$weekly_resets_in" != "null" ]; then
+                            quota_info+=" (in ${weekly_resets_in})"
+                        fi
+                        quota_info+="${NC}"
+                    fi
+                fi
+            fi
+
+            # Monthly quota
+            monthly_pct=$(echo "$quota_json" | jq -r '.sessions.monthly.used_percent // empty')
+            if [ -n "$monthly_pct" ] && [ "$monthly_pct" != "null" ]; then
+                monthly_pct_int=$(printf "%.0f" "$monthly_pct")
+                MONTHLY_COLOR=$(get_pct_color "$monthly_pct_int")
+                monthly_resets_at=$(echo "$quota_json" | jq -r '.sessions.monthly.resets_at // empty')
+                monthly_resets_at_local=$(echo "$quota_json" | jq -r '.sessions.monthly.resets_at_local // empty')
+                monthly_resets_in=$(echo "$quota_json" | jq -r '.sessions.monthly.resets_in // empty')
+                if [ -n "$monthly_resets_at" ] && [ -n "$monthly_resets_at_local" ]; then
+                    week_day=$(get_day_of_week "$monthly_resets_at")
+                    if [ -n "$week_day" ]; then
+                        quota_info+=" ${MONTHLY_COLOR}M:${monthly_pct_int}%${NC} ${GRAY}${week_day} @${monthly_resets_at_local}"
+                        # Add remaining time if available (e.g., "in 2d 3h")
+                        if [ -n "$monthly_resets_in" ] && [ "$monthly_resets_in" != "null" ]; then
+                            quota_info+=" (in ${monthly_resets_in})"
                         fi
                         quota_info+="${NC}"
                     fi
