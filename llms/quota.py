@@ -292,7 +292,7 @@ class ClaudeQuotaProvider(QuotaProvider):
             now = datetime.now(timezone.utc)
             delta = dt - now
             total_seconds = int(delta.total_seconds())
-            duration_str = format_duration(total_seconds)
+            duration_str = format_duration(total_seconds, local_dt)
 
             return local_str, duration_str
         except Exception:
@@ -475,7 +475,7 @@ class MiniMaxQuotaProvider(QuotaProvider):
                         now = datetime.now(timezone.utc)
                         delta = dt - now
                         total_seconds = int(delta.total_seconds())
-                        resets_in = format_duration(total_seconds)
+                        resets_in = format_duration(total_seconds, local_dt)
 
                     quota_info.sessions[session_key] = SessionQuota(
                         used_percent=used_percent,
@@ -615,7 +615,7 @@ class GLMQuotaProvider(QuotaProvider):
                         now = datetime.now(timezone.utc)
                         delta = dt - now
                         total_seconds = int(delta.total_seconds())
-                        resets_in = format_duration(total_seconds)
+                        resets_in = format_duration(total_seconds, local_dt)
 
                     if limit_type == "TIME_LIMIT":
                         # TIME_LIMIT is the MCP Monthly Quota
@@ -808,7 +808,7 @@ class CodexQuotaProvider(QuotaProvider):
             now = datetime.now(timezone.utc)
             delta = dt - now
             total_seconds = int(delta.total_seconds())
-            resets_in = format_duration(total_seconds)
+            resets_in = format_duration(total_seconds, local_dt)
 
             return resets_at, resets_at_local, resets_in
         except Exception:
@@ -970,7 +970,7 @@ class KimiQuotaProvider(QuotaProvider):
             now = datetime.now(timezone.utc)
             delta = dt - now
             total_seconds = int(delta.total_seconds())
-            resets_in = format_duration(total_seconds)
+            resets_in = format_duration(total_seconds, local_dt)
 
             return resets_at, resets_at_local, resets_in
         except Exception:
@@ -1185,7 +1185,7 @@ class DoubaoQuotaProvider(QuotaProvider):
             now = datetime.now(timezone.utc)
             delta = dt - now
             total_seconds = int(delta.total_seconds())
-            resets_in = format_duration(total_seconds)
+            resets_in = format_duration(total_seconds, local_dt)
 
             return resets_at, resets_at_local, resets_in
         except Exception:
@@ -1544,8 +1544,12 @@ class CookieManager:
 # ============================================================================
 
 
-def format_duration(total_seconds: int) -> str:
-    """Format seconds into human-readable duration (e.g., '2d 3h', '5h 30m', '45m')."""
+def format_duration(total_seconds: int, target_dt: Optional[datetime] = None) -> str:
+    """Format seconds into human-readable duration (e.g., '2d 3h', '5h 30m', '45m').
+    
+    For durations >= 1 day, includes the target Month-day if target_dt is provided.
+    Format: 'Mar 15 in 2d 3h' or just '2d 3h' if no target_dt.
+    """
     if total_seconds <= 0:
         return "now"
 
@@ -1554,7 +1558,12 @@ def format_duration(total_seconds: int) -> str:
     minutes = (total_seconds % 3600) // 60
 
     if days > 0:
-        return f"{days}d {hours}h"
+        duration = f"{days}d {hours}h"
+        if target_dt is not None:
+            # Include Month-day for weekly/monthly windows
+            date_str = target_dt.strftime("%b %d").replace(" 0", " ")
+            return f"{date_str}, {duration}"
+        return duration
     elif hours > 0:
         return f"{hours}h {minutes}m"
     else:
@@ -1596,10 +1605,10 @@ def format_session_label(label: str) -> str:
 
 
 def format_reset_date(resets_at: Optional[str], resets_at_local: Optional[str], resets_in: Optional[str]) -> str:
-    """Format reset time as readable date (e.g., 'Mar 5 @ 01:37 (in 2h 30m)')"""
+    """Format reset time as readable date (e.g., 'Mar 5 @ 01:37 (2h 30m)')"""
     if not resets_at:
         if resets_in:
-            return f"Resets in: {resets_in}"
+            return f"Resets: {resets_in}"
         return ""
     
     try:
@@ -1612,13 +1621,13 @@ def format_reset_date(resets_at: Optional[str], resets_at_local: Optional[str], 
         
         result = f"Resets: {date_str} @ {time_str}"
         if resets_in:
-            result += f" (in {resets_in})"
+            result += f" ({resets_in})"
         return result
     except Exception:
         if resets_at_local and resets_in:
-            return f"Resets: {resets_at_local} (in {resets_in})"
+            return f"Resets: {resets_at_local} ({resets_in})"
         elif resets_in:
-            return f"Resets in: {resets_in}"
+            return f"Resets: {resets_in}"
         return ""
 
 
