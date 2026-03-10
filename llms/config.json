@@ -52,7 +52,8 @@
         "mode": "regular",
         "additional_allowed_write_paths": [
           "~/.osay",
-          "~/.config/llm/"
+          "~/.config/llm/",
+          "~/.yaw/"
         ]
       }
     }
