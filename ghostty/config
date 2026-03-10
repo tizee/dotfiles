@@ -1205,6 +1205,11 @@ keybind = super+physical:two=goto_tab:2
 keybind = super+physical:six=goto_tab:6
 keybind = super+v=paste_from_clipboard
 
+# keybind = cmd+c=copy_to_clipboard:mixed
+keybind = cmd+shift+c=copy_to_clipboard:plain
+keybind = cmd+alt+c=copy_to_clipboard:vt
+# keybind = super+v=text:\x16
+
 # Horizontal window padding. This applies padding between the terminal cells
 # and the left and right window borders. The value is in points, meaning that
 # it will be scaled appropriately for screen DPI.
@@ -2275,3 +2280,5 @@ auto-update = check
 # This only works on macOS since only macOS has an auto-update feature.
 auto-update-channel = tip
 
+# 1.3.0
+notify-on-command-finish-action = no-bell,notify
