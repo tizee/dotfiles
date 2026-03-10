@@ -11,7 +11,8 @@
     "DISABLE_NON_ESSENTIAL_MODEL_CALLS": "1",
     "ENABLE_TOOL_SEARCH": "true",
     "DISABLE_AUTOUPDATER": "true",
-    "CLAUDE_CODE_DISABLE_BACKGROUND_TASKS": "true"
+    "CLAUDE_CODE_DISABLE_BACKGROUND_TASKS": "true",
+    "CLAUDE_CODE_ATTRIBUTION_HEADER": "0"
   },
   "includeCoAuthoredBy": false,
   "permissions": {
