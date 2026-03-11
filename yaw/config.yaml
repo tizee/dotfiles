@@ -1,0 +1,12 @@
+# yaw global configuration
+# Location: ~/.config/yaw/config.yaml
+
+defaults:
+  timeout: 600
+  shell: /bin/sh
+  env:
+    PATH: /Users/tizee/.local/bin:/usr/local/bin:/usr/bin:/bin
+
+log:
+  retain_days: 30
+  retain_count: 100

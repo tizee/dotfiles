@@ -39,13 +39,3 @@ alias l='ls -lah'
 alias ll='ls -lh'
 alias la='ls -lAh'
 
-# shortcut
-if [[ $SYSTEM = Darwin ]];then
-  alias obsidian="cd ~/Documents/obsidian"
-  alias dev="cd ~/projects/"
-  # alias work="cd ~/dev/work/"
-  # alias play="cd ~/dev/playground/"
-  # alias blog="cd ~/dev/SideProject/BlogPosts/"
-  # alias side="cd ~/dev/SideProject/"
-fi
-alias dotconf="cd ~/.config"

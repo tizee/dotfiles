@@ -258,3 +258,4 @@ alias askp='llms agent -p'
 
 # Load .env variables
 [[ -f $HOME/.config/zsh/env-loader.zsh ]] && source "$HOME/.config/zsh/env-loader.zsh"
+alias dotconf="cd ~/.config"

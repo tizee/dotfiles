@@ -45,6 +45,9 @@ APP = "Codex"
 [projects."/Users/tizee/projects/project-conf/dotfiles/tizee-dotfiles"]
 trust_level = "untrusted"
 
+[projects."/Users/tizee/projects/project-AI/tools/yaw.tizee"]
+trust_level = "trusted"
+
 [tui]
 status_line = ["model-with-reasoning", "five-hour-limit", "weekly-limit", "project-root", "git-branch", "context-remaining", "context-used", "context-window-size"]
 
