@@ -539,4 +539,8 @@ if $is_macOS; then
 
   export CCPROXY_PROVIDER="glm"
   alias tailscale="/Applications/Tailscale.app/Contents/MacOS/Tailscale"
+
+  # Added by Obsidian
+  export PATH="$PATH:/Applications/Obsidian.app/Contents/MacOS"
 fi
+
