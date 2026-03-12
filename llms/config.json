@@ -53,7 +53,8 @@
         "additional_allowed_write_paths": [
           "~/.osay",
           "~/.config/llm/",
-          "~/.yaw/"
+          "~/.yaw/",
+          "~/Library/Application Support/obsidian/"
         ]
       }
     }
