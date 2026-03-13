@@ -25,6 +25,7 @@
       "keep_recent_turns": 6,
       "threshold": 80
     },
+    "permission_mode": "yolo",
     "session": {
       "cleanup_period_days": 14
     },
