@@ -55,7 +55,8 @@
           "~/.osay",
           "~/.config/llm/",
           "~/.yaw/",
-          "~/Library/Application Support/obsidian/"
+          "~/Library/Application Support/obsidian/",
+          "/Users/tizee/.local/share/uv/tools/"
         ]
       }
     }
