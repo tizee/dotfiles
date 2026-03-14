@@ -1,4 +1,4 @@
-#!/usr/bin/env -S uv --no-managed-python --no-python-downloads run --script
+#!/usr/bin/env -S uv --no-python-downloads run --script
 
 # Display year progress bar
 

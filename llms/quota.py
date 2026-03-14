@@ -1742,6 +1742,31 @@ def format_all_json(quotas: list[QuotaInfo], pretty: bool = True) -> str:
     return json.dumps(data, ensure_ascii=False)
 
 
+def is_cookie_error(error_msg: str) -> bool:
+    """Check if error is due to invalid/expired cookies."""
+    error_lower = error_msg.lower()
+    cookie_errors = [
+        "cookie is missing",
+        "cookie expired",
+        "login required",
+        "not logged in",
+        "authentication required",
+        "unauthorized",
+        "invalid cookie",
+        "session expired",
+    ]
+    return any(phrase in error_lower for phrase in cookie_errors)
+
+
+def clear_provider_cookie_cache(provider: str, cache_dir: Path) -> None:
+    """Clear cookie cache for a specific provider."""
+    cookie_cache_path = cache_dir / f"cookies_{provider}.json"
+    try:
+        cookie_cache_path.unlink(missing_ok=True)
+    except IOError:
+        pass
+
+
 # ============================================================================
 # Debounce Manager (for status bar usage)
 # ============================================================================
@@ -2008,14 +2033,22 @@ Environment Variables:
     if args.no_color:
         os.environ["NO_COLOR"] = "1"
 
-    # Initialize debounce manager
-    dm = DebounceManager(interval_seconds=args.debounce) if args.debounce > 0 else None
+    # Initialize debounce manager and cookie manager (always needed for cache clearing)
+    dm = DebounceManager(interval_seconds=args.debounce) if args.debounce > 0 else DebounceManager()
+    cookie_manager = CookieManager(profile=args.profile)
 
     # Handle --clear-cache
     if args.clear_cache:
-        if dm:
-            dm.clear_cache(provider=args.provider)
-            print("Cache cleared", file=sys.stderr)
+        # Clear both debounce cache and cookie cache
+        dm.clear_cache(provider=args.provider)
+        # Also clear the cookie cache file directly (cookies_<provider>.json)
+        if args.provider:
+            cookie_cache_path = dm.cache_dir / f"cookies_{args.provider}.json"
+            try:
+                cookie_cache_path.unlink(missing_ok=True)
+            except IOError:
+                pass
+        print("Cache cleared", file=sys.stderr)
         return 0
 
     # Determine which providers to query
@@ -2080,7 +2113,7 @@ Environment Variables:
             )
             results.append(quota_info)
         else:
-            # No debounce: fetch directly
+            # No debounce: fetch directly with auto-retry on cookie errors
             # Codex uses its own auth from ~/.codex/
             if provider_name == "codex":
                 try:
@@ -2100,7 +2133,22 @@ Environment Variables:
                 results.append(QuotaInfo(provider=provider_name, error="Unknown provider"))
                 continue
 
-            results.append(provider.fetch_quota())
+            quota_info = provider.fetch_quota()
+
+            # Auto-retry once if cookie error (cached cookies may be stale)
+            if quota_info.error and is_cookie_error(quota_info.error):
+                # Clear stale cookie cache and re-extract from Firefox
+                clear_provider_cookie_cache(provider_name, dm.cache_dir)
+                try:
+                    cookie_header, source = cookie_manager.get_cookies_for_provider(provider_name)
+                    cookies_cache[provider_name] = (cookie_header, source)
+                    provider = ProviderRegistry.get(provider_name, cookie_header)
+                    if provider:
+                        quota_info = provider.fetch_quota()
+                except Exception:
+                    pass  # Keep original error if retry also fails
+
+            results.append(quota_info)
 
     # Output results
     if args.json:

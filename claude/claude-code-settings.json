@@ -9,10 +9,14 @@
     "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "true",
     "CLAUDE_CODE_ENABLE_TELEMETRY": "0",
     "DISABLE_NON_ESSENTIAL_MODEL_CALLS": "1",
-    "ENABLE_TOOL_SEARCH": "true",
+    "ENABLE_TOOL_SEARCH": "false",
     "DISABLE_AUTOUPDATER": "true",
     "CLAUDE_CODE_DISABLE_BACKGROUND_TASKS": "true",
     "CLAUDE_CODE_ATTRIBUTION_HEADER": "0"
+  },
+  "attribution": {
+    "commit": "",
+    "pr": ""
   },
   "includeCoAuthoredBy": false,
   "permissions": {
@@ -39,7 +43,7 @@
       "Bash(sudo:*)"
     ],
     "ask": [],
-    "defaultMode": "default"
+    "defaultMode": "bypassPermissions"
   },
   "model": "opus",
   "hooks": {
@@ -141,10 +145,12 @@
     "swift-lsp@claude-plugins-official": true
   },
   "alwaysThinkingEnabled": true,
+  "effortLevel": "low",
   "promptSuggestionEnabled": false,
   "companyAnnouncements": [
     "The more you know, the less you diversify. "
   ],
   "plansDirectory": ".claude/plans",
+  "prefersReducedMotion": true,
   "skipDangerousModePermissionPrompt": true
 }
