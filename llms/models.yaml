@@ -103,6 +103,18 @@
   api_key_name: minimax
   thinking_mode: "enabled"
   effort: high
+
+- model_id: minimax-nothinking
+  model_name: MiniMax-M2.5-highspeed
+  api_base: "https://api.minimaxi.com/anthropic"
+  image: false
+  context_window: 204800
+  api_format: anthropic
+  can_stream: true
+  api_key_name: minimax
+  thinking_mode: "disabled"
+  effort: low
+
 - model_id: glm-nothinking
   model_name: glm-5
   api_base: "https://open.bigmodel.cn/api/anthropic"
