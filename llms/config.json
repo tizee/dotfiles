@@ -16,7 +16,6 @@
       "ask": []
     },
     "model": "minimax",
-    "image_model": "kimi-for-coding-instant",
     "background_model": "glm-4.5-air",
     "compact_model": "kimi-for-coding",
     "subagent_model": "minimax",
@@ -34,18 +33,8 @@
       "cleanup_period_days": 1
     },
     "hooks": {
-      "PreToolUse": [
-        {
-          "matcher": "*",
-          "hooks": [{"command": "python3 ~/projects/project-AI/tools/llm.tizee/examples/hooks/log_tool_use.py"}]
-        }
-      ],
-      "PostToolUse": [
-        {
-          "matcher": "*",
-          "hooks": [{"command": "python3 ~/projects/project-AI/tools/llm.tizee/examples/hooks/log_tool_result.py"}]
-        }
-      ]
+      "PreToolUse": [],
+      "PostToolUse": []
     },
     "bash": {
       "defaultTimeoutMs": 60000,
