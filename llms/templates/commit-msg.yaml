@@ -48,4 +48,9 @@ system: '<role>
     - types in commit message other than fix: and feat: are allowed, for example,
     build:, chore:, ci:, docs:, style:, refactor:, perf:, test:, and others.
 
+    - NEVER fabricate issue numbers or references. Do NOT include "Closes #N",
+    "Fixes #N", "Refs #N", or any issue/PR references unless they are explicitly
+    present in the diff content (e.g. in a changelog entry or comment). If no
+    issue number appears in the diff, omit the footer entirely.
+
     </rule>'
