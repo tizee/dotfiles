@@ -1,5 +1,5 @@
 - model_id: gptws
-  model_name: gpt-5.1-codex-mini
+  model_name: gpt-5.4-nano
   api_base: wss://api.openai.com/v1
   api_format: openai_responses_websocket
   can_stream: true
@@ -8,8 +8,18 @@
   thinking_mode: enabled
   image: true
 
-- model_id: gpt-5.1-codex-mini
-  model_name: gpt-5.1-codex-mini
+- model_id: gpt
+  model_name: gpt-5.4-nano
+  api_base: https://api.openai.com/v1
+  api_format: openai_responses
+  can_stream: true
+  api_key_name: oai-api
+  effort: medium
+  thinking_mode: enabled
+  image: true
+
+- model_id: gpt-5.4-mini
+  model_name: gpt-5.4-mini
   api_base: "https://api.openai.com/v1/"
   can_stream: true
   api_key_name: oai-api
