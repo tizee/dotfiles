@@ -102,5 +102,8 @@
     <outline text="Tech/AI" title="Tech/AI">
       <outline type="rss" text="simonwillison.net" title="simonwillison.net" xmlUrl="https://simonwillison.net/atom/everything/" htmlUrl="https://simonwillison.net" />
     </outline>
+    <outline text="科技" title="科技">
+      <outline type="rss" text="https://kexue.fm/feed" title="https://kexue.fm/feed" xmlUrl="https://kexue.fm/feed" />
+    </outline>
   </body>
 </opml>

@@ -36,16 +36,22 @@
       "PreToolUse": [],
       "PostToolUse": []
     },
+    "auto_compact": {
+      "enabled": true,
+      "threshold": 90
+    },
     "bash": {
       "defaultTimeoutMs": 60000,
       "sandbox": {
-        "mode": "regular",
+        "mode": "auto_allow",
         "additional_allowed_write_paths": [
           "~/.osay",
           "~/.config/llm/",
           "~/.yaw/",
           "~/Library/Application Support/obsidian/",
-          "/Users/tizee/.local/share/uv/tools/"
+          "~/.local/share/uv/tools/",
+          "~/Library/Caches/org.swift.swiftpm/",
+          "~/.config/llm/rss-reader.opml"
         ]
       }
     }

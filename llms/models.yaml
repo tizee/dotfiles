@@ -124,6 +124,7 @@
   context_window: 200000
   api_key_name: zhipu
   thinking_mode: "disabled"
+
 - model_id: glm
   model_name: glm-5
   api_base: "https://open.bigmodel.cn/api/anthropic"
@@ -134,14 +135,16 @@
   api_key_name: zhipu
   thinking_mode: "enabled"
   effort: high
-- model_id: glm-4.7
-  model_name: glm-4.7
+
+- model_id: glm-5-turbo
+  model_name: glm-5-turbo
   api_base: "https://open.bigmodel.cn/api/anthropic"
   api_format: anthropic
   image: true
   can_stream: true
   api_key_name: zhipu
   thinking_mode: "enabled"
+
 - model_id: glm-4.5-air
   model_name: glm-4.5-air
   api_base: "https://open.bigmodel.cn/api/anthropic"

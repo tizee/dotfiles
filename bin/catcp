@@ -1,6 +1,6 @@
 #!/bin/zsh
 
-catcopy() {
+catcp() {
     if [[ $# -eq 0 ]]; then
         # from stdin
         pbcopy
@@ -10,4 +10,4 @@ catcopy() {
     fi
 }
 
-catcopy "$@"
+catcp "$@"
