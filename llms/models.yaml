@@ -104,7 +104,7 @@
     thinking:
       type: "disabled"
 - model_id: minimax
-  model_name: MiniMax-M2.5-highspeed
+  model_name: MiniMax-M2.7-highspeed
   api_base: "https://api.minimaxi.com/anthropic"
   image: false
   context_window: 204800
@@ -115,7 +115,7 @@
   effort: high
 
 - model_id: minimax-nothinking
-  model_name: MiniMax-M2.5-highspeed
+  model_name: MiniMax-M2.7-highspeed
   api_base: "https://api.minimaxi.com/anthropic"
   image: false
   context_window: 204800
