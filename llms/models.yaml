@@ -19,6 +19,17 @@
   image: true
   context_window: 400000
 
+- model_id: gpt-fast
+  model_name: gpt-5.4-nano
+  api_base: https://api.openai.com/v1
+  api_format: openai_responses
+  can_stream: true
+  api_key_name: oai-api
+  effort: medium
+  thinking_mode: disabled
+  image: true
+  context_window: 400000
+
 - model_id: gpt-5.4-mini
   model_name: gpt-5.4-mini
   api_base: "https://api.openai.com/v1/"
