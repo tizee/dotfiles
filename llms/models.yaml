@@ -15,7 +15,7 @@
   can_stream: true
   api_key_name: xiaomi
   thinking_mode: enabled
-  image: false
+  image: true
   context_window: 256000
 
 - model_id: gpt

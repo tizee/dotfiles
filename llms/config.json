@@ -15,9 +15,9 @@
       ],
       "ask": []
     },
-    "model": "minimax",
+    "model": "mimo",
     "background_model": "gpt",
-    "compact_model": "gpt-5.4-mini",
+    "compact_model": "kimi-for-coding",
     "subagent_model": "minimax",
     "micro_compact": {
       "enabled": false,
