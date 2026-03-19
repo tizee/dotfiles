@@ -8,6 +8,16 @@
   thinking_mode: enabled
   image: true
 
+- model_id: mimo
+  model_name: mimo-v2-pro
+  api_base: https://api.xiaomimimo.com/anthropic
+  api_format: anthropic
+  can_stream: true
+  api_key_name: xiaomi
+  thinking_mode: enabled
+  image: false
+  context_window: 256000
+
 - model_id: gpt
   model_name: gpt-5.4-nano
   api_base: https://api.openai.com/v1

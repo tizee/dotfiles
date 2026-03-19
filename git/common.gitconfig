@@ -188,8 +188,8 @@
   diffFilter = delta --color-only # git-delta
 
 # always use ssh
-[url "git@github.com:"]
-  insteadOf = https://github.com/
+#[url "git@github.com:"]
+#  insteadOf = https://github.com/
 [url "git@gitlab.com:"]
   insteadOf = https://gitlab.com/
 [url "git@github.com:"]
@@ -202,12 +202,12 @@
 [uploadpack]
   allowfilter = true
 
-; [https]
-; proxy = http://127.0.0.1:1080
+[https]
+proxy = http://127.0.0.1:1080
 ; ;   vpn may cause ssl issues
 ; sslVerify = false
-; [http]
-; proxy = http://127.0.0.1:1080
+[http]
+proxy = http://127.0.0.1:1080
 ; ;   vpn may cause ssl issues
 ; sslVerify = false
 
