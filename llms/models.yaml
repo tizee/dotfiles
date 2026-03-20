@@ -15,6 +15,7 @@
   can_stream: true
   api_key_name: xiaomi
   thinking_mode: enabled
+  effort: high
   image: true
   context_window: 256000
 
