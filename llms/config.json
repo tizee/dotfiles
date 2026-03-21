@@ -17,7 +17,7 @@
     },
     "model": "minimax",
     "background_model": "minimax",
-    "compact_model": "kimi-for-coding",
+    "compact_model": "inherit",
     "subagent_model": "minimax",
     "micro_compact": {
       "enabled": false,
