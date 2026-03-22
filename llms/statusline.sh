@@ -223,9 +223,9 @@ if [ -f "$QUOTA_SCRIPT" ]; then
             fi
 
         elif [ "$provider" = "minimax" ]; then
-            # MiniMax: show first model's quota (they all have same quota)
-            # Get the first session key that starts with "MiniMax"
-            first_model=$(echo "$quota_json" | jq -r '.sessions | keys[] | select(startswith("MiniMax"))' | head -1)
+            # MiniMax: show text model quota (MiniMax-M* is the text/coding model)
+            # Token plan includes non-text models (video, speech, image) -- skip those
+            first_model=$(echo "$quota_json" | jq -r '.sessions | keys[] | select(startswith("MiniMax-M"))' | head -1)
             if [ -n "$first_model" ]; then
                 current_pct=$(echo "$quota_json" | jq -r ".sessions[\"$first_model\"].used_percent // empty")
                 mm_used=$(echo "$quota_json" | jq -r ".sessions[\"$first_model\"].used // empty")

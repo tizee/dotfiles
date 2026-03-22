@@ -54,6 +54,8 @@
           "~/.config/llm/rss-reader.opml"
         ]
       }
-    }
+    },
+    "verify_completion": true,
+    "verification_model": "inherit"
   }
 }
