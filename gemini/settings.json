@@ -28,7 +28,6 @@
   "general": {
     "previewFeatures": true,
     "vimMode": true,
-    "disableAutoUpdate": true,
     "preferredEditor": "neovim",
     "checkpointing": {
       "enabled": true

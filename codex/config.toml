@@ -54,6 +54,9 @@ trust_level = "trusted"
 [projects."/Users/tizee/projects/project-AI/application/tizee-apps/VoiceScribe"]
 trust_level = "trusted"
 
+[projects."/Users/tizee/projects/project-AI/tools/bashguy.mattn"]
+trust_level = "trusted"
+
 [tui]
 status_line = ["model-with-reasoning", "five-hour-limit", "weekly-limit", "project-root", "git-branch", "context-remaining", "context-used", "context-window-size"]
 
@@ -76,8 +79,3 @@ wire_api = "responses"
 experimental_use_freeform_apply_patch = false
 include_apply_patch_tool = false
 
-[model_providers.openai]
-name = "OpenAI"
-base_url = "https://api.openai.com/v1"
-env_key = "OPENAI_API_KEY"
-wire_api = "responses"

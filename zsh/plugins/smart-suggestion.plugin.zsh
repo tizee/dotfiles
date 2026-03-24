@@ -19,98 +19,205 @@ typeset -g _SMART_SUGGESTION_LOADED=1
 (( ! ${+SMART_SUGGESTION_DEBUG} )) &&
     typeset -g SMART_SUGGESTION_DEBUG=false
 
-# Proxy mode configuration - now enabled by default
-(( ! ${+SMART_SUGGESTION_PROXY_MODE} )) &&
-    typeset -g SMART_SUGGESTION_PROXY_MODE=true
-
-# Auto-update configuration
-(( ! ${+SMART_SUGGESTION_AUTO_UPDATE} )) &&
-    typeset -g SMART_SUGGESTION_AUTO_UPDATE=true
-
-# Update interval configuration in days
-(( ! ${+SMART_SUGGESTION_UPDATE_INTERVAL} )) &&
-    typeset -g SMART_SUGGESTION_UPDATE_INTERVAL=7
-
-# Provider configuration file path
-(( ! ${+SMART_SUGGESTION_PROVIDER_FILE} )) &&
-    typeset -g SMART_SUGGESTION_PROVIDER_FILE="$HOME/.config/smart-suggestion/config.json"
-
-# Default AI provider (empty means use default_provider from config file)
-(( ! ${+SMART_SUGGESTION_AI_PROVIDER} )) &&
-    typeset -g SMART_SUGGESTION_AI_PROVIDER=""
-
-# Privacy filter configuration - enabled by default for security
-(( ! ${+SMART_SUGGESTION_PRIVACY_FILTER} )) &&
-    typeset -g SMART_SUGGESTION_PRIVACY_FILTER=true
-
-# Privacy filter level configuration
-(( ! ${+SMART_SUGGESTION_PRIVACY_LEVEL} )) &&
-    typeset -g SMART_SUGGESTION_PRIVACY_LEVEL=basic
+# Optional llms model override
+(( ! ${+SMART_SUGGESTION_LLMS_MODEL} )) &&
+    typeset -g SMART_SUGGESTION_LLMS_MODEL=""
 
 if [[ "$SMART_SUGGESTION_DEBUG" == 'true' ]]; then
     touch /tmp/smart-suggestion.log
 fi
 
-# Detect binary path
-if [[ -z "$SMART_SUGGESTION_BINARY" ]]; then
-    candidates=(
-        "${0:a:h}/smart-suggestion"
-        "$HOME/.config/smart-suggestion/smart-suggestion"
-    )
-    for bin in "${candidates[@]}"; do
-        if [[ -f "$bin" ]]; then
-            typeset -g SMART_SUGGESTION_BINARY="$bin"
-            break
-        fi
-    done
-    if [[ -z "$SMART_SUGGESTION_BINARY" ]]; then
-        echo "No available smart-suggestion binary found. Please ensure that it is installed correctly or set SMART_SUGGESTION_BINARY to a valid binary path."
-        return 1
-    fi
-else
-    if [[ ! -f "$SMART_SUGGESTION_BINARY" ]]; then
-        echo "smart-suggestion binary not found at $SMART_SUGGESTION_BINARY."
-        return 1
-    fi
+if ! command -v llms >/dev/null 2>&1; then
+    echo "llms command not found in PATH."
+    return 1
 fi
 
-function _run_smart_suggestion_proxy() {
-    if [[ $- == *i* ]]; then
-        "$SMART_SUGGESTION_BINARY" proxy
+function _smart_suggestion_debug_log() {
+    if [[ "$SMART_SUGGESTION_DEBUG" == 'true' ]]; then
+        print -r -- "[$(date '+%F %T')] $*" >> /tmp/smart-suggestion.log
     fi
+}
+
+function _smart_suggestion_write_error() {
+    local message="$1"
+
+    print -r -- "$message" > /tmp/.smart_suggestion_error
+    command rm -f /tmp/smart_suggestion
+    return 1
+}
+
+function _smart_suggestion_xml_escape() {
+    local value="$1"
+
+    value=${value//&/&amp;}
+    value=${value//</&lt;}
+    value=${value//>/&gt;}
+    print -r -- "$value"
+}
+
+function _smart_suggestion_collect_context() {
+    local context=""
+    local aliases_text=""
+    local history_text=""
+    local current_user="${USER:-$(whoami 2>/dev/null)}"
+    local escaped_pwd=$(_smart_suggestion_xml_escape "$PWD")
+    local escaped_shell=$(_smart_suggestion_xml_escape "zsh")
+    local escaped_user=$(_smart_suggestion_xml_escape "$current_user")
+    local escaped_aliases=""
+    local escaped_history=""
+    local -a cwd_dirs cwd_files
+    local dir_name
+    local file_name
+
+    cwd_dirs=( *(N-/) )
+    cwd_files=( *(N-.) )
+    cwd_dirs=("${cwd_dirs[@]:1:40}")
+    cwd_files=("${cwd_files[@]:1:80}")
+
+    context+="<environment-context>"$'\n'
+    context+="  <current-directory>$escaped_pwd</current-directory>"$'\n'
+    context+="  <shell>$escaped_shell</shell>"$'\n'
+    context+="  <user>$escaped_user</user>"$'\n'
+
+    context+="  <cwd-directories>"$'\n'
+    for dir_name in "${cwd_dirs[@]}"; do
+        context+="    <dir>$(_smart_suggestion_xml_escape "$dir_name")</dir>"$'\n'
+    done
+    context+="  </cwd-directories>"$'\n'
+
+    context+="  <cwd-files>"$'\n'
+    for file_name in "${cwd_files[@]}"; do
+        context+="    <file>$(_smart_suggestion_xml_escape "$file_name")</file>"$'\n'
+    done
+    context+="  </cwd-files>"$'\n'
+
+    aliases_text=$(alias 2>/dev/null)
+    if [[ -n "$aliases_text" ]]; then
+        escaped_aliases=$(_smart_suggestion_xml_escape "$aliases_text")
+        context+="  <aliases>$escaped_aliases</aliases>"$'\n'
+    fi
+
+    history_text=$(fc -ln -20 -1 2>/dev/null)
+    if [[ -n "$history_text" ]]; then
+        escaped_history=$(_smart_suggestion_xml_escape "$history_text")
+        context+="  <recent-history>$escaped_history</recent-history>"$'\n'
+    fi
+
+    context+="</environment-context>"
+    print -r -- "$context"
+}
+
+function _smart_suggestion_build_system_prompt() {
+    local context="$1"
+    local prompt="You are Smart Suggestion, an AI shell assistant for zsh.
+Return exactly one line and nothing else.
+The first character of your response must be = or +.
+You will receive environment details inside XML tags.
+Treat <current-directory> as the default scope for filesystem operations.
+Unless the user explicitly asks otherwise, prefer commands that operate inside <current-directory>.
+Prefer relative paths and . over ~ or absolute paths when the task can be solved from <current-directory>.
+Do not broaden searches to the home directory, root directory, or the whole filesystem unless the user explicitly asks for that scope.
+Use <cwd-directories> and <cwd-files> to infer likely targets in the current directory before searching more broadly.
+If the current input is empty, predict the most likely next shell command and prefix it with =.
+If the current input is a natural language request, convert it to a shell command and prefix it with =.
+If the current input is a partial shell command, return only the missing suffix to append at the cursor and prefix it with +.
+For + responses, never repeat the existing input.
+Valid examples:
+=ffmpeg -i input.mp4 -t 10 -c copy output_10s.mp4
++ -t 10 -c copy output_10s.mp4
+Invalid examples:
+Here is the command: ffmpeg -i input.mp4 -t 10 -c copy output_10s.mp4
+\`\`\`bash
+ffmpeg -i input.mp4 -t 10 -c copy output_10s.mp4
+\`\`\`
+Do not use markdown, code fences, comments, or explanations.
+The command must be valid for zsh on Unix."
+
+    if [[ -n "$context" ]]; then
+        prompt+=$'\n\n'"$context"
+    fi
+
+    print -r -- "$prompt"
+}
+
+function _smart_suggestion_normalize_result() {
+    emulate -L zsh
+    setopt extendedglob
+
+    local raw="$1"
+    local cleaned="${raw//$'\r'/}"
+    local line=""
+    local -a lines
+
+    lines=("${(@f)cleaned}")
+    for line in "${lines[@]}"; do
+        line="${line##[[:space:]]#}"
+        line="${line%%[[:space:]]#}"
+        [[ -z "$line" ]] && continue
+        if [[ "$line" == [=+]* ]]; then
+            print -r -- "$line"
+            return 0
+        fi
+    done
+
+    cleaned="${cleaned##[[:space:]]#}"
+    cleaned="${cleaned%%[[:space:]]#}"
+    print -r -- "$cleaned"
 }
 
 function _fetch_suggestions() {
-    # Prepare debug flag
-    local debug_flag=""
-    if [[ "$SMART_SUGGESTION_DEBUG" == 'true' ]]; then
-        debug_flag="--debug"
-    fi
+    local input="$1"
+    local context=""
+    local system_prompt=""
+    local llms_args=(prompt)
+    local result=""
+    local exit_code=0
 
-    # Prepare context flag
-    local context_flag=""
     if [[ "$SMART_SUGGESTION_SEND_CONTEXT" == 'true' ]]; then
-        context_flag="--context"
+        context=$(_smart_suggestion_collect_context)
     fi
 
-    # Prepare provider flag (only if SMART_SUGGESTION_AI_PROVIDER is set and non-empty)
-    # This allows using default_provider from config file when environment variable is not set
-    local provider_args=()
-    if [[ -n "$SMART_SUGGESTION_AI_PROVIDER" ]]; then
-        provider_args=(--provider "$SMART_SUGGESTION_AI_PROVIDER")
+    system_prompt=$(_smart_suggestion_build_system_prompt "$context")
+
+    if [[ -n "$SMART_SUGGESTION_LLMS_MODEL" ]]; then
+        llms_args+=(-m "$SMART_SUGGESTION_LLMS_MODEL")
     fi
 
-    # Call the Go binary with proper arguments
-    "$SMART_SUGGESTION_BINARY" \
-        "${provider_args[@]}" \
-        --input "$input" \
-        --output "/tmp/smart_suggestion" \
-        $debug_flag \
-        $context_flag
+    llms_args+=(-s "$system_prompt")
+    result=$(llms "${llms_args[@]}" "$input" 2>/tmp/.smart_suggestion_error)
+    exit_code=$?
 
-    return $?
+    if (( exit_code != 0 )); then
+        if [[ ! -s /tmp/.smart_suggestion_error ]]; then
+            print -r -- "llms prompt failed." > /tmp/.smart_suggestion_error
+        fi
+        return 1
+    fi
+
+    result=$(_smart_suggestion_normalize_result "$result")
+
+    if [[ -z "$result" ]]; then
+        _smart_suggestion_write_error "llms returned an empty suggestion."
+        return 1
+    fi
+
+    if [[ "$result" == *$'\n'* ]]; then
+        _smart_suggestion_write_error "llms returned multiple lines. Expected exactly one line prefixed with = or +."
+        return 1
+    fi
+
+    case "${result:0:1}" in
+        '='|'+' )
+            print -rn -- "$result" > /tmp/smart_suggestion
+            ;;
+        * )
+            _smart_suggestion_write_error "llms returned an invalid suggestion prefix. Expected = or +."
+            return 1
+            ;;
+    esac
+
+    return 0
 }
-
 
 function _show_loading_animation() {
     local pid=$1
@@ -127,12 +234,9 @@ function _show_loading_animation() {
 
     tput -S <<<"sc civis"
     while kill -0 $pid 2>/dev/null; do
-        # Display current animation frame
         zle -R "${animation_chars[i]} Press <Ctrl-c> to cancel"
 
-        # Update index, make sure it starts at 1
         i=$(( (i + 1) % ${#animation_chars[@]} ))
-
         if [[ $i -eq 0 ]]; then
             i=1
         fi
@@ -145,27 +249,23 @@ function _show_loading_animation() {
 }
 
 function _do_smart_suggestion() {
-    ##### Get input
     command rm -f /tmp/smart_suggestion
     command rm -f /tmp/.smart_suggestion_canceled
     command rm -f /tmp/.smart_suggestion_error
+
     local input=$(echo "${BUFFER:0:$CURSOR}" | tr '\n' ';')
-    
-    ##### Save current input to history for recovery
-    echo "$input" > /tmp/smart_suggestion_last_prompt
+
+    print -r -- "$input" > /tmp/smart_suggestion_last_prompt
 
     _zsh_autosuggest_clear
 
-    ##### Fetch message
-    read < <(_fetch_suggestions & echo $!)
+    read < <(_fetch_suggestions "$input" & echo $!)
     local pid=$REPLY
 
     _show_loading_animation $pid
     local response_code=$?
 
-    if [[ "$SMART_SUGGESTION_DEBUG" == 'true' ]]; then
-        echo "{\"date\":\"$(date)\",\"log\":\"Fetched message\",\"input\":\"$input\",\"response_code\":\"$response_code\"}" >> /tmp/smart-suggestion.log
-    fi
+    _smart_suggestion_debug_log "Fetched message input=${(qqq)input} response_code=$response_code"
 
     if [[ -f /tmp/.smart_suggestion_canceled ]]; then
         _zsh_autosuggest_clear
@@ -180,19 +280,12 @@ function _do_smart_suggestion() {
     fi
 
     local message=$(cat /tmp/smart_suggestion)
-
-    ##### Process response
-
     local first_char=${message:0:1}
     local suggestion=${message:1:${#message}}
 
-    ##### And now, let's actually show the suggestion to the user!
-
     if [[ "$first_char" == '=' ]]; then
-        # Reset user input
         BUFFER=""
         CURSOR=0
-
         zle -U "$suggestion"
     elif [[ "$first_char" == '+' ]]; then
         _zsh_autosuggest_suggest "$suggestion"
@@ -200,54 +293,21 @@ function _do_smart_suggestion() {
 }
 
 function _recover_last_prompt() {
-    ##### Check if last prompt file exists
     if [[ ! -f /tmp/smart_suggestion_last_prompt ]]; then
         zle -M "No previous prompt found"
         return 1
     fi
 
-    ##### Read the last prompt
     local last_prompt=$(cat /tmp/smart_suggestion_last_prompt 2>/dev/null)
-
     if [[ -z "$last_prompt" ]]; then
         zle -M "No previous prompt found"
         return 1
     fi
 
-    ##### Restore the prompt to buffer, converting back from semicolon format
     local restored_prompt=$(echo "$last_prompt" | tr ';' '\n')
     BUFFER="$restored_prompt"
     CURSOR=${#BUFFER}
     zle redisplay
-}
-
-function _check_smart_suggestion_updates() {
-    # Check if SMART_SUGGESTION_UPDATE_INTERVAL is a positive integer
-    if [[ "$SMART_SUGGESTION_UPDATE_INTERVAL" -le 0 ]]; then
-        echo "SMART_SUGGESTION_UPDATE_INTERVAL must be a positive integer. Will be reset to default value."
-        SMART_SUGGESTION_UPDATE_INTERVAL=7
-    fi
-
-    local update_file="$(dirname $SMART_SUGGESTION_BINARY)/.last_update_check"
-    local current_time=$(date +%s)
-    local update_interval=$((SMART_SUGGESTION_UPDATE_INTERVAL * 24 * 3600))  # Convert days to seconds
-
-    # Check if we should check for updates
-    if [[ -f "$update_file" ]]; then
-        local last_check=$(cat "$update_file" 2>/dev/null || echo "0")
-        local time_diff=$((current_time - last_check))
-
-        if [[ $time_diff -lt $update_interval ]]; then
-            return 0  # Too soon to check again
-        fi
-    fi
-
-    # Update the last check time
-    echo "$current_time" > "$update_file"
-
-    # Check for updates in background
-    ("$SMART_SUGGESTION_BINARY" update --check-only 2>/dev/null && \
-        echo "Smart Suggestion update available! Run 'smart-suggestion update' to update." || true) &
 }
 
 function smart-suggestion() {
@@ -257,26 +317,14 @@ function smart-suggestion() {
     echo "Configurations:"
     echo "    - SMART_SUGGESTION_KEY: Key to press to get suggestions (default: ^o, value: $SMART_SUGGESTION_KEY)."
     echo "    - SMART_SUGGESTION_RECOVER_KEY: Key to press to recover last prompt (default: ^[^o, value: $SMART_SUGGESTION_RECOVER_KEY)."
-    echo "    - SMART_SUGGESTION_SEND_CONTEXT: If \`true\`, smart-suggestion will send context information (whoami, shell, pwd, etc.) to the AI model (default: true, value: $SMART_SUGGESTION_SEND_CONTEXT)."
-    echo "    - SMART_SUGGESTION_AI_PROVIDER: AI provider to use ('openai', 'openai_compatible', 'azure_openai', 'anthropic', 'gemini', or 'deepseek'). If empty, uses default_provider from config file (value: ${SMART_SUGGESTION_AI_PROVIDER:-"(using config file default)"})."
-    echo "    - SMART_SUGGESTION_PRIVACY_FILTER: Enable/disable privacy filtering for context data (default: true, value: ${SMART_SUGGESTION_PRIVACY_FILTER:-"true"})."
-    echo "    - SMART_SUGGESTION_PRIVACY_LEVEL: Privacy filtering level ('none', 'basic', 'moderate', 'strict') (default: basic, value: ${SMART_SUGGESTION_PRIVACY_LEVEL:-"basic"})."
+    echo "    - SMART_SUGGESTION_SEND_CONTEXT: If \`true\`, include lightweight shell context for llms (default: true, value: $SMART_SUGGESTION_SEND_CONTEXT)."
+    echo "    - SMART_SUGGESTION_LLMS_MODEL: Optional llms model override (default: llms config default, value: ${SMART_SUGGESTION_LLMS_MODEL:-"(using llms default)"})."
     echo "    - SMART_SUGGESTION_DEBUG: Enable debug logging (default: false, value: $SMART_SUGGESTION_DEBUG)."
-    echo "    - SMART_SUGGESTION_AUTO_UPDATE: Enable automatic update checking (default: true, value: $SMART_SUGGESTION_AUTO_UPDATE)."
-    echo "    - SMART_SUGGESTION_UPDATE_INTERVAL: Days between update checks (default: 7, value: $SMART_SUGGESTION_UPDATE_INTERVAL)."
-    echo "    - SMART_SUGGESTION_BINARY: Binary path (value: $SMART_SUGGESTION_BINARY)."
+    echo "Requirements:"
+    echo "    - llms must be installed and available in PATH."
 }
 
 zle -N _do_smart_suggestion
 zle -N _recover_last_prompt
 bindkey "$SMART_SUGGESTION_KEY" _do_smart_suggestion
 bindkey "$SMART_SUGGESTION_RECOVER_KEY" _recover_last_prompt
-
-if [[ "$SMART_SUGGESTION_PROXY_MODE" == "true" && -z "$TMUX" && -z "$KITTY_LISTEN_ON" ]]; then
-    _run_smart_suggestion_proxy
-fi
-
-# Add update check to plugin initialization
-if [[ "$SMART_SUGGESTION_AUTO_UPDATE" == "true" ]]; then
-    _check_smart_suggestion_updates
-fi

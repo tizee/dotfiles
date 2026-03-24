@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+# ggrestore — 还原被 sshtunnel 转换的 git remote URL
+#
+#   ssh://git@localhost:9999/NousResearch/hermes-agent.git
+#   → git@github.com:NousResearch/hermes-agent.git
+#
+# 用法: cd repo && ggrestore
+#       ggrestore /path/to/repo
+
+set -euo pipefail
+
+GITSSH_PORT="${GITSSH_PORT:-8022}"
+
+main() {
+  local repo_dir="${1:-.}"
+
+  if [[ ! -d "$repo_dir/.git" ]]; then
+    echo "Error: $repo_dir 不是 git 仓库" >&2
+    exit 1
+  fi
+
+  cd "$repo_dir"
+
+  local remote_url
+  remote_url=$(git remote get-url origin 2>/dev/null) || {
+    echo "Error: 无法获取 origin remote" >&2
+    exit 1
+  }
+
+  # 匹配 ssh://git@localhost:$PORT/user/repo.git
+  if [[ "$remote_url" =~ ^ssh://git@localhost:[0-9]+/(.+/.+)\.git$ ]]; then
+    local repo_path="${BASH_REMATCH[1]}"
+    local new_url="git@github.com:${repo_path}.git"
+    git remote set-url origin "$new_url"
+    echo "✓ 已还原: $remote_url"
+    echo "          → $new_url"
+  else
+    echo "Error: origin 不是 tunnel URL，无需还原"
+    echo "  当前: $remote_url" >&2
+    exit 1
+  fi
+}
+
+main "$@"

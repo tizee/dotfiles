@@ -521,15 +521,7 @@ if $is_macOS; then
   # SMART SUGGESTION - Privacy-focused configuration
   export SMART_SUGGESTION_KEY='^o'
   export SMART_SUGGESTION_RECOVER_KEY='^y'
-  export SMART_SUGGESTION_AUTO_UPDATE=false
-  # openai_compatible, openai
-  export SMART_SUGGESTION_AI_PROVIDER="openai"
-  export SMART_SUGGESTION_BINARY="$HOME/projects/project-AI/tools/smart-suggestion.yetone/smart-suggestion"
-  export SMART_SUGGESTION_PROVIDER_FILE="$HOME/.config/llm/smart-suggestion.json"
-  # Privacy settings
-  export SMART_SUGGESTION_PROXY_MODE=false      # No terminal recording
-  export SMART_SUGGESTION_SEND_CONTEXT=false # Limited context only
-  export SMART_SUGGESTION_PRIVACY_LEVEL="moderate" # Basic filtering sufficient
+  export SMART_SUGGESTION_LLMS_MODEL="gpt-fast"
 
   # codex
   alias cdxs='codex --search --sandbox=danger-full-access --ask-for-approval=never -c sandbox_workspace_write.network_access=true'

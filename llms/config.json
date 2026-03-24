@@ -56,6 +56,6 @@
       }
     },
     "verify_completion": true,
-    "verification_model": "inherit"
+    "verification_model": "minimax"
   }
 }

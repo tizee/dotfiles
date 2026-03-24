@@ -89,7 +89,7 @@
   can_stream: true
   api_format: anthropic
   api_key_name: cc
-  context_window: 240000
+  context_window: 256000
   image: true
   thinking_mode: "adaptive"
 - model_id: sonnet
