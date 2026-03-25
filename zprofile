@@ -535,6 +535,10 @@ if $is_macOS; then
   # Added by Obsidian
   export PATH="$PATH:/Applications/Obsidian.app/Contents/MacOS"
 
-  alias ao="llms agent -m opus"
+  alias al="llms agent"
+  alias alo="llms agent -m opus"
+  alias alk="llms agent -m kimi"
+  alias alm="llms agent -m minimax"
+  alias alg="llms agent -m glm"
 fi
 

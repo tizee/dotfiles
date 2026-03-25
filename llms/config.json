@@ -15,10 +15,10 @@
       ],
       "ask": []
     },
-    "model": "minimax",
+    "model": "glm",
     "background_model": "minimax",
     "compact_model": "inherit",
-    "subagent_model": "minimax",
+    "subagent_model": "kimi-for-coding",
     "micro_compact": {
       "enabled": false,
       "keep_recent_turns": 6,
@@ -26,7 +26,7 @@
     },
     "permission_mode": "yolo",
     "session": {
-      "cleanup_period_days": 14
+      "cleanup_period_days": 9999
     },
     "persistent_debug": {
       "enabled": true,
@@ -56,6 +56,6 @@
       }
     },
     "verify_completion": true,
-    "verification_model": "minimax"
+    "verification_model": "glm-5-turbo"
   }
 }
