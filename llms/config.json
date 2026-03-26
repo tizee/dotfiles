@@ -15,7 +15,7 @@
       ],
       "ask": []
     },
-    "model": "glm",
+    "model": "gpt",
     "background_model": "minimax",
     "compact_model": "inherit",
     "subagent_model": "kimi-for-coding",

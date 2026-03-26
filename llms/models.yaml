@@ -20,7 +20,7 @@
   context_window: 256000
 
 - model_id: gpt
-  model_name: gpt-5.4-nano
+  model_name: gpt-5.4-mini
   api_base: https://api.openai.com/v1
   api_format: openai_responses
   can_stream: true
@@ -39,17 +39,6 @@
   effort: medium
   thinking_mode: disabled
   image: true
-  context_window: 400000
-
-- model_id: gpt-5.4-mini
-  model_name: gpt-5.4-mini
-  api_base: "https://api.openai.com/v1/"
-  can_stream: true
-  api_key_name: oai-api
-  api_format: openai_responses
-  image: true
-  thinking_mode: enabled
-  effort: medium
   context_window: 400000
 
 - model_id: orcodex
