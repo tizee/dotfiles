@@ -96,7 +96,8 @@
   api_format: anthropic
   image: true
   api_key_name: cc
-- model_id: kimi-for-coding
+
+- model_id: kimi
   model_name: kimi-for-coding
   api_base: "https://api.kimi.com/coding/"
   can_stream: true
@@ -105,6 +106,8 @@
   context_window: 262144
   api_key_name: kimi
   thinking_mode: "enabled"
+  effort: high
+
 - model_id: kimi-for-coding-instant
   model_name: kimi-for-coding
   api_base: "https://api.kimi.com/coding/"
@@ -149,7 +152,7 @@
   thinking_mode: "disabled"
 
 - model_id: glm
-  model_name: glm-5
+  model_name: glm-5.1
   api_base: "https://open.bigmodel.cn/api/anthropic"
   image: true
   context_window: 200000

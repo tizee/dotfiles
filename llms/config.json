@@ -2,6 +2,7 @@
   "debug": false,
   "agent": {
     "ui": {
+      "invertDiffColors": true,
       "statusline": {
         "command": "~/.config/llms/statusline.sh",
         "updateIntervalMs": 300
@@ -15,10 +16,10 @@
       ],
       "ask": []
     },
-    "model": "gpt",
+    "model": "minimax",
     "background_model": "minimax",
     "compact_model": "inherit",
-    "subagent_model": "kimi-for-coding",
+    "subagent_model": "minimax",
     "micro_compact": {
       "enabled": false,
       "keep_recent_turns": 6,
@@ -56,6 +57,6 @@
       }
     },
     "verify_completion": true,
-    "verification_model": "glm-5-turbo"
+    "verification_model": "minimax"
   }
 }

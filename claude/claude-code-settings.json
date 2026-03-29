@@ -45,7 +45,6 @@
     "ask": [],
     "defaultMode": "bypassPermissions"
   },
-  "model": "opus",
   "hooks": {
     "PreToolUse": [
       {
@@ -145,7 +144,6 @@
     "swift-lsp@claude-plugins-official": true
   },
   "alwaysThinkingEnabled": true,
-  "effortLevel": "low",
   "promptSuggestionEnabled": false,
   "companyAnnouncements": [
     "The more you know, the less you diversify. "
