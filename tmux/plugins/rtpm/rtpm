@@ -1,0 +1,688 @@
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.14"
+# dependencies = []
+# ///
+"""rtpm - rip-tpm: a lightweight Python tmux plugin manager.
+
+Drop-in replacement for tmux-plugins/tpm. Parses the same `set -g @plugin`
+declarations and manages plugins via shallow clone / fetch+reset.
+
+Usage in tmux.conf (replaces the tpm `run` line):
+    run '~/.config/tmux/plugins/rtpm/rtpm source'
+"""
+
+import argparse
+import os
+import re
+import shutil
+import subprocess
+import sys
+from dataclasses import dataclass
+from pathlib import Path
+
+
+# ---------------------------------------------------------------------------
+# Colors
+# ---------------------------------------------------------------------------
+
+class C:
+    """ANSI color codes."""
+    RESET   = "\033[0m"
+    BOLD    = "\033[1m"
+    DIM     = "\033[2m"
+    RED     = "\033[0;31m"
+    GREEN   = "\033[0;32m"
+    YELLOW  = "\033[0;33m"
+    BLUE    = "\033[0;34m"
+    CYAN    = "\033[0;36m"
+
+
+# ---------------------------------------------------------------------------
+# Data
+# ---------------------------------------------------------------------------
+
+@dataclass(frozen=True)
+class PluginSpec:
+    """A parsed plugin declaration."""
+    name: str       # e.g. "tmux-resurrect"
+    repo: str       # e.g. "tmux-plugins/tmux-resurrect" or full URL
+    branch: str | None = None
+
+    @property
+    def clone_url(self) -> str:
+        if "://" in self.repo or self.repo.startswith("git@"):
+            return self.repo
+        return f"https://git::@github.com/{self.repo}"
+
+
+# ---------------------------------------------------------------------------
+# Config parsing  (TPM-compatible)
+# ---------------------------------------------------------------------------
+
+# Matches: set -g @plugin 'user/repo'
+# Matches: set-option -g @plugin "user/repo"
+# Matches: set -g @plugin 'user/repo#branch'
+_PLUGIN_RE = re.compile(
+    r"""^\s*set(?:-option)?\s+  # set or set-option
+        -g\s+@plugin\s+        # -g @plugin
+        ['"]?                   # optional opening quote
+        ([^'"}\s]+)             # capture the plugin spec
+        ['"]?                   # optional closing quote
+    """,
+    re.VERBOSE,
+)
+
+# Matches: source-file path  /  source path  (with optional -q)
+_SOURCE_RE = re.compile(
+    r"""^\s*source(?:-file)?\s+  # source or source-file
+        (?:-q\s+)?               # optional -q flag
+        ['"]?                    # optional opening quote
+        ([^'"}\s]+)              # capture the path
+        ['"]?                    # optional closing quote
+    """,
+    re.VERBOSE,
+)
+
+# Matches: if-shell ... { ... source ... } blocks — we extract inner source lines
+# TPM also parses inside braces; we handle it by reading the full file content
+
+
+def expand_path(path: str) -> Path:
+    """Expand ~ and $HOME in paths."""
+    path = path.replace("~", str(Path.home()), 1) if path.startswith("~") else path
+    path = path.replace("$HOME", str(Path.home()))
+    return Path(path)
+
+
+def _read_file_lines(path: Path) -> list[str]:
+    """Read a file, return lines. Empty list on error."""
+    try:
+        return path.read_text().splitlines()
+    except (OSError, UnicodeDecodeError):
+        return []
+
+
+def find_tmux_conf() -> Path:
+    """Locate the user's tmux.conf (XDG first, then ~/.tmux.conf)."""
+    xdg = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config"))
+    xdg_conf = xdg / "tmux" / "tmux.conf"
+    if xdg_conf.is_file():
+        return xdg_conf
+    return Path.home() / ".tmux.conf"
+
+
+def _extract_sources(lines: list[str]) -> list[Path]:
+    """Extract source/source-file paths from config lines."""
+    sources: list[Path] = []
+    for line in lines:
+        m = _SOURCE_RE.match(line)
+        if m:
+            sources.append(expand_path(m.group(1)))
+    return sources
+
+
+def _extract_plugins(lines: list[str]) -> list[str]:
+    """Extract raw plugin specs from config lines."""
+    specs: list[str] = []
+    for line in lines:
+        m = _PLUGIN_RE.match(line)
+        if m:
+            specs.append(m.group(1))
+    return specs
+
+
+def parse_plugin_spec(raw: str) -> PluginSpec:
+    """Parse a raw spec like 'user/repo#branch' into PluginSpec."""
+    branch = None
+    if "#" in raw:
+        raw, branch = raw.rsplit("#", 1)
+    # name = last path component, strip .git suffix
+    basename = raw.rstrip("/").rsplit("/", 1)[-1]
+    name = basename.removesuffix(".git")
+    return PluginSpec(name=name, repo=raw, branch=branch)
+
+
+def parse_config(
+    conf_path: Path | None = None,
+    *,
+    _visited: set[Path] | None = None,
+) -> list[PluginSpec]:
+    """Parse tmux config (and all sourced files) for @plugin declarations."""
+    if conf_path is None:
+        conf_path = find_tmux_conf()
+
+    if _visited is None:
+        _visited = set()
+
+    resolved = conf_path.resolve()
+    if resolved in _visited:
+        return []
+    _visited.add(resolved)
+
+    lines = _read_file_lines(conf_path)
+    raw_specs = _extract_plugins(lines)
+    sourced = _extract_sources(lines)
+
+    plugins: list[PluginSpec] = []
+    for raw in raw_specs:
+        plugins.append(parse_plugin_spec(raw))
+
+    for src in sourced:
+        plugins.extend(parse_config(src, _visited=_visited))
+
+    # Also try /etc/tmux.conf (TPM does this)
+    etc_conf = Path("/etc/tmux.conf")
+    if etc_conf.resolve() not in _visited and etc_conf.is_file():
+        plugins.extend(parse_config(etc_conf, _visited=_visited))
+
+    return plugins
+
+
+# ---------------------------------------------------------------------------
+# Plugin path resolution
+# ---------------------------------------------------------------------------
+
+def get_plugin_dir() -> Path:
+    """Determine the plugin install directory.
+
+    Priority:
+      1. $TMUX_PLUGIN_MANAGER_PATH env var
+      2. tmux show-environment TMUX_PLUGIN_MANAGER_PATH
+      3. XDG (~/.config/tmux/plugins/)  if tmux.conf exists there
+      4. ~/.tmux/plugins/
+    """
+    env_val = os.environ.get("TMUX_PLUGIN_MANAGER_PATH")
+    if env_val:
+        return expand_path(env_val)
+
+    # try tmux server env
+    try:
+        result = subprocess.run(
+            ["tmux", "show-environment", "-g", "TMUX_PLUGIN_MANAGER_PATH"],
+            capture_output=True, text=True, timeout=5,
+        )
+        if result.returncode == 0:
+            for line in result.stdout.splitlines():
+                if "=" in line:
+                    val = line.split("=", 1)[1]
+                    if val and val != "/":
+                        return expand_path(val)
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        pass
+
+    xdg = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config"))
+    if (xdg / "tmux" / "tmux.conf").is_file():
+        return xdg / "tmux" / "plugins"
+
+    return Path.home() / ".tmux" / "plugins"
+
+
+# ---------------------------------------------------------------------------
+# Git operations
+# ---------------------------------------------------------------------------
+
+def _git(*args: str, cwd: Path | None = None) -> subprocess.CompletedProcess[str]:
+    env = {**os.environ, "GIT_TERMINAL_PROMPT": "0"}
+    return subprocess.run(
+        ["git", *args],
+        capture_output=True, text=True, cwd=cwd, env=env, timeout=120,
+    )
+
+
+def clone_plugin(spec: PluginSpec, plugin_dir: Path) -> bool:
+    """Shallow-clone a plugin (--depth=1). Returns True on success."""
+    target = plugin_dir / spec.name
+    if target.exists():
+        return True
+
+    args = ["clone", "--depth=1", "--single-branch", "--recursive", "--shallow-submodules"]
+    if spec.branch:
+        args.extend(["-b", spec.branch])
+    args.append(spec.clone_url)
+    args.append(str(target))
+
+    result = _git(*args)
+    return result.returncode == 0
+
+
+def update_plugin(name: str, plugin_dir: Path, *, remote: str = "origin", branch: str | None = None) -> tuple[bool, str]:
+    """Update a plugin via fetch --depth=1 + reset --hard FETCH_HEAD.
+
+    This is the "resetupdate" strategy: always keep a shallow history
+    and hard-reset to the latest remote HEAD.
+    """
+    target = plugin_dir / name
+    if not target.is_dir():
+        return False, f"{name} not installed"
+
+    # Determine branch: explicit > current HEAD ref > fallback to remote HEAD
+    if branch is None:
+        ref = _git("symbolic-ref", "--quiet", "--short", "HEAD", cwd=target)
+        branch = ref.stdout.strip() if ref.returncode == 0 and ref.stdout.strip() else None
+
+    fetch_args = ["fetch", "--depth=1", remote]
+    if branch:
+        fetch_args.append(branch)
+
+    result = _git(*fetch_args, cwd=target)
+    if result.returncode != 0:
+        return False, result.stderr.strip()
+
+    reset = _git("reset", "--hard", "FETCH_HEAD", cwd=target)
+    if reset.returncode != 0:
+        return False, reset.stderr.strip()
+
+    sub = _git("submodule", "update", "--init", "--recursive", "--depth=1", cwd=target)
+    output = reset.stdout.strip()
+    if sub.returncode != 0:
+        output += "\n" + sub.stderr.strip()
+    return True, output
+
+
+def source_plugins(specs: list[PluginSpec], plugin_dir: Path) -> None:
+    """Run all *.tmux files from each installed plugin directory."""
+    for spec in specs:
+        pdir = plugin_dir / spec.name
+        if not pdir.is_dir():
+            continue
+        for tmux_file in sorted(pdir.glob("*.tmux")):
+            if tmux_file.is_file():
+                try:
+                    subprocess.run(
+                        [str(tmux_file)],
+                        capture_output=True, timeout=30,
+                    )
+                except (OSError, subprocess.TimeoutExpired):
+                    pass
+
+
+# ---------------------------------------------------------------------------
+# Commands
+# ---------------------------------------------------------------------------
+
+SELF_NAMES = {"tpm", "rtpm"}
+
+
+def cmd_install(args: argparse.Namespace) -> int:
+    plugin_dir = get_plugin_dir()
+    plugin_dir.mkdir(parents=True, exist_ok=True)
+    specs = parse_config(Path(args.config) if args.config else None)
+
+    any_fail = False
+    for spec in specs:
+        if spec.name in SELF_NAMES:
+            continue
+        target = plugin_dir / spec.name
+        if target.is_dir():
+            print(f"  {C.DIM}Already installed: {spec.name}{C.RESET}")
+            continue
+        print(f"  Installing: {C.BOLD}{spec.name}{C.RESET} ...", end=" ", flush=True)
+        if clone_plugin(spec, plugin_dir):
+            print(f"{C.GREEN}ok{C.RESET}")
+        else:
+            print(f"{C.RED}FAIL{C.RESET}")
+            any_fail = True
+    return 1 if any_fail else 0
+
+
+def cmd_update(args: argparse.Namespace) -> int:
+    plugin_dir = get_plugin_dir()
+    specs = parse_config(Path(args.config) if args.config else None)
+
+    targets: list[str]
+    if args.plugins and args.plugins != ["all"]:
+        targets = args.plugins
+    else:
+        targets = [s.name for s in specs if s.name not in SELF_NAMES]
+
+    any_fail = False
+    for name in targets:
+        if name in SELF_NAMES:
+            continue
+        print(f"  Updating: {C.BOLD}{name}{C.RESET} ...", end=" ", flush=True)
+        ok, output = update_plugin(name, plugin_dir)
+        if ok:
+            print(f"{C.GREEN}ok{C.RESET}")
+            if output and "Already up to date" not in output:
+                for line in output.splitlines():
+                    print(f"    {C.DIM}| {line}{C.RESET}")
+        else:
+            print(f"{C.RED}FAIL{C.RESET}")
+            for line in output.splitlines():
+                print(f"    {C.RED}| {line}{C.RESET}")
+            any_fail = True
+    return 1 if any_fail else 0
+
+
+def cmd_clean(args: argparse.Namespace) -> int:
+    plugin_dir = get_plugin_dir()
+    if not plugin_dir.is_dir():
+        return 0
+    specs = parse_config(Path(args.config) if args.config else None)
+    wanted = {s.name for s in specs} | SELF_NAMES
+
+    any_fail = False
+    for entry in sorted(plugin_dir.iterdir()):
+        if not entry.is_dir():
+            continue
+        if entry.name in wanted:
+            continue
+        print(f"  Removing: {C.BOLD}{entry.name}{C.RESET} ...", end=" ", flush=True)
+        try:
+            shutil.rmtree(entry)
+            print(f"{C.GREEN}ok{C.RESET}")
+        except OSError as e:
+            print(f"{C.RED}FAIL ({e}){C.RESET}")
+            any_fail = True
+    return 1 if any_fail else 0
+
+
+def cmd_list(args: argparse.Namespace) -> int:
+    plugin_dir = get_plugin_dir()
+    specs = parse_config(Path(args.config) if args.config else None)
+
+    print(f"  {C.CYAN}Plugin directory:{C.RESET} {plugin_dir}")
+    print()
+
+    installed = set()
+    if plugin_dir.is_dir():
+        installed = {
+            e.name for e in plugin_dir.iterdir()
+            if e.is_dir() and e.name not in SELF_NAMES
+        }
+
+    configured = {s.name for s in specs if s.name not in SELF_NAMES}
+
+    for spec in specs:
+        if spec.name in SELF_NAMES:
+            continue
+        is_installed = (plugin_dir / spec.name).is_dir()
+        marker = f"{C.GREEN}+{C.RESET}" if is_installed else f"{C.RED}-{C.RESET}"
+        name_color = C.RESET if is_installed else C.RED
+        branch = f" {C.DIM}(branch: {spec.branch}){C.RESET}" if spec.branch else ""
+        print(f"  [{marker}] {name_color}{spec.name}{C.RESET}  {C.DIM}({spec.repo}){C.RESET}{branch}")
+
+    orphaned = installed - configured
+    if orphaned:
+        print()
+        print(f"  {C.YELLOW}Orphaned (not in config):{C.RESET}")
+        for name in sorted(orphaned):
+            print(f"  [{C.YELLOW}?{C.RESET}] {C.YELLOW}{name}{C.RESET}")
+
+    return 0
+
+
+def _menu_print_plugins(specs: list[PluginSpec], plugin_dir: Path) -> tuple[set[str], set[str]]:
+    """Print plugin list in the menu. Returns (installed_names, orphaned_names)."""
+    installed = set()
+    if plugin_dir.is_dir():
+        installed = {
+            e.name for e in plugin_dir.iterdir()
+            if e.is_dir() and e.name not in SELF_NAMES
+        }
+
+    configured = set()
+    for spec in specs:
+        if spec.name in SELF_NAMES:
+            continue
+        configured.add(spec.name)
+        is_installed = (plugin_dir / spec.name).is_dir()
+        marker = f"{C.GREEN}+{C.RESET}" if is_installed else f"{C.RED}-{C.RESET}"
+        name_color = C.RESET if is_installed else C.RED
+        branch = f" {C.DIM}(branch: {spec.branch}){C.RESET}" if spec.branch else ""
+        print(f"  [{marker}] {name_color}{spec.name}{C.RESET}  {C.DIM}({spec.repo}){C.RESET}{branch}")
+
+    orphaned = installed - configured
+    if orphaned:
+        print()
+        print(f"  {C.YELLOW}Orphaned (not in config):{C.RESET}")
+        for name in sorted(orphaned):
+            print(f"  [{C.YELLOW}?{C.RESET}] {C.YELLOW}{name}{C.RESET}")
+
+    return installed, orphaned
+
+
+def _menu_do_install(specs: list[PluginSpec], plugin_dir: Path) -> None:
+    """Install only missing plugins, skip already installed silently."""
+    plugin_dir.mkdir(parents=True, exist_ok=True)
+    missing = [s for s in specs if s.name not in SELF_NAMES and not (plugin_dir / s.name).is_dir()]
+    if not missing:
+        print(f"  {C.GREEN}All plugins already installed.{C.RESET}")
+        return
+    for spec in missing:
+        print(f"  Installing: {C.BOLD}{spec.name}{C.RESET} ...", end=" ", flush=True)
+        if clone_plugin(spec, plugin_dir):
+            print(f"{C.GREEN}ok{C.RESET}")
+        else:
+            print(f"{C.RED}FAIL{C.RESET}")
+
+
+def _menu_do_update(specs: list[PluginSpec], plugin_dir: Path) -> None:
+    """Show numbered list of installed plugins, let user pick which to update."""
+    updatable = [s for s in specs if s.name not in SELF_NAMES and (plugin_dir / s.name).is_dir()]
+    if not updatable:
+        print(f"  {C.DIM}No installed plugins to update.{C.RESET}")
+        return
+
+    print()
+    for i, spec in enumerate(updatable, 1):
+        print(f"  {C.CYAN}{i}{C.RESET}) {spec.name}")
+    print(f"  {C.CYAN}a{C.RESET}) all")
+    print()
+    print(f"  Select plugins to update {C.DIM}(e.g. 1 3, or a){C.RESET}: ", end="", flush=True)
+
+    choice = _read_line()
+    print()
+
+    if not choice or choice.strip() in ("q", ""):
+        return
+
+    if choice.strip().lower() == "a":
+        targets = updatable
+    else:
+        targets = []
+        for part in choice.split():
+            try:
+                idx = int(part)
+                if 1 <= idx <= len(updatable):
+                    targets.append(updatable[idx - 1])
+            except ValueError:
+                pass
+        if not targets:
+            print(f"  {C.YELLOW}No valid selection.{C.RESET}")
+            return
+
+    for spec in targets:
+        print(f"  Updating: {C.BOLD}{spec.name}{C.RESET} ...", end=" ", flush=True)
+        ok, output = update_plugin(spec.name, plugin_dir)
+        if ok:
+            print(f"{C.GREEN}ok{C.RESET}")
+            if output and "Already up to date" not in output:
+                for line in output.splitlines():
+                    print(f"    {C.DIM}| {line}{C.RESET}")
+        else:
+            print(f"{C.RED}FAIL{C.RESET}")
+            for line in output.splitlines():
+                print(f"    {C.RED}| {line}{C.RESET}")
+
+
+def cmd_menu(args: argparse.Namespace) -> int:
+    """Interactive popup menu: list plugins, then act via keypress."""
+    config_path = Path(args.config) if args.config else None
+
+    while True:
+        plugin_dir = get_plugin_dir()
+        specs = parse_config(config_path)
+
+        # clear screen and print header
+        print("\033[2J\033[H", end="")
+        print(f"  {C.BOLD}{C.CYAN}rtpm{C.RESET} {C.DIM}- {plugin_dir}{C.RESET}\n")
+
+        _menu_print_plugins(specs, plugin_dir)
+
+        print()
+        print(f"  {C.BOLD}{C.CYAN}[i]{C.RESET}nstall  {C.BOLD}{C.CYAN}[u]{C.RESET}pdate  {C.BOLD}{C.CYAN}[c]{C.RESET}lean  {C.BOLD}{C.DIM}[q]{C.RESET}uit")
+        print()
+
+        key = _read_key()
+        if key in ("q", "\x1b", "\x03"):  # q, Esc, Ctrl-C
+            break
+
+        if key == "i":
+            _menu_do_install(specs, plugin_dir)
+            _wait_key()
+        elif key == "u":
+            _menu_do_update(specs, plugin_dir)
+            _wait_key()
+        elif key == "c":
+            print(f"  {C.CYAN}Cleaning unused plugins ...{C.RESET}\n")
+            args_ns = argparse.Namespace(config=args.config)
+            cmd_clean(args_ns)
+            _wait_key()
+        # any other key: just refresh
+
+    return 0
+
+
+def _read_key() -> str:
+    """Read a single keypress from TTY (raw mode, no echo)."""
+    import termios
+    import tty
+    fd = sys.stdin.fileno()
+    old = termios.tcgetattr(fd)
+    try:
+        tty.setraw(fd)
+        return sys.stdin.read(1)
+    finally:
+        termios.tcsetattr(fd, termios.TCSADRAIN, old)
+
+
+def _read_line() -> str:
+    """Read a line of input (cooked mode). Used for multi-char input in menus."""
+    import termios
+    fd = sys.stdin.fileno()
+    old = termios.tcgetattr(fd)
+    try:
+        # restore cooked mode so the user gets echo + line editing
+        termios.tcsetattr(fd, termios.TCSADRAIN, old)
+        return input()
+    except EOFError:
+        return ""
+    finally:
+        termios.tcsetattr(fd, termios.TCSADRAIN, old)
+
+
+def _wait_key() -> None:
+    """Prompt and wait for a keypress to continue."""
+    print(f"\n  {C.DIM}(press any key to continue){C.RESET}")
+    _read_key()
+
+
+def cmd_source(args: argparse.Namespace) -> int:
+    """Source all plugin *.tmux files — intended to be called from tmux.conf."""
+    plugin_dir = get_plugin_dir()
+    specs = parse_config(Path(args.config) if args.config else None)
+
+    # Set TMUX_PLUGIN_MANAGER_PATH for child processes
+    try:
+        subprocess.run(
+            ["tmux", "set-environment", "-g",
+             "TMUX_PLUGIN_MANAGER_PATH", str(plugin_dir) + "/"],
+            capture_output=True, timeout=5,
+        )
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        pass
+
+    # Register keybinding for the popup menu
+    _register_keybindings()
+
+    source_plugins(specs, plugin_dir)
+    return 0
+
+
+def _get_tmux_option(option: str, default: str) -> str:
+    """Read a tmux user option, fallback to default."""
+    try:
+        result = subprocess.run(
+            ["tmux", "show-option", "-gqv", option],
+            capture_output=True, text=True, timeout=5,
+        )
+        val = result.stdout.strip()
+        if val:
+            return val
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        pass
+    return default
+
+
+DEFAULT_MENU_KEY = "M-i"
+
+
+def _register_keybindings() -> None:
+    """Bind a single key (configurable via @rtpm-key) to the interactive popup menu."""
+    rtpm = Path(__file__).resolve()
+    key = _get_tmux_option("@rtpm-key", DEFAULT_MENU_KEY)
+
+    try:
+        subprocess.run(
+            ["tmux", "bind-key", key,
+             "display-popup", "-E", "-w", "70%", "-h", "60%",
+             "-T", "[rtpm]", "-b", "heavy",
+             f"{rtpm} menu"],
+            capture_output=True, timeout=5,
+        )
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        pass
+
+
+# ---------------------------------------------------------------------------
+# CLI
+# ---------------------------------------------------------------------------
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="rtpm",
+        description="rip-tpm: lightweight tmux plugin manager (TPM-compatible)",
+    )
+    parser.add_argument(
+        "-c", "--config", metavar="PATH",
+        help="Path to tmux.conf (auto-detected if omitted)",
+    )
+    sub = parser.add_subparsers(dest="command")
+
+    sub.add_parser("install", help="Install missing plugins")
+    p_update = sub.add_parser("update", help="Update plugins")
+    p_update.add_argument(
+        "plugins", nargs="*", default=["all"],
+        help="Plugin names to update (default: all)",
+    )
+    sub.add_parser("clean", help="Remove plugins not in config")
+    sub.add_parser("list", help="List configured & installed plugins")
+    sub.add_parser("menu", help="Interactive popup menu (list + actions)")
+    sub.add_parser("source", help="Source all plugin *.tmux files (for tmux.conf)")
+
+    return parser
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = build_parser()
+    args = parser.parse_args(argv)
+
+    if not args.command:
+        parser.print_help()
+        return 0
+
+    dispatch = {
+        "install": cmd_install,
+        "update": cmd_update,
+        "clean": cmd_clean,
+        "list": cmd_list,
+        "menu": cmd_menu,
+        "source": cmd_source,
+    }
+    return dispatch[args.command](args)
+
+
+if __name__ == "__main__":
+    sys.exit(main())

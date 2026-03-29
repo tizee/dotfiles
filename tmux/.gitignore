@@ -1,2 +1,3 @@
-plugins
+!plugins/rtpm
+plugins/
 log

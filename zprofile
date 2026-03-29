@@ -527,7 +527,7 @@ if $is_macOS; then
   alias cdxs='codex --search --sandbox=danger-full-access --ask-for-approval=never -c sandbox_workspace_write.network_access=true'
 
   # tmux-capture
-  source "$HOME/projects/project-python/tizee-packages/tmux-capture/tmux-capture.plugin.zsh"
+  source "$HOME/.config/tmux/plugins/tmux-capture/tmux-capture.plugin.zsh"
 
   export CCPROXY_PROVIDER="glm"
   alias tailscale="/Applications/Tailscale.app/Contents/MacOS/Tailscale"
