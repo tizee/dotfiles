@@ -1,0 +1,610 @@
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.11"
+# dependencies = []
+# ///
+"""
+Variable Typographic ASCII — terminal edition.
+
+Ported from chenglou/pretext's browser demo (pages/demos/variable-typographic-ascii.ts).
+Particle-and-attractor brightness field rendered as monospace ASCII art with
+optional true-color ANSI gradients. Auto-scales to terminal size and responds
+to live resize (SIGWINCH).
+
+On macOS, hot-path functions (splat, decay, physics, downsample) are
+JIT-compiled to C via cc and called through ctypes + vDSP/Accelerate.
+Falls back to pure Python on other platforms or if compilation fails.
+
+Controls: Ctrl-C to quit, 'c' to toggle color, 'q' to quit.
+"""
+
+from __future__ import annotations
+
+import array
+import atexit
+import ctypes
+import ctypes.util
+import math
+import os
+import random
+import select
+import shutil
+import signal
+import subprocess
+import sys
+import tempfile
+import termios
+import time
+import tty
+
+# ── Simulation constants ─────────────────────────────────────────────
+
+PARTICLE_N = 120
+FIELD_OVERSAMPLE = 2
+FIELD_DECAY = 0.82
+TARGET_FPS = 30
+MAX_COLS = 80
+MAX_ROWS = 36
+RESIZE_DEBOUNCE_S = 0.15
+CELL_ASPECT = 2.0
+
+SPRITE_R_NORM = 14 / 220
+ATTRACTOR_R_NORM = 12 / 220
+LARGE_ATTRACTOR_R_NORM = 30 / 220
+ATTRACTOR_FORCE_1 = 0.22
+ATTRACTOR_FORCE_2 = 0.05
+
+MONO_RAMP = " .`-_:,;^=+/|)\\!?0oOQ#%@"
+COLOR_R, COLOR_G, COLOR_B = 196, 163, 90
+
+# ── Pre-computed LUTs ─────────────────────────────────────────────────
+
+_RAMP_LEN = len(MONO_RAMP)
+_LUT_MONO: list[str] = []
+_LUT_COLOR: list[str] = []
+for _b in range(256):
+    _ch = MONO_RAMP[min(_RAMP_LEN - 1, _b * _RAMP_LEN >> 8)]
+    _LUT_MONO.append(_ch)
+    if _b <= 7:
+        _LUT_COLOR.append(" ")
+    else:
+        _a = _b / 255.0
+        _LUT_COLOR.append(
+            f"\033[38;2;{int(COLOR_R * _a)};{int(COLOR_G * _a)};{int(COLOR_B * _a)}m{_ch}"
+        )
+del _b, _ch, _a
+
+RESET = "\033[0m"
+
+# ── Native acceleration (macOS: cc + vDSP) ───────────────────────────
+
+_C_SRC = r"""
+#include <math.h>
+#include <stdlib.h>
+
+void splat_batch(
+    float *bf,
+    const float *norm_x, const float *norm_y,
+    int count,
+    int rx, int ry, int sx,
+    const float *vals,
+    float cols_fos, float cols_ca_fos,
+    int field_cols, int field_rows
+) {
+    for (int p = 0; p < count; p++) {
+        int gcx = (int)(norm_x[p] * cols_fos + 0.5f);
+        int gcy = (int)(norm_y[p] * cols_ca_fos + 0.5f);
+        int y_lo = -ry > -gcy ? -ry : -gcy;
+        int y_hi = ry < (field_rows - 1 - gcy) ? ry : (field_rows - 1 - gcy);
+        for (int y = y_lo; y <= y_hi; y++) {
+            int fr_off = (gcy + y) * field_cols;
+            int sr_off = (y + ry) * sx + rx;
+            int x_lo = -rx > -gcx ? -rx : -gcx;
+            int x_hi = rx < (field_cols - 1 - gcx) ? rx : (field_cols - 1 - gcx);
+            for (int x = x_lo; x <= x_hi; x++) {
+                float sv = vals[sr_off + x];
+                if (sv > 0.0f) {
+                    int fi = fr_off + gcx + x;
+                    float s = bf[fi] + sv;
+                    bf[fi] = s < 1.0f ? s : 1.0f;
+                }
+            }
+        }
+    }
+}
+
+void physics_step(
+    double *px, double *py, double *pvx, double *pvy,
+    int n,
+    double a1x, double a1y, double a2x, double a2y,
+    double f1n, double f2n, double jn, double damp,
+    double mg, double vis_y, double wrap_x, double wrap_y
+) {
+    for (int i = 0; i < n; i++) {
+        double xi = px[i], yi = py[i];
+        double d1x = a1x - xi, d1y = a1y - yi;
+        double d2x = a2x - xi, d2y = a2y - yi;
+        double dd1 = d1x*d1x + d1y*d1y;
+        double dd2 = d2x*d2x + d2y*d2y;
+        double ax, ay, fn;
+        if (dd1 < dd2) { ax = d1x; ay = d1y; fn = f1n; }
+        else           { ax = d2x; ay = d2y; fn = f2n; dd1 = dd2; }
+        double inv_d = fn / (sqrt(dd1) + 0.004545454545454546);
+        /* xorshift64* inline PRNG — avoids libc rand() call overhead */
+        static unsigned long long rng_state = 0x12345678DEADBEEF;
+        rng_state ^= rng_state >> 12;
+        rng_state ^= rng_state << 25;
+        rng_state ^= rng_state >> 27;
+        double r1 = (double)(rng_state * 0x2545F4914F6CDD1DULL >> 33) / 2147483648.0 - 0.5;
+        rng_state ^= rng_state >> 12;
+        rng_state ^= rng_state << 25;
+        rng_state ^= rng_state >> 27;
+        double r2 = (double)(rng_state * 0x2545F4914F6CDD1DULL >> 33) / 2147483648.0 - 0.5;
+        double vxi = pvx[i] + ax * inv_d + r1 * jn;
+        double vyi = pvy[i] + ay * inv_d + r2 * jn;
+        vxi *= damp; vyi *= damp;
+        xi += vxi; yi += vyi;
+        if      (xi < -mg)       xi += wrap_x;
+        else if (xi > 1.0 + mg)  xi -= wrap_x;
+        if      (yi < -mg)       yi += wrap_y;
+        else if (yi > vis_y+mg)  yi -= wrap_y;
+        px[i] = xi; py[i] = yi; pvx[i] = vxi; pvy[i] = vyi;
+    }
+}
+
+/* 2x2 downsample: field (fc x fr) -> out (cols x rows) as uint8 brightness */
+void downsample_2x2(
+    const float *bf, unsigned char *out,
+    int cols, int rows, int fc
+) {
+    int fc2 = fc * 2;
+    int idx = 0;
+    for (int row = 0; row < rows; row++) {
+        int r0 = row * fc2;
+        for (int col = 0; col < cols; col++) {
+            int c0 = r0 + col * 2;
+            float v = (bf[c0] + bf[c0+1] + bf[c0+fc] + bf[c0+fc+1]) * 63.75f;
+            int b = (int)v;
+            out[idx++] = (unsigned char)(b < 255 ? b : 255);
+        }
+    }
+}
+"""
+
+_native_lib = None
+_native_tmpdir: str | None = None
+_vdsp_vsmul = None   # vDSP_vsmul from Accelerate
+
+
+def _try_compile_native() -> ctypes.CDLL | None:
+    """Compile C hot-path functions to a shared library. Returns None on failure."""
+    global _native_tmpdir
+    try:
+        _native_tmpdir = tempfile.mkdtemp(prefix="ascii_particles_")
+        c_path = os.path.join(_native_tmpdir, "hotpath.c")
+        if sys.platform == "darwin":
+            so_path = os.path.join(_native_tmpdir, "hotpath.dylib")
+        else:
+            so_path = os.path.join(_native_tmpdir, "hotpath.so")
+        with open(c_path, "w") as f:
+            f.write(_C_SRC)
+        r = subprocess.run(
+            ["cc", "-O2", "-shared", "-fPIC", "-lm", "-o", so_path, c_path],
+            capture_output=True, timeout=10,
+        )
+        if r.returncode != 0:
+            return None
+        lib = ctypes.cdll.LoadLibrary(so_path)
+        # Bind splat_batch
+        lib.splat_batch.restype = None
+        lib.splat_batch.argtypes = [
+            ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_int,
+            ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_void_p,
+            ctypes.c_float, ctypes.c_float, ctypes.c_int, ctypes.c_int,
+        ]
+        # Bind physics_step
+        lib.physics_step.restype = None
+        lib.physics_step.argtypes = [
+            ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p,
+            ctypes.c_int,
+            ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double,
+            ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double,
+            ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_double,
+        ]
+        # Bind downsample_2x2
+        lib.downsample_2x2.restype = None
+        lib.downsample_2x2.argtypes = [
+            ctypes.c_void_p, ctypes.c_void_p,
+            ctypes.c_int, ctypes.c_int, ctypes.c_int,
+        ]
+        return lib
+    except Exception:
+        return None
+
+
+def _try_load_vdsp() -> object | None:
+    """Load vDSP_vsmul from macOS Accelerate framework."""
+    if sys.platform != "darwin":
+        return None
+    try:
+        accel = ctypes.cdll.LoadLibrary(
+            "/System/Library/Frameworks/Accelerate.framework/Accelerate"
+        )
+        fn = accel.vDSP_vsmul
+        fn.restype = None
+        fn.argtypes = [
+            ctypes.c_void_p, ctypes.c_long, ctypes.c_void_p,
+            ctypes.c_void_p, ctypes.c_long, ctypes.c_ulong,
+        ]
+        return fn
+    except Exception:
+        return None
+
+
+def _cleanup_native() -> None:
+    if _native_tmpdir and os.path.isdir(_native_tmpdir):
+        shutil.rmtree(_native_tmpdir, ignore_errors=True)
+
+
+atexit.register(_cleanup_native)
+
+# ── Stamp helpers ─────────────────────────────────────────────────────
+
+def _sprite_alpha(d: float) -> float:
+    if d >= 1.0:
+        return 0.0
+    if d <= 0.35:
+        return 0.45 - (0.3 / 0.35) * d
+    return 0.15 * (1.0 - (d - 0.35) / 0.65)
+
+
+def _create_stamp(radius_norm: float, cols: int) -> tuple[int, int, int, array.array[float]]:
+    fos = float(FIELD_OVERSAMPLE)
+    rc = radius_norm * cols
+    fr_x = rc * fos
+    fr_y = (rc / CELL_ASPECT) * fos
+    rx = math.ceil(fr_x) if fr_x > 0 else 0
+    ry = math.ceil(fr_y) if fr_y > 0 else 0
+    sx = rx * 2 + 1
+    sy = ry * 2 + 1
+    inv_frx2 = 1.0 / (fr_x * fr_x) if fr_x > 0 else 0.0
+    inv_fry2 = 1.0 / (fr_y * fr_y) if fr_y > 0 else 0.0
+    vals = array.array("f", bytes(sx * sy * 4))
+    for y in range(-ry, ry + 1):
+        y2 = y * y * inv_fry2
+        row_off = (y + ry) * sx + rx
+        for x in range(-rx, rx + 1):
+            v = _sprite_alpha(math.sqrt(x * x * inv_frx2 + y2))
+            if v > 0.0:
+                vals[row_off + x] = v
+    return rx, ry, sx, vals
+
+
+# ── Pure-Python fallbacks ─────────────────────────────────────────────
+
+def _py_splat(
+    bf: array.array[float], norm_x: float, norm_y: float,
+    rx: int, ry: int, sx: int, vals: array.array[float],
+    cols_fos: float, cols_ca_fos: float,
+    field_cols: int, field_rows: int,
+) -> None:
+    gcx = int(norm_x * cols_fos + 0.5)
+    gcy = int(norm_y * cols_ca_fos + 0.5)
+    y_lo = max(-ry, -gcy)
+    y_hi = min(ry, field_rows - 1 - gcy)
+    for y in range(y_lo, y_hi + 1):
+        fr_off = (gcy + y) * field_cols
+        sr_off = (y + ry) * sx + rx
+        x_lo = max(-rx, -gcx)
+        x_hi = min(rx, field_cols - 1 - gcx)
+        for x in range(x_lo, x_hi + 1):
+            sv = vals[sr_off + x]
+            if sv > 0.0:
+                fi = fr_off + gcx + x
+                s = bf[fi] + sv
+                bf[fi] = s if s < 1.0 else 1.0
+
+
+def _py_downsample(
+    bf: array.array[float], out: array.array[int],
+    cols: int, rows: int, fc: int,
+) -> None:
+    fc2 = fc + fc
+    idx = 0
+    for row in range(rows):
+        r0 = row * fc2
+        for col in range(cols):
+            c0 = r0 + col * 2
+            v = (bf[c0] + bf[c0 + 1] + bf[c0 + fc] + bf[c0 + fc + 1]) * 63.75
+            out[idx] = int(v) if v < 255.0 else 255
+            idx += 1
+
+
+# ── Terminal helpers ──────────────────────────────────────────────────
+
+def _term_size() -> tuple[int, int]:
+    try:
+        return os.get_terminal_size()
+    except OSError:
+        return 80, 24
+
+
+def _fmt_dur(s: float) -> str:
+    s = int(s)
+    if s < 60:
+        return f"{s}s"
+    m, s = divmod(s, 60)
+    if m < 60:
+        return f"{m}m {s:02d}s"
+    h, m = divmod(m, 60)
+    return f"{h}h {m:02d}m {s:02d}s"
+
+
+# ── Main ──────────────────────────────────────────────────────────────
+
+def main() -> None:
+    global _native_lib, _vdsp_vsmul
+
+    _native_lib = _try_compile_native()
+    _vdsp_vsmul = _try_load_vdsp()
+    use_native = _native_lib is not None
+    use_vdsp = _vdsp_vsmul is not None
+    decay_scalar = ctypes.c_float(FIELD_DECAY) if use_vdsp else None
+
+    stdout_write = sys.stdout.write
+    stdout_flush = sys.stdout.flush
+    mono_t = time.monotonic
+    rand = random.random
+    sqrt = math.sqrt
+    cos = math.cos
+    sin = math.sin
+    pi = math.pi
+
+    resize_at = [0.0]
+
+    def on_winch(_s: int, _f: object) -> None:
+        resize_at[0] = mono_t()
+
+    signal.signal(signal.SIGWINCH, on_winch)
+
+    # ── Geometry ──────────────────────────────────────────────
+    tc, tr = _term_size()
+    cols = min(tc, MAX_COLS)
+    rows = min(tr - 1, MAX_ROWS)
+    if rows < 6 or cols < 10:
+        print("Terminal too small.", file=sys.stderr)
+        sys.exit(1)
+
+    def build(c: int, r: int) -> tuple:
+        fc = c * FIELD_OVERSAMPLE
+        fr = r * FIELD_OVERSAMPLE
+        vy = r * CELL_ASPECT / c
+        bf = array.array("f", bytes(fc * fr * 4))
+        ps = _create_stamp(SPRITE_R_NORM, c)
+        ls = _create_stamp(LARGE_ATTRACTOR_R_NORM, c)
+        ss = _create_stamp(ATTRACTOR_R_NORM, c)
+        cols_fos = c * float(FIELD_OVERSAMPLE)
+        cols_ca_fos = c / CELL_ASPECT * float(FIELD_OVERSAMPLE)
+        bright = array.array("B", bytes(c * r))
+        return fc, fr, vy, bf, ps, ls, ss, cols_fos, cols_ca_fos, bright
+
+    fc, fr, vis_y, bf, ps, ls, ss, cols_fos, cols_ca_fos, bright = build(cols, rows)
+    pad_l = max(0, (tc - cols) // 2)
+    pad_s = " " * pad_l
+    pad_t = max(0, (tr - 1 - rows) // 2)
+
+    # ── Particles (SoA) ──────────────────────────────────────
+    cx, cy = 0.5, vis_y / 2
+    px = array.array("d", (cx + cos(rand() * pi * 2) * (rand() * 0.18 + 0.09) for _ in range(PARTICLE_N)))
+    py = array.array("d", (cy + sin(rand() * pi * 2) * (rand() * 0.18 + 0.09) for _ in range(PARTICLE_N)))
+    pvx = array.array("d", ((rand() - 0.5) * 0.004 for _ in range(PARTICLE_N)))
+    pvy = array.array("d", ((rand() - 0.5) * 0.004 for _ in range(PARTICLE_N)))
+    # Float32 copies for C splat_batch (needs float* not double*)
+    px_f = array.array("f", (0.0,) * PARTICLE_N)
+    py_f = array.array("f", (0.0,) * PARTICLE_N)
+
+    jn = 0.25 / 220.0
+    f1n = ATTRACTOR_FORCE_1 / 220.0
+    f2n = ATTRACTOR_FORCE_2 / 220.0
+    damp = 0.97
+    mg = SPRITE_R_NORM
+    frame_dt = 1.0 / TARGET_FPS
+    bf_len = len(bf)
+
+    color_mode = True
+    lut_c = _LUT_COLOR
+    lut_m = _LUT_MONO
+
+    fd = sys.stdin.fileno()
+    old_term = termios.tcgetattr(fd)
+    tty.setcbreak(fd)
+    stdout_write("\033[?25l\033[2J\033[H")
+    stdout_flush()
+
+    # Acceleration: C (splat/physics/downsample) + vDSP (field decay)
+    # Falls back to pure Python per-component if unavailable.
+
+    try:
+        t0 = mono_t()
+        while True:
+            fs = mono_t()
+            now = (fs - t0) * 1000.0
+
+            # ── Resize ────────────────────────────────────────
+            ra = resize_at[0]
+            if ra > 0.0:
+                if fs - ra < RESIZE_DEBOUNCE_S:
+                    time.sleep(frame_dt)
+                    continue
+                resize_at[0] = 0.0
+                tc, tr = _term_size()
+                nc = min(tc, MAX_COLS)
+                nr = min(tr - 1, MAX_ROWS)
+                if nr >= 6 and nc >= 10:
+                    cols, rows = nc, nr
+                    fc, fr, vis_y, bf, ps, ls, ss, cols_fos, cols_ca_fos, bright = build(cols, rows)
+                    bf_len = len(bf)
+                    pad_l = max(0, (tc - cols) // 2)
+                    pad_s = " " * pad_l
+                    pad_t = max(0, (tr - 1 - rows) // 2)
+                stdout_write("\033[2J\033[H")
+                stdout_flush()
+
+            # ── Input ─────────────────────────────────────────
+            if select.select([sys.stdin], [], [], 0)[0]:
+                k = sys.stdin.read(1)
+                if k in ("q", "Q", "\x03"):
+                    break
+                if k in ("c", "C"):
+                    color_mode = not color_mode
+
+            # ── Attractors ────────────────────────────────────
+            hvy = vis_y * 0.5
+            a1x = cos(now * 0.0007) * 0.25 + 0.5
+            a1y = sin(now * 0.0011) * 0.25 * vis_y + hvy
+            a2x = cos(now * 0.0013 + pi) * 0.2 + 0.5
+            a2y = sin(now * 0.0009 + pi) * 0.2 * vis_y + hvy
+
+            # ── Physics ───────────────────────────────────────
+            wrap_x = 1.0 + mg * 2
+            wrap_y = vis_y + mg * 2
+            if use_native:
+                _native_lib.physics_step(
+                    px.buffer_info()[0], py.buffer_info()[0],
+                    pvx.buffer_info()[0], pvy.buffer_info()[0],
+                    PARTICLE_N,
+                    a1x, a1y, a2x, a2y,
+                    f1n, f2n, jn, damp,
+                    mg, vis_y, wrap_x, wrap_y,
+                )
+            else:
+                for i in range(PARTICLE_N):
+                    xi = px[i]; yi = py[i]
+                    d1x = a1x - xi; d1y = a1y - yi
+                    d2x = a2x - xi; d2y = a2y - yi
+                    dd1 = d1x * d1x + d1y * d1y
+                    dd2 = d2x * d2x + d2y * d2y
+                    if dd1 < dd2:
+                        ax = d1x; ay = d1y; fn = f1n; dd = dd1
+                    else:
+                        ax = d2x; ay = d2y; fn = f2n; dd = dd2
+                    inv_d = fn / (sqrt(dd) + 0.004545454545454546)
+                    vxi = pvx[i] + ax * inv_d + (rand() - 0.5) * jn
+                    vyi = pvy[i] + ay * inv_d + (rand() - 0.5) * jn
+                    vxi *= damp; vyi *= damp
+                    xi += vxi; yi += vyi
+                    if xi < -mg:
+                        xi += wrap_x
+                    elif xi > 1.0 + mg:
+                        xi -= wrap_x
+                    if yi < -mg:
+                        yi += wrap_y
+                    elif yi > vis_y + mg:
+                        yi -= wrap_y
+                    px[i] = xi; py[i] = yi; pvx[i] = vxi; pvy[i] = vyi
+
+            # ── Field decay ───────────────────────────────────
+            if use_vdsp:
+                bf_addr = bf.buffer_info()[0]
+                _vdsp_vsmul(bf_addr, 1, ctypes.byref(decay_scalar), bf_addr, 1, bf_len)
+            else:
+                for i in range(bf_len):
+                    bf[i] *= FIELD_DECAY
+
+            # ── Splat ─────────────────────────────────────────
+            prx, pry, psx, pv = ps
+            lrx, lry, lsx, lv = ls
+            srx, sry, ssx, sv = ss
+            if use_native:
+                bf_addr = bf.buffer_info()[0]
+                # Copy double -> float for particle positions
+                for i in range(PARTICLE_N):
+                    px_f[i] = px[i]
+                    py_f[i] = py[i]
+                _native_lib.splat_batch(
+                    bf_addr, px_f.buffer_info()[0], py_f.buffer_info()[0],
+                    PARTICLE_N, prx, pry, psx, pv.buffer_info()[0],
+                    cols_fos, cols_ca_fos, fc, fr,
+                )
+                # Attractor splats (single-element arrays)
+                a_x = array.array("f", [a1x])
+                a_y = array.array("f", [a1y])
+                _native_lib.splat_batch(
+                    bf_addr, a_x.buffer_info()[0], a_y.buffer_info()[0],
+                    1, lrx, lry, lsx, lv.buffer_info()[0],
+                    cols_fos, cols_ca_fos, fc, fr,
+                )
+                a_x[0] = a2x
+                a_y[0] = a2y
+                _native_lib.splat_batch(
+                    bf_addr, a_x.buffer_info()[0], a_y.buffer_info()[0],
+                    1, srx, sry, ssx, sv.buffer_info()[0],
+                    cols_fos, cols_ca_fos, fc, fr,
+                )
+            else:
+                for i in range(PARTICLE_N):
+                    _py_splat(bf, px[i], py[i], prx, pry, psx, pv, cols_fos, cols_ca_fos, fc, fr)
+                _py_splat(bf, a1x, a1y, lrx, lry, lsx, lv, cols_fos, cols_ca_fos, fc, fr)
+                _py_splat(bf, a2x, a2y, srx, sry, ssx, sv, cols_fos, cols_ca_fos, fc, fr)
+
+            # ── Render ────────────────────────────────────────
+            buf: list[str] = []
+            ba = buf.append
+            lut = lut_c if color_mode else lut_m
+
+            if pad_t > 0:
+                ba(f"\033[{pad_t + 1};1H")
+
+            if use_native:
+                bf_addr = bf.buffer_info()[0]
+                br_addr = bright.buffer_info()[0]
+                _native_lib.downsample_2x2(bf_addr, br_addr, cols, rows, fc)
+                idx = 0
+                for row in range(rows):
+                    if pad_l > 0:
+                        ba(pad_s)
+                    for col in range(cols):
+                        ba(lut[bright[idx]])
+                        idx += 1
+                    if color_mode:
+                        ba(RESET)
+                    ba("\033[K\n")
+            else:
+                fc2 = fc + fc
+                for row in range(rows):
+                    if pad_l > 0:
+                        ba(pad_s)
+                    r0 = row * fc2
+                    for col in range(cols):
+                        c0 = r0 + col * 2
+                        v = (bf[c0] + bf[c0 + 1] + bf[c0 + fc] + bf[c0 + fc + 1]) * 63.75
+                        b = int(v) if v < 255.0 else 255
+                        ba(lut[b])
+                    if color_mode:
+                        ba(RESET)
+                    ba("\033[K\n")
+
+            # Status
+            fe = mono_t() - fs
+            fps = 1.0 / fe if fe > 0.001 else 999.0
+            mode_l = "color" if color_mode else "mono"
+            ba(f"\033[{tr};1H\033[2K\033[38;5;240m [c] {mode_l}  [q] quit  {fps:4.0f} fps  {cols}\u00d7{rows}  {_fmt_dur(fs - t0)}\033[0m")
+
+            stdout_write("\033[H" + "".join(buf))
+            stdout_flush()
+
+            # ── Pacing ────────────────────────────────────────
+            fe = mono_t() - fs
+            if fe < frame_dt:
+                time.sleep(frame_dt - fe)
+
+    except KeyboardInterrupt:
+        pass
+    finally:
+        stdout_write("\033[?25h\033[2J\033[H")
+        stdout_flush()
+        termios.tcsetattr(fd, termios.TCSADRAIN, old_term)
+
+
+if __name__ == "__main__":
+    main()

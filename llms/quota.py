@@ -191,7 +191,7 @@ class QuotaProvider(ABC):
 
 
 class ClaudeQuotaProvider(QuotaProvider):
-    """Claude Code quota provider"""
+    """Claude Code quota provider (cookie-based web API, with OAuth fallback)"""
 
     name = "claude"
     description = "Claude Code (claude.ai)"
@@ -285,9 +285,8 @@ class ClaudeQuotaProvider(QuotaProvider):
             dt = datetime.fromisoformat(resets_at.replace("Z", "+00:00"))
             local_tz = self._get_system_timezone()
             local_dt = dt.astimezone(local_tz)
-            tz_name = local_dt.tzname() or "Local"
 
-            local_str = local_dt.strftime(f"%H:%M")
+            local_str = local_dt.strftime("%H:%M")
 
             now = datetime.now(timezone.utc)
             delta = dt - now
@@ -308,72 +307,203 @@ class ClaudeQuotaProvider(QuotaProvider):
         except Exception:
             return timezone(timedelta(hours=8))
 
+    def _parse_usage_data(self, usage_data: dict, quota_info: QuotaInfo) -> None:
+        """Parse usage response into quota_info sessions (shared by web API and OAuth)"""
+        if five_hour := usage_data.get("five_hour"):
+            if session := self._parse_session_quota(five_hour):
+                quota_info.sessions["current"] = session
+
+        if seven_day := usage_data.get("seven_day"):
+            if session := self._parse_session_quota(seven_day):
+                quota_info.sessions["weekly"] = session
+
+        if seven_day_opus := usage_data.get("seven_day_opus"):
+            if session := self._parse_session_quota(seven_day_opus):
+                quota_info.sessions["weekly_opus"] = session
+
+        if seven_day_sonnet := usage_data.get("seven_day_sonnet"):
+            if session := self._parse_session_quota(seven_day_sonnet):
+                quota_info.sessions["weekly_sonnet"] = session
+
+        # Extra usage credits
+        if extra := usage_data.get("extra_usage"):
+            if extra.get("is_enabled"):
+                used = extra.get("used_credits")
+                limit = extra.get("monthly_limit")
+                currency = extra.get("currency", "USD")
+                utilization = extra.get("utilization")
+
+                quota_info.sessions["extra_credits"] = SessionQuota(
+                    used=used / 100.0 if used else None,
+                    limit=limit / 100.0 if limit else None,
+                    used_percent=utilization,
+                    remaining_percent=100 - utilization if utilization else None,
+                    currency=currency,
+                    is_enabled=True,
+                )
+
     def fetch_quota(self) -> QuotaInfo:
-        """Fetch Claude quota"""
+        """Fetch Claude quota via web API (cookie-based), fall back to OAuth on failure"""
         quota_info = QuotaInfo(
             provider=self.name,
             fetched_at=datetime.now(timezone.utc).isoformat(),
         )
 
+        # Primary: cookie-based web API
         try:
-            # Fetch organizations
             orgs_data = self._curl_request(f"{self.BASE_URL}/organizations")
             orgs = orgs_data if isinstance(orgs_data, list) else [orgs_data]
             org = self._select_organization(orgs)
 
-            # Fetch usage
             usage_data = self._curl_request(
                 f"{self.BASE_URL}/organizations/{org['uuid']}/usage"
             )
 
             quota_info.raw_response = usage_data
 
-            # Check for error responses from the API
             if error := usage_data.get("error"):
                 error_msg = error.get("message") if isinstance(error, dict) else str(error)
                 quota_info.error = error_msg
                 quota_info.error_type = "server"
                 return quota_info
 
-            # Parse quotas
-            if five_hour := usage_data.get("five_hour"):
-                if session := self._parse_session_quota(five_hour):
-                    quota_info.sessions["current"] = session
+            self._parse_usage_data(usage_data, quota_info)
+            return quota_info
 
-            if seven_day := usage_data.get("seven_day"):
-                if session := self._parse_session_quota(seven_day):
-                    quota_info.sessions["weekly"] = session
+        except Exception as web_err:
+            pass
 
-            if seven_day_opus := usage_data.get("seven_day_opus"):
-                if session := self._parse_session_quota(seven_day_opus):
-                    quota_info.sessions["weekly_opus"] = session
+        # Fallback: OAuth API
+        try:
+            oauth_token = ClaudeOAuthHelper.resolve_token()
+            usage_data = ClaudeOAuthHelper.fetch_usage(oauth_token)
 
-            if seven_day_sonnet := usage_data.get("seven_day_sonnet"):
-                if session := self._parse_session_quota(seven_day_sonnet):
-                    quota_info.sessions["weekly_sonnet"] = session
+            quota_info.raw_response = usage_data
 
-            # Extra usage credits
-            if extra := usage_data.get("extra_usage"):
-                if extra.get("is_enabled"):
-                    used = extra.get("used_credits")
-                    limit = extra.get("monthly_limit")
-                    currency = extra.get("currency", "USD")
-                    utilization = extra.get("utilization")
+            if error := usage_data.get("error"):
+                error_msg = error.get("message") if isinstance(error, dict) else str(error)
+                quota_info.error = error_msg
+                quota_info.error_type = "server"
+                return quota_info
 
-                    quota_info.sessions["extra_credits"] = SessionQuota(
-                        used=used / 100.0 if used else None,
-                        limit=limit / 100.0 if limit else None,
-                        used_percent=utilization,
-                        remaining_percent=100 - utilization if utilization else None,
-                        currency=currency,
-                        is_enabled=True,
-                    )
+            self._parse_usage_data(usage_data, quota_info)
+            return quota_info
 
-        except Exception as e:
-            quota_info.error = str(e)
+        except Exception as oauth_err:
+            # Both methods failed — report the web API error as primary
+            quota_info.error = f"Web API: {web_err}; OAuth: {oauth_err}"
             quota_info.error_type = "client"
 
         return quota_info
+
+
+class ClaudeOAuthHelper:
+    """Helper for Anthropic OAuth API access (used as fallback)"""
+
+    API_URL = "https://api.anthropic.com/api/oauth/usage"
+
+    @staticmethod
+    def resolve_token() -> str:
+        """Resolve OAuth token with the following priority:
+
+        1. $CLAUDE_OAUTH_TOKEN_CMD — user-provided shell command (stdout = token)
+           e.g. CLAUDE_OAUTH_TOKEN_CMD="jq -r '.claude' ~/.config/llms/keys.json"
+        2. $CLAUDE_CODE_OAUTH_TOKEN — literal token in env var
+        3. macOS Keychain (security find-generic-password)
+        4. ~/.claude/.credentials.json
+        5. Linux Secret Service (secret-tool)
+
+        Raises Exception if no token is found.
+        """
+        # 1. User-provided command (highest priority)
+        token_cmd = os.environ.get("CLAUDE_OAUTH_TOKEN_CMD")
+        if token_cmd:
+            try:
+                result = subprocess.run(
+                    token_cmd, shell=True,
+                    capture_output=True, text=True, timeout=5,
+                )
+                if result.returncode == 0:
+                    token = result.stdout.strip()
+                    if token:
+                        return token
+            except subprocess.TimeoutExpired:
+                pass
+
+        # 2. Environment variable
+        token = os.environ.get("CLAUDE_CODE_OAUTH_TOKEN")
+        if token:
+            return token
+
+        # 3. macOS Keychain
+        try:
+            result = subprocess.run(
+                ["security", "find-generic-password", "-s", "Claude Code-credentials", "-w"],
+                capture_output=True, text=True, timeout=5,
+            )
+            if result.returncode == 0 and result.stdout.strip():
+                blob = json.loads(result.stdout.strip())
+                token = blob.get("claudeAiOauth", {}).get("accessToken")
+                if token:
+                    return token
+        except (FileNotFoundError, json.JSONDecodeError, subprocess.TimeoutExpired):
+            pass
+
+        # 4. Credentials file (~/.claude/.credentials.json)
+        creds_file = Path.home() / ".claude" / ".credentials.json"
+        if creds_file.exists():
+            try:
+                blob = json.loads(creds_file.read_text())
+                token = blob.get("claudeAiOauth", {}).get("accessToken")
+                if token:
+                    return token
+            except (json.JSONDecodeError, IOError):
+                pass
+
+        # 5. Linux Secret Service (secret-tool)
+        try:
+            result = subprocess.run(
+                ["secret-tool", "lookup", "service", "Claude Code-credentials"],
+                capture_output=True, text=True, timeout=5,
+            )
+            if result.returncode == 0 and result.stdout.strip():
+                blob = json.loads(result.stdout.strip())
+                token = blob.get("claudeAiOauth", {}).get("accessToken")
+                if token:
+                    return token
+        except (FileNotFoundError, json.JSONDecodeError, subprocess.TimeoutExpired):
+            pass
+
+        raise Exception(
+            "No OAuth token found. Checked: $CLAUDE_OAUTH_TOKEN_CMD, "
+            "$CLAUDE_CODE_OAUTH_TOKEN, macOS Keychain, "
+            "~/.claude/.credentials.json, Linux secret-tool"
+        )
+
+    @staticmethod
+    def fetch_usage(oauth_token: str, timeout: int = 5) -> dict:
+        """Fetch usage data from Anthropic OAuth API"""
+        cmd = [
+            "curl",
+            "-s",
+            "--max-time", str(timeout),
+            "-H", "Accept: application/json",
+            "-H", "Content-Type: application/json",
+            "-H", f"Authorization: Bearer {oauth_token}",
+            "-H", "anthropic-beta: oauth-2025-04-20",
+            ClaudeOAuthHelper.API_URL,
+        ]
+
+        result = subprocess.run(cmd, capture_output=True, text=True)
+
+        if result.returncode != 0:
+            raise Exception(f"OAuth curl failed: {result.stderr}")
+
+        text = result.stdout.strip()
+        if not text:
+            raise Exception("OAuth API returned empty response")
+
+        return json.loads(text)
 
 
 # ============================================================================
@@ -1287,8 +1417,7 @@ class ProviderRegistry:
             if name == "codex":
                 try:
                     return CodexQuotaProvider.from_codex_config()
-                except Exception as e:
-                    # Return a placeholder with error
+                except Exception:
                     return None
             return provider_class(cookie_header)
         return None
@@ -1480,13 +1609,13 @@ class CookieManager:
         profile = profile or self.profile or os.environ.get("QUOTA_PROFILE")
 
         # Provider-specific cookie requirements
+        # Codex uses auth token from ~/.codex/auth.json, not cookies
         host_patterns = {
             "claude": "claude.ai",
             "minimax": "minimaxi.com",
             "glm": "bigmodel.cn",
             "kimi": "kimi.com",
             "doubao": "volcengine.com",
-            # Codex uses auth token from ~/.codex/auth.json, not cookies
         }
 
         host_pattern = host_patterns.get(provider_name)
@@ -2064,11 +2193,12 @@ Environment Variables:
     cookie_manager = CookieManager(profile=args.profile)
 
     # Pre-load cookies for cookie-based providers (not codex which uses Codex config)
+    TOKEN_BASED_PROVIDERS = {"codex"}
     cookies_cache: dict[str, tuple[str, str]] = {}
     try:
         for provider_name in providers_to_query:
             # Skip codex - it uses its own auth from ~/.codex/
-            if provider_name == "codex":
+            if provider_name in TOKEN_BASED_PROVIDERS:
                 cookies_cache[provider_name] = (None, "Codex config")
                 continue
             try:
@@ -2093,14 +2223,20 @@ Environment Variables:
             def make_fetcher(pname: str) -> Callable[[], QuotaInfo]:
                 def _fetch() -> QuotaInfo:
                     # Codex uses its own auth from ~/.codex/
-                    if pname == "codex":
+                    if pname in TOKEN_BASED_PROVIDERS:
                         try:
-                            provider = CodexQuotaProvider.from_codex_config()
+                            provider = ProviderRegistry.get(pname, "")
+                            if not provider:
+                                return QuotaInfo(provider=pname, error="Failed to resolve credentials")
                             return provider.fetch_quota()
                         except Exception as e:
                             return QuotaInfo(provider=pname, error=str(e))
                     cookie_header, _ = cookies_cache.get(pname, (None, ""))
                     if not cookie_header:
+                        # For Claude: no cookies, but fetch_quota has OAuth fallback
+                        if pname == "claude":
+                            provider = ClaudeQuotaProvider("")
+                            return provider.fetch_quota()
                         return QuotaInfo(provider=pname, error="No credentials found")
                     provider = ProviderRegistry.get(pname, cookie_header)
                     if not provider:
@@ -2115,16 +2251,24 @@ Environment Variables:
         else:
             # No debounce: fetch directly with auto-retry on cookie errors
             # Codex uses its own auth from ~/.codex/
-            if provider_name == "codex":
+            if provider_name in TOKEN_BASED_PROVIDERS:
                 try:
-                    provider = CodexQuotaProvider.from_codex_config()
-                    results.append(provider.fetch_quota())
+                    provider = ProviderRegistry.get(provider_name, "")
+                    if not provider:
+                        results.append(QuotaInfo(provider=provider_name, error="Failed to resolve credentials"))
+                    else:
+                        results.append(provider.fetch_quota())
                 except Exception as e:
                     results.append(QuotaInfo(provider=provider_name, error=str(e)))
                 continue
 
             cookie_header, source = cookies_cache.get(provider_name, (None, ""))
             if not cookie_header:
+                # Claude can fall back to OAuth even without cookies
+                if provider_name == "claude":
+                    provider = ClaudeQuotaProvider("")
+                    results.append(provider.fetch_quota())
+                    continue
                 results.append(QuotaInfo(provider=provider_name, error=source or "No credentials found"))
                 continue
 

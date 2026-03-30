@@ -1,3 +1,5 @@
+.tmp
+cache
 *.sqlite*
 tmp
 sessions

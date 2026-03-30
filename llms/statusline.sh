@@ -20,6 +20,7 @@
 
 # Path to the quota checker script (same directory as this script)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export CLAUDE_OAUTH_TOKEN_CMD="jq -r '.claude' ~/.config/llms/keys.json"
 QUOTA_SCRIPT="${SCRIPT_DIR}/quota.py"
 
 # Git cache configuration

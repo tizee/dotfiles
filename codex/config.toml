@@ -10,9 +10,9 @@ web_search = "live"
 model = "gpt-5.4"
 preferred_auth_method = "chatgpt" # chatgpt/apikey
 
+#show_raw_agent_reasoning = false
 model_reasoning_effort = "high"
 model_reasoning_summary = "detailed"
-
 
 
 #model_provider = "openrouter"
@@ -20,6 +20,11 @@ model_reasoning_summary = "detailed"
 
 [profiles.openrouter]
 model = "openai/gpt-5.4"
+
+[profiles.openrouter.features]
+js_repl = false
+guardian_approval = false
+prevent_idle_sleep = false
 
 [features]
 rmcp_client = true
@@ -57,6 +62,9 @@ trust_level = "trusted"
 [projects."/Users/tizee/projects/project-AI/tools/bashguy.mattn"]
 trust_level = "trusted"
 
+[projects."/Users/tizee/projects/project-AI/agents/gemini-cli.google-gemini"]
+trust_level = "trusted"
+
 [tui]
 status_line = ["model-with-reasoning", "five-hour-limit", "weekly-limit", "project-root", "git-branch", "context-remaining", "context-used", "context-window-size"]
 
@@ -76,6 +84,7 @@ base_url = "https://openrouter.ai/api/v1"
 env_key = "OPENROUTER_API_KEY"
 wire_api = "responses"
 # wire_api = "chat"
+
 experimental_use_freeform_apply_patch = false
 include_apply_patch_tool = false
 
