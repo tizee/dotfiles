@@ -191,7 +191,7 @@ class QuotaProvider(ABC):
 
 
 class ClaudeQuotaProvider(QuotaProvider):
-    """Claude Code quota provider (cookie-based web API, with OAuth fallback)"""
+    """Claude Code quota provider (cookie-based web API)"""
 
     name = "claude"
     description = "Claude Code (claude.ai)"
@@ -273,7 +273,6 @@ class ClaudeQuotaProvider(QuotaProvider):
             resets_at=resets_at,
         )
 
-        # Add local time and duration
         if resets_at:
             quota.resets_at_local, quota.resets_in = self._format_reset_time(resets_at)
 
@@ -308,7 +307,7 @@ class ClaudeQuotaProvider(QuotaProvider):
             return timezone(timedelta(hours=8))
 
     def _parse_usage_data(self, usage_data: dict, quota_info: QuotaInfo) -> None:
-        """Parse usage response into quota_info sessions (shared by web API and OAuth)"""
+        """Parse usage response into quota_info sessions"""
         if five_hour := usage_data.get("five_hour"):
             if session := self._parse_session_quota(five_hour):
                 quota_info.sessions["current"] = session
@@ -325,7 +324,6 @@ class ClaudeQuotaProvider(QuotaProvider):
             if session := self._parse_session_quota(seven_day_sonnet):
                 quota_info.sessions["weekly_sonnet"] = session
 
-        # Extra usage credits
         if extra := usage_data.get("extra_usage"):
             if extra.get("is_enabled"):
                 used = extra.get("used_credits")
@@ -343,13 +341,12 @@ class ClaudeQuotaProvider(QuotaProvider):
                 )
 
     def fetch_quota(self) -> QuotaInfo:
-        """Fetch Claude quota via web API (cookie-based), fall back to OAuth on failure"""
+        """Fetch Claude quota via cookie-based web API"""
         quota_info = QuotaInfo(
             provider=self.name,
             fetched_at=datetime.now(timezone.utc).isoformat(),
         )
 
-        # Primary: cookie-based web API
         try:
             orgs_data = self._curl_request(f"{self.BASE_URL}/organizations")
             orgs = orgs_data if isinstance(orgs_data, list) else [orgs_data]
@@ -368,142 +365,12 @@ class ClaudeQuotaProvider(QuotaProvider):
                 return quota_info
 
             self._parse_usage_data(usage_data, quota_info)
-            return quota_info
 
-        except Exception as web_err:
-            pass
-
-        # Fallback: OAuth API
-        try:
-            oauth_token = ClaudeOAuthHelper.resolve_token()
-            usage_data = ClaudeOAuthHelper.fetch_usage(oauth_token)
-
-            quota_info.raw_response = usage_data
-
-            if error := usage_data.get("error"):
-                error_msg = error.get("message") if isinstance(error, dict) else str(error)
-                quota_info.error = error_msg
-                quota_info.error_type = "server"
-                return quota_info
-
-            self._parse_usage_data(usage_data, quota_info)
-            return quota_info
-
-        except Exception as oauth_err:
-            # Both methods failed — report the web API error as primary
-            quota_info.error = f"Web API: {web_err}; OAuth: {oauth_err}"
+        except Exception as e:
+            quota_info.error = str(e)
             quota_info.error_type = "client"
 
         return quota_info
-
-
-class ClaudeOAuthHelper:
-    """Helper for Anthropic OAuth API access (used as fallback)"""
-
-    API_URL = "https://api.anthropic.com/api/oauth/usage"
-
-    @staticmethod
-    def resolve_token() -> str:
-        """Resolve OAuth token with the following priority:
-
-        1. $CLAUDE_OAUTH_TOKEN_CMD — user-provided shell command (stdout = token)
-           e.g. CLAUDE_OAUTH_TOKEN_CMD="jq -r '.claude' ~/.config/llms/keys.json"
-        2. $CLAUDE_CODE_OAUTH_TOKEN — literal token in env var
-        3. macOS Keychain (security find-generic-password)
-        4. ~/.claude/.credentials.json
-        5. Linux Secret Service (secret-tool)
-
-        Raises Exception if no token is found.
-        """
-        # 1. User-provided command (highest priority)
-        token_cmd = os.environ.get("CLAUDE_OAUTH_TOKEN_CMD")
-        if token_cmd:
-            try:
-                result = subprocess.run(
-                    token_cmd, shell=True,
-                    capture_output=True, text=True, timeout=5,
-                )
-                if result.returncode == 0:
-                    token = result.stdout.strip()
-                    if token:
-                        return token
-            except subprocess.TimeoutExpired:
-                pass
-
-        # 2. Environment variable
-        token = os.environ.get("CLAUDE_CODE_OAUTH_TOKEN")
-        if token:
-            return token
-
-        # 3. macOS Keychain
-        try:
-            result = subprocess.run(
-                ["security", "find-generic-password", "-s", "Claude Code-credentials", "-w"],
-                capture_output=True, text=True, timeout=5,
-            )
-            if result.returncode == 0 and result.stdout.strip():
-                blob = json.loads(result.stdout.strip())
-                token = blob.get("claudeAiOauth", {}).get("accessToken")
-                if token:
-                    return token
-        except (FileNotFoundError, json.JSONDecodeError, subprocess.TimeoutExpired):
-            pass
-
-        # 4. Credentials file (~/.claude/.credentials.json)
-        creds_file = Path.home() / ".claude" / ".credentials.json"
-        if creds_file.exists():
-            try:
-                blob = json.loads(creds_file.read_text())
-                token = blob.get("claudeAiOauth", {}).get("accessToken")
-                if token:
-                    return token
-            except (json.JSONDecodeError, IOError):
-                pass
-
-        # 5. Linux Secret Service (secret-tool)
-        try:
-            result = subprocess.run(
-                ["secret-tool", "lookup", "service", "Claude Code-credentials"],
-                capture_output=True, text=True, timeout=5,
-            )
-            if result.returncode == 0 and result.stdout.strip():
-                blob = json.loads(result.stdout.strip())
-                token = blob.get("claudeAiOauth", {}).get("accessToken")
-                if token:
-                    return token
-        except (FileNotFoundError, json.JSONDecodeError, subprocess.TimeoutExpired):
-            pass
-
-        raise Exception(
-            "No OAuth token found. Checked: $CLAUDE_OAUTH_TOKEN_CMD, "
-            "$CLAUDE_CODE_OAUTH_TOKEN, macOS Keychain, "
-            "~/.claude/.credentials.json, Linux secret-tool"
-        )
-
-    @staticmethod
-    def fetch_usage(oauth_token: str, timeout: int = 5) -> dict:
-        """Fetch usage data from Anthropic OAuth API"""
-        cmd = [
-            "curl",
-            "-s",
-            "--max-time", str(timeout),
-            "-H", "Accept: application/json",
-            "-H", "Content-Type: application/json",
-            "-H", f"Authorization: Bearer {oauth_token}",
-            "-H", "anthropic-beta: oauth-2025-04-20",
-            ClaudeOAuthHelper.API_URL,
-        ]
-
-        result = subprocess.run(cmd, capture_output=True, text=True)
-
-        if result.returncode != 0:
-            raise Exception(f"OAuth curl failed: {result.stderr}")
-
-        text = result.stdout.strip()
-        if not text:
-            raise Exception("OAuth API returned empty response")
-
-        return json.loads(text)
 
 
 # ============================================================================
@@ -1408,12 +1275,14 @@ class ProviderRegistry:
         cls._providers[provider_class.name] = provider_class
         return provider_class
 
+    # Providers that resolve their own credentials (no Firefox cookies)
+    TOKEN_BASED = {"codex"}
+
     @classmethod
     def get(cls, name: str, cookie_header: str) -> Optional[QuotaProvider]:
         """Get a provider instance by name"""
         provider_class = cls._providers.get(name)
         if provider_class:
-            # Codex uses auth token, not cookies
             if name == "codex":
                 try:
                     return CodexQuotaProvider.from_codex_config()
@@ -2192,14 +2061,13 @@ Environment Variables:
 
     cookie_manager = CookieManager(profile=args.profile)
 
-    # Pre-load cookies for cookie-based providers (not codex which uses Codex config)
-    TOKEN_BASED_PROVIDERS = {"codex"}
+    # Pre-load cookies for cookie-based providers (skip token-based ones)
+    TOKEN_BASED_PROVIDERS = ProviderRegistry.TOKEN_BASED
     cookies_cache: dict[str, tuple[str, str]] = {}
     try:
         for provider_name in providers_to_query:
-            # Skip codex - it uses its own auth from ~/.codex/
             if provider_name in TOKEN_BASED_PROVIDERS:
-                cookies_cache[provider_name] = (None, "Codex config")
+                cookies_cache[provider_name] = (None, "token-based")
                 continue
             try:
                 cookie_header, source = cookie_manager.get_cookies_for_provider(provider_name)
@@ -2209,8 +2077,8 @@ Environment Variables:
     except Exception:
         pass  # Will be handled per-provider below
 
-    # Print credentials info once (exclude codex)
-    sources = [src for _, src in cookies_cache.values() if src and not src.startswith("Error") and src != "Codex config"]
+    # Print credentials info once (exclude token-based providers)
+    sources = [src for _, src in cookies_cache.values() if src and not src.startswith("Error") and src != "token-based"]
     if sources and not args.json:
         print(f"Credentials: {sources[0]}", file=sys.stderr)
 
@@ -2233,10 +2101,6 @@ Environment Variables:
                             return QuotaInfo(provider=pname, error=str(e))
                     cookie_header, _ = cookies_cache.get(pname, (None, ""))
                     if not cookie_header:
-                        # For Claude: no cookies, but fetch_quota has OAuth fallback
-                        if pname == "claude":
-                            provider = ClaudeQuotaProvider("")
-                            return provider.fetch_quota()
                         return QuotaInfo(provider=pname, error="No credentials found")
                     provider = ProviderRegistry.get(pname, cookie_header)
                     if not provider:
@@ -2264,11 +2128,6 @@ Environment Variables:
 
             cookie_header, source = cookies_cache.get(provider_name, (None, ""))
             if not cookie_header:
-                # Claude can fall back to OAuth even without cookies
-                if provider_name == "claude":
-                    provider = ClaudeQuotaProvider("")
-                    results.append(provider.fetch_quota())
-                    continue
                 results.append(QuotaInfo(provider=provider_name, error=source or "No credentials found"))
                 continue
 
