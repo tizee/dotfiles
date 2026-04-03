@@ -994,6 +994,17 @@ class KimiQuotaProvider(QuotaProvider):
             data = self._curl_request(self.API_URL)
             quota_info.raw_response = data
 
+            # Detect API-level errors (e.g., expired JWT token)
+            if error_code := data.get("code"):
+                reason = ""
+                for detail in data.get("details", []):
+                    if r := detail.get("debug", {}).get("reason"):
+                        reason = f": {r}"
+                        break
+                quota_info.error = f"{error_code}{reason}"
+                quota_info.error_type = "client"
+                return quota_info
+
             # Parse Kimi response structure
             usages = data.get("usages", [])
 

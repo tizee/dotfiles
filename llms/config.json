@@ -57,6 +57,6 @@
       }
     },
     "verify_completion": true,
-    "verification_model": "minimax"
+    "verification_model": "kimi"
   }
 }
