@@ -14,6 +14,10 @@ preferred_auth_method = "chatgpt" # chatgpt/apikey
 model_reasoning_effort = "high"
 model_reasoning_summary = "detailed"
 
+cache_size_mb = 128
+cache_ttl = "30m"
+smart_cache = true
+cache_compression = true
 
 #model_provider = "openrouter"
 #profile = "openrouter"
@@ -63,6 +67,12 @@ trust_level = "trusted"
 trust_level = "trusted"
 
 [projects."/Users/tizee/projects/project-AI/agents/gemini-cli.google-gemini"]
+trust_level = "trusted"
+
+[projects."/Users/tizee/projects/project-AI/agents/zhu"]
+trust_level = "trusted"
+
+[projects."/Users/tizee/projects/project-AI/tools/drop.tizee"]
 trust_level = "trusted"
 
 [tui]

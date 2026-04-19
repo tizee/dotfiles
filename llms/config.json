@@ -1,7 +1,7 @@
 {
   "debug": false,
   "agent": {
-    "user_agent_name": "tizee-agent",
+    "user_agent_name": "claude-cli/2.1.88 (external, cli)",
     "ui": {
       "invertDiffColors": true,
       "statusline": {
@@ -17,10 +17,10 @@
       ],
       "ask": []
     },
-    "model": "minimax",
-    "background_model": "minimax",
+    "model": "kimi",
+    "background_model": "glm-4.5-air",
     "compact_model": "inherit",
-    "subagent_model": "minimax",
+    "subagent_model": "glm",
     "micro_compact": {
       "enabled": false,
       "keep_recent_turns": 6,
@@ -40,7 +40,7 @@
     },
     "auto_compact": {
       "enabled": true,
-      "threshold": 90
+      "threshold": 94
     },
     "bash": {
       "defaultTimeoutMs": 60000,

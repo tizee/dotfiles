@@ -1,3 +1,19 @@
+- model_id: test-claude
+  model_name: test-claude
+  api_base: "http://127.0.0.1:8642/"
+  can_stream: true
+  api_format: anthropic
+  image: true
+  api_key_name: cc
+
+- model_id: test-openai
+  model_name: test-openai
+  api_base: "http://127.0.0.1:8642/v1/"
+  can_stream: true
+  api_format: openai
+  image: true
+  api_key_name: cc
+
 - model_id: gptws
   model_name: gpt-5.4-nano
   api_base: wss://api.openai.com/v1
@@ -85,8 +101,9 @@
   extra_body:
     reasoning:
       effort: medium
+
 - model_id: opus
-  model_name: claude-code/claude-opus-4-6
+  model_name: claude-code/claude-opus-4-7
   api_base: "http://127.0.0.1:8082/anthropic/"
   can_stream: true
   api_format: anthropic
@@ -94,6 +111,7 @@
   context_window: 256000
   image: true
   thinking_mode: "adaptive"
+
 - model_id: sonnet
   model_name: claude-code/claude-sonnet-4-6
   api_base: "http://127.0.0.1:8082/anthropic/"
@@ -102,6 +120,7 @@
   api_key_name: cc
   image: true
   thinking_mode: "adaptive"
+
 - model_id: haiku
   model_name: claude-code/claude-haiku-4-5
   api_base: "http://127.0.0.1:8082/anthropic/"
