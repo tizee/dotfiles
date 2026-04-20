@@ -202,7 +202,7 @@
   image: true
   can_stream: true
   api_key_name: zhipu
-  effect: high
+  effort: high
   thinking_mode: "enabled"
 
 - model_id: glm-5-turbo
@@ -212,7 +212,7 @@
   image: true
   can_stream: true
   api_key_name: zhipu
-  effect: high
+  effort: high
   thinking_mode: "enabled"
 
 - model_id: glm-4.5-air

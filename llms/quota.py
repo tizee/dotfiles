@@ -570,6 +570,9 @@ class GLMQuotaProvider(QuotaProvider):
             raise Exception(f"curl request failed: {result.stderr}")
 
         text = result.stdout.strip()
+        if not text:
+            raise Exception("API returned empty response (token may be expired)")
+
         if text.startswith(("<!DOCTYPE", "<!doctype", "<html", "<HTML")):
             raise Exception("API returned HTML page, authentication may be required")
 
@@ -1763,6 +1766,8 @@ def is_cookie_error(error_msg: str) -> bool:
         "unauthorized",
         "invalid cookie",
         "session expired",
+        "empty response",
+        "token may be expired",
     ]
     return any(phrase in error_lower for phrase in cookie_errors)
 
@@ -2116,7 +2121,19 @@ Environment Variables:
                     provider = ProviderRegistry.get(pname, cookie_header)
                     if not provider:
                         return QuotaInfo(provider=pname, error="Unknown provider")
-                    return provider.fetch_quota()
+                    result = provider.fetch_quota()
+                    # Auto-retry once on cookie/auth errors with fresh cookies
+                    if result.error and is_cookie_error(result.error):
+                        clear_provider_cookie_cache(pname, dm.cache_dir)
+                        try:
+                            cookie_header, _ = cookie_manager.get_cookies_for_provider(pname)
+                            cookies_cache[pname] = (cookie_header, _)
+                            provider = ProviderRegistry.get(pname, cookie_header)
+                            if provider:
+                                result = provider.fetch_quota()
+                        except Exception:
+                            pass
+                    return result
                 return _fetch
 
             quota_info = dm.fetch_or_cached(
