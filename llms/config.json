@@ -17,10 +17,10 @@
       ],
       "ask": []
     },
-    "model": "kimi",
-    "background_model": "glm-4.5-air",
+    "model": "ds",
+    "background_model": "haiku",
     "compact_model": "inherit",
-    "subagent_model": "glm",
+    "subagent_model": "ds",
     "micro_compact": {
       "enabled": false,
       "keep_recent_turns": 6,
@@ -58,6 +58,6 @@
       }
     },
     "verify_completion": true,
-    "verification_model": "kimi"
+    "verification_model": "inherit"
   }
 }

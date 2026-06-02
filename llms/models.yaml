@@ -102,13 +102,24 @@
     reasoning:
       effort: medium
 
+- model_id: ds
+  model_name: deepseek-v4-pro
+  api_base: "https://api.deepseek.com/anthropic"
+  can_stream: true
+  api_format: anthropic
+  api_key_name: deepseek
+  context_window: 400000
+  image: false
+  thinking_mode: "enabled"
+  effort: "max"
+
 - model_id: opus
   model_name: claude-code/claude-opus-4-7
   api_base: "http://127.0.0.1:8082/anthropic/"
   can_stream: true
   api_format: anthropic
   api_key_name: cc
-  context_window: 256000
+  context_window: 400000
   image: true
   thinking_mode: "adaptive"
 
