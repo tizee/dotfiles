@@ -109,7 +109,6 @@ Plug 'airblade/vim-gitgutter' " git
 " ===> UI {{{
 " -- statusline
 Plug 'tizee/moline.vim'
-Plug 'tizee/moline.vim'
 " -- tabline
 Plug 'tizee/tabline.vim'
 " -- Nerdfont icons
