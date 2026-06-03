@@ -17,12 +17,14 @@ call plug#begin('~/.vim/plugged')
 
 " ===> nvim plugin {{{
 if has('nvim')
-  " -- treesitter highlighter
-  Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
-  " treesitter-based textojbects
-  Plug 'nvim-treesitter/nvim-treesitter-textobjects'
-  " rename
-  Plug 'nvim-treesitter/nvim-treesitter-refactor'
+  " -- treesitter highlighter (main branch: required for Neovim nightly/0.11+)
+  Plug 'nvim-treesitter/nvim-treesitter', {'branch': 'main', 'do': ':TSUpdate'}
+  " treesitter-based textobjects (main branch, tracks new core API)
+  Plug 'nvim-treesitter/nvim-treesitter-textobjects', {'branch': 'main'}
+  " NOTE: nvim-treesitter-refactor is deprecated (no main branch, unmaintained
+  " since 2024). Its features are covered by coc.nvim:
+  "   - smart_rename        -> <Plug>(coc-rename)
+  "   - highlight_definitions -> CocActionAsync('highlight')
 endif
 "  }}}
 
