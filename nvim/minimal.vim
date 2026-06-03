@@ -111,8 +111,7 @@ if has('nvim') && ! has('win32') && ! has('win64')
   set backupdir=~/.config/nvim/tmp/backup,.
   set directory=~/.config/nvim/tmp/backup,.
 else
-  set viminfo='100,<10,@50,h,n$DATA_PATH/viminfo
-  " Secure sensitive information, disable backup files in temp directories
+  set viminfo='100,<10,@50,h,n$HOME/.vim/files/info/viminfo
   if exists('&backupskip')
     set backupskip+=/tmp/*,$TMPDIR/*,$TMP/*,$TEMP/*,*/shm/*,/private/var/*
     set backupskip+=.vault.vim

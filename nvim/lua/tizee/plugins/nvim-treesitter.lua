@@ -21,6 +21,30 @@ local ENSURE_INSTALLED = {
 	"yaml",
 }
 
+-- Verify the external `tree-sitter` CLI is reachable. The `main` branch builds
+-- parsers via this CLI (unlike the old `master` branch, which compiled C
+-- sources directly), so a missing CLI breaks parser installation. Returns the
+-- resolved executable path, or nil when unavailable.
+local function tree_sitter_cli()
+	if vim.fn.executable("tree-sitter") == 1 then
+		return vim.fn.exepath("tree-sitter")
+	end
+	return nil
+end
+
+-- Public health check, usable interactively and from a custom checkhealth.
+-- Returns ok (boolean), message (string).
+function M.check()
+	local cli = tree_sitter_cli()
+	if cli then
+		return true, "tree-sitter CLI found: " .. cli
+	end
+	return false,
+		"tree-sitter CLI not found on PATH. The nvim-treesitter `main` branch "
+			.. "requires it to build parsers. Install it (e.g. `brew install "
+			.. "tree-sitter-cli`) and ensure /opt/homebrew/bin is on Neovim's PATH."
+end
+
 -- Decide whether treesitter highlighting should be disabled for a buffer.
 -- Mirrors the old `highlight.disable` callback: skip very large files to keep
 -- the editor responsive. Returns true when highlighting should be SKIPPED.
@@ -46,9 +70,18 @@ function M.setup()
 		install_dir = vim.fn.stdpath("data") .. "/site",
 	})
 
-	-- Install parsers asynchronously. No-op if already present. This replaces
-	-- the old `ensure_installed` + `sync_install` options.
-	nts.install(ENSURE_INSTALLED)
+	-- Fail loud and early: if the tree-sitter CLI is missing, surface a single
+	-- clear error at startup instead of letting parser installation fail later
+	-- with a flood of ENOENT messages. Skip auto-install in that case;
+	-- highlighting still works for any parsers already installed.
+	local ok, msg = M.check()
+	if not ok then
+		vim.notify("[nvim-treesitter] " .. msg, vim.log.levels.ERROR)
+	else
+		-- Install parsers asynchronously. No-op if already present. This replaces
+		-- the old `ensure_installed` + `sync_install` options.
+		nts.install(ENSURE_INSTALLED)
+	end
 
 	-- 2. Highlighting --------------------------------------------------------
 	-- The `main` branch hands highlight/indent enabling back to the Neovim core.
