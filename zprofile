@@ -125,7 +125,7 @@ fi
 # gitclonet/sshtunnel
 export GITSSH_PORT=9999
 export GPG_TTY=$(tty)
-gpg-connect-agent updatestartuptty /bye >/dev/null
+# gpg-connect-agent updatestartuptty /bye >/dev/null
 
 # https://github.com/sorin-ionescu/prezto/blob/master/runcoms/zshenv
 # Ensure that a non-login, non-interactive shell has a defined environment.
@@ -492,7 +492,7 @@ if $is_macOS; then
 
   # pnpm
   export PNPM_HOME="/Users/tizee/Library/pnpm"
-  export PATH="$PNPM_HOME:$PATH"
+  export PATH="$PNPM_HOME/bin:$PATH"
   # pnpm end
 
   # homebrew

@@ -259,3 +259,11 @@ alias askp='llms agent -p'
 # Load .env variables
 [[ -f $HOME/.config/zsh/env-loader.zsh ]] && source "$HOME/.config/zsh/env-loader.zsh"
 alias dotconf="cd ~/.config"
+
+# pnpm
+# export PNPM_HOME="/Users/tizee/Library/pnpm"
+# case ":$PATH:" in
+#   *":$PNPM_HOME/bin:"*) ;;
+#   *) export PATH="$PNPM_HOME/bin:$PATH" ;;
+# esac
+# pnpm end

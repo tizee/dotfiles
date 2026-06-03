@@ -7,7 +7,7 @@ model_auto_compact_token_limit = 233000
 personality = "pragmatic"
 web_search = "live"
 
-model = "gpt-5.4"
+model = "gpt-5.5"
 preferred_auth_method = "chatgpt" # chatgpt/apikey
 
 #show_raw_agent_reasoning = false
@@ -75,8 +75,17 @@ trust_level = "trusted"
 [projects."/Users/tizee/projects/project-AI/tools/drop.tizee"]
 trust_level = "trusted"
 
+[projects."/Users/tizee/projects/project-AI/tools/webfetch.tizee"]
+trust_level = "trusted"
+
+[projects."/Users/tizee/projects/project-AI/tools/ai-proxy.tizee"]
+trust_level = "trusted"
+
 [tui]
 status_line = ["model-with-reasoning", "five-hour-limit", "weekly-limit", "project-root", "git-branch", "context-remaining", "context-used", "context-window-size"]
+
+[tui.model_availability_nux]
+"gpt-5.5" = 3
 
 [model_providers.anyrouter]
 name = "Any Router"
@@ -97,4 +106,7 @@ wire_api = "responses"
 
 experimental_use_freeform_apply_patch = false
 include_apply_patch_tool = false
+
+[notice.model_migrations]
+"gpt-5.4" = "gpt-5.5"
 
