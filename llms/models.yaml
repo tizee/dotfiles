@@ -71,7 +71,7 @@
     X-Title: "LLMs Agent"
 
 - model_id: orcodex
-  model_name: openai/gpt-5.3-codex
+  model_name: openai/gpt-5.5
   api_base: "https://openrouter.ai/api/v1"
   can_stream: true
   context_window: 400000
@@ -84,23 +84,31 @@
     X-Title: "LLMs Agent"
 
 - model_id: codex
-  model_name: codex/gpt-5.3-codex
+  model_name: codex/gpt-5.5
   api_base: "http://127.0.0.1:8082/openai/"
+  can_stream: true
+  api_key_name: cc
+  api_format: openai_responses
+  image: true
+  effort: high
+
+- model_id: codex54
+  model_name: codex/gpt-5.4
+  api_base: "http://127.0.0.1:8082/openai/"
+  api_key_name: cc
   can_stream: true
   api_format: openai_responses
   image: true
-  extra_body:
-    reasoning:
-      effort: medium
-- model_id: codex52
-  model_name: codex/gpt-5.2-codex
+  effort: medium
+
+- model_id: codexmini
+  model_name: codex/gpt-5.4-mini
   api_base: "http://127.0.0.1:8082/openai/"
   can_stream: true
+  api_key_name: cc
   api_format: openai_responses
   image: true
-  extra_body:
-    reasoning:
-      effort: medium
+  effort: medium
 
 - model_id: ds
   model_name: deepseek-v4-pro
