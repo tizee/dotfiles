@@ -230,6 +230,11 @@ if [[ $(uname -s) = "Darwin" ]]; then
   # }}}
 
   # Spotlight {{{
+  # Disable Spotlight indexing on the boot volume
+  # Rarely used here, so turn off indexing to save CPU/disk resources.
+  # -i off: disable indexing, -s /: target the startup volume
+  sudo mdutil -i off -s /
+
   # Set spotlight indexing order
   defaults write com.apple.spotlight orderedItems -array \
   '{"enabled" = 1;"name" = "APPLICATIONS";}' \
