@@ -141,6 +141,16 @@
   image: true
   thinking_mode: "adaptive"
 
+- model_id: fable
+  model_name: claude-code/claude-fable-5
+  api_base: "http://127.0.0.1:8082/anthropic/"
+  can_stream: true
+  api_format: anthropic
+  api_key_name: cc
+  context_window: 400000
+  image: true
+  thinking_mode: "adaptive"
+
 - model_id: sonnet
   model_name: claude-code/claude-sonnet-4-6
   api_base: "http://127.0.0.1:8082/anthropic/"

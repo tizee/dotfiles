@@ -537,8 +537,6 @@ if $is_macOS; then
 
   alias al="llms agent"
   alias alo="llms agent -m opus"
-  alias alk="llms agent -m kimi"
-  alias alm="llms agent -m minimax"
-  alias alg="llms agent -m glm"
+  alias alf="llms agent -m fable"
 fi
 

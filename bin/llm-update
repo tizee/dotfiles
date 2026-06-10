@@ -187,21 +187,16 @@ async def get_current_version(tool: Tool) -> Optional[str]:
 
         elif tool.dep == "pnpm":
             proc = await asyncio.create_subprocess_exec(
-                "pnpm", "list", "-g", tool.pkg, "--depth=0",
+                "pnpm", "list", "-g", tool.pkg, "--depth=0", "--json",
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.DEVNULL
             )
             stdout, _ = await proc.communicate()
-            output = stdout.decode()
-            for line in output.split('\n'):
-                if tool.pkg in line:
-                    parts = line.split()
-                    try:
-                        pkg_idx = next(i for i, p in enumerate(parts) if p == tool.pkg)
-                        if pkg_idx + 1 < len(parts):
-                            return parts[pkg_idx + 1]
-                    except StopIteration:
-                        continue
+            data = json.loads(stdout.decode())
+            for project in data:
+                dep = project.get("dependencies", {}).get(tool.pkg)
+                if dep and "version" in dep:
+                    return dep["version"]
 
         elif tool.dep == "uv":
             proc = await asyncio.create_subprocess_exec(
@@ -287,17 +282,23 @@ def print_help(width: int):
     print()
 
 
-async def run_upgrade_serial(tool: Tool) -> bool:
+async def run_upgrade_serial(tool: Tool, latest: Optional[str] = None) -> bool:
     """Run upgrade command for a tool and preserve original ANSI styles."""
+    cmd = tool.cmd
+    # Pin the exact resolved version to bypass pnpm's stale dist-tag metadata
+    # cache, which can silently reinstall the old version on '@latest'.
+    if latest and tool.tag == "latest":
+        cmd = cmd.replace(f"{tool.pkg}@latest", f"{tool.pkg}@{latest}")
+
     print(f"\n{Colors.DIM}{'─' * 60}{Colors.RESET}")
     print(f"{Colors.BOLD}{BOX['arrow']} Upgrading {Colors.CYAN}{tool.name}{Colors.RESET}")
     print(f"{Colors.DIM}{tool.desc}{Colors.RESET}")
-    print(f"{Colors.GRAY}$ {tool.cmd}{Colors.RESET}")
+    print(f"{Colors.GRAY}$ {cmd}{Colors.RESET}")
     print(f"{Colors.DIM}{'─' * 60}{Colors.RESET}\n")
 
     try:
         # Run process and let it inherit stdout/stderr to preserve ANSI/colors/progress
-        proc = await asyncio.create_subprocess_shell(tool.cmd)
+        proc = await asyncio.create_subprocess_shell(cmd)
         await proc.wait()
         success = proc.returncode == 0
 
@@ -446,7 +447,7 @@ async def main_async():
 
     for idx in selected:
         tool = TOOLS[idx - 1]
-        success = await run_upgrade_serial(tool)
+        success = await run_upgrade_serial(tool, TOOL_DATA[idx - 1]['latest'])
         if success:
             success_list.append(tool.name)
         else:
