@@ -168,9 +168,20 @@
   image: true
   api_key_name: cc
 
-- model_id: kimi
+- model_id: kimi-code
   model_name: kimi-for-coding
   api_base: "https://api.kimi.com/coding/"
+  can_stream: true
+  api_format: anthropic
+  image: true
+  context_window: 262144
+  api_key_name: kimi-for-coding
+  thinking_mode: "enabled"
+  effort: high
+
+- model_id: kimi
+  model_name: kimi-k2.7-code
+  api_base: "https://api.moonshot.cn/anthropic"
   can_stream: true
   api_format: anthropic
   image: true
@@ -179,17 +190,6 @@
   thinking_mode: "enabled"
   effort: high
 
-- model_id: kimi-for-coding-instant
-  model_name: kimi-for-coding
-  api_base: "https://api.kimi.com/coding/"
-  can_stream: true
-  api_format: anthropic
-  image: true
-  context_window: 262144
-  api_key_name: kimi
-  extra_body:
-    thinking:
-      type: "disabled"
 - model_id: minimax
   model_name: MiniMax-M2.7-highspeed
   api_base: "https://api.minimaxi.com/anthropic"
