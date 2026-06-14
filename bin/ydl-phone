@@ -1,0 +1,52 @@
+#!/usr/bin/env zsh
+set -euo pipefail
+
+URL="${1:-}"
+if [[ -z "$URL" ]]; then
+    echo "Usage: ydl-phone <URL>" >&2
+    exit 1
+fi
+
+TMPDIR="$(mktemp -d)"
+trap 'rm -rf "$TMPDIR"' EXIT
+
+# Download best video+best audio into MKV (supports any codec combo)
+yt-dlp \
+    -f "bv*+ba/best" \
+    --merge-output-format mkv \
+    -o "$TMPDIR/%(title)s.%(ext)s" \
+    "$URL"
+
+INPUT="$(find "$TMPDIR" -maxdepth 1 -type f -name '*.mkv' | head -n 1)"
+if [[ -z "$INPUT" ]]; then
+    echo "No downloaded file found" >&2
+    exit 1
+fi
+
+TITLE="$(basename "$INPUT" .mkv)"
+OUTPUT="${TITLE}.mp4"
+
+# Decide audio handling: copy AAC/ALAC, otherwise re-encode to AAC
+AUDIO_CODEC="$(ffprobe -v error -select_streams a:0 -show_entries stream=codec_name -of csv=p=0 "$INPUT" 2>/dev/null || true)"
+if [[ "$AUDIO_CODEC" == "aac" || "$AUDIO_CODEC" == "alac" ]]; then
+    AUDIO_OPTS=(-c:a copy)
+else
+    AUDIO_OPTS=(-c:a aac -b:a 256k)
+fi
+
+# Pick video encoder: prefer Apple VideoToolbox hardware encoder, fall back to libx264.
+# VideoToolbox has no real CRF; -q:v 1-100 is its quality scale (higher = better).
+if ffmpeg -hide_banner -encoders 2>/dev/null | grep -q 'h264_videotoolbox'; then
+    VIDEO_OPTS=(-c:v h264_videotoolbox -q:v 65 -pix_fmt yuv420p)
+else
+    VIDEO_OPTS=(-c:v libx264 -crf 23 -preset medium -pix_fmt yuv420p)
+fi
+
+# Normalize video to H.264, audio copied or re-encoded, MOOV at front for streaming
+ffmpeg -y -i "$INPUT" \
+    "${VIDEO_OPTS[@]}" \
+    "${AUDIO_OPTS[@]}" \
+    -movflags +faststart \
+    "$OUTPUT"
+
+echo "Output: $OUTPUT"
