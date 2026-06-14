@@ -53,7 +53,8 @@
           "~/Library/Application Support/obsidian/",
           "~/.local/share/uv/tools/",
           "~/Library/Caches/org.swift.swiftpm/",
-          "~/.config/llm/rss-reader.opml"
+          "~/.config/llm/rss-reader.opml",
+          "~/.cargo/registry/src"
         ]
       }
     },
