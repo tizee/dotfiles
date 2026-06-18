@@ -1,0 +1,550 @@
+#!/usr/bin/env python3
+"""
+watch - GNU/procps-ng compatible `watch` command for macOS.
+
+macOS has no native `watch`, so this is a full standalone implementation
+(not a wrapper). It runs a command repeatedly, full-screen, showing the
+output so changes can be observed over time.
+
+Supported options (procps-ng compatible):
+  -n, --interval SECS     seconds to wait between updates (default 2.0, min 0.1)
+  -d, --differences[=permanent]  highlight changes between updates
+  -t, --no-title          turn off header
+  -b, --beep              beep if command has a non-zero exit
+  -e, --errexit           freeze updates on command error, exit on keypress
+  -g, --chgexit           exit when output of command changes
+  -c, --color             interpret ANSI color and style sequences
+  -x, --exec              pass command to exec instead of "sh -c"
+  -p, --precise           attempt to run command at precise intervals
+  -w, --no-wrap           turn off line wrapping (long lines are truncated)
+  -h, --help              display this help and exit
+  -v, --version           output version information and exit
+
+The core logic (parsing, header formatting, diffing, line preparation) is
+factored into pure functions so it can be tested without side effects.
+"""
+
+import argparse
+import os
+import re
+import select
+import shutil
+import socket
+import subprocess
+import sys
+import termios
+import time
+import tty
+
+VERSION = "watch (Python clone) 0.1.0"
+
+# procps-ng exit codes
+EXIT_OK = 0
+EXIT_ERREXIT = 8
+
+MIN_INTERVAL = 0.1
+DEFAULT_INTERVAL = 2.0
+
+_ANSI_RE = re.compile(r"\x1b\[[0-9;?]*[ -/]*[@-~]")
+
+REVERSE_ON = "\033[7m"
+REVERSE_OFF = "\033[27m"
+
+
+# ---------------------------------------------------------------------------
+# Pure logic
+# ---------------------------------------------------------------------------
+def parse_interval(value):
+    """Parse the -n interval. None -> default. Clamp to MIN_INTERVAL.
+
+    Accepts both '.' and ',' as the decimal separator (procps does too).
+    Raises ValueError on non-numeric input.
+    """
+    if value is None:
+        return DEFAULT_INTERVAL
+    secs = float(str(value).replace(",", "."))
+    if secs < MIN_INTERVAL:
+        return MIN_INTERVAL
+    return secs
+
+
+def format_interval(interval):
+    """Format the interval the way procps does: always one decimal place."""
+    return f"{interval:.1f}"
+
+
+def strip_ansi(text):
+    """Remove ANSI escape sequences from text."""
+    return _ANSI_RE.sub("", text)
+
+
+def visible_len(text):
+    """Length of text ignoring ANSI escape sequences."""
+    return len(strip_ansi(text))
+
+
+def format_header(interval, command, width, hostname, now):
+    """Build the header line.
+
+    Layout: 'Every {interval}s: {command}' on the left, '{host}: {date}' on
+    the right, padded so the whole line fills `width`, then truncated to
+    `width` if it overflows.
+    """
+    left = f"Every {format_interval(interval)}s: {command}"
+    right = f"{hostname}: {now}"
+
+    if len(left) + len(right) + 1 > width:
+        # Not enough room for both; left side wins and gets truncated.
+        line = left
+    else:
+        gap = width - len(left) - len(right)
+        line = left + (" " * gap) + right
+    return line[:width]
+
+
+def build_argv(command_words, exec_mode):
+    """Build the argv to execute.
+
+    Default mode joins the words and runs them through 'sh -c'. Exec mode
+    passes the words straight to execvp without shell interpretation.
+    """
+    if exec_mode:
+        return list(command_words)
+    return ["sh", "-c", " ".join(command_words)]
+
+
+def _truncate_visible(text, width, color):
+    """Truncate `text` to `width` visible columns.
+
+    When `color` is True, ANSI sequences are preserved and not counted toward
+    the width. When False, the text has already been stripped upstream, so a
+    plain slice is correct.
+    """
+    if not color:
+        return text[:width]
+
+    out = []
+    count = 0
+    i = 0
+    while i < len(text) and count < width:
+        m = _ANSI_RE.match(text, i)
+        if m:
+            out.append(m.group())
+            i = m.end()
+            continue
+        out.append(text[i])
+        count += 1
+        i += 1
+    # keep any trailing reset sequences so color does not bleed
+    while i < len(text):
+        m = _ANSI_RE.match(text, i)
+        if not m:
+            break
+        out.append(m.group())
+        i = m.end()
+    return "".join(out)
+
+
+def prepare_lines(lines, width, wrap, color=False):
+    """Truncate or wrap each line to the terminal width.
+
+    With wrap=True a long line is split into multiple physical lines.
+    With wrap=False it is truncated. ANSI sequences are zero-width when
+    color=True.
+    """
+    result = []
+    for line in lines:
+        if visible_len(line) <= width:
+            result.append(line)
+            continue
+        if not wrap:
+            result.append(_truncate_visible(line, width, color))
+            continue
+        # wrap: repeatedly take `width` visible columns
+        remaining = line
+        while visible_len(remaining) > width:
+            chunk = _truncate_visible(remaining, width, color)
+            result.append(chunk)
+            # advance past the visible chars we consumed
+            taken = visible_len(chunk)
+            remaining = _drop_visible(remaining, taken)
+        if remaining:
+            result.append(remaining)
+    return result
+
+
+def _drop_visible(text, n):
+    """Drop the first `n` visible characters, preserving ANSI sequences after."""
+    count = 0
+    i = 0
+    while i < len(text) and count < n:
+        m = _ANSI_RE.match(text, i)
+        if m:
+            i = m.end()
+            continue
+        count += 1
+        i += 1
+    return text[i:]
+
+
+def compute_diff_spans(prev, curr):
+    """Return changed character spans of `curr` relative to `prev`.
+
+    Character-level: any position where curr differs from prev (including
+    positions past the end of prev) is part of a changed span. Returns a list
+    of (start, end) tuples over `curr`.
+    """
+    if prev is None:
+        return []
+    spans = []
+    start = None
+    maxlen = len(curr)
+    for i in range(maxlen):
+        prev_ch = prev[i] if i < len(prev) else None
+        curr_ch = curr[i]
+        differs = prev_ch != curr_ch
+        if differs and start is None:
+            start = i
+        elif not differs and start is not None:
+            spans.append((start, i))
+            start = None
+    if start is not None:
+        spans.append((start, maxlen))
+    return spans
+
+
+def normalize_spans(spans):
+    """Return spans as a plain list of (start, end) tuples (test helper)."""
+    return [tuple(s) for s in spans]
+
+
+def apply_diff_highlight(text, spans):
+    """Wrap each changed span in reverse-video escape sequences."""
+    if not spans:
+        return text
+    out = []
+    prev_end = 0
+    for start, end in spans:
+        out.append(text[prev_end:start])
+        out.append(REVERSE_ON)
+        out.append(text[start:end])
+        out.append(REVERSE_OFF)
+        prev_end = end
+    out.append(text[prev_end:])
+    return "".join(out)
+
+
+def should_chgexit(prev, curr):
+    """True when -g should exit: output changed from the previous run."""
+    if prev is None:
+        return False
+    return prev != curr
+
+
+def should_beep(exit_code):
+    """True when -b should beep: command exited non-zero."""
+    return exit_code != 0
+
+
+# ---------------------------------------------------------------------------
+# Side-effecting helpers
+# ---------------------------------------------------------------------------
+def run_command(argv):
+    """Run the command, capturing combined stdout+stderr.
+
+    Returns (output_text, exit_code). stderr is merged into stdout the way
+    watch displays it.
+    """
+    try:
+        proc = subprocess.run(
+            argv,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+        )
+    except FileNotFoundError as exc:
+        return (f"{exc}\n", 127)
+    return (proc.stdout, proc.returncode)
+
+
+def terminal_size():
+    """Current terminal size as (columns, rows), with sane fallbacks."""
+    size = shutil.get_terminal_size(fallback=(80, 24))
+    return size.columns, size.lines
+
+
+def render(out, args, interval, command_str, body_lines, hostname):
+    """Clear the screen and draw the header + body to `out`."""
+    cols, rows = terminal_size()
+
+    buf = []
+    buf.append("\033[H\033[2J")  # move home + clear screen
+
+    body_start = 0
+    if not args.no_title:
+        now = time.strftime("%a %b %e %H:%M:%S %Y")
+        header = format_header(interval, command_str, cols, hostname, now)
+        buf.append(header)
+        buf.append("\r\n\r\n")
+        body_start = 2
+
+    visible_body = body_lines[: max(0, rows - body_start)]
+    buf.append("\r\n".join(visible_body))
+
+    out.write("".join(buf))
+    out.flush()
+
+
+class RawMode:
+    """Put the terminal into cbreak mode once for the session.
+
+    Toggling raw mode on every poll is both wasteful and unreliable (it can
+    intermittently fail with EPERM). Instead we enter cbreak mode once on
+    construction and restore the original settings on close. On a non-TTY
+    stdin this is a no-op so the program still works under pipes/redirection.
+    """
+
+    def __init__(self):
+        self.fd = None
+        self.old = None
+        if sys.stdin.isatty():
+            fd = sys.stdin.fileno()
+            try:
+                self.old = termios.tcgetattr(fd)
+                tty.setcbreak(fd)
+            except (termios.error, OSError):
+                # Terminal refused raw mode (e.g. restricted PTY). Degrade
+                # gracefully: interactive single-key quit is unavailable, but
+                # Ctrl-C (SIGINT) still works. Never crash over this.
+                self.old = None
+                return
+            self.fd = fd
+
+    @property
+    def active(self):
+        return self.fd is not None
+
+    def close(self):
+        if self.fd is not None and self.old is not None:
+            termios.tcsetattr(self.fd, termios.TCSADRAIN, self.old)
+            self.fd = None
+            self.old = None
+
+
+def wait_for_keypress(raw):
+    """Block until the user presses a key (used by --errexit)."""
+    if not raw.active:
+        try:
+            sys.stdin.read(1)
+        except Exception:
+            pass
+        return
+    select.select([raw.fd], [], [], None)
+    try:
+        os.read(raw.fd, 1)
+    except OSError:
+        pass
+
+
+def key_pressed(raw):
+    """Non-blocking check: did the user press 'q' or Ctrl-C on a TTY?
+
+    Returns True if a quit key was seen. No-op (False) on non-TTY stdin.
+    Assumes the terminal is already in cbreak mode (see RawMode).
+    """
+    if not raw.active:
+        return False
+    r, _, _ = select.select([raw.fd], [], [], 0)
+    if r:
+        try:
+            ch = os.read(raw.fd, 1)
+        except OSError:
+            return False
+        if ch in (b"q", b"Q", b"\x03"):  # q or Ctrl-C
+            return True
+    return False
+
+
+# ---------------------------------------------------------------------------
+# Argument parsing
+# ---------------------------------------------------------------------------
+def parse_args(argv):
+    parser = argparse.ArgumentParser(
+        prog="watch",
+        description="Execute a program periodically, showing output fullscreen.",
+        add_help=False,
+    )
+    parser.add_argument("-n", "--interval", default=None)
+    parser.add_argument(
+        "-d", "--differences", nargs="?", const="transient", default=None
+    )
+    parser.add_argument("-t", "--no-title", action="store_true")
+    parser.add_argument("-b", "--beep", action="store_true")
+    parser.add_argument("-e", "--errexit", action="store_true")
+    parser.add_argument("-g", "--chgexit", action="store_true")
+    parser.add_argument("-c", "--color", action="store_true")
+    parser.add_argument("-x", "--exec", dest="exec_mode", action="store_true")
+    parser.add_argument("-p", "--precise", action="store_true")
+    parser.add_argument("-w", "--no-wrap", action="store_true")
+    parser.add_argument("-h", "--help", action="store_true")
+    parser.add_argument("-v", "--version", action="store_true")
+    parser.add_argument("command", nargs=argparse.REMAINDER)
+    return parser.parse_args(argv)
+
+
+HELP_TEXT = """Usage: watch [options] command
+
+Options:
+  -b, --beep             beep if command has a non-zero exit
+  -c, --color            interpret ANSI color and style sequences
+  -d, --differences[=permanent]
+                         highlight changes between updates
+  -e, --errexit          exit if command has a non-zero exit
+  -g, --chgexit          exit when output from command changes
+  -n, --interval <secs>  seconds to wait between updates (default 2.0)
+  -p, --precise          attempt run command in precise intervals
+  -t, --no-title         turn off header
+  -w, --no-wrap          turn off line wrapping
+  -x, --exec             pass command to exec instead of "sh -c"
+
+  -h, --help             display this help and exit
+  -v, --version          output version information and exit
+"""
+
+
+# ---------------------------------------------------------------------------
+# Main loop
+# ---------------------------------------------------------------------------
+def main(argv=None):
+    args = parse_args(sys.argv[1:] if argv is None else argv)
+
+    if args.help:
+        sys.stdout.write(HELP_TEXT)
+        return EXIT_OK
+    if args.version:
+        print(VERSION)
+        return EXIT_OK
+
+    command_words = args.command
+    if not command_words:
+        sys.stderr.write("watch: no command specified\n")
+        sys.stderr.write(HELP_TEXT)
+        return 1
+
+    interval = parse_interval(args.interval)
+    command_str = " ".join(command_words)
+    argv_to_run = build_argv(command_words, args.exec_mode)
+    hostname = socket.gethostname()
+    diff_permanent = args.differences == "permanent"
+    do_diff = args.differences is not None
+
+    out = sys.stdout
+    start_time = time.monotonic()
+    prev_stripped = None
+    permanent_spans_by_line = {}
+    raw = RawMode()
+
+    exit_code = EXIT_OK
+    try:
+        while True:
+            raw_output, cmd_code = run_command(argv_to_run)
+
+            if args.beep and should_beep(cmd_code):
+                out.write("\a")
+                out.flush()
+
+            display = raw_output if args.color else strip_ansi(raw_output)
+            stripped = strip_ansi(raw_output)
+
+            raw_lines = display.splitlines()
+            cols, _ = terminal_size()
+
+            # Diff highlighting works on visible text per line.
+            if do_diff:
+                prev_lines = (prev_stripped or "").splitlines()
+                highlighted = []
+                for idx, line in enumerate(raw_lines):
+                    plain = strip_ansi(line)
+                    prev_line = prev_lines[idx] if idx < len(prev_lines) else None
+                    spans = compute_diff_spans(prev_line, plain)
+                    if diff_permanent:
+                        old = permanent_spans_by_line.get(idx, [])
+                        spans = _merge_spans(old + spans)
+                        permanent_spans_by_line[idx] = spans
+                    highlighted.append(apply_diff_highlight(plain, spans))
+                raw_lines = highlighted
+
+            body = prepare_lines(
+                raw_lines, cols, wrap=not args.no_wrap, color=args.color or do_diff
+            )
+
+            render(out, args, interval, command_str, body, hostname)
+
+            # -g: exit when output changes.
+            if args.chgexit and should_chgexit(prev_stripped, stripped):
+                return EXIT_OK
+
+            # -e: freeze on error, then wait for a keypress and exit.
+            if args.errexit and cmd_code != 0:
+                wait_for_keypress(raw)
+                return EXIT_ERREXIT
+
+            prev_stripped = stripped
+
+            # Sleep, but watch for q / Ctrl-C interactively.
+            if not _interruptible_wait(interval, start_time, args.precise, raw):
+                return EXIT_OK
+    except KeyboardInterrupt:
+        return EXIT_OK
+    finally:
+        raw.close()
+        # Leave the cursor on a fresh line.
+        try:
+            out.write("\n")
+            out.flush()
+        except Exception:
+            pass
+
+    return exit_code
+
+
+def _merge_spans(spans):
+    """Merge overlapping/adjacent (start, end) spans."""
+    if not spans:
+        return []
+    spans = sorted(spans)
+    merged = [list(spans[0])]
+    for start, end in spans[1:]:
+        if start <= merged[-1][1]:
+            merged[-1][1] = max(merged[-1][1], end)
+        else:
+            merged.append([start, end])
+    return [tuple(s) for s in merged]
+
+
+def _interruptible_wait(interval, start_time, precise, raw):
+    """Wait the interval while polling for a quit keypress.
+
+    Returns False if the user requested quit, True otherwise.
+    """
+    if precise:
+        elapsed = time.monotonic() - start_time
+        target = interval - (elapsed % interval)
+    else:
+        target = interval
+
+    deadline = time.monotonic() + target
+    while True:
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            return True
+        if raw.active:
+            if key_pressed(raw):
+                return False
+            time.sleep(min(0.1, remaining))
+        else:
+            time.sleep(remaining)
+
+
+if __name__ == "__main__":
+    sys.exit(main())
