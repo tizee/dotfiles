@@ -61,6 +61,7 @@ class ExperimentState:
     metric_name: str = ""
     metric_unit: str = ""
     direction: str = "lower"  # "lower" or "higher"
+    path: str = ""  # experiment base path recorded in the config line
     best_metric: float | None = None
     results: list[dict[str, Any]] = field(default_factory=list)
 
@@ -75,6 +76,12 @@ class Runtime:
     last_auto_resume_time: float = 0.0
     last_run_duration: float | None = None
     state: ExperimentState = field(default_factory=ExperimentState)
+    # Experiment base path: where JSONL is stored and where experiment /
+    # git commands run. ``None`` means "not explicitly set" — handlers then
+    # fall back to the agent CWD (ctx.cwd). When set (via the ``path``
+    # argument or session resume) it can point at another repo so git
+    # operations apply to the experiment context, not the CWD.
+    base_path: Path | None = None
 
 
 # Module-level singleton — one per agent process.
@@ -87,6 +94,34 @@ _api: ExtensionAPI | None = None
 # ---------------------------------------------------------------------------
 # JSONL persistence
 # ---------------------------------------------------------------------------
+
+
+def _resolve_base_path(path: str) -> Path:
+    """Resolve a path argument into an absolute experiment base path.
+
+    Raises if the path does not exist or is not a directory — fail fast rather
+    than silently running git/experiment commands in the wrong place.
+    """
+    resolved = Path(path).expanduser().resolve()
+    if not resolved.is_dir():
+        raise NotADirectoryError(
+            f"experiment path is not an existing directory: {resolved}"
+        )
+    return resolved
+
+
+def _effective_base_path(ctx: Any) -> Path:
+    """Return the active experiment base path.
+
+    Uses the explicitly configured ``_runtime.base_path`` when set, otherwise
+    falls back to the agent's current working directory (``ctx.cwd``).
+    """
+    return _runtime.base_path if _runtime.base_path is not None else ctx.cwd
+
+
+async def _run(ctx: Any, command: str, base_path: Path, timeout: int) -> Any:
+    """Run a shell command in ``base_path`` via ``ctx.execute_bash``."""
+    return await ctx.execute_bash(command, timeout=timeout, cwd=str(base_path))
 
 
 def _jsonl_path(cwd: Path) -> Path:
@@ -119,6 +154,7 @@ def _reconstruct_state(cwd: Path) -> ExperimentState:
             state.metric_name = record.get("metric_name", "")
             state.metric_unit = record.get("metric_unit", "")
             state.direction = record.get("direction", "lower")
+            state.path = record.get("path", "")
             # Reset on re-init config line.
             state.best_metric = None
             state.results.clear()
@@ -180,6 +216,13 @@ async def _handle_init_experiment(arguments: dict[str, Any], ctx: Any) -> str:
     if direction not in ("lower", "higher"):
         return f"Error: direction must be 'lower' or 'higher', got '{direction}'"
 
+    if arguments.get("path"):
+        try:
+            _runtime.base_path = _resolve_base_path(arguments["path"])
+        except NotADirectoryError as e:
+            return f"Error: {e}"
+    base_path = _effective_base_path(ctx)
+
     is_reinit = len(_runtime.state.results) > 0
 
     _runtime.state.name = name
@@ -190,18 +233,19 @@ async def _handle_init_experiment(arguments: dict[str, Any], ctx: Any) -> str:
     if is_reinit:
         _runtime.state.results.clear()
 
-    # Write config header to JSONL.
+    # Write config header to JSONL (stored alongside the experiment path).
     config_record = {
         "type": "config",
         "name": name,
         "metric_name": metric_name,
         "metric_unit": metric_unit,
         "direction": direction,
+        "path": str(base_path),
     }
-    jsonl = _jsonl_path(ctx.cwd)
+    jsonl = _jsonl_path(base_path)
     try:
         if is_reinit:
-            _append_jsonl(ctx.cwd, config_record)
+            _append_jsonl(base_path, config_record)
         else:
             jsonl.write_text(json.dumps(config_record) + "\n")
     except OSError as e:
@@ -214,9 +258,13 @@ async def _handle_init_experiment(arguments: dict[str, Any], ctx: Any) -> str:
         if is_reinit
         else ""
     )
+    path_note = (
+        f"\nExperiment path: {base_path}" if base_path != ctx.cwd else ""
+    )
     return (
         f'Experiment initialized: "{name}"{reinit_note}\n'
-        f"Metric: {metric_name} ({metric_unit or 'unitless'}, {direction} is better)\n"
+        f"Metric: {metric_name} ({metric_unit or 'unitless'}, {direction} is better)"
+        f"{path_note}\n"
         f"Config written to autoresearch.jsonl. Now run the baseline with RunExperiment."
     )
 
@@ -229,9 +277,17 @@ async def _handle_run_experiment(
     command = arguments["command"]
     timeout = min(max(arguments.get("timeout", 600), 1), 3600)
 
+    # Optional per-call override of the experiment base path.
+    if arguments.get("path"):
+        try:
+            _runtime.base_path = _resolve_base_path(arguments["path"])
+        except NotADirectoryError as e:
+            return f"Error: {e}"
+    base_path = _effective_base_path(ctx)
+
     t0 = time.monotonic()
     try:
-        result = await ctx.execute_bash(command, timeout=timeout)
+        result = await _run(ctx, command, base_path, timeout)
     except TimeoutError:
         elapsed = time.monotonic() - t0
         _runtime.last_run_duration = elapsed
@@ -308,6 +364,7 @@ async def _handle_log_experiment(arguments: dict[str, Any], ctx: Any) -> str:
     if status not in ("keep", "discard", "crash"):
         return f"Error: status must be 'keep', 'discard', or 'crash', got '{status}'"
 
+    base_path = _effective_base_path(ctx)
     state = _runtime.state
 
     # Build experiment record.
@@ -360,18 +417,18 @@ async def _handle_log_experiment(arguments: dict[str, Any], ctx: Any) -> str:
         try:
             # Stage and commit.
             commit_msg = f"autoresearch: {description}"
-            add_result = await ctx.execute_bash("git add -A", timeout=10)
+            add_result = await _run(ctx, "git add -A", base_path, 10)
             if add_result.exit_code != 0:
                 lines.append(f"Warning: git add failed: {add_result.output[:200]}")
             else:
-                diff_result = await ctx.execute_bash(
-                    "git diff --cached --quiet", timeout=10
+                diff_result = await _run(
+                    ctx, "git diff --cached --quiet", base_path, 10
                 )
                 if diff_result.exit_code == 0:
                     lines.append("Git: nothing to commit (working tree clean)")
                 else:
-                    commit_result = await ctx.execute_bash(
-                        f'git commit -m "{commit_msg}"', timeout=10
+                    commit_result = await _run(
+                        ctx, f'git commit -m "{commit_msg}"', base_path, 10
                     )
                     if commit_result.exit_code == 0:
                         first_line = (
@@ -395,16 +452,16 @@ async def _handle_log_experiment(arguments: dict[str, Any], ctx: Any) -> str:
             revert_cmd = (
                 f"{protect_cmds}; git checkout -- . ; git clean -fd 2>/dev/null"
             )
-            await ctx.execute_bash(revert_cmd, timeout=10)
+            await _run(ctx, revert_cmd, base_path, 10)
             lines.append(
                 f"Git: reverted changes ({status}) -- autoresearch files preserved"
             )
         except Exception as e:
             lines.append(f"Warning: git revert failed: {e}")
 
-    # Persist to JSONL (always, regardless of status).
+    # Persist to JSONL (always, regardless of status) alongside the experiment.
     try:
-        _append_jsonl(ctx.cwd, experiment)
+        _append_jsonl(base_path, experiment)
     except OSError as e:
         lines.append(f"Warning: failed to write autoresearch.jsonl: {e}")
 
@@ -457,7 +514,8 @@ def _on_stop(event: Any) -> SubscriberResult:
             "Continue the autoresearch experiment loop. "
             "Read autoresearch.md and git log for context if needed."
         )
-        ideas_path = Path.cwd() / "autoresearch.ideas.md"
+        ideas_base = _runtime.base_path or Path.cwd()
+        ideas_path = ideas_base / "autoresearch.ideas.md"
         if ideas_path.exists():
             resume_msg += " Check autoresearch.ideas.md for promising paths."
         _api.send_user_message(resume_msg)
@@ -476,6 +534,11 @@ def _on_session_start(event: Any) -> None:
             _runtime.active = True
             _runtime.experiments_this_session = 0
             _runtime.auto_resume_count = 0
+            # Resume against the recorded experiment path when present and
+            # valid; otherwise leave base_path unset so the CWD is used.
+            recorded = _runtime.state.path
+            if recorded and Path(recorded).is_dir():
+                _runtime.base_path = Path(recorded)
 
 
 # ---------------------------------------------------------------------------
@@ -495,14 +558,20 @@ def _handle_autoresearch_command(ctx: Any) -> None:
         return
 
     if args == "clear":
+        # Remove the JSONL wherever the active experiment stored it, then
+        # also check the CWD in case no experiment path was set this session.
+        candidates = {Path.cwd()}
+        if _runtime.base_path is not None:
+            candidates.add(_runtime.base_path)
+        for candidate in candidates:
+            jsonl = _jsonl_path(candidate)
+            if jsonl.exists():
+                jsonl.unlink()
         _runtime.active = False
         _runtime.state = ExperimentState()
         _runtime.experiments_this_session = 0
         _runtime.auto_resume_count = 0
-        cwd = Path.cwd()
-        jsonl = _jsonl_path(cwd)
-        if jsonl.exists():
-            jsonl.unlink()
+        _runtime.base_path = None
         ctx.send_result("Autoresearch data cleared.")
         return
 
@@ -528,10 +597,14 @@ def _handle_autoresearch_command(ctx: Any) -> None:
     _runtime.experiments_this_session = 0
     _runtime.auto_resume_count = 0
 
-    # Reconstruct state if JSONL exists.
+    # Reconstruct state if JSONL exists in the CWD, adopting the recorded
+    # experiment path so git/log operations target the right repo.
     cwd = Path.cwd()
     if _jsonl_path(cwd).exists():
         _runtime.state = _reconstruct_state(cwd)
+        recorded = _runtime.state.path
+        if recorded and Path(recorded).is_dir():
+            _runtime.base_path = Path(recorded)
 
     # Send as user message so the agent sees the goal and starts the loop.
     ctx.send_user_message(
@@ -565,6 +638,14 @@ INIT_EXPERIMENT_PARAMS = {
             "description": '"lower" or "higher" — which direction is better. Default: "lower"',
             "enum": ["lower", "higher"],
         },
+        "path": {
+            "type": "string",
+            "description": (
+                "Experiment repo/working directory. Git operations and "
+                "autoresearch.jsonl are scoped to this path. Default: current "
+                "working directory."
+            ),
+        },
     },
     "required": ["name", "metric_name"],
     "additionalProperties": False,
@@ -580,6 +661,13 @@ RUN_EXPERIMENT_PARAMS = {
         "timeout": {
             "type": "integer",
             "description": "Kill after this many seconds (default: 600, max: 3600)",
+        },
+        "path": {
+            "type": "string",
+            "description": (
+                "Optional override of the experiment working directory for "
+                "this run. Defaults to the path set by InitExperiment."
+            ),
         },
     },
     "required": ["command"],
@@ -625,7 +713,9 @@ Writes the config header to autoresearch.jsonl.
 Guidelines:
 - Call InitExperiment exactly once at the start of an autoresearch session.
 - If autoresearch.jsonl already exists with a config, do NOT call InitExperiment again.
-- If the optimization target changes, call InitExperiment again to reset."""
+- If the optimization target changes, call InitExperiment again to reset.
+- If experiments run in a different repo than your CWD, pass `path` so git
+  commits/reverts and autoresearch.jsonl are scoped to that repo, not the CWD."""
 
 RUN_EXPERIMENT_GUIDANCE = """\
 Run a shell command as a timed experiment. Captures wall-clock duration,
@@ -634,6 +724,8 @@ output, and exit code. Parses METRIC name=value lines from stdout.
 Guidelines:
 - Use RunExperiment instead of Bash when running experiment commands.
 - After RunExperiment, always call LogExperiment to record the result.
+- Commands run in the experiment path set by InitExperiment (or the `path`
+  override), not necessarily the agent CWD.
 - If the benchmark script outputs METRIC lines (e.g. 'METRIC total_ms=152'),
   they are parsed automatically. Use parsed values in LogExperiment."""
 
