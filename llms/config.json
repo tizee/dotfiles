@@ -17,10 +17,10 @@
       ],
       "ask": []
     },
-    "model": "ds",
+    "model": "ds-flash",
     "background_model": "haiku",
     "compact_model": "inherit",
-    "subagent_model": "ds",
+    "subagent_model": "ds-flash",
     "micro_compact": {
       "enabled": false,
       "keep_recent_turns": 6,
