@@ -102,6 +102,58 @@ class SessionQuota:
 
 
 @dataclass
+class ResetCredit:
+    """Represents a provider-issued rate-limit reset credit."""
+
+    id: Optional[str] = None
+    reset_type: Optional[str] = None
+    status: Optional[str] = None
+    granted_at: Optional[str] = None
+    expires_at: Optional[str] = None
+    expires_at_local: Optional[str] = None
+    expires_in: Optional[str] = None
+    redeem_started_at: Optional[str] = None
+    redeemed_at: Optional[str] = None
+
+    def to_dict(self) -> dict[str, Any]:
+        result = {}
+        if self.id:
+            result["id"] = self.id
+        if self.reset_type:
+            result["reset_type"] = self.reset_type
+        if self.status:
+            result["status"] = self.status
+        if self.granted_at:
+            result["granted_at"] = self.granted_at
+        if self.expires_at:
+            result["expires_at"] = self.expires_at
+        if self.expires_at_local:
+            result["expires_at_local"] = self.expires_at_local
+        if self.expires_in:
+            result["expires_in"] = self.expires_in
+        if self.redeem_started_at:
+            result["redeem_started_at"] = self.redeem_started_at
+        if self.redeemed_at:
+            result["redeemed_at"] = self.redeemed_at
+        return result
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> "ResetCredit":
+        """Create ResetCredit from dictionary"""
+        return cls(
+            id=data.get("id"),
+            reset_type=data.get("reset_type"),
+            status=data.get("status"),
+            granted_at=data.get("granted_at"),
+            expires_at=data.get("expires_at"),
+            expires_at_local=data.get("expires_at_local"),
+            expires_in=data.get("expires_in"),
+            redeem_started_at=data.get("redeem_started_at"),
+            redeemed_at=data.get("redeemed_at"),
+        )
+
+
+@dataclass
 class QuotaInfo:
     """Unified quota information from a provider"""
 
@@ -110,6 +162,9 @@ class QuotaInfo:
     plan_type: Optional[str] = None  # e.g., "free", "pro", "enterprise"
     sessions: dict[str, SessionQuota] = field(default_factory=dict)
     # Common session keys: "current" (5-hour), "weekly", "weekly_opus", "weekly_sonnet"
+    reset_credit_count: Optional[int] = None
+    reset_credits: list[ResetCredit] = field(default_factory=list)
+    reset_credits_error: Optional[str] = None
     raw_response: Optional[dict[str, Any]] = None
     error: Optional[str] = None
     # "client" = transient (curl/network failure, should retry)
@@ -127,6 +182,12 @@ class QuotaInfo:
             result["plan_type"] = self.plan_type
         if self.sessions:
             result["sessions"] = {k: v.to_dict() for k, v in self.sessions.items()}
+        if self.reset_credit_count is not None:
+            result["reset_credit_count"] = self.reset_credit_count
+        if self.reset_credits or self.reset_credit_count is not None:
+            result["reset_credits"] = [credit.to_dict() for credit in self.reset_credits]
+        if self.reset_credits_error:
+            result["reset_credits_error"] = self.reset_credits_error
         if self.raw_response:
             result["raw_response"] = self.raw_response
         if self.error:
@@ -148,11 +209,22 @@ class QuotaInfo:
                 elif isinstance(val, SessionQuota):
                     sessions[key] = val
 
+        reset_credits = []
+        if "reset_credits" in data:
+            for val in data["reset_credits"]:
+                if isinstance(val, dict):
+                    reset_credits.append(ResetCredit.from_dict(val))
+                elif isinstance(val, ResetCredit):
+                    reset_credits.append(val)
+
         return cls(
             provider=data.get("provider", "unknown"),
             account=data.get("account"),
             plan_type=data.get("plan_type"),
             sessions=sessions,
+            reset_credit_count=data.get("reset_credit_count"),
+            reset_credits=reset_credits,
+            reset_credits_error=data.get("reset_credits_error"),
             raw_response=data.get("raw_response"),
             error=data.get("error"),
             error_type=data.get("error_type"),
@@ -699,6 +771,7 @@ class CodexQuotaProvider(QuotaProvider):
     name = "codex"
     description = "Codex (chatgpt.com)"
     API_URL = "https://chatgpt.com/backend-api/wham/usage"
+    RESET_CREDITS_URL = "https://chatgpt.com/backend-api/wham/rate-limit-reset-credits"
 
     def __init__(self, auth_token: str, account_id: str):
         super().__init__("")
@@ -706,7 +779,7 @@ class CodexQuotaProvider(QuotaProvider):
         self.account_id = account_id
 
     def get_api_endpoints(self) -> list[str]:
-        return [self.API_URL]
+        return [self.API_URL, self.RESET_CREDITS_URL]
 
     @classmethod
     def from_codex_config(cls) -> "CodexQuotaProvider":
@@ -764,20 +837,22 @@ class CodexQuotaProvider(QuotaProvider):
 
         return cls(access_token, account_id)
 
-    def _curl_request(self, url: str, timeout: int = 30) -> dict:
+    def _curl_request(self, url: str, timeout: int = 30, extra_headers: Optional[list[str]] = None) -> dict:
         """Send request using curl with Bearer auth"""
-        cmd = [
-            "curl",
-            "-s",
-            "-L",
-            "--http1.1",
-            "-H", f"Authorization: Bearer {self.auth_token}",
-            "-H", f"ChatGPT-Account-Id: {self.account_id}",
-            "-H", "Accept: application/json",
-            "-H", "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            "--max-time", str(timeout),
-            url,
+        headers = [
+            "-H",
+            f"Authorization: Bearer {self.auth_token}",
+            "-H",
+            f"ChatGPT-Account-ID: {self.account_id}",
+            "-H",
+            "Accept: application/json",
+            "-H",
+            "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
         ]
+        for header in extra_headers or []:
+            headers.extend(["-H", header])
+
+        cmd = ["curl", "-s", "-L", "--http1.1", *headers, "--max-time", str(timeout), url]
 
         result = subprocess.run(cmd, capture_output=True, text=True)
 
@@ -814,6 +889,73 @@ class CodexQuotaProvider(QuotaProvider):
         except Exception:
             return None, None, None
 
+    def _parse_iso_expiry(self, expires_at: Optional[str]) -> tuple[Optional[str], Optional[str]]:
+        """Parse an ISO expiry timestamp into local time and duration."""
+        if not expires_at:
+            return None, None
+
+        try:
+            dt = datetime.fromisoformat(expires_at.replace("Z", "+00:00"))
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+
+            local_tz = self._get_system_timezone()
+            local_dt = dt.astimezone(local_tz)
+            expires_at_local = local_dt.strftime("%H:%M")
+
+            now = datetime.now(timezone.utc)
+            total_seconds = int((dt.astimezone(timezone.utc) - now).total_seconds())
+            expires_in = format_duration(total_seconds)
+
+            return expires_at_local, expires_in
+        except (TypeError, ValueError):
+            return None, None
+
+    def _parse_reset_credit(self, credit: dict[str, Any]) -> ResetCredit:
+        """Parse a Codex reset credit response item."""
+        expires_at = credit.get("expires_at")
+        expires_at_local, expires_in = self._parse_iso_expiry(expires_at)
+
+        return ResetCredit(
+            id=credit.get("id"),
+            reset_type=credit.get("reset_type"),
+            status=credit.get("status"),
+            granted_at=credit.get("granted_at"),
+            expires_at=expires_at,
+            expires_at_local=expires_at_local,
+            expires_in=expires_in,
+            redeem_started_at=credit.get("redeem_started_at"),
+            redeemed_at=credit.get("redeemed_at"),
+        )
+
+    def _parse_reset_credit_count(self, value: Any) -> Optional[int]:
+        """Parse reset credit count from either usage or detail responses."""
+        if value is None:
+            return None
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return None
+
+    def _apply_reset_credits(self, quota_info: QuotaInfo, data: dict[str, Any]) -> None:
+        """Merge Codex reset credit detail response into quota info."""
+        count = self._parse_reset_credit_count(data.get("available_count"))
+        if count is not None:
+            quota_info.reset_credit_count = count
+
+        credits = data.get("credits", [])
+        if isinstance(credits, list):
+            quota_info.reset_credits = [
+                self._parse_reset_credit(credit)
+                for credit in credits
+                if isinstance(credit, dict)
+            ]
+
+        if quota_info.reset_credit_count is None and quota_info.reset_credits:
+            quota_info.reset_credit_count = sum(
+                1 for credit in quota_info.reset_credits if credit.status == "available"
+            )
+
     def _get_system_timezone(self) -> timezone:
         """Get system local timezone"""
         try:
@@ -838,6 +980,12 @@ class CodexQuotaProvider(QuotaProvider):
             # Parse Codex response structure
             quota_info.plan_type = data.get("plan_type")
             quota_info.account = data.get("email")
+
+            reset_summary = data.get("rate_limit_reset_credits", {})
+            if isinstance(reset_summary, dict):
+                count = self._parse_reset_credit_count(reset_summary.get("available_count"))
+                if count is not None:
+                    quota_info.reset_credit_count = count
 
             # Parse rate_limit (primary = session, secondary = weekly)
             rate_limit = data.get("rate_limit", {})
@@ -878,6 +1026,22 @@ class CodexQuotaProvider(QuotaProvider):
                             "limit_window_seconds": secondary.get("limit_window_seconds"),
                         },
                     )
+
+            try:
+                reset_credit_data = self._curl_request(
+                    self.RESET_CREDITS_URL,
+                    extra_headers=[
+                        "OpenAI-Beta: codex-1",
+                        "Originator: Codex Desktop",
+                    ],
+                )
+                raw_error = reset_credit_data.get("error")
+                if raw_error:
+                    message = raw_error.get("message") if isinstance(raw_error, dict) else str(raw_error)
+                    raise Exception(message)
+                self._apply_reset_credits(quota_info, reset_credit_data)
+            except Exception as e:
+                quota_info.reset_credits_error = str(e)
 
         except Exception as e:
             quota_info.error = str(e)
@@ -1643,6 +1807,67 @@ def format_reset_date(resets_at: Optional[str], resets_at_local: Optional[str], 
         return ""
 
 
+def format_expiry_date(expires_at: Optional[str], expires_at_local: Optional[str], expires_in: Optional[str]) -> str:
+    """Format expiry time as readable date (e.g., 'Mar 5 @ 01:37 (2h 30m)')"""
+    if not expires_at:
+        return expires_in or ""
+
+    try:
+        dt = datetime.fromisoformat(expires_at.replace("Z", "+00:00"))
+        date_str = dt.strftime("%b %d").replace(" 0", " ")
+        time_str = expires_at_local or dt.strftime("%H:%M")
+
+        result = f"{date_str} @ {time_str}"
+        if expires_in:
+            result += f" ({expires_in})"
+        return result
+    except (TypeError, ValueError):
+        if expires_at_local and expires_in:
+            return f"{expires_at_local} ({expires_in})"
+        if expires_in:
+            return expires_in
+        return expires_at
+
+
+def format_reset_credits(quota_info: QuotaInfo) -> list[str]:
+    """Format provider-level reset credits for terminal display."""
+    has_reset_data = (
+        quota_info.reset_credit_count is not None
+        or bool(quota_info.reset_credits)
+        or bool(quota_info.reset_credits_error)
+    )
+    if not has_reset_data:
+        return []
+
+    lines = ["\n  Reset Credits"]
+
+    if quota_info.reset_credit_count is not None:
+        label = "reset" if quota_info.reset_credit_count == 1 else "resets"
+        lines.append(f"   Available: {quota_info.reset_credit_count} {label}")
+
+    if quota_info.reset_credits_error:
+        lines.append(f"   Details: unavailable ({quota_info.reset_credits_error})")
+
+    credits = [credit for credit in quota_info.reset_credits if credit.status == "available"]
+    if not credits:
+        credits = quota_info.reset_credits
+
+    if credits:
+        lines.append("   Expires:")
+        for credit in credits:
+            expiry = format_expiry_date(credit.expires_at, credit.expires_at_local, credit.expires_in)
+            details = []
+            if credit.status:
+                details.append(credit.status)
+            if credit.reset_type and credit.reset_type != "codex_rate_limits":
+                details.append(credit.reset_type)
+
+            suffix = f" [{', '.join(details)}]" if details else ""
+            lines.append(f"    - {expiry or 'expires unknown'}{suffix}")
+
+    return lines
+
+
 def format_rich(quota_info: QuotaInfo, no_color: bool = False) -> str:
     """Format quota info for rich terminal display"""
     lines = []
@@ -1727,6 +1952,8 @@ def format_rich(quota_info: QuotaInfo, no_color: bool = False) -> str:
 
         if not has_prompt_counts and session.used_percent is None and not reset_str:
             lines.append("   Status: No data")
+
+    lines.extend(format_reset_credits(quota_info))
 
     lines.append("")
     lines.append("=" * 55)
