@@ -218,21 +218,20 @@
   api_format: anthropic
   can_stream: true
   image: true
-  context_window: 200000
+  context_window: 400000
   api_key_name: zhipu
   thinking_mode: "disabled"
 
 - model_id: glm
-  model_name: glm-5.1
-  api_base: "https://open.bigmodel.cn/api/anthropic"
-  image: true
-  context_window: 200000
-  api_format: anthropic
+  model_name: glm-5.2
+  api_base: "https://open.bigmodel.cn/api/paas/v4"
+  image: false
+  context_window: 400000
+  api_format: openai
   can_stream: true
-  api_key_name: zhipu
+  api_key_name: glm
   thinking_mode: "enabled"
-  effort: high
-
+  effort: max
 
 - model_id: glm-5v-turbo
   model_name: glm-5v-turbo

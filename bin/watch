@@ -409,6 +409,16 @@ Options:
 
   -h, --help             display this help and exit
   -v, --version          output version information and exit
+
+Examples:
+  watch -n 1 'date; uptime'   Refresh every 1 second with date and load.
+  watch -d 'ls -l /tmp'       Highlight characters that change between updates.
+  watch -g 'cat /proc/loadavg'  Exit as soon as the output changes.
+  watch -t -c 'git status -s'   Hide the header and keep command colors.
+  watch -e 'systemctl status x' Freeze on a non-zero exit, then key to quit.
+  watch -x ls -l              Run via exec, not "sh -c" (no shell expansion).
+
+Press q or Ctrl-C to quit.
 """
 
 

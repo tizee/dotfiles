@@ -13,3 +13,10 @@ vendor_imports
 .codex-global-state.json
 .personality_migration
 models_cache.json
+computer-use
+process_manager
+plugins
+ambient-suggestions
+installation_id
+.codex-global-state.json.bak
+
