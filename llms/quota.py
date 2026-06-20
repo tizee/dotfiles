@@ -38,6 +38,60 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from typing import Any, Callable, Optional
+from zoneinfo import ZoneInfo
+
+
+# ============================================================================
+# Timezone Helpers
+# ============================================================================
+
+
+def get_local_timezone() -> ZoneInfo:
+    """Get local timezone from QUOTA_TIMEZONE env var or system auto-detection.
+
+    Priority:
+      1. QUOTA_TIMEZONE env var (e.g. "America/Vancouver")
+      2. System timezone via time.tzname / /etc/localtime
+    """
+    env_tz = os.environ.get("QUOTA_TIMEZONE")
+    if env_tz:
+        return ZoneInfo(env_tz)
+
+    # Auto-detect: on macOS/Linux, tzname[0] is usually an IANA key
+    try:
+        tz_name = time.tzname[0]
+        # Some systems return abbreviations like "PST" which aren't valid IANA keys.
+        # ZoneInfo will raise KeyError for those, and we fall back below.
+        return ZoneInfo(tz_name)
+    except (KeyError, IndexError):
+        pass
+
+    # Fallback: read /etc/localtime symlink (macOS / Linux)
+    try:
+        link = os.readlink("/etc/localtime")
+        # e.g. /var/db/timezone/zoneinfo/America/Vancouver
+        idx = link.find("zoneinfo/")
+        if idx != -1:
+            return ZoneInfo(link[idx + len("zoneinfo/"):])
+    except (OSError, KeyError):
+        pass
+
+    # Last resort: compute a fixed-offset timezone
+    local_offset = -time.timezone
+    if time.daylight and time.localtime().tm_isdst > 0:
+        local_offset += 3600
+    return timezone(timedelta(seconds=local_offset))
+
+
+def fmt_timestamp(timestamp: str | None) -> str:
+    """Convert an ISO-8601 / Z-suffixed timestamp to local time display.
+
+    Returns 'YYYY-MM-DD hh:mm:ss AM/PM TZ' or 'not set'.
+    """
+    if not timestamp:
+        return "not set"
+    parsed = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+    return parsed.astimezone(get_local_timezone()).strftime("%Y-%m-%d %I:%M:%S %p %Z")
 
 
 # ============================================================================
@@ -354,7 +408,7 @@ class ClaudeQuotaProvider(QuotaProvider):
         """Format reset time to local timezone and human-readable duration"""
         try:
             dt = datetime.fromisoformat(resets_at.replace("Z", "+00:00"))
-            local_tz = self._get_system_timezone()
+            local_tz = get_local_timezone()
             local_dt = dt.astimezone(local_tz)
 
             local_str = local_dt.strftime("%H:%M")
@@ -368,15 +422,7 @@ class ClaudeQuotaProvider(QuotaProvider):
         except Exception:
             return None, None
 
-    def _get_system_timezone(self) -> timezone:
-        """Get system local timezone"""
-        try:
-            local_offset = -time.timezone
-            if time.daylight and time.localtime().tm_isdst > 0:
-                local_offset += 3600
-            return timezone(timedelta(seconds=local_offset))
-        except Exception:
-            return timezone(timedelta(hours=8))
+
 
     def _parse_usage_data(self, usage_data: dict, quota_info: QuotaInfo) -> None:
         """Parse usage response into quota_info sessions"""
@@ -536,7 +582,7 @@ class MiniMaxQuotaProvider(QuotaProvider):
                         resets_at = dt.isoformat()
 
                         # Local time
-                        local_tz = self._get_system_timezone()
+                        local_tz = get_local_timezone()
                         local_dt = dt.astimezone(local_tz)
                         resets_at_local = local_dt.strftime("%H:%M")
 
@@ -570,15 +616,7 @@ class MiniMaxQuotaProvider(QuotaProvider):
 
         return quota_info
 
-    def _get_system_timezone(self) -> timezone:
-        """Get system local timezone"""
-        try:
-            local_offset = -time.timezone
-            if time.daylight and time.localtime().tm_isdst > 0:
-                local_offset += 3600
-            return timezone(timedelta(seconds=local_offset))
-        except Exception:
-            return timezone(timedelta(hours=8))
+
 
 
 # ============================================================================
@@ -681,7 +719,7 @@ class GLMQuotaProvider(QuotaProvider):
                     if next_reset_ms > 0:
                         dt = datetime.fromtimestamp(next_reset_ms / 1000, tz=timezone.utc)
                         resets_at = dt.isoformat()
-                        local_tz = self._get_system_timezone()
+                        local_tz = get_local_timezone()
                         local_dt = dt.astimezone(local_tz)
                         resets_at_local = local_dt.strftime("%H:%M")
                         now = datetime.now(timezone.utc)
@@ -749,15 +787,7 @@ class GLMQuotaProvider(QuotaProvider):
 
         return quota_info
 
-    def _get_system_timezone(self) -> timezone:
-        """Get system local timezone"""
-        try:
-            local_offset = -time.timezone
-            if time.daylight and time.localtime().tm_isdst > 0:
-                local_offset += 3600
-            return timezone(timedelta(seconds=local_offset))
-        except Exception:
-            return timezone(timedelta(hours=8))
+
 
 
 # ============================================================================
@@ -875,7 +905,7 @@ class CodexQuotaProvider(QuotaProvider):
             resets_at = dt.isoformat()
 
             # Local time
-            local_tz = self._get_system_timezone()
+            local_tz = get_local_timezone()
             local_dt = dt.astimezone(local_tz)
             resets_at_local = local_dt.strftime("%H:%M")
 
@@ -899,7 +929,7 @@ class CodexQuotaProvider(QuotaProvider):
             if dt.tzinfo is None:
                 dt = dt.replace(tzinfo=timezone.utc)
 
-            local_tz = self._get_system_timezone()
+            local_tz = get_local_timezone()
             local_dt = dt.astimezone(local_tz)
             expires_at_local = local_dt.strftime("%H:%M")
 
@@ -956,15 +986,7 @@ class CodexQuotaProvider(QuotaProvider):
                 1 for credit in quota_info.reset_credits if credit.status == "available"
             )
 
-    def _get_system_timezone(self) -> timezone:
-        """Get system local timezone"""
-        try:
-            local_offset = -time.timezone
-            if time.daylight and time.localtime().tm_isdst > 0:
-                local_offset += 3600
-            return timezone(timedelta(seconds=local_offset))
-        except Exception:
-            return timezone(timedelta(hours=8))
+
 
     def fetch_quota(self) -> QuotaInfo:
         """Fetch Codex quota"""
@@ -1126,7 +1148,7 @@ class KimiQuotaProvider(QuotaProvider):
             resets_at = dt.isoformat()
 
             # Local time
-            local_tz = self._get_system_timezone()
+            local_tz = get_local_timezone()
             local_dt = dt.astimezone(local_tz)
             resets_at_local = local_dt.strftime("%H:%M")
 
@@ -1140,15 +1162,7 @@ class KimiQuotaProvider(QuotaProvider):
         except Exception:
             return None, None, None
 
-    def _get_system_timezone(self) -> timezone:
-        """Get system local timezone"""
-        try:
-            local_offset = -time.timezone
-            if time.daylight and time.localtime().tm_isdst > 0:
-                local_offset += 3600
-            return timezone(timedelta(seconds=local_offset))
-        except Exception:
-            return timezone(timedelta(hours=8))
+
 
     def fetch_quota(self) -> QuotaInfo:
         """Fetch Kimi quota"""
@@ -1352,7 +1366,7 @@ class DoubaoQuotaProvider(QuotaProvider):
             resets_at = dt.isoformat()
 
             # Local time
-            local_tz = self._get_system_timezone()
+            local_tz = get_local_timezone()
             local_dt = dt.astimezone(local_tz)
             resets_at_local = local_dt.strftime("%H:%M")
 
@@ -1366,15 +1380,7 @@ class DoubaoQuotaProvider(QuotaProvider):
         except Exception:
             return None, None, None
 
-    def _get_system_timezone(self) -> timezone:
-        """Get system local timezone"""
-        try:
-            local_offset = -time.timezone
-            if time.daylight and time.localtime().tm_isdst > 0:
-                local_offset += 3600
-            return timezone(timedelta(seconds=local_offset))
-        except Exception:
-            return timezone(timedelta(hours=8))
+
 
     def fetch_quota(self) -> QuotaInfo:
         """Fetch Doubao quota"""
@@ -1788,12 +1794,10 @@ def format_reset_date(resets_at: Optional[str], resets_at_local: Optional[str], 
         return ""
     
     try:
-        # Parse ISO date and format as "Mar 5 @ 01:37"
         dt = datetime.fromisoformat(resets_at.replace("Z", "+00:00"))
-        date_str = dt.strftime("%b %-d")
-        # On macOS, %-d doesn't work, use %d and strip leading zero
-        date_str = dt.strftime("%b %d").replace(" 0", " ")
-        time_str = resets_at_local or dt.strftime("%H:%M")
+        local_dt = dt.astimezone(get_local_timezone())
+        date_str = local_dt.strftime("%b %d").replace(" 0", " ")
+        time_str = resets_at_local or local_dt.strftime("%H:%M")
         
         result = f"Resets: {date_str} @ {time_str}"
         if resets_in:
@@ -1814,8 +1818,9 @@ def format_expiry_date(expires_at: Optional[str], expires_at_local: Optional[str
 
     try:
         dt = datetime.fromisoformat(expires_at.replace("Z", "+00:00"))
-        date_str = dt.strftime("%b %d").replace(" 0", " ")
-        time_str = expires_at_local or dt.strftime("%H:%M")
+        local_dt = dt.astimezone(get_local_timezone())
+        date_str = local_dt.strftime("%b %d").replace(" 0", " ")
+        time_str = expires_at_local or local_dt.strftime("%H:%M")
 
         result = f"{date_str} @ {time_str}"
         if expires_in:
