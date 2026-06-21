@@ -243,6 +243,17 @@
   api_key_name: zhipu
   thinking_mode: "disabled"
 
+- model_id: glmc
+  model_name: glm-5.2
+  api_base: "https://open.bigmodel.cn/api/anthropic"
+  image: false
+  context_window: 400000
+  api_format: anthropic
+  can_stream: true
+  api_key_name: glm
+  thinking_mode: "enabled"
+  effort: max
+
 - model_id: glm
   model_name: glm-5.2
   api_base: "https://open.bigmodel.cn/api/paas/v4"
