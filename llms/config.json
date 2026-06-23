@@ -47,6 +47,7 @@
       "sandbox": {
         "mode": "auto_allow",
         "additional_allowed_write_paths": [
+          "~/projects/gopath",
           "~/.osay",
           "~/.config/llm/",
           "~/.yaw/",

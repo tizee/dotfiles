@@ -291,7 +291,8 @@
   can_stream: true
   api_format: anthropic
   api_key_name: zhipu
-- model_id: doubao
+
+- model_id: doubao-code
   model_name: ark-code-latest
   api_base: "https://ark.cn-beijing.volces.com/api/coding"
   image: true
@@ -300,22 +301,14 @@
   api_key_name: doubao
   max_tokens: 32768
   thinking_mode: "enabled"
-- model_id: doubao-oai-nothinking
-  model_name: ark-code-latest
-  api_base: "https://ark.cn-beijing.volces.com/api/coding/v3/"
+
+- model_id: doubao
+  model_name: doubao-seed-2-1-pro-260628
+  api_base: "https://ark.cn-beijing.volces.com/api/compatible"
   image: true
+  api_format: anthropic
   can_stream: true
   api_key_name: doubao
-  extra_body:
-    thinking:
-      type: "disabled"
-- model_id: doubao-oai
-  model_name: ark-code-latest
-  api_base: "https://ark.cn-beijing.volces.com/api/coding/v3/"
-  image: true
-  can_stream: true
-  api_key_name: doubao
-  extra_body:
-    thinking:
-      type: "enabled"
-    reasoning_effort: "high"
+  thinking_mode: enabled
+  effort: high
+  context_window: 256000
