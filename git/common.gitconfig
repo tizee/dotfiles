@@ -60,6 +60,7 @@
   addIngoredFile = false
 
 [alias]
+  syncremote= !git branch --set-upstream-to=origin/$(git rev-parse --abbrev-ref HEAD) $(git rev-parse --abbrev-ref HEAD)
   ce = config --edit
   cge = config --global --edit
   st = status
