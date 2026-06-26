@@ -113,7 +113,12 @@ local function tracker(url)
 
 	local function isTrackerParameter(param)
 		for _, p in ipairs(parameters) do
-			if param == p then
+			if p:sub(-1) == "_" then
+				-- prefix match for entries ending with underscore
+				if param:sub(1, #p) == p then
+					return true
+				end
+			elseif param == p then
 				return true
 			end
 		end
