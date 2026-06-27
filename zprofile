@@ -533,6 +533,7 @@ if $is_macOS; then
 
   # Added by Obsidian
   export PATH="$PATH:/Applications/Obsidian.app/Contents/MacOS"
+  export PATH="/opt/homebrew/opt/curl/bin:$PATH"
 
   alias ai="zhu"
   alias aio="zhu -m opus"

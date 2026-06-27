@@ -1,7 +1,7 @@
 {
   "debug": false,
   "agent": {
-    "user_agent_name": "claude-cli/2.1.88 (external, cli)",
+    "user_agent_name": "claude-cli/2.1.190 (external, cli)",
     "ui": {
       "invertDiffColors": true,
       "statusline": {
@@ -47,6 +47,7 @@
       "sandbox": {
         "mode": "auto_allow",
         "additional_allowed_write_paths": [
+          "~/.local/state/nvim/shada/",
           "~/projects/gopath",
           "~/.osay",
           "~/.config/llm/",
@@ -59,7 +60,7 @@
         ]
       }
     },
-    "verify_completion": true,
+    "verify_completion": false,
     "verification_model": "inherit"
   }
 }

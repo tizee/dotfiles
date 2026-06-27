@@ -140,11 +140,25 @@ get_pct_color() {
     fi
 }
 
-# Helper function to extract day of week from ISO date
+# Helper function to extract day of week from ISO timestamp (UTC->local)
 get_day_of_week() {
     local iso_date="$1"
-    local date_part=$(echo "$iso_date" | cut -dT -f1)
-    date -j -f "%Y-%m-%d" "$date_part" "+%a" 2>/dev/null || echo ""
+    # Convert to local day of week by parsing as UTC epoch, then formatting locally.
+    # Handles: "2026-06-27T19:00:00.389453+00:00", "2026-06-28T02:59:00Z", etc.
+    local cleaned="${iso_date//Z/+0000}"
+    # Remove colon from tz offset (+00:00 -> +0000) and strip fractional seconds
+    cleaned=$(echo "$cleaned" | sed -E \
+        -e 's/\+([0-9]{2}):([0-9]{2})/+\1\2/' \
+        -e 's/([0-9]{2}:[0-9]{2}:[0-9]{2})\.[0-9]*/\1/')
+    local epoch
+    epoch=$(date -j -u -f "%Y-%m-%dT%H:%M:%S%z" "$cleaned" "+%s" 2>/dev/null)
+    if [ -n "$epoch" ]; then
+        date -j -r "$epoch" "+%a" 2>/dev/null
+    else
+        # Fallback: use date part directly (broken for midnight-crossing cases)
+        local date_part=$(echo "$iso_date" | cut -dT -f1)
+        date -j -f "%Y-%m-%d" "$date_part" "+%a" 2>/dev/null || echo ""
+    fi
 }
 
 # Fetch quota info (debounced, non-blocking via stale-while-revalidate in python script)

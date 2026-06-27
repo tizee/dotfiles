@@ -1,5 +1,11 @@
 {
   "trustedcasks": [
     "tizee/personal/ice"
+  ],
+  "trustedtaps": [
+    "tizee/personal"
+  ],
+  "trustedformulae": [
+    "tizee/personal/tmux"
   ]
 }

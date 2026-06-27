@@ -1,19 +1,3 @@
-- model_id: test-claude
-  model_name: test-claude
-  api_base: "http://127.0.0.1:8642/"
-  can_stream: true
-  api_format: anthropic
-  image: true
-  api_key_name: cc
-
-- model_id: test-openai
-  model_name: test-openai
-  api_base: "http://127.0.0.1:8642/v1/"
-  can_stream: true
-  api_format: openai
-  image: true
-  api_key_name: cc
-
 - model_id: gptws
   model_name: gpt-5.4-nano
   api_base: wss://api.openai.com/v1
@@ -91,24 +75,6 @@
   api_format: openai_responses
   image: true
   effort: high
-
-- model_id: codex54
-  model_name: codex/gpt-5.4
-  api_base: "http://127.0.0.1:8082/openai/"
-  api_key_name: cc
-  can_stream: true
-  api_format: openai_responses
-  image: true
-  effort: medium
-
-- model_id: codexmini
-  model_name: codex/gpt-5.4-mini
-  api_base: "http://127.0.0.1:8082/openai/"
-  can_stream: true
-  api_key_name: cc
-  api_format: openai_responses
-  image: true
-  effort: medium
 
 - model_id: ds-flash
   model_name: deepseek-v4-flash
@@ -233,16 +199,6 @@
   thinking_mode: "disabled"
   effort: low
 
-- model_id: glm-nothinking
-  model_name: glm-5
-  api_base: "https://open.bigmodel.cn/api/anthropic"
-  api_format: anthropic
-  can_stream: true
-  image: true
-  context_window: 400000
-  api_key_name: zhipu
-  thinking_mode: "disabled"
-
 - model_id: glmc
   model_name: glm-5.2
   api_base: "https://open.bigmodel.cn/api/anthropic"
@@ -255,52 +211,26 @@
   effort: max
 
 - model_id: glm
+  model_name: zai-org/GLM-5.2
+  api_base: "https://api.siliconflow.cn/"
+  image: false
+  context_window: 1000000
+  api_format: anthropic
+  can_stream: true
+  api_key_name: siliconflow
+  thinking_mode: enabled
+  effort: max
+
+- model_id: glmo
   model_name: glm-5.2
   api_base: "https://open.bigmodel.cn/api/paas/v4"
   image: false
   context_window: 400000
-  api_format: openai
+  api_format: anthropic
   can_stream: true
   api_key_name: glm
-  thinking_mode: "enabled"
+  thinking_mode: enabled
   effort: max
-
-- model_id: glm-5v-turbo
-  model_name: glm-5v-turbo
-  api_base: "https://open.bigmodel.cn/api/anthropic"
-  api_format: anthropic
-  image: true
-  can_stream: true
-  api_key_name: zhipu
-  effort: high
-  thinking_mode: "enabled"
-
-- model_id: glm-5-turbo
-  model_name: glm-5-turbo
-  api_base: "https://open.bigmodel.cn/api/anthropic"
-  api_format: anthropic
-  image: true
-  can_stream: true
-  api_key_name: zhipu
-  effort: high
-  thinking_mode: "enabled"
-
-- model_id: glm-4.5-air
-  model_name: glm-4.5-air
-  api_base: "https://open.bigmodel.cn/api/anthropic"
-  can_stream: true
-  api_format: anthropic
-  api_key_name: zhipu
-
-- model_id: doubao-code
-  model_name: ark-code-latest
-  api_base: "https://ark.cn-beijing.volces.com/api/coding"
-  image: true
-  can_stream: true
-  api_format: anthropic
-  api_key_name: doubao
-  max_tokens: 32768
-  thinking_mode: "enabled"
 
 - model_id: doubao
   model_name: doubao-seed-2-1-pro-260628

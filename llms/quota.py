@@ -317,14 +317,16 @@ class QuotaProvider(ABC):
 
 
 class ClaudeQuotaProvider(QuotaProvider):
-    """Claude Code quota provider (cookie-based web API)"""
+    """Claude Code quota provider (OAuth token preferred, cookie fallback)"""
 
     name = "claude"
     description = "Claude Code (claude.ai)"
     BASE_URL = "https://claude.ai/api"
+    OAUTH_URL = "https://api.anthropic.com/api/oauth/usage"
 
-    def __init__(self, cookie_header: str):
+    def __init__(self, cookie_header: str, token_manager: Optional["TokenManager"] = None):
         super().__init__(cookie_header)
+        self.token_manager = token_manager
 
     def get_api_endpoints(self) -> list[str]:
         return [
@@ -458,8 +460,66 @@ class ClaudeQuotaProvider(QuotaProvider):
                     is_enabled=True,
                 )
 
-    def fetch_quota(self) -> QuotaInfo:
-        """Fetch Claude quota via cookie-based web API"""
+    def _oauth_request(self, token: str) -> dict:
+        """Send OAuth-authenticated request to the Anthropic API."""
+        cmd = [
+            "curl", "-s", "-L", "--http1.1",
+            "-H", f"Authorization: Bearer {token}",
+            "-H", "anthropic-beta: oauth-2025-04-20",
+            "-H", "Accept: application/json",
+            "-H", "User-Agent: claude-cli",
+            "--compressed",
+            "--max-time", "10",
+            self.OAUTH_URL,
+        ]
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        if result.returncode != 0:
+            raise Exception(f"OAuth curl failed: {result.stderr}")
+        text = result.stdout.strip()
+        if text.startswith(("<!DOCTYPE", "<!doctype", "<html", "<HTML")):
+            raise Exception("OAuth API returned HTML — token may be invalid")
+        return json.loads(text)
+
+    def _fetch_oauth(self) -> Optional[QuotaInfo]:
+        """Fetch Claude quota via OAuth Bearer token.
+
+        Returns QuotaInfo on success, or None if OAuth is not available.
+        Raises on transient errors (network, etc.) so caller can fall back.
+        """
+        if not self.token_manager or not self.token_manager.has_tokens("claude"):
+            return None
+
+        token = self.token_manager.get_valid_token("claude")
+        if not token:
+            return None
+
+        quota_info = QuotaInfo(
+            provider=self.name,
+            fetched_at=datetime.now(timezone.utc).isoformat(),
+        )
+
+        try:
+            data = self._oauth_request(token)
+        except Exception:
+            # 401 / auth error: force refresh and retry once
+            new_token = self.token_manager.force_refresh("claude")
+            if not new_token:
+                raise
+            data = self._oauth_request(new_token)
+
+        quota_info.raw_response = data
+
+        if error := data.get("error"):
+            error_msg = error.get("message") if isinstance(error, dict) else str(error)
+            quota_info.error = error_msg
+            quota_info.error_type = "server"
+            return quota_info
+
+        self._parse_usage_data(data, quota_info)
+        return quota_info
+
+    def _fetch_cookie(self) -> QuotaInfo:
+        """Fetch Claude quota via cookie-based web API (fallback)."""
         quota_info = QuotaInfo(
             provider=self.name,
             fetched_at=datetime.now(timezone.utc).isoformat(),
@@ -489,6 +549,17 @@ class ClaudeQuotaProvider(QuotaProvider):
             quota_info.error_type = "client"
 
         return quota_info
+
+    def fetch_quota(self) -> QuotaInfo:
+        """Fetch Claude quota: try OAuth first, fall back to cookie-based auth."""
+        if self.token_manager and self.token_manager.has_tokens("claude"):
+            try:
+                result = self._fetch_oauth()
+                if result is not None:
+                    return result
+            except Exception:
+                pass  # Fall through to cookie-based auth
+        return self._fetch_cookie()
 
 
 # ============================================================================
@@ -796,29 +867,53 @@ class GLMQuotaProvider(QuotaProvider):
 
 
 class CodexQuotaProvider(QuotaProvider):
-    """Codex (ChatGPT API) quota provider"""
+    """Codex (ChatGPT API) quota provider — supports OAuth token refresh"""
 
     name = "codex"
     description = "Codex (chatgpt.com)"
     API_URL = "https://chatgpt.com/backend-api/wham/usage"
     RESET_CREDITS_URL = "https://chatgpt.com/backend-api/wham/rate-limit-reset-credits"
 
-    def __init__(self, auth_token: str, account_id: str):
+    def __init__(self, auth_token: str, account_id: str, token_manager: Optional["TokenManager"] = None):
         super().__init__("")
         self.auth_token = auth_token
         self.account_id = account_id
+        self.token_manager = token_manager
+
+    def _refresh_token_if_needed(self) -> bool:
+        """Try to refresh the auth token via TokenManager. Returns True if refreshed."""
+        if not self.token_manager:
+            return False
+        new_token = self.token_manager.force_refresh("codex")
+        if new_token:
+            self.auth_token = new_token
+            # Also update account_id if available
+            acct = self.token_manager.get_account_id("codex")
+            if acct:
+                self.account_id = acct
+            return True
+        return False
 
     def get_api_endpoints(self) -> list[str]:
         return [self.API_URL, self.RESET_CREDITS_URL]
 
     @classmethod
-    def from_codex_config(cls) -> "CodexQuotaProvider":
-        """Create provider from Codex config files"""
+    def from_codex_config(cls, token_manager: Optional["TokenManager"] = None) -> "CodexQuotaProvider":
+        """Create provider from Codex config files (~/.codex/auth.json).
+
+        Falls back to TokenManager if auth.json is not found but OAuth tokens exist.
+        """
         codex_dir = Path.home() / ".codex"
 
         # Read auth token
         auth_file = codex_dir / "auth.json"
         if not auth_file.exists():
+            # Fallback to TokenManager OAuth tokens
+            if token_manager and token_manager.has_tokens("codex"):
+                token = token_manager.get_valid_token("codex")
+                account_id = token_manager.get_account_id("codex")
+                if token and account_id:
+                    return cls(token, account_id, token_manager=token_manager)
             raise Exception(f"Codex auth file not found: {auth_file}")
 
         auth_data = json.loads(auth_file.read_text())
@@ -865,7 +960,7 @@ class CodexQuotaProvider(QuotaProvider):
         if not account_id:
             raise Exception("No account_id found in Codex auth file")
 
-        return cls(access_token, account_id)
+        return cls(access_token, account_id, token_manager=token_manager)
 
     def _curl_request(self, url: str, timeout: int = 30, extra_headers: Optional[list[str]] = None) -> dict:
         """Send request using curl with Bearer auth"""
@@ -988,84 +1083,98 @@ class CodexQuotaProvider(QuotaProvider):
 
 
 
+    def _do_fetch_api(self, quota_info: QuotaInfo) -> None:
+        """Core API fetching logic (extracted for retry on auth failure)."""
+        data = self._curl_request(self.API_URL)
+        quota_info.raw_response = data
+
+        # Parse Codex response structure
+        quota_info.plan_type = data.get("plan_type")
+        quota_info.account = data.get("email")
+
+        reset_summary = data.get("rate_limit_reset_credits", {})
+        if isinstance(reset_summary, dict):
+            count = self._parse_reset_credit_count(reset_summary.get("available_count"))
+            if count is not None:
+                quota_info.reset_credit_count = count
+
+        # Parse rate_limit (primary = session, secondary = weekly)
+        rate_limit = data.get("rate_limit", {})
+        if rate_limit:
+
+            # Primary window (session limit)
+            primary = rate_limit.get("primary_window", {})
+            if primary and not rate_limit.get("limit_reached", False):
+                used_percent = primary.get("used_percent")
+                reset_at = primary.get("reset_at", 0)
+                resets_at, resets_at_local, resets_in = self._parse_reset_time(reset_at)
+
+                quota_info.sessions["current"] = SessionQuota(
+                    used_percent=used_percent,
+                    remaining_percent=100 - used_percent if used_percent is not None else None,
+                    resets_at=resets_at,
+                    resets_at_local=resets_at_local,
+                    resets_in=resets_in,
+                    extra={
+                        "limit_window_seconds": primary.get("limit_window_seconds"),
+                    },
+                )
+
+            # Secondary window (weekly)
+            secondary = rate_limit.get("secondary_window")
+            if secondary and not rate_limit.get("limit_reached", False):
+                used_percent = secondary.get("used_percent")
+                reset_at = secondary.get("reset_at", 0)
+                resets_at, resets_at_local, resets_in = self._parse_reset_time(reset_at)
+
+                quota_info.sessions["weekly"] = SessionQuota(
+                    used_percent=used_percent,
+                    remaining_percent=100 - used_percent if used_percent is not None else None,
+                    resets_at=resets_at,
+                    resets_at_local=resets_at_local,
+                    resets_in=resets_in,
+                    extra={
+                        "limit_window_seconds": secondary.get("limit_window_seconds"),
+                    },
+                )
+
+        try:
+            reset_credit_data = self._curl_request(
+                self.RESET_CREDITS_URL,
+                extra_headers=[
+                    "OpenAI-Beta: codex-1",
+                    "Originator: Codex Desktop",
+                ],
+            )
+            raw_error = reset_credit_data.get("error")
+            if raw_error:
+                message = raw_error.get("message") if isinstance(raw_error, dict) else str(raw_error)
+                raise Exception(message)
+            self._apply_reset_credits(quota_info, reset_credit_data)
+        except Exception as e:
+            quota_info.reset_credits_error = str(e)
+
     def fetch_quota(self) -> QuotaInfo:
-        """Fetch Codex quota"""
+        """Fetch Codex quota with auto token-refresh on auth failure."""
         quota_info = QuotaInfo(
             provider=self.name,
             fetched_at=datetime.now(timezone.utc).isoformat(),
         )
 
         try:
-            data = self._curl_request(self.API_URL)
-            quota_info.raw_response = data
-
-            # Parse Codex response structure
-            quota_info.plan_type = data.get("plan_type")
-            quota_info.account = data.get("email")
-
-            reset_summary = data.get("rate_limit_reset_credits", {})
-            if isinstance(reset_summary, dict):
-                count = self._parse_reset_credit_count(reset_summary.get("available_count"))
-                if count is not None:
-                    quota_info.reset_credit_count = count
-
-            # Parse rate_limit (primary = session, secondary = weekly)
-            rate_limit = data.get("rate_limit", {})
-            if rate_limit:
-
-                # Primary window (session limit)
-                primary = rate_limit.get("primary_window", {})
-                if primary and not rate_limit.get("limit_reached", False):
-                    used_percent = primary.get("used_percent")
-                    reset_at = primary.get("reset_at", 0)
-                    resets_at, resets_at_local, resets_in = self._parse_reset_time(reset_at)
-
-                    quota_info.sessions["current"] = SessionQuota(
-                        used_percent=used_percent,
-                        remaining_percent=100 - used_percent if used_percent is not None else None,
-                        resets_at=resets_at,
-                        resets_at_local=resets_at_local,
-                        resets_in=resets_in,
-                        extra={
-                            "limit_window_seconds": primary.get("limit_window_seconds"),
-                        },
-                    )
-
-                # Secondary window (weekly)
-                secondary = rate_limit.get("secondary_window")
-                if secondary and not rate_limit.get("limit_reached", False):
-                    used_percent = secondary.get("used_percent")
-                    reset_at = secondary.get("reset_at", 0)
-                    resets_at, resets_at_local, resets_in = self._parse_reset_time(reset_at)
-
-                    quota_info.sessions["weekly"] = SessionQuota(
-                        used_percent=used_percent,
-                        remaining_percent=100 - used_percent if used_percent is not None else None,
-                        resets_at=resets_at,
-                        resets_at_local=resets_at_local,
-                        resets_in=resets_in,
-                        extra={
-                            "limit_window_seconds": secondary.get("limit_window_seconds"),
-                        },
-                    )
-
-            try:
-                reset_credit_data = self._curl_request(
-                    self.RESET_CREDITS_URL,
-                    extra_headers=[
-                        "OpenAI-Beta: codex-1",
-                        "Originator: Codex Desktop",
-                    ],
-                )
-                raw_error = reset_credit_data.get("error")
-                if raw_error:
-                    message = raw_error.get("message") if isinstance(raw_error, dict) else str(raw_error)
-                    raise Exception(message)
-                self._apply_reset_credits(quota_info, reset_credit_data)
-            except Exception as e:
-                quota_info.reset_credits_error = str(e)
-
+            self._do_fetch_api(quota_info)
         except Exception as e:
+            # Try token refresh + retry once
+            if self._refresh_token_if_needed():
+                try:
+                    quota_info = QuotaInfo(
+                        provider=self.name,
+                        fetched_at=datetime.now(timezone.utc).isoformat(),
+                    )
+                    self._do_fetch_api(quota_info)
+                    return quota_info
+                except Exception:
+                    pass
             quota_info.error = str(e)
             quota_info.error_type = "client"
 
@@ -1463,15 +1572,25 @@ class ProviderRegistry:
     TOKEN_BASED = {"codex"}
 
     @classmethod
-    def get(cls, name: str, cookie_header: str) -> Optional[QuotaProvider]:
-        """Get a provider instance by name"""
+    def get(cls, name: str, cookie_header: str,
+            token_manager: Optional["TokenManager"] = None) -> Optional[QuotaProvider]:
+        """Get a provider instance by name.
+
+        token_manager, if provided, enables OAuth token-based auth for
+        supported providers (Claude, Codex) with auto-refresh capability.
+        """
         provider_class = cls._providers.get(name)
         if provider_class:
             if name == "codex":
                 try:
-                    return CodexQuotaProvider.from_codex_config()
+                    return CodexQuotaProvider.from_codex_config(
+                        token_manager=token_manager
+                    )
                 except Exception:
                     return None
+            # Claude gets token_manager injected; it decides OAuth vs cookie
+            if name == "claude":
+                return provider_class(cookie_header, token_manager=token_manager)
             return provider_class(cookie_header)
         return None
 
@@ -1719,6 +1838,205 @@ class CookieManager:
                 return header, f"Firefox profile: {prof.name}"
 
         raise Exception(f"No valid credentials found for {provider_name}")
+
+
+# ============================================================================
+# Token Manager - OAuth Token Storage & Refresh
+# ============================================================================
+
+
+class TokenManager:
+    """Manages OAuth tokens for providers that support token-based auth.
+
+    Tokens are persisted to /tmp/quota_cache/tokens.json (0o600).
+    Supports automatic refresh via OAuth refresh_token grant for
+    Claude and Codex providers.
+
+    Public OAuth client_ids (community-known, same as the iOS widget uses):
+      Claude:  9d1c250a-e61b-44d9-88ed-5944d1962f5e
+      Codex:   app_EMoamEEZ73f0CkXaXp7hrann
+    """
+
+    TOKEN_FILE = Path("/tmp/quota_cache/tokens.json")
+
+    OAUTH_CONFIG = {
+        "claude": {
+            "refresh_url": "https://console.anthropic.com/v1/oauth/token",
+            "client_id": "9d1c250a-e61b-44d9-88ed-5944d1962f5e",
+        },
+        "codex": {
+            "refresh_url": "https://auth.openai.com/oauth/token",
+            "client_id": "app_EMoamEEZ73f0CkXaXp7hrann",
+        },
+    }
+
+    def __init__(self, token_file: Optional[Path] = None):
+        self._token_file = token_file or self.TOKEN_FILE
+        self._tokens: dict[str, dict[str, Any]] = {}
+        self._loaded = False
+
+    def _ensure_loaded(self) -> None:
+        if self._loaded:
+            return
+        self._loaded = True
+        try:
+            if self._token_file.exists():
+                self._tokens = json.loads(self._token_file.read_text())
+        except (json.JSONDecodeError, IOError):
+            self._tokens = {}
+
+    def _save(self) -> None:
+        """Atomically write tokens with restricted permissions."""
+        self._token_file.parent.mkdir(parents=True, exist_ok=True)
+        tmp_path = self._token_file.with_suffix(".tmp")
+        try:
+            tmp_path.write_text(json.dumps(self._tokens, ensure_ascii=False))
+            os.chmod(str(tmp_path), 0o600)
+            os.rename(str(tmp_path), str(self._token_file))
+        except IOError:
+            try:
+                tmp_path.unlink(missing_ok=True)
+            except OSError:
+                pass
+
+    def has_tokens(self, provider: str) -> bool:
+        """Check if we have tokens for a provider."""
+        self._ensure_loaded()
+        tok = self._tokens.get(provider)
+        return bool(tok and tok.get("access_token"))
+
+    def get_valid_token(self, provider: str) -> Optional[str]:
+        """Get a valid access token, auto-refreshing if near expiry.
+
+        Refreshes proactively when within 60 seconds of expiry.
+        Returns None if no token is available.
+        """
+        self._ensure_loaded()
+        tok = self._tokens.get(provider)
+        if not tok or not tok.get("access_token"):
+            return None
+
+        expires_at = tok.get("expires_at", 0)
+        if expires_at and time.time() > expires_at - 60:
+            try:
+                self._refresh(provider)
+                tok = self._tokens.get(provider, {})
+            except Exception:
+                pass  # Return current token; caller handles 401 if expired
+
+        return tok.get("access_token")
+
+    def force_refresh(self, provider: str) -> Optional[str]:
+        """Force a token refresh. Returns new access_token or None."""
+        self._ensure_loaded()
+        tok = self._tokens.get(provider)
+        if not tok or not tok.get("refresh_token"):
+            return None
+        try:
+            self._refresh(provider)
+            return self._tokens.get(provider, {}).get("access_token")
+        except Exception:
+            return None
+
+    def _refresh(self, provider: str) -> None:
+        """Execute OAuth refresh_token grant for a provider."""
+        config = self.OAUTH_CONFIG.get(provider)
+        if not config:
+            raise Exception(f"No OAuth config for provider: {provider}")
+
+        tok = self._tokens.get(provider, {})
+        refresh_token = tok.get("refresh_token")
+        if not refresh_token:
+            raise Exception(f"No refresh_token for {provider}")
+
+        cmd = [
+            "curl", "-s", "-L", "--http1.1",
+            "-X", "POST",
+            "-H", "Content-Type: application/json",
+            "--max-time", "10",
+            "-d", json.dumps({
+                "grant_type": "refresh_token",
+                "refresh_token": refresh_token,
+                "client_id": config["client_id"],
+            }),
+            config["refresh_url"],
+        ]
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        if result.returncode != 0:
+            raise Exception(f"Token refresh failed: {result.stderr}")
+
+        data = json.loads(result.stdout)
+        if not data.get("access_token"):
+            detail = result.stdout[:200]
+            raise Exception(f"Token refresh returned no access_token: {detail}")
+
+        new_token = {
+            "access_token": data["access_token"],
+            "refresh_token": data.get("refresh_token", refresh_token),
+            "expires_at": time.time() + data.get("expires_in", 3600),
+        }
+        # Preserve account_id for codex
+        if "account_id" in tok:
+            new_token["account_id"] = tok["account_id"]
+        self._tokens[provider] = new_token
+        self._save()
+
+    def import_tokens(self, data: dict[str, Any]) -> int:
+        """Import tokens from a dict.
+
+        Expected format: {"claude": {"accessToken": "...", "refreshToken": "...", ...}, ...}
+        Supports both camelCase (from JS widget) and snake_case keys.
+        Returns count of imported providers.
+        """
+        self._ensure_loaded()
+        count = 0
+        for provider, tok in data.items():
+            if not isinstance(tok, dict):
+                continue
+            access_token = tok.get("access_token") or tok.get("accessToken")
+            refresh_token = tok.get("refresh_token") or tok.get("refreshToken")
+            if not access_token:
+                continue
+
+            expires_at = tok.get("expires_at") or tok.get("expiresAt")
+            if isinstance(expires_at, (int, float)) and expires_at < 10000000000:
+                # Looks like seconds since epoch; ensure it's not in ms
+                pass
+            elif isinstance(expires_at, (int, float)):
+                expires_at = expires_at  # already correct
+
+            imported = {
+                "access_token": access_token,
+                "refresh_token": refresh_token or "",
+                "expires_at": expires_at or (time.time() + 3600),
+            }
+            account_id = tok.get("account_id") or tok.get("accountId")
+            if account_id:
+                imported["account_id"] = account_id
+
+            self._tokens[provider] = imported
+            count += 1
+
+        if count > 0:
+            self._save()
+        return count
+
+    def get_account_id(self, provider: str) -> Optional[str]:
+        """Get account_id for a provider (needed by Codex)."""
+        self._ensure_loaded()
+        tok = self._tokens.get(provider)
+        if tok:
+            return tok.get("account_id")
+        return None
+
+    def clear(self, provider: Optional[str] = None) -> None:
+        """Clear tokens for a provider, or all if provider is None."""
+        self._ensure_loaded()
+        if provider:
+            self._tokens.pop(provider, None)
+        else:
+            self._tokens.clear()
+        self._save()
 
 
 # ============================================================================
@@ -2211,8 +2529,14 @@ Examples:
 
 Environment Variables:
     QUOTA_PROFILE     Firefox profile name to use for cookies
+    QUOTA_TIMEZONE    IANA timezone name (e.g. "America/Vancouver")
     MINIMAX_API_KEY   MiniMax API key (if not using cookies)
     NO_COLOR          Disable colored output
+
+OAuth Token Auth (Claude / Codex):
+    Use --import-tokens to import OAuth tokens for refresh-based auth.
+    Token file format: {"claude": {"access_token": "...", "refresh_token": "..."}, ...}
+    Tokens are persisted to /tmp/quota_cache/tokens.json (0o600).
         """,
     )
 
@@ -2265,6 +2589,11 @@ Environment Variables:
         action="store_true",
         help="Clear debounce cache and exit"
     )
+    parser.add_argument(
+        "--import-tokens",
+        metavar="FILE",
+        help="Import OAuth tokens from JSON file (for Claude/Codex token-based auth)"
+    )
 
     args = parser.parse_args()
 
@@ -2278,6 +2607,20 @@ Environment Variables:
     # Handle --no-color
     if args.no_color:
         os.environ["NO_COLOR"] = "1"
+
+    # Initialize token manager (for OAuth-based auth)
+    token_manager = TokenManager()
+
+    # Handle --import-tokens
+    if args.import_tokens:
+        try:
+            data = json.loads(Path(args.import_tokens).read_text())
+            count = token_manager.import_tokens(data)
+            print(f"Imported tokens for {count} provider(s)", file=sys.stderr)
+            return 0
+        except (json.JSONDecodeError, IOError) as e:
+            print(f"Failed to import tokens: {e}", file=sys.stderr)
+            return 1
 
     # Initialize debounce manager and cookie manager (always needed for cache clearing)
     dm = DebounceManager(interval_seconds=args.debounce) if args.debounce > 0 else DebounceManager()
@@ -2311,6 +2654,7 @@ Environment Variables:
 
     # Pre-load cookies for cookie-based providers (skip token-based ones)
     TOKEN_BASED_PROVIDERS = ProviderRegistry.TOKEN_BASED
+    TOKEN_CAPABLE = {"claude"}  # Providers that support OAuth tokens + cookie fallback
     cookies_cache: dict[str, tuple[str, str]] = {}
     try:
         for provider_name in providers_to_query:
@@ -2327,6 +2671,8 @@ Environment Variables:
 
     # Print credentials info once (exclude token-based providers)
     sources = [src for _, src in cookies_cache.values() if src and not src.startswith("Error") and src != "token-based"]
+    if not sources and token_manager.has_tokens("claude"):
+        sources = ["OAuth token"]
     if sources and not args.json:
         print(f"Credentials: {sources[0]}", file=sys.stderr)
 
@@ -2341,7 +2687,9 @@ Environment Variables:
                     # Codex uses its own auth from ~/.codex/
                     if pname in TOKEN_BASED_PROVIDERS:
                         try:
-                            provider = ProviderRegistry.get(pname, "")
+                            provider = ProviderRegistry.get(
+                                pname, "", token_manager=token_manager
+                            )
                             if not provider:
                                 return QuotaInfo(provider=pname, error="Failed to resolve credentials")
                             return provider.fetch_quota()
@@ -2349,8 +2697,13 @@ Environment Variables:
                             return QuotaInfo(provider=pname, error=str(e))
                     cookie_header, _ = cookies_cache.get(pname, (None, ""))
                     if not cookie_header:
-                        return QuotaInfo(provider=pname, error="No credentials found")
-                    provider = ProviderRegistry.get(pname, cookie_header)
+                        if pname in TOKEN_CAPABLE and token_manager.has_tokens(pname):
+                            cookie_header = ""  # OAuth will be tried by the provider
+                        else:
+                            return QuotaInfo(provider=pname, error="No credentials found")
+                    provider = ProviderRegistry.get(
+                        pname, cookie_header, token_manager=token_manager
+                    )
                     if not provider:
                         return QuotaInfo(provider=pname, error="Unknown provider")
                     result = provider.fetch_quota()
@@ -2360,7 +2713,9 @@ Environment Variables:
                         try:
                             cookie_header, _ = cookie_manager.get_cookies_for_provider(pname)
                             cookies_cache[pname] = (cookie_header, _)
-                            provider = ProviderRegistry.get(pname, cookie_header)
+                            provider = ProviderRegistry.get(
+                                pname, cookie_header, token_manager=token_manager
+                            )
                             if provider:
                                 result = provider.fetch_quota()
                         except Exception:
@@ -2377,7 +2732,9 @@ Environment Variables:
             # Codex uses its own auth from ~/.codex/
             if provider_name in TOKEN_BASED_PROVIDERS:
                 try:
-                    provider = ProviderRegistry.get(provider_name, "")
+                    provider = ProviderRegistry.get(
+                        provider_name, "", token_manager=token_manager
+                    )
                     if not provider:
                         results.append(QuotaInfo(provider=provider_name, error="Failed to resolve credentials"))
                     else:
@@ -2388,10 +2745,15 @@ Environment Variables:
 
             cookie_header, source = cookies_cache.get(provider_name, (None, ""))
             if not cookie_header:
-                results.append(QuotaInfo(provider=provider_name, error=source or "No credentials found"))
-                continue
+                if provider_name in TOKEN_CAPABLE and token_manager.has_tokens(provider_name):
+                    cookie_header = ""
+                else:
+                    results.append(QuotaInfo(provider=provider_name, error=source or "No credentials found"))
+                    continue
 
-            provider = ProviderRegistry.get(provider_name, cookie_header)
+            provider = ProviderRegistry.get(
+                provider_name, cookie_header, token_manager=token_manager
+            )
             if not provider:
                 results.append(QuotaInfo(provider=provider_name, error="Unknown provider"))
                 continue
@@ -2405,7 +2767,9 @@ Environment Variables:
                 try:
                     cookie_header, source = cookie_manager.get_cookies_for_provider(provider_name)
                     cookies_cache[provider_name] = (cookie_header, source)
-                    provider = ProviderRegistry.get(provider_name, cookie_header)
+                    provider = ProviderRegistry.get(
+                        provider_name, cookie_header, token_manager=token_manager
+                    )
                     if provider:
                         quota_info = provider.fetch_quota()
                 except Exception:
