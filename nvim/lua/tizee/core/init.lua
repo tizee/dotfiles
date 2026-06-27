@@ -32,11 +32,12 @@ function M.setup()
 			width = 64, -- columns for a vertical split
 			height = 15, -- rows for a horizontal split
 			wrap = true,
-			float = { width = 0.4, height = 0.8, border = "rounded", title = " zhu " },
+			float = { width = 0.35, height = 0.5, row = 0, col = 1.0, border = "rounded", title = " zhu " },
 		},
 		keymaps = { -- buffer-local session-window mappings
 			prompt = "i",
 			cancel = "c",
+			clear = "C",
 			sessions = "s",
 			scroll_bottom = "G",
 			next_message = "]m",
@@ -44,17 +45,18 @@ function M.setup()
 			close = "q",
 		},
 		global_keymaps = { -- editor-wide; all disabled by default
-			toggle = true, -- e.g. "<leader>zo" to toggle the window
-			prompt = true, -- e.g. "<leader>za" to prompt
-			sessions = false, -- e.g. "<leader>zs" to pick a session
-			cancel = true, -- e.g. "<leader>zc" to cancel a turn
-			model = false, -- e.g. "<leader>zm" to switch the model
-			effort = false, -- e.g. "<leader>ze" to set the effort
-			thinking = false, -- e.g. "<leader>zt" to set the thinking mode
-			permission = false, -- e.g. "<leader>zp" to set the permission mode
-			prompt_visual = true, -- e.g. "<leader>zv" to prompt with selection (visual mode)
-			prompt_buffer = true, -- e.g. "<leader>zb" to prompt with whole buffer
-			prompt_cursor = true, -- e.g. "<leader>zC" to prompt with cursor line
+			toggle = true, -- <leader>zo to toggle the window
+			prompt = true, -- <leader>za to prompt
+			sessions = true, -- <leader>zs to pick a session
+			cancel = true, -- <leader>zc to cancel a turn
+			model = true, -- <leader>zm to switch the model
+			effort = true, -- <leader>ze to set the effort
+			thinking = true, -- <leader>zt to set the thinking mode
+			permission = true, -- <leader>zp to set the permission mode
+			clear = true, -- <leader>zL to reset session and clear transcript
+			prompt_visual = true, -- <leader>zv to prompt with selection (visual mode)
+			prompt_buffer = true, -- <leader>zb to prompt with whole buffer
+			prompt_cursor = true, -- <leader>zC to prompt with cursor line
 		},
 	})
 end

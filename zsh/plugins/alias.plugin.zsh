@@ -235,9 +235,9 @@ if [[ "$(command -v exa)" ]]; then
   unalias -m 'ls'
   unalias -m 'la'
   unalias -m 'll'
-  alias ls="exa -l --color auto -a -s type"
-  alias ll='exa -l --color auto --icons -s type'
-  alias la='exa -al --color auto --icons -s type'
+  alias ls="exa -l --color auto -a -s modified --reverse"
+  alias ll='exa -l --color auto --icons -s modified --reverse'
+  alias la='exa -al --color auto --icons -s modified --reverse'
   alias qcd='cd $(exa -G --color never --only-dirs | fzf)'
 fi
 # ls
