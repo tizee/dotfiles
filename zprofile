@@ -230,7 +230,7 @@ if $is_macOS; then
   export GOPATH="$HOME/projects/gopath"
   ## go bin
   export GOBIN="$HOME/projects/gopath/bin"
-  PATH=$HOME/projects/$GOPATH/bin:$PATH
+  PATH=$GOPATH/bin:$PATH
   ## mame
   #alias mamed='/usr/local/Cellar/mame/0.234/share/mame/mamed'
 
