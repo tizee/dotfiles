@@ -1553,6 +1553,449 @@ class DoubaoQuotaProvider(QuotaProvider):
 
 
 # ============================================================================
+# DeepSeek Provider Implementation
+# ============================================================================
+
+
+class DeepSeekQuotaProvider(QuotaProvider):
+    """DeepSeek Platform quota provider (Bearer token from Firefox localStorage)"""
+
+    name = "deepseek"
+    description = "DeepSeek Platform (platform.deepseek.com)"
+    BASE_URL = "https://platform.deepseek.com/api/v0"
+    AMOUNT_URL = f"{BASE_URL}/usage/amount"
+    COST_URL = f"{BASE_URL}/usage/cost"
+
+    # Origin for Firefox localStorage (used to locate the sqlite db)
+    LS_KEY = "userToken"
+    LS_ORIGIN = "https+++platform.deepseek.com"
+
+    # Peak-valley pricing (starts mid-July 2026)
+    PEAK_PRICING_START = datetime(2026, 7, 15, 0, 0, 0, tzinfo=timezone.utc)
+    # Peak hours in UTC: 01:00-04:00 and 06:00-10:00
+    PEAK_SLOTS_UTC = [
+        (1, 4),   # 01:00-04:00 UTC
+        (6, 10),  # 06:00-10:00 UTC
+    ]
+
+    def __init__(self, cookie_header: str):
+        super().__init__(cookie_header)
+        self.bearer_token = self._load_token()
+
+    # -- Token loading: Firefox localStorage → env var → key file ----------
+
+    @staticmethod
+    def _get_firefox_profiles_dir() -> Optional[Path]:
+        """Return the Firefox profiles directory for this platform."""
+        import platform
+        system = platform.system()
+        home = Path.home()
+        if system == "Darwin":
+            return home / "Library/Application Support/Firefox/Profiles"
+        elif system == "Linux":
+            return home / ".mozilla/firefox"
+        elif system == "Windows":
+            appdata = os.environ.get("APPDATA")
+            if appdata:
+                return Path(appdata) / "Mozilla/Firefox/Profiles"
+            return home / "AppData/Roaming/Mozilla/Firefox/Profiles"
+        return None
+
+    @classmethod
+    def _extract_localstorage_token(cls) -> Optional[str]:
+        """Read the userToken from Firefox localStorage for platform.deepseek.com.
+
+        The token is stored in:
+          <profile>/storage/default/https+++platform.deepseek.com/ls/data.sqlite
+
+        under the key 'userToken' as a JSON blob: {"value":"<token>","__version":"0"}
+        """
+        profiles_dir = cls._get_firefox_profiles_dir()
+        if not profiles_dir or not profiles_dir.exists():
+            return None
+
+        # Try each profile, newest first
+        try:
+            profiles = sorted(
+                [p for p in profiles_dir.iterdir() if p.is_dir()],
+                key=lambda p: p.stat().st_mtime,
+                reverse=True,
+            )
+        except OSError:
+            return None
+
+        for prof in profiles:
+            ls_db = prof / "storage" / "default" / cls.LS_ORIGIN / "ls" / "data.sqlite"
+            if not ls_db.exists():
+                continue
+
+            token = cls._read_localstorage_value(ls_db, cls.LS_KEY)
+            if token:
+                return token
+
+        return None
+
+    @staticmethod
+    def _read_localstorage_value(db_path: Path, key: str) -> Optional[str]:
+        """Copy sqlite db to temp, extract a value from the 'data' table.
+
+        The data table schema:
+          CREATE TABLE data(
+            key TEXT PRIMARY KEY,
+            utf16_length INTEGER NOT NULL,
+            conversion_type INTEGER NOT NULL,
+            compression_type INTEGER NOT NULL,
+            last_access_time INTEGER NOT NULL DEFAULT 0,
+            value BLOB NOT NULL
+          );
+
+        Values are JSON blobs: {"value":"...","__version":"N"}
+        """
+        import shutil
+        import tempfile
+
+        tmp_fd, tmp_path = tempfile.mkstemp(suffix=".sqlite")
+        os.close(tmp_fd)
+        tmp = Path(tmp_path)
+        try:
+            shutil.copy2(str(db_path), str(tmp))
+            conn = sqlite3.connect(str(tmp))
+            try:
+                row = conn.execute(
+                    "SELECT value FROM data WHERE key = ?", (key,)
+                ).fetchone()
+                if row and row[0]:
+                    blob = row[0]
+                    if isinstance(blob, bytes):
+                        blob = blob.decode("utf-8", errors="replace")
+                    try:
+                        data = json.loads(blob)
+                        if isinstance(data, dict) and "value" in data:
+                            return str(data["value"])
+                    except (json.JSONDecodeError, TypeError):
+                        # Not JSON; return raw value
+                        return blob
+                return None
+            finally:
+                conn.close()
+        except (sqlite3.Error, OSError):
+            return None
+        finally:
+            try:
+                tmp.unlink(missing_ok=True)
+            except OSError:
+                pass
+
+    def _load_token(self) -> Optional[str]:
+        """Load Bearer token, trying multiple sources in priority order.
+
+        1. Firefox localStorage (userToken → value) — zero-config
+        2. Env var QUOTA_DEEPSEEK_TOKEN — manual override
+        """
+        # 1. Firefox localStorage
+        token = self._extract_localstorage_token()
+        if token:
+            return token
+
+        # 2. Environment variable
+        return os.environ.get("QUOTA_DEEPSEEK_TOKEN")
+
+    def get_api_endpoints(self) -> list[str]:
+        return [self.AMOUNT_URL, self.COST_URL]
+
+    def _get_local_year_month(self) -> tuple[int, int]:
+        """Get current year and month in local timezone."""
+        now = datetime.now(get_local_timezone())
+        return now.year, now.month
+
+    @staticmethod
+    def _is_peak_hour(now_utc: datetime) -> bool:
+        """Check if current UTC time falls in peak pricing window."""
+        hour = now_utc.hour
+        for start, end in DeepSeekQuotaProvider.PEAK_SLOTS_UTC:
+            if start <= hour < end:
+                return True
+        return False
+
+    @staticmethod
+    def _peak_valley_status() -> dict[str, Any]:
+        """Compute peak/valley status for current time.
+        
+        Returns dict with:
+          is_peak: whether current time is in peak pricing window
+          label: "Peak (2x)" or "Valley (1x)"
+          note: human-readable explanation for display
+          now_utc_str: current UTC time like "07:30"
+          active_windows: list of active peak windows (e.g. ["06:00-10:00"])
+        """
+        now_utc = datetime.now(timezone.utc)
+        now_utc_str = now_utc.strftime("%H:%M")
+        
+        if now_utc < DeepSeekQuotaProvider.PEAK_PRICING_START:
+            return {
+                "is_peak": False,
+                "label": "Flat (pre-peak/valley)",
+                "note": "Peak/valley pricing starts ~Jul 15, 2026",
+                "now_utc_str": now_utc_str,
+                "active_windows": [],
+            }
+        
+        is_peak = DeepSeekQuotaProvider._is_peak_hour(now_utc)
+        active_windows = []
+        hour = now_utc.hour
+        for start, end in DeepSeekQuotaProvider.PEAK_SLOTS_UTC:
+            if start <= hour < end:
+                active_windows.append(f"{start:02d}:00-{end:02d}:00")
+        
+        return {
+            "is_peak": is_peak,
+            "label": "Peak (2x)" if is_peak else "Valley (1x)",
+            "note": f"Peak hours UTC: 01:00-04:00, 06:00-10:00 (UTC+8: 09:00-12:00, 14:00-18:00)",
+            "now_utc_str": now_utc_str,
+            "active_windows": active_windows,
+        }
+
+    def _curl_request(self, url: str, timeout: int = 30) -> dict:
+        """Send GET request with Bearer token + cookies."""
+        headers = [
+            "-H", f"Cookie: {self.cookie_header}",
+            "-H", "Accept: */*",
+            "-H", "Accept-Language: en-US,en;q=0.9",
+            "-H", "Accept-Encoding: gzip, deflate, br, zstd",
+            "-H", "x-client-bundle-id: com.deepseek.chat",
+            "-H", "x-client-platform: web",
+            "-H", "x-client-version: 1.0.0",
+            "-H", "x-client-locale: en_US",
+            "-H", "x-client-timezone-offset: 28800",
+            "-H", "Referer: https://platform.deepseek.com/usage",
+            "-H", "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:153.0) Gecko/20100101 Firefox/153.0",
+            "-H", "DNT: 1",
+            "-H", "Sec-GPC: 1",
+            "-H", "Connection: keep-alive",
+            "--compressed",
+            "--max-time", str(timeout),
+        ]
+
+        # Add Bearer token header if available
+        if self.bearer_token:
+            headers.extend(["-H", f"authorization: Bearer {self.bearer_token}"])
+
+        cmd = ["curl", "-s", "-L", "--http1.1", *headers, url]
+
+        result = subprocess.run(cmd, capture_output=True, text=True)
+
+        if result.returncode != 0:
+            raise Exception(f"curl request failed: {result.stderr}")
+
+        text = result.stdout.strip()
+        if text.startswith(("<!DOCTYPE", "<!doctype", "<html", "<HTML")):
+            title_match = re.search(r"<title>(.*?)</title>", text, re.IGNORECASE)
+            title = title_match.group(1) if title_match else "Unknown"
+            if "login" in text.lower() or "sign in" in text.lower():
+                raise Exception(f"Login required: {title}")
+            elif "challenge" in text.lower():
+                raise Exception(f"WAF challenge: {title}")
+            else:
+                raise Exception(f"API returned HTML: {title}")
+
+        return json.loads(text)
+
+    # Token types that count toward token usage (REQUEST is a count, not tokens)
+    TOKEN_TYPES = {"PROMPT_TOKEN", "PROMPT_CACHE_HIT_TOKEN",
+                   "PROMPT_CACHE_MISS_TOKEN", "RESPONSE_TOKEN"}
+
+    def _parse_token_amount(self, data: dict) -> dict[str, Any]:
+        """Parse /api/v0/usage/amount response.
+
+        Response shape:
+          {"code":0, "data":{"biz_data":{"total":[{"model":"...","usage":[
+            {"type":"PROMPT_TOKEN","amount":"0"}, ...]}]}}}
+        """
+        result: dict[str, Any] = {"models": []}
+        try:
+            biz_data = data.get("data", {}).get("biz_data", {})
+            if isinstance(biz_data, dict):
+                models = biz_data.get("total", [])
+            else:
+                models = []
+        except (AttributeError, TypeError):
+            return result
+
+        total_tokens = 0.0
+        for model_entry in models:
+            model_name = model_entry.get("model", "unknown")
+            model_tokens = 0.0
+            for usage in model_entry.get("usage", []):
+                typ = usage.get("type", "")
+                amt = float(usage.get("amount", 0))
+                if typ in self.TOKEN_TYPES:
+                    model_tokens += amt
+                    total_tokens += amt
+            result["models"].append({
+                "model": model_name,
+                "tokens": model_tokens,
+            })
+
+        result["total_tokens"] = total_tokens
+        return result
+
+    def _parse_cost(self, data: dict) -> dict[str, Any]:
+        """Parse /api/v0/usage/cost response.
+
+        Response shape:
+          {"code":0, "data":{"biz_data":[{"total":[{"model":"...","usage":[
+            {"type":"PROMPT_TOKEN","amount":"6.25"}, ...]}]}]}}
+        """
+        result: dict[str, Any] = {"models": []}
+        try:
+            biz_data = data.get("data", {}).get("biz_data", [])
+            if not isinstance(biz_data, list):
+                biz_data = [biz_data]
+        except (AttributeError, TypeError):
+            biz_data = []
+
+        total_cost = 0.0
+        for section in biz_data:
+            if not isinstance(section, dict):
+                continue
+            for model_entry in section.get("total", []):
+                model_name = model_entry.get("model", "unknown")
+                model_cost = 0.0
+                for usage in model_entry.get("usage", []):
+                    amt = float(usage.get("amount", 0))
+                    model_cost += amt
+                    total_cost += amt
+                result["models"].append({
+                    "model": model_name,
+                    "cost": model_cost,
+                })
+
+        result["total_cost"] = total_cost
+        result["peak_valley"] = self._peak_valley_status()
+        return result
+
+    def fetch_quota(self) -> QuotaInfo:
+        """Fetch DeepSeek quota from usage endpoints."""
+        quota_info = QuotaInfo(
+            provider=self.name,
+            plan_type="API Billing",
+            fetched_at=datetime.now(timezone.utc).isoformat(),
+        )
+
+        if not self.bearer_token:
+            quota_info.error = (
+                "No Bearer token found. Log in to platform.deepseek.com "
+                "in Firefox, or set QUOTA_DEEPSEEK_TOKEN env var."
+            )
+            quota_info.error_type = "client"
+            return quota_info
+
+        year, month = self._get_local_year_month()
+
+        # Fetch token amount
+        amount_raw: dict[str, Any] = {}
+        cost_raw: dict[str, Any] = {}
+        amount_parsed: dict[str, Any] = {}
+        cost_parsed: dict[str, Any] = {}
+
+        try:
+            amount_raw = self._curl_request(
+                f"{self.AMOUNT_URL}?month={month}&year={year}"
+            )
+            amount_parsed = self._parse_token_amount(amount_raw)
+        except Exception as e:
+            quota_info.error = f"amount endpoint: {e}"
+            quota_info.error_type = "client"
+            # Still report what we have
+            quota_info.raw_response = {
+                "amount_raw": amount_raw,
+                "cost_raw": cost_raw,
+            }
+            quota_info.sessions["monthly"] = SessionQuota(
+                extra={"note": str(e)},
+            )
+            return quota_info
+
+        try:
+            cost_raw = self._curl_request(
+                f"{self.COST_URL}?month={month}&year={year}"
+            )
+            cost_parsed = self._parse_cost(cost_raw)
+        except Exception as e:
+            # Cost is secondary; don't fail entirely if amount succeeded
+            cost_parsed = {"error": str(e)}
+
+        quota_info.raw_response = {
+            "amount_raw": amount_raw,
+            "cost_raw": cost_raw,
+            "amount_parsed": amount_parsed,
+            "cost_parsed": cost_parsed,
+            "month": month,
+            "year": year,
+        }
+
+        # Build session data: separate tokens and cost
+        total_tokens = amount_parsed.get("total_tokens")
+        total_cost = cost_parsed.get("total_cost")
+        currency = cost_parsed.get("currency") or "CNY"
+        peak_valley = cost_parsed.get("peak_valley") or self._peak_valley_status()
+
+        # Token usage session (counts, no known limit)
+        if total_tokens is not None:
+            quota_info.sessions["monthly_tokens"] = SessionQuota(
+                used=total_tokens,
+                currency=None,
+                extra={
+                    "month": month,
+                    "year": year,
+                    "peak_valley_label": peak_valley.get("label", "?"),
+                    "peak_valley_is_peak": peak_valley.get("is_peak", False),
+                    "peak_valley_now_utc": peak_valley.get("now_utc_str", ""),
+                    "peak_valley_windows": peak_valley.get("active_windows", []),
+                    "models": amount_parsed.get("models", []),
+                },
+            )
+
+        # Cost session (currency amount)
+        if total_cost is not None:
+            quota_info.sessions["monthly_cost"] = SessionQuota(
+                used=total_cost,
+                currency=currency,
+                extra={
+                    "month": month,
+                    "year": year,
+                    "peak_valley_label": peak_valley.get("label", "?"),
+                    "peak_valley_is_peak": peak_valley.get("is_peak", False),
+                    "peak_valley_now_utc": peak_valley.get("now_utc_str", ""),
+                    "peak_valley_windows": peak_valley.get("active_windows", []),
+                    "peak_valley_note": peak_valley.get("note", ""),
+                    "models": cost_parsed.get("models", []),
+                },
+            )
+
+        # If neither token nor cost parsed successfully, note it
+        if total_tokens is None and total_cost is None:
+            quota_info.sessions["monthly"] = SessionQuota(
+                extra={
+                    "month": month,
+                    "year": year,
+                    "note": "Unable to parse response — check raw_response",
+                },
+            )
+
+        # If cost fetch failed, note it in the session
+        if "error" in cost_parsed:
+            cost_error = cost_parsed["error"]
+            if quota_info.error:
+                quota_info.error += f"; cost: {cost_error}"
+            else:
+                quota_info.error = f"cost endpoint: {cost_error}"
+                quota_info.error_type = "client"
+
+        return quota_info
+
+
+# ============================================================================
 # Provider Registry
 # ============================================================================
 
@@ -1569,7 +2012,7 @@ class ProviderRegistry:
         return provider_class
 
     # Providers that resolve their own credentials (no Firefox cookies)
-    TOKEN_BASED = {"codex"}
+    TOKEN_BASED = {"codex", "deepseek"}
 
     @classmethod
     def get(cls, name: str, cookie_header: str,
@@ -1612,6 +2055,7 @@ ProviderRegistry.register(GLMQuotaProvider)
 ProviderRegistry.register(KimiQuotaProvider)
 ProviderRegistry.register(CodexQuotaProvider)
 ProviderRegistry.register(DoubaoQuotaProvider)
+ProviderRegistry.register(DeepSeekQuotaProvider)
 
 
 # ============================================================================
@@ -1632,6 +2076,7 @@ class CookieManager:
         "glm": ["bigmodel_token_production"],
         "kimi": ["kimi-auth"],
         "doubao": ["digest", "connect.sid"],
+        "deepseek": ["HWWAFSESID"],
     }
 
     def __init__(self, profile: Optional[str] = None, cache_dir: Optional[Path] = None):
@@ -1788,6 +2233,7 @@ class CookieManager:
             "glm": "bigmodel.cn",
             "kimi": "kimi.com",
             "doubao": "volcengine.com",
+            "deepseek": "platform.deepseek.com",
         }
 
         host_pattern = host_patterns.get(provider_name)
@@ -1828,6 +2274,8 @@ class CookieManager:
                 if provider_name == "kimi" and "kimi-auth" not in cookies:
                     continue
                 if provider_name == "doubao" and "digest" not in cookies:
+                    continue
+                if provider_name == "deepseek" and "HWWAFSESID" not in cookies:
                     continue
                 # Codex uses auth token from ~/.codex/auth.json, verified separately
 
@@ -2070,6 +2518,32 @@ def format_duration(total_seconds: int, target_dt: Optional[datetime] = None) ->
         return f"{minutes}m"
 
 
+def format_token_count(count: float) -> str:
+    """Format token count with K/M suffixes for readability.
+    
+    >= 1M:  1.23M, 12.35M
+    >= 10K: 12.3K, 500K
+    >= 1K:  1.23K, 10K
+    < 1K:   raw integer (500, 999)
+    
+    Trailing .0 / .00 is stripped for cleaner display.
+    """
+    if count >= 1_000_000:
+        scaled = count / 1_000_000
+        formatted = f"{scaled:.2f}".rstrip("0").rstrip(".")
+        return f"{formatted}M"
+    elif count >= 10_000:
+        scaled = count / 1_000
+        formatted = f"{scaled:.1f}".rstrip("0").rstrip(".")
+        return f"{formatted}K"
+    elif count >= 1_000:
+        scaled = count / 1_000
+        formatted = f"{scaled:.2f}".rstrip("0").rstrip(".")
+        return f"{formatted}K"
+    else:
+        return f"{count:.0f}"
+
+
 def format_percent(percent: Optional[float], no_color: bool = False) -> str:
     """Format percentage with optional color"""
     if percent is None:
@@ -2093,6 +2567,9 @@ def format_session_label(label: str) -> str:
         "quota": "Prompt Quota",
         "mcp_monthly": "MCP Monthly Quota",
         "code_review": "Code Review",
+        "monthly": "Monthly",
+        "monthly_tokens": "Monthly Tokens",
+        "monthly_cost": "Monthly Cost",
     }
     # Check for exact match first (like mcp_monthly)
     if label in labels:
@@ -2196,7 +2673,8 @@ def format_rich(quota_info: QuotaInfo, no_color: bool = False) -> str:
     lines = []
     lines.append("")
     lines.append("=" * 55)
-    lines.append(f"  {quota_info.provider.upper()} Coding Plan Quota")
+    plan_label = quota_info.plan_type or "Coding Plan Quota"
+    lines.append(f"  {quota_info.provider.upper()} {plan_label}")
     lines.append("=" * 55)
 
     # Check for error - either at top level or nested in raw_response
@@ -2240,7 +2718,8 @@ def format_rich(quota_info: QuotaInfo, no_color: bool = False) -> str:
         # If we have prompt counts, show Usage only (skip percentages)
         # If we only have percentages, show those
         has_prompt_counts = session.used is not None and session.limit is not None
-        
+        has_usage_only = session.used is not None and session.limit is None
+
         if has_prompt_counts:
             # Show prompt usage
             if session.currency:
@@ -2248,11 +2727,16 @@ def format_rich(quota_info: QuotaInfo, no_color: bool = False) -> str:
                 lines.append(f"   Usage: {session.currency} ${session.used:.2f} / ${session.limit:.2f}")
             else:
                 # Count-based usage (like prompt count)
-                used_count = session.used
-                limit_count = session.limit
-                # Show percentage in the usage line
+                used_str = format_token_count(session.used)
+                limit_str = format_token_count(session.limit)
                 pct_str = f" ({session.used_percent:.1f}%)" if session.used_percent is not None else ""
-                lines.append(f"   Prompts: {used_count:.0f} / {limit_count:.0f}{pct_str}")
+                lines.append(f"   Prompts: {used_str} / {limit_str}{pct_str}")
+        elif has_usage_only:
+            # Usage count without a known limit (e.g., DeepSeek monthly tokens/cost)
+            if session.currency:
+                lines.append(f"   Cost: {session.currency} {session.used:.4f}")
+            else:
+                lines.append(f"   Tokens: {format_token_count(session.used)}")
         elif session.used_percent is not None:
             # Only percentages available (no prompt counts) - just show used
             lines.append(f"   Used: {format_percent(session.used_percent, no_color)}")
@@ -2273,7 +2757,22 @@ def format_rich(quota_info: QuotaInfo, no_color: bool = False) -> str:
                     mcp_items.append(f"{model_code}: {usage}")
                 lines.append(f"   Services: {', '.join(mcp_items)}")
 
-        if not has_prompt_counts and session.used_percent is None and not reset_str:
+        # Show peak-valley pricing status for DeepSeek sessions
+        if session.extra and "peak_valley_label" in session.extra:
+            pv_label = session.extra["peak_valley_label"]
+            pv_is_peak = session.extra.get("peak_valley_is_peak", False)
+            pv_now = session.extra.get("peak_valley_now_utc", "")
+            pv_windows = session.extra.get("peak_valley_windows", [])
+            if pv_label:
+                if pv_is_peak:
+                    color_on = "\033[31m" if not (no_color or os.environ.get("NO_COLOR") or not sys.stdout.isatty()) else ""
+                    color_off = "\033[0m" if color_on else ""
+                    window_str = ", ".join(pv_windows) if pv_windows else ""
+                    lines.append(f"   Pricing: {color_on}{pv_label}{color_off} (now {pv_now} UTC, in {window_str})")
+                else:
+                    lines.append(f"   Pricing: {pv_label}")
+
+        if not has_prompt_counts and not has_usage_only and session.used_percent is None and not reset_str:
             lines.append("   Status: No data")
 
     lines.extend(format_reset_credits(quota_info))

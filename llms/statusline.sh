@@ -57,6 +57,8 @@ determine_provider() {
         echo "kimi"
     elif [[ "$model_lower" == *"doubao"* ]] || [[ "$model_lower" == *"volcengine"* ]]; then
         echo "doubao"
+    elif [[ "$model_lower" == *"deepseek"* ]]; then
+        echo "deepseek"
     elif [[ "$model_lower" == *"codex"* ]] || [[ "$model_lower" == *"gpt"* ]] || [[ "$model_lower" == "o1"* ]] || [[ "$model_lower" == "o3"* ]]; then
         echo "codex"
     else
@@ -76,13 +78,17 @@ used_pct=$(echo "$input" | jq -r '.context_window.used_percentage // 0')
 # (input_tokens + output_tokens can differ from the agent's context measurement)
 current_tokens=$(echo "scale=0; $context_size * $used_pct / 100" | bc)
 
-# Format token count (1K = 1000)
+# Format token count (1K=1000, 1M=1,000,000)
 format_tokens() {
     local count=$1
-    if (( count >= 1000 )); then
+    # Accept both integer and float input
+    local count_int=${count%.*}
+    if (( count_int >= 1000000 )); then
+        printf "%.2fM" "$(echo "scale=2; $count / 1000000" | bc)"
+    elif (( count_int >= 1000 )); then
         printf "%.1fK" "$(echo "scale=1; $count / 1000" | bc)"
     else
-        echo "$count"
+        printf "%.0f" "$count"
     fi
 }
 
@@ -469,6 +475,50 @@ if [ -f "$QUOTA_SCRIPT" ]; then
                         quota_info+="${NC}"
                     fi
                 fi
+            fi
+        elif [ "$provider" = "deepseek" ]; then
+            # DeepSeek: monthly tokens + cost + peak/valley pricing indicator
+            ds_tokens=$(echo "$quota_json" | jq -r '.sessions.monthly_tokens.used // empty')
+            ds_cost=$(echo "$quota_json" | jq -r '.sessions.monthly_cost.used // empty')
+            ds_currency=$(echo "$quota_json" | jq -r '.sessions.monthly_cost.currency // "CNY"')
+            ds_is_peak=$(echo "$quota_json" | jq -r '.sessions.monthly_cost.extra.peak_valley_is_peak // false')
+            ds_month=$(echo "$quota_json" | jq -r '.sessions.monthly_tokens.extra.month // empty')
+            ds_year=$(echo "$quota_json" | jq -r '.sessions.monthly_tokens.extra.year // empty')
+
+            if [ -n "$ds_tokens" ] && [ "$ds_tokens" != "null" ]; then
+                ds_tokens_fmt=$(format_tokens "$ds_tokens")
+
+                # Year-month label
+                ds_ym=""
+                if [ -n "$ds_year" ] && [ -n "$ds_month" ] && [ "$ds_year" != "null" ] && [ "$ds_month" != "null" ]; then
+                    case "$ds_month" in
+                        1) mon="Jan" ;; 2) mon="Feb" ;; 3) mon="Mar" ;;
+                        4) mon="Apr" ;; 5) mon="May" ;; 6) mon="Jun" ;;
+                        7) mon="Jul" ;; 8) mon="Aug" ;; 9) mon="Sep" ;;
+                        10) mon="Oct" ;; 11) mon="Nov" ;; 12) mon="Dec" ;;
+                        *) mon="" ;;
+                    esac
+                    ds_ym="${ds_year} ${mon}"
+                    quota_info="${BLUE}DeepSeek${NC} ${GRAY}${ds_ym}${NC} ${CYAN}${ds_tokens_fmt}${NC}"
+                else
+                    quota_info="${BLUE}DeepSeek${NC} ${CYAN}${ds_tokens_fmt}${NC}"
+                fi
+
+                # Cost (green)
+                if [ -n "$ds_cost" ] && [ "$ds_cost" != "null" ]; then
+                    ds_symbol="¥"
+                    [ "$ds_currency" = "USD" ] && ds_symbol="\$"
+                    ds_cost_fmt=$(printf "%.2f" "$ds_cost")
+                    quota_info+=" ${GREEN}${ds_symbol}${ds_cost_fmt}${NC}"
+                fi
+
+                # Peak time indicator
+                if [ "$ds_is_peak" = "true" ]; then
+                    # Red PEAK marker shows current time is in peak pricing window
+                    quota_info+=" ${RED}PEAK${NC}"
+                fi
+            else
+                quota_info=""
             fi
         fi
     else

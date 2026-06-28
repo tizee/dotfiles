@@ -507,7 +507,7 @@ if $is_macOS; then
   # python llm cli
   # classic,dots,arrows/blocks/pulse/bouncing/circle/square/triangle/diamond
   export LLM_GITHOOK_SPINNER_STYLE="dots"
-  export LLM_PROGRAM="$HOME/.local/bin/llms"
+  export LLM_PROGRAM="$HOME/.cargo/bin/zhu"
   export LLM_PREPARE_COMMIT_MSG_PROMPT="$HOME/prompts/git/diff-based-commit-prompt.txt"
   export LLM_GITHOOK_SHIMMER_BASE_COLOR=120
   export LLM_GITHOOK_SHIMMER_HIGHLIGHT_COLOR=103

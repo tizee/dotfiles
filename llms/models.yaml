@@ -1,244 +1,417 @@
+models:
 - model_id: gptws
   model_name: gpt-5.4-nano
   api_base: wss://api.openai.com/v1
+  api_key_name: oai-api
   api_format: openai_responses_websocket
   can_stream: true
-  api_key_name: oai-api
-  effort: medium
-  thinking_mode: enabled
+  max_tokens: null
+  extra_body: {}
+  headers: {}
+  aliases: []
+  context_window: 200000
   image: true
-
+  thinking_mode: enabled
+  effort: medium
+  reserves_output_tokens: false
+  transport: auto
+  cache_ttl: null
+  temperature: null
 - model_id: mimo
   model_name: mimo-v2-pro
   api_base: https://api.xiaomimimo.com/anthropic
+  api_key_name: xiaomi
   api_format: anthropic
   can_stream: true
-  api_key_name: xiaomi
+  max_tokens: null
+  extra_body: {}
+  headers: {}
+  aliases: []
+  context_window: 256000
+  image: true
   thinking_mode: enabled
   effort: high
-  image: true
-  context_window: 256000
-
+  reserves_output_tokens: false
+  transport: auto
+  cache_ttl: null
+  temperature: null
 - model_id: gpt
   model_name: gpt-5.4-mini
   api_base: https://api.openai.com/v1
+  api_key_name: oai-api
   api_format: openai_responses
   can_stream: true
-  api_key_name: oai-api
-  effort: medium
-  thinking_mode: enabled
-  image: true
+  max_tokens: null
+  extra_body: {}
+  headers: {}
+  aliases: []
   context_window: 400000
-
+  image: true
+  thinking_mode: enabled
+  effort: medium
+  reserves_output_tokens: false
+  transport: auto
+  cache_ttl: null
+  temperature: null
 - model_id: gpt-fast
   model_name: gpt-5.4-nano
   api_base: https://api.openai.com/v1
+  api_key_name: oai-api
   api_format: openai_responses
   can_stream: true
-  api_key_name: oai-api
-  effort: medium
-  thinking_mode: disabled
-  image: true
+  max_tokens: null
+  extra_body: {}
+  headers: {}
+  aliases: []
   context_window: 400000
-
+  image: true
+  thinking_mode: disabled
+  effort: medium
+  reserves_output_tokens: false
+  transport: auto
+  cache_ttl: null
+  temperature: null
 - model_id: qwen
   model_name: qwen/qwen3.6-plus-preview:free
-  api_base: "https://openrouter.ai/api/v1"
-  can_stream: true
-  context_window: 400000
+  api_base: https://openrouter.ai/api/v1
+  api_key_name: openrouter
   api_format: openai
+  can_stream: true
+  max_tokens: null
+  extra_body: {}
+  headers:
+    X-Title: LLMs Agent
+  aliases: []
+  context_window: 400000
   image: true
   thinking_mode: enabled
   effort: high
-  api_key_name: openrouter
-  headers:
-    X-Title: "LLMs Agent"
-
+  reserves_output_tokens: false
+  transport: auto
+  cache_ttl: null
+  temperature: null
 - model_id: orcodex
   model_name: openai/gpt-5.5
-  api_base: "https://openrouter.ai/api/v1"
-  can_stream: true
-  context_window: 400000
+  api_base: https://openrouter.ai/api/v1
+  api_key_name: openrouter
   api_format: openai
+  can_stream: true
+  max_tokens: null
+  extra_body: {}
+  headers:
+    X-Title: LLMs Agent
+  aliases: []
+  context_window: 400000
   image: true
   thinking_mode: enabled
   effort: high
-  api_key_name: openrouter
-  headers:
-    X-Title: "LLMs Agent"
-
+  reserves_output_tokens: false
+  transport: auto
+  cache_ttl: null
+  temperature: null
 - model_id: codex
   model_name: codex/gpt-5.5
-  api_base: "http://127.0.0.1:8082/openai/"
-  can_stream: true
+  api_base: http://127.0.0.1:8082/openai/
   api_key_name: cc
   api_format: openai_responses
+  can_stream: true
+  max_tokens: null
+  extra_body: {}
+  headers: {}
+  aliases: []
+  context_window: 200000
   image: true
+  thinking_mode: null
   effort: high
-
+  reserves_output_tokens: false
+  transport: auto
+  cache_ttl: null
+  temperature: null
 - model_id: ds-flash
   model_name: deepseek-v4-flash
-  api_base: "https://api.deepseek.com/anthropic"
-  can_stream: true
-  api_format: anthropic
+  api_base: https://api.deepseek.com/anthropic
   api_key_name: deepseek
+  api_format: anthropic
+  can_stream: true
+  max_tokens: null
+  extra_body: {}
+  headers: {}
+  aliases: []
   context_window: 400000
   image: false
-  thinking_mode: "enabled"
-  effort: "max"
-
+  thinking_mode: enabled
+  effort: max
+  reserves_output_tokens: false
+  transport: auto
+  cache_ttl: null
+  temperature: null
 - model_id: ds
   model_name: deepseek-v4-pro
-  api_base: "https://api.deepseek.com/anthropic"
-  can_stream: true
-  api_format: anthropic
+  api_base: https://api.deepseek.com/anthropic
   api_key_name: deepseek
-  context_window: 400000
+  api_format: anthropic
+  can_stream: true
+  max_tokens: null
+  extra_body: {}
+  headers: {}
+  aliases: []
+  context_window: 1000000
   image: false
-  thinking_mode: "enabled"
-  effort: "max"
-
+  thinking_mode: enabled
+  effort: max
+  reserves_output_tokens: false
+  transport: auto
+  cache_ttl: null
+  temperature: null
 - model_id: opus46
   model_name: claude-code/claude-opus-4-6
-  api_base: "http://127.0.0.1:8082/anthropic/"
-  can_stream: true
-  api_format: anthropic
+  api_base: http://127.0.0.1:8082/anthropic/
   api_key_name: cc
+  api_format: anthropic
+  can_stream: true
+  max_tokens: null
+  extra_body: {}
+  headers: {}
+  aliases: []
   context_window: 1000000
   image: true
-  thinking_mode: "adaptive"
-
+  thinking_mode: adaptive
+  effort: null
+  reserves_output_tokens: false
+  transport: auto
+  cache_ttl: null
+  temperature: null
 - model_id: opus47
   model_name: claude-code/claude-opus-4-7
-  api_base: "http://127.0.0.1:8082/anthropic/"
-  can_stream: true
-  api_format: anthropic
+  api_base: http://127.0.0.1:8082/anthropic/
   api_key_name: cc
+  api_format: anthropic
+  can_stream: true
+  max_tokens: null
+  extra_body: {}
+  headers: {}
+  aliases: []
   context_window: 1000000
   image: true
-  thinking_mode: "adaptive"
-
+  thinking_mode: adaptive
+  effort: null
+  reserves_output_tokens: false
+  transport: auto
+  cache_ttl: null
+  temperature: null
 - model_id: opus
   model_name: claude-code/claude-opus-4-8
-  api_base: "http://127.0.0.1:8082/anthropic/"
-  can_stream: true
-  api_format: anthropic
+  api_base: http://127.0.0.1:8082/anthropic/
   api_key_name: cc
+  api_format: anthropic
+  can_stream: true
+  max_tokens: null
+  extra_body: {}
+  headers: {}
+  aliases: []
   context_window: 1000000
   image: true
-  thinking_mode: "adaptive"
-
+  thinking_mode: adaptive
+  effort: null
+  reserves_output_tokens: false
+  transport: auto
+  cache_ttl: null
+  temperature: null
 - model_id: fable
   model_name: claude-code/claude-fable-5
-  api_base: "http://127.0.0.1:8082/anthropic/"
-  can_stream: true
-  api_format: anthropic
+  api_base: http://127.0.0.1:8082/anthropic/
   api_key_name: cc
+  api_format: anthropic
+  can_stream: true
+  max_tokens: null
+  extra_body: {}
+  headers: {}
+  aliases: []
   context_window: 400000
   image: true
-  thinking_mode: "adaptive"
-
+  thinking_mode: adaptive
+  effort: null
+  reserves_output_tokens: false
+  transport: auto
+  cache_ttl: null
+  temperature: null
 - model_id: sonnet
   model_name: claude-code/claude-sonnet-4-6
-  api_base: "http://127.0.0.1:8082/anthropic/"
-  can_stream: true
-  api_format: anthropic
+  api_base: http://127.0.0.1:8082/anthropic/
   api_key_name: cc
+  api_format: anthropic
+  can_stream: true
+  max_tokens: null
+  extra_body: {}
+  headers: {}
+  aliases: []
+  context_window: 200000
   image: true
-  thinking_mode: "adaptive"
-
+  thinking_mode: adaptive
+  effort: null
+  reserves_output_tokens: false
+  transport: auto
+  cache_ttl: null
+  temperature: null
 - model_id: haiku
   model_name: claude-code/claude-haiku-4-5
-  api_base: "http://127.0.0.1:8082/anthropic/"
-  can_stream: true
-  api_format: anthropic
-  image: true
+  api_base: http://127.0.0.1:8082/anthropic/
   api_key_name: cc
-
+  api_format: anthropic
+  can_stream: true
+  max_tokens: null
+  extra_body: {}
+  headers: {}
+  aliases: []
+  context_window: 200000
+  image: true
+  thinking_mode: null
+  effort: null
+  reserves_output_tokens: false
+  transport: auto
+  cache_ttl: null
+  temperature: null
 - model_id: kimi-code
   model_name: kimi-for-coding
-  api_base: "https://api.kimi.com/coding/"
-  can_stream: true
-  api_format: anthropic
-  image: true
-  context_window: 262144
+  api_base: https://api.kimi.com/coding/
   api_key_name: kimi-for-coding
-  thinking_mode: "enabled"
+  api_format: anthropic
+  can_stream: true
+  max_tokens: null
+  extra_body: {}
+  headers: {}
+  aliases: []
+  context_window: 262144
+  image: true
+  thinking_mode: enabled
   effort: high
-
+  reserves_output_tokens: false
+  transport: auto
+  cache_ttl: null
+  temperature: null
 - model_id: kimi
   model_name: kimi-k2.7-code
-  api_base: "https://api.moonshot.cn/anthropic"
-  can_stream: true
-  api_format: anthropic
-  image: true
-  context_window: 262144
+  api_base: https://api.moonshot.cn/anthropic
   api_key_name: kimi
-  thinking_mode: "enabled"
+  api_format: anthropic
+  can_stream: true
+  max_tokens: null
+  extra_body: {}
+  headers: {}
+  aliases: []
+  context_window: 262144
+  image: true
+  thinking_mode: enabled
   effort: high
-
+  reserves_output_tokens: false
+  transport: auto
+  cache_ttl: null
+  temperature: null
 - model_id: minimax
   model_name: MiniMax-M2.7-highspeed
-  api_base: "https://api.minimaxi.com/anthropic"
-  image: false
-  context_window: 204800
+  api_base: https://api.minimaxi.com/anthropic
+  api_key_name: minimax
   api_format: anthropic
   can_stream: true
-  api_key_name: minimax
-  thinking_mode: "enabled"
+  max_tokens: null
+  extra_body: {}
+  headers: {}
+  aliases: []
+  context_window: 204800
+  image: false
+  thinking_mode: enabled
   effort: high
-
+  reserves_output_tokens: false
+  transport: auto
+  cache_ttl: null
+  temperature: null
 - model_id: minimax-nothinking
   model_name: MiniMax-M2.7-highspeed
-  api_base: "https://api.minimaxi.com/anthropic"
-  image: false
-  context_window: 204800
+  api_base: https://api.minimaxi.com/anthropic
+  api_key_name: minimax
   api_format: anthropic
   can_stream: true
-  api_key_name: minimax
-  thinking_mode: "disabled"
+  max_tokens: null
+  extra_body: {}
+  headers: {}
+  aliases: []
+  context_window: 204800
+  image: false
+  thinking_mode: disabled
   effort: low
-
+  reserves_output_tokens: false
+  transport: auto
+  cache_ttl: null
+  temperature: null
 - model_id: glmc
   model_name: glm-5.2
-  api_base: "https://open.bigmodel.cn/api/anthropic"
-  image: false
-  context_window: 400000
+  api_base: https://open.bigmodel.cn/api/anthropic
+  api_key_name: glm
   api_format: anthropic
   can_stream: true
-  api_key_name: glm
-  thinking_mode: "enabled"
+  max_tokens: null
+  extra_body: {}
+  headers: {}
+  aliases: []
+  context_window: 400000
+  image: false
+  thinking_mode: enabled
   effort: max
-
+  reserves_output_tokens: false
+  transport: auto
+  cache_ttl: null
+  temperature: null
 - model_id: glm
   model_name: zai-org/GLM-5.2
-  api_base: "https://api.siliconflow.cn/"
-  image: false
-  context_window: 1000000
+  api_base: https://api.siliconflow.cn/
+  api_key_name: siliconflow
   api_format: anthropic
   can_stream: true
-  api_key_name: siliconflow
+  max_tokens: null
+  extra_body: {}
+  headers: {}
+  aliases: []
+  context_window: 1000000
+  image: false
   thinking_mode: enabled
   effort: max
-
+  reserves_output_tokens: false
+  transport: auto
+  cache_ttl: null
+  temperature: null
 - model_id: glmo
   model_name: glm-5.2
-  api_base: "https://open.bigmodel.cn/api/paas/v4"
-  image: false
-  context_window: 400000
+  api_base: https://open.bigmodel.cn/api/paas/v4
+  api_key_name: glm
   api_format: anthropic
   can_stream: true
-  api_key_name: glm
+  max_tokens: null
+  extra_body: {}
+  headers: {}
+  aliases: []
+  context_window: 400000
+  image: false
   thinking_mode: enabled
   effort: max
-
+  reserves_output_tokens: false
+  transport: auto
+  cache_ttl: null
+  temperature: null
 - model_id: doubao
   model_name: doubao-seed-2-1-pro-260628
-  api_base: "https://ark.cn-beijing.volces.com/api/compatible"
-  image: true
+  api_base: https://ark.cn-beijing.volces.com/api/compatible
+  api_key_name: doubao
   api_format: anthropic
   can_stream: true
-  api_key_name: doubao
+  max_tokens: null
+  extra_body: {}
+  headers: {}
+  aliases: []
+  context_window: 256000
+  image: true
   thinking_mode: enabled
   effort: high
-  context_window: 256000
+  reserves_output_tokens: false
+  transport: auto
+  cache_ttl: null
+  temperature: null
