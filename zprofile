@@ -542,5 +542,6 @@ if $is_macOS; then
   alias aif="zhu -m fable"
   alias aik="zhu -m kimi"
   alias aid="zhu -m ds"
+  alias ais="zhu -m sonnet"
 fi
 

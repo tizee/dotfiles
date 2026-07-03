@@ -253,8 +253,8 @@ defmd() {
 
 # Added by Nowledge Mem
 export PATH="$HOME/.local/bin:$PATH"
-alias ask='llms -m gptws'
-alias askp='llms agent -p'
+alias ask='zhu prompt -m sonnet'
+alias askp='zhu -p --ephemeral'
 
 # Load .env variables
 [[ -f $HOME/.config/zsh/env-loader.zsh ]] && source "$HOME/.config/zsh/env-loader.zsh"
