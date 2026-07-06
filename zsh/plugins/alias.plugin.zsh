@@ -235,9 +235,9 @@ if [[ "$(command -v exa)" ]]; then
   unalias -m 'ls'
   unalias -m 'la'
   unalias -m 'll'
-  alias ls="exa -l --color auto -a -s modified"
-  alias ll='exa -l --color auto --icons -s modified'
-  alias la='exa -al --color auto --icons -s modified'
+  alias ls="exa -l --color auto -a -s modified --group-directories-first"
+  alias ll='exa -l --color auto --icons -s modified --group-directories-first'
+  alias la='exa -al --color auto --icons -s modified --group-directories-first'
   alias qcd='cd $(exa -G --color never --only-dirs | fzf)'
 fi
 # ls
