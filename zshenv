@@ -6,9 +6,12 @@
 # http://disq.us/p/f55b78
 setopt noglobalrcs
 
-export SYSTEM=$(uname -s)
-# use $OSTYPE insteal of uname -s
-# export SYSTEM=$OSTYPE
+# Derive SYSTEM from $OSTYPE instead of forking `uname -s`
+case "$OSTYPE" in
+  darwin*) export SYSTEM=Darwin ;;
+  linux*)  export SYSTEM=Linux ;;
+  *)       export SYSTEM=$(uname -s) ;;
+esac
 
 export XDG_CONFIG_HOME=$HOME/.config
 export XDG_CONFIG_DIR=$XDG_CONFIG_HOME/.config

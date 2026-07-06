@@ -137,7 +137,7 @@ models:
   extra_body: {}
   headers: {}
   aliases: []
-  context_window: 400000
+  context_window: 1000000
   image: false
   thinking_mode: enabled
   effort: max
@@ -205,7 +205,7 @@ models:
   api_key_name: cc
   api_format: anthropic
   can_stream: true
-  max_tokens: null
+  max_tokens: 128000
   extra_body: {}
   headers: {}
   aliases: []
@@ -223,20 +223,20 @@ models:
   api_key_name: cc
   api_format: anthropic
   can_stream: true
-  max_tokens: null
+  max_tokens: 128000
   extra_body: {}
   headers: {}
   aliases: []
-  context_window: 400000
+  context_window: 1000000
   image: true
   thinking_mode: adaptive
-  effort: null
+  effort: medium
   reserves_output_tokens: false
   transport: auto
   cache_ttl: null
   temperature: null
 - model_id: sonnet
-  model_name: claude-code/claude-sonnet-4-6
+  model_name: claude-code/claude-sonnet-5
   api_base: http://127.0.0.1:8082/anthropic/
   api_key_name: cc
   api_format: anthropic
@@ -245,10 +245,10 @@ models:
   extra_body: {}
   headers: {}
   aliases: []
-  context_window: 200000
+  context_window: 1000000
   image: true
   thinking_mode: adaptive
-  effort: null
+  effort: high
   reserves_output_tokens: false
   transport: auto
   cache_ttl: null
@@ -410,6 +410,24 @@ models:
   context_window: 256000
   image: true
   thinking_mode: enabled
+  effort: high
+  reserves_output_tokens: false
+  transport: auto
+  cache_ttl: null
+  temperature: null
+- model_id: test
+  model_name: test
+  api_base: test
+  api_key_name: test
+  api_format: anthropic
+  can_stream: true
+  max_tokens: null
+  extra_body: {}
+  headers: {}
+  aliases: []
+  context_window: 1000000
+  image: true
+  thinking_mode: adaptive
   effort: high
   reserves_output_tokens: false
   transport: auto

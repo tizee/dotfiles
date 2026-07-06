@@ -357,7 +357,7 @@ function __update_tz_prompt() {
 
   prompt_input_line="$NEWLINE%b$err_color$prompt_symbol%f "
 
-  PROMPT='${prompt_top_left}${prompt_top_right}${PROMPT_ZLE_MODE}${prompt_input_line}'
+  PROMPT='${prompt_top_left} ${PROMPT_ZLE_MODE}${prompt_top_right}${prompt_input_line}'
   RPROMPT="$err_color${return_code}%f "
 }
 

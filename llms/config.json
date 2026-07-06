@@ -20,7 +20,7 @@
     "model": "ds-flash",
     "background_model": "haiku",
     "compact_model": "inherit",
-    "subagent_model": "ds-flash",
+    "subagent_model": "ds",
     "micro_compact": {
       "enabled": false,
       "keep_recent_turns": 6,

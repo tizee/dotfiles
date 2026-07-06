@@ -162,6 +162,10 @@ if [[ -f "$HOME/.zcompdump"(#qNmh-24) ]]; then
 else
   # Rebuild completion dump
   compinit
+  # compinit does NOT rewrite the dump when its content is unchanged, so the
+  # mtime would never advance and every startup would pay the full
+  # compinit+compaudit cost (~20ms). Touch it to keep the 24h cache valid.
+  touch "$HOME/.zcompdump"
 fi
 
 # bash completion compatibility

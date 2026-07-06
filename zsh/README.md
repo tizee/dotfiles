@@ -1,6 +1,7 @@
 # tz-zshconfig
 
-Almost done. Startup costs 0.18s.
+Hand-rolled zsh config. Startup: ~40ms interactive, ~48ms login (see
+[PERFORMANCE.md](./PERFORMANCE.md) for methodology and techniques).
 
 ## Why not use `oh-my-zsh`?
 
@@ -18,13 +19,25 @@ By setting up your own config, you will learn:
 
 3. bash-compatible zsh script
 
-## Benchmark in seconds
+## Benchmark
 
-Use script `expect-run` from [zsh-framework-benchmark](https://github.com/zimfw/zsh-framework-benchmark) to startup 100 times with only `$HOME/.zshrc`.
+Startup time is tracked with a benchmark-driven workflow — measure, profile
+with zprof, change one thing, re-measure. Full write-up with all optimization
+techniques (compinit caching, fork elimination, deferred loading, zwc
+compilation) lives in [PERFORMANCE.md](./PERFORMANCE.md).
 
-| mean     | stddev     | min      | max      |
-| -------- | ---------- | -------- | -------- |
-| 0.035888 | 0.00523845 | 0.031587 | 0.067983 |
+```sh
+# quick check (no dependencies)
+./benchmark-shell-startup.zsh 10
+
+# preferred (statistics + warmup)
+hyperfine --warmup 3 'zsh -i -c exit' 'zsh -l -i -c exit'
+```
+
+| Scenario | Mean |
+|----------|------|
+| `zsh -i` (tmux pane) | ~40ms |
+| `zsh -l -i` (new terminal) | ~48ms |
 
 ## Directory Structure
 
@@ -32,7 +45,10 @@ Use script `expect-run` from [zsh-framework-benchmark](https://github.com/zimfw/
 zsh/
 ├── autoloaded/       # Functions autoloaded by zsh (in fpath)
 ├── plugins/          # Plugin files loaded at startup
-└── vendor/           # Third-party completions
+├── vendor/           # Third-party plugins and completions
+├── widgets/          # ZLE widgets (*.widget.zsh)
+├── PERFORMANCE.md    # Startup optimization notes and benchmarks
+└── benchmark-*.zsh   # Benchmark scripts
 ```
 
 ## File Loading Order
@@ -60,7 +76,7 @@ Zsh completion works via `fpath` - a list of directories where completion files 
 # In ~/.zshrc
 fpath=($ZSHDIR/autoloaded $HOME/.config/zfunc "${fpath[@]}")
 autoload -Uz compinit
-compinit
+compinit -C   # fast path; full rebuild + touch once per 24h (see PERFORMANCE.md)
 ```
 
 **Two ways to add completions:**
