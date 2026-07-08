@@ -84,13 +84,22 @@ def str_to_signal(sig_str: str) -> int:
         return signal.SIGTERM
 
 
-def send_signal_verbose(proc: subprocess.Popen, sig: int, verbose: bool) -> None:
-    """Send signal to process group and optionally log to stderr."""
+def send_signal_verbose(
+    proc: subprocess.Popen, sig: int, verbose: bool, foreground: bool = False
+) -> None:
+    """Send a signal, and optionally log to stderr.
+
+    Default (background) mode signals the child's whole process group so
+    grandchildren die too; --foreground signals just the child, since it shares
+    timeout's group and killing the group would take timeout down with it.
+    """
     if verbose:
         print(f"sending signal {sig} to process {proc.pid}", file=sys.stderr)
     try:
-        # Send to process group to handle child processes
-        os.killpg(os.getpgid(proc.pid), sig)
+        if foreground:
+            proc.send_signal(sig)
+        else:
+            os.killpg(os.getpgid(proc.pid), sig)
     except ProcessLookupError:
         # Process already terminated
         pass
@@ -115,13 +124,14 @@ def run_timeout(
     killed_by_kill_sig = False
 
     try:
-        # Start the process
+        # Inherit stdio so the child's stdout/stderr always reach the terminal
+        # (GNU timeout never captures output). Default (background) mode puts the
+        # child in its own session/process group so the whole group can be
+        # signalled on timeout; --foreground keeps it in timeout's group so it
+        # can use the controlling TTY.
         proc = subprocess.Popen(
             command,
-            stdin=sys.stdin if foreground else subprocess.DEVNULL,
-            stdout=sys.stdout if foreground else subprocess.PIPE,
-            stderr=sys.stderr if foreground else subprocess.PIPE,
-            start_new_session=True,  # Create new process group
+            start_new_session=not foreground,
         )
     except FileNotFoundError:
         print(f"timeout: '{command[0]}': command not found", file=sys.stderr)
@@ -136,7 +146,7 @@ def run_timeout(
     except subprocess.TimeoutExpired:
         # Timeout occurred - send first signal
         timeout_occurred = True
-        send_signal_verbose(proc, sig, verbose)
+        send_signal_verbose(proc, sig, verbose, foreground)
 
         # If kill-after is specified, wait and then send KILL
         if kill_after is not None:
@@ -150,13 +160,8 @@ def run_timeout(
                     return signal_to_exit_code(-exit_code)
                 return exit_code
             except subprocess.TimeoutExpired:
-                # Still running, send KILL
-                if verbose:
-                    print(f"sending signal {signal.SIGKILL} to process {proc.pid}", file=sys.stderr)
-                try:
-                    os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
-                except ProcessLookupError:
-                    pass
+                # Still running, force termination with KILL
+                send_signal_verbose(proc, signal.SIGKILL, verbose, foreground)
                 killed_by_kill_sig = True
                 # Wait for process to actually terminate
                 proc.wait()
@@ -167,20 +172,9 @@ def run_timeout(
 
     except KeyboardInterrupt:
         # Forward Ctrl+C to the process
-        try:
-            os.killpg(os.getpgid(proc.pid), signal.SIGINT)
-        except ProcessLookupError:
-            pass
+        send_signal_verbose(proc, signal.SIGINT, False, foreground)
         proc.wait()
         return 130  # Standard exit code for SIGINT
-
-    finally:
-        # Clean up any remaining output
-        if not foreground:
-            if proc.stdout:
-                proc.stdout.close()
-            if proc.stderr:
-                proc.stderr.close()
 
     # Handle exit codes based on options
     if killed_by_kill_sig:
@@ -191,6 +185,31 @@ def run_timeout(
     if proc.returncode < 0:
         return signal_to_exit_code(-proc.returncode)
     return proc.returncode
+
+
+def split_argv(argv: list[str]) -> tuple[list[str], list[str]]:
+    """Split argv into (timeout_options, rest) where rest is [DURATION, *COMMAND].
+
+    GNU timeout options precede DURATION; the first non-option token is DURATION
+    and everything after it is the COMMAND, passed through verbatim. This is what
+    keeps the command's own flags (e.g. `-p`, `--version`, `-s`) from being
+    consumed by timeout itself.
+    """
+    value_taking = {"-k", "--kill-after", "-s", "--signal"}
+    i = 0
+    n = len(argv)
+    while i < n:
+        tok = argv[i]
+        if tok == "--":
+            # Explicit end of options; DURATION starts right after.
+            return argv[:i], argv[i + 1 :]
+        if tok.startswith("-") and tok != "-":
+            # Separate-form value option (e.g. "-s TERM") also consumes its value.
+            i += 2 if tok in value_taking else 1
+            continue
+        # First non-option token is DURATION; the rest is the command verbatim.
+        return argv[:i], argv[i:]
+    return argv, []
 
 
 def parse_args() -> argparse.Namespace:
@@ -243,19 +262,14 @@ def parse_args() -> argparse.Namespace:
         help="output version information and exit",
     )
 
-    # Parse known args only - everything after duration is the command
-    args, remaining = parser.parse_known_args()
+    # Parse ONLY the option prefix (everything before DURATION). Using
+    # parse_known_args over the whole argv would let timeout steal the command's
+    # own flags; splitting first keeps the command intact.
+    options, rest = split_argv(sys.argv[1:])
+    args = parser.parse_args(options)
 
-    # First remaining arg should be duration, rest is command
-    duration = None
-    command = []
-    if remaining:
-        duration = remaining[0]
-        command = remaining[1:]
-
-    # Attach duration and command to args for convenience
-    args.duration = duration
-    args.command = command
+    args.duration = rest[0] if rest else None
+    args.command = rest[1:] if rest else []
 
     return args
 
