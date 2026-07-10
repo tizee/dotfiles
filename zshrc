@@ -212,11 +212,9 @@ if [[ -z "$TMUX" && "$SHLVL" -eq 1 ]]; then
   supported_terms=("WezTerm" "ghostty")
   if [[ -n "$TERM_PROGRAM" && " ${supported_terms[@]} " =~ " $TERM_PROGRAM " ]]; then
     if (( ${+commands[tmux]} )); then
-      if ! tmux has -t develop &> /dev/null; then
-        tmux new -s develop
-      else
-        tmux attach -t develop
-      fi
+      # Atomic attach-or-create avoids the check-then-act race that
+      # produced "duplicate session" when multiple windows opened at once.
+      exec tmux new-session -A -s develop
     fi
   fi
 fi

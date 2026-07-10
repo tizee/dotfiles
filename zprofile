@@ -99,10 +99,10 @@ else
   export SYSTEM_DISTRO="Darwin"
 fi
 
-# WSL
-if $(uname -r | grep 'microsoft' > /dev/null); then
+# WSL (only possible on Linux; skip the uname fork on macOS)
+if $is_Linux && [[ "$(uname -r)" == *microsoft* ]]; then
   # Only show banner for interactive terminals
-  [[ $- == *i* ]] && echo "WSL $USER at $(date) - $TTY"
+  [[ $- == *i* ]] && print -P "WSL $USER at %D{%a %b %e %H:%M:%S %Z %Y} - $TTY"
   # always use host proxy
   source ~/.config/win_scripts/wsl2/wsl-proxy
   export PATH="$HOME/.config/win_scripts/wsl2:$PATH"
@@ -111,7 +111,7 @@ if $(uname -r | grep 'microsoft' > /dev/null); then
   # export SSH_AUTH_SOCK=$HOME/.gnupg/S.gpg-agent.ssh
 else
   # Only show banner for interactive terminals
-  [[ $- == *i* ]] && echo "Aha $USER at $(date) - $TTY"
+  [[ $- == *i* ]] && print -P "Aha $USER at %D{%a %b %e %H:%M:%S %Z %Y} - $TTY"
 fi
 
 # Preferred editor for local and remote sessions
@@ -124,7 +124,7 @@ fi
 # Proxy for fucking GFW
 # gitclonet/sshtunnel
 export GITSSH_PORT=9999
-export GPG_TTY=$(tty)
+export GPG_TTY=$TTY
 # gpg-connect-agent updatestartuptty /bye >/dev/null
 
 # https://github.com/sorin-ionescu/prezto/blob/master/runcoms/zshenv
@@ -495,8 +495,16 @@ if $is_macOS; then
   # pnpm end
 
   # homebrew
-  eval "$(/opt/homebrew/bin/brew shellenv)"
-  export PATH="/opt/homebrew/bin:$PATH"
+  # Static exports instead of `eval "$(brew shellenv)"` (saves ~20ms fork on
+  # every login shell). Output captured from `brew shellenv`; PATH entries are
+  # prepended directly since /etc/zprofile's path_helper is skipped by
+  # noglobalrcs anyway.
+  export HOMEBREW_PREFIX="/opt/homebrew"
+  export HOMEBREW_CELLAR="/opt/homebrew/Cellar"
+  export HOMEBREW_REPOSITORY="/opt/homebrew"
+  fpath[1,0]="/opt/homebrew/share/zsh/site-functions"
+  export INFOPATH="/opt/homebrew/share/info:${INFOPATH:-}"
+  export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
 
   # zig lang
   export PATH="$HOME/project-zig/zig/build/stage3/bin:$PATH"
