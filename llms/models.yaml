@@ -1,6 +1,6 @@
 models:
 - model_id: gptws
-  model_name: gpt-5.4-nano
+  model_name: gpt-5.5
   api_base: wss://api.openai.com/v1
   api_key_name: oai-api
   api_format: openai_responses_websocket
@@ -9,10 +9,10 @@ models:
   extra_body: {}
   headers: {}
   aliases: []
-  context_window: 200000
+  context_window: 1000000
   image: true
   thinking_mode: enabled
-  effort: medium
+  effort: max
   reserves_output_tokens: false
   transport: auto
   cache_ttl: null
@@ -36,10 +36,10 @@ models:
   cache_ttl: null
   temperature: null
 - model_id: gpt
-  model_name: gpt-5.4-mini
-  api_base: https://api.openai.com/v1
+  model_name: gpt-5.6-terra
+  api_base: wss://api.openai.com/v1
   api_key_name: oai-api
-  api_format: openai_responses
+  api_format: openai_responses_websocket
   can_stream: true
   max_tokens: null
   extra_body: {}
@@ -48,7 +48,25 @@ models:
   context_window: 400000
   image: true
   thinking_mode: enabled
-  effort: medium
+  effort: max
+  reserves_output_tokens: false
+  transport: auto
+  cache_ttl: null
+  temperature: null
+- model_id: gptmini
+  model_name: gpt-5.4-mini
+  api_base: https://api.openai.com/v1
+  api_key_name: oai-api
+  api_format: openai_responses_websocket
+  can_stream: true
+  max_tokens: null
+  extra_body: {}
+  headers: {}
+  aliases: []
+  context_window: 400000
+  image: true
+  thinking_mode: enabled
+  effort: high
   reserves_output_tokens: false
   transport: auto
   cache_ttl: null
@@ -212,7 +230,7 @@ models:
   context_window: 1000000
   image: true
   thinking_mode: adaptive
-  effort: null
+  effort: high
   reserves_output_tokens: false
   transport: auto
   cache_ttl: null
@@ -429,6 +447,114 @@ models:
   image: true
   thinking_mode: adaptive
   effort: high
+  reserves_output_tokens: false
+  transport: auto
+  cache_ttl: null
+  temperature: null
+- model_id: opus-any
+  model_name: claude-opus-4-7
+  api_base: https://anyrouter.top
+  api_key_name: anyrouter
+  api_format: anthropic
+  can_stream: true
+  max_tokens: null
+  extra_body: {}
+  headers:
+    anthropic-beta: context-1m-2025-08-07
+  aliases: []
+  context_window: 1000000
+  image: true
+  thinking_mode: adaptive
+  effort: medium
+  reserves_output_tokens: false
+  transport: auto
+  cache_ttl: null
+  temperature: null
+- model_id: fable-ab
+  model_name: anthropic/claude-fable-5
+  api_base: https://aiberm.com
+  api_key_name: aiberm
+  api_format: anthropic
+  can_stream: true
+  max_tokens: null
+  extra_body: {}
+  headers: {}
+  aliases: []
+  context_window: 1000000
+  image: true
+  thinking_mode: adaptive
+  effort: medium
+  reserves_output_tokens: false
+  transport: auto
+  cache_ttl: null
+  temperature: null
+- model_id: fable-or
+  model_name: anthropic/claude-fable-5
+  api_base: https://openrouter.ai/api/v1/messages
+  api_key_name: openrouter
+  api_format: anthropic
+  can_stream: true
+  max_tokens: 128000
+  extra_body:
+    provider:
+      allow_fallbacks: false
+      only:
+      - google-vertex/global
+  headers:
+    X-OpenRouter-Title: ZHU Agent
+    X-OpenRouter-Categories: cli-agent
+    HTTP-Referer: https://github.com/tizee/zhu
+  aliases: []
+  context_window: 1000000
+  image: true
+  thinking_mode: adaptive
+  effort: high
+  reserves_output_tokens: false
+  transport: auto
+  cache_ttl: null
+  temperature: null
+- model_id: grok
+  model_name: x-ai/grok-4.5
+  api_base: https://openrouter.ai/api/v1/messages
+  api_key_name: openrouter
+  api_format: anthropic
+  can_stream: true
+  max_tokens: null
+  extra_body: {}
+  headers:
+    HTTP-Referer: https://github.com/tizee/zhu
+    X-OpenRouter-Title: ZHU Agent
+    X-OpenRouter-Categories: cli-agent
+  aliases: []
+  context_window: 512000
+  image: true
+  thinking_mode: adaptive
+  effort: high
+  reserves_output_tokens: false
+  transport: auto
+  cache_ttl: null
+  temperature: null
+- model_id: terra
+  model_name: openai/gpt-5.6-terra
+  api_base: https://openrouter.ai/api/v1/responses
+  api_key_name: openrouter
+  api_format: openai_responses
+  can_stream: true
+  max_tokens: null
+  extra_body:
+    provider:
+      allow_fallbacks: false
+      only:
+          - openai
+  headers:
+    X-OpenRouter-Title: ZHU Agent
+    X-OpenRouter-Categories: cli-agent
+    HTTP-Referer: https://github.com/tizee/zhu
+  aliases: []
+  context_window: 1000000
+  image: true
+  thinking_mode: enabled
+  effort: max
   reserves_output_tokens: false
   transport: auto
   cache_ttl: null
