@@ -6,6 +6,91 @@ tmux is fun!
 
 Use `C-A` as the PREFIX in tmux.
 
+## Quick Start
+
+Prefix = `C-a`. Tables below are grouped by daily operation; entries marked "custom" are keybindings changed by this repo (the rest are tmux defaults).
+See all keybindings: `prefix ?` or `tmux list-keys`.
+
+### Window (tabs at the top)
+
+| Key | Action | Notes |
+|-----|--------|-------|
+| `prefix c` | New window (inserted after current) | custom `new-window -a` |
+| `prefix C` | New window with name prompt | custom |
+| `prefix 0`~`9` | Jump to window N | |
+| `prefix F1`~`F12` | Jump to windows 10~21 | custom |
+| `prefix n` / `prefix p` | Next / previous window | |
+| `prefix ,` | Rename current window | default |
+| `prefix w` | Window tree selector | default choose-tree |
+| `prefix &` / `prefix X` | Kill window (with / without confirm) | `X` custom |
+| `prefix {` / `prefix }` | **Swap window** with left / right neighbor | custom swap-window |
+| `prefix .` | Move current window to a target index | default, prompts for target |
+| no-prefix `M-p` | Next window | custom |
+
+### Pane (splits)
+
+| Key | Action | Notes |
+|-----|--------|-------|
+| `prefix %` | Split horizontally (side by side) | custom, preserves cwd |
+| `prefix "` | Split vertically (stacked) | custom, preserves cwd |
+| `prefix arrow` | Move focus between panes | default |
+| no-prefix `S-arrow` | Move focus between panes (no prefix) | custom |
+| no-prefix `M-q` | Cycle to next pane | custom |
+| `prefix ;` | Jump to last active pane | default |
+| `prefix z` | Zoom / unzoom current pane | default zoom |
+| `prefix space` | Cycle layout | default next-layout |
+| `prefix q` | Show pane numbers | default |
+| `prefix x` | Kill current pane | custom, no confirmation |
+| `prefix H`/`J`/`K`/`L` | Resize pane left/down/up/right | custom, **uppercase** |
+| `prefix <` | Swap with previous pane | custom swap-pane |
+
+### Session
+
+| Key | Action | Notes |
+|-----|--------|-------|
+| `prefix s` | Session tree selector | default choose-tree |
+| `prefix d` / no-prefix `M-d` | Detach current client | |
+| `prefix $` | Rename session | default |
+| `prefix (` / `prefix )` | Previous / next session | default |
+| no-prefix `M-b` | Switch to last session | custom |
+| no-prefix `M-f` | fzf pick and switch session | custom popup |
+
+### Move & Rearrange
+
+| Goal | Key | Details |
+|------|-----|---------|
+| **Send current pane to a target window** | `prefix g` | Prompts `send pane to:`, enter target window index/name (`join-pane -t`, custom) |
+| Break current pane into its own window | `prefix !` | break-pane, custom |
+| Link a window from another session | `prefix e` | Enter `session:window` (link-window, custom) |
+| Move current window to a target index | `prefix .` | default move-window, prompts for target |
+| Swap current window with left/right neighbor | `prefix {` / `}` | custom |
+| Move current window to **another session** | `prefix C-w` | fzf pick target session (custom popup) |
+| Break current pane into a window in **another session** | `prefix C-p` | fzf pick target session (custom popup) |
+| Join marked pane into current window | no-prefix `M-<` | Mark source pane with `M-m` first, then execute (custom) |
+
+### Copy / Capture
+
+| Key | Action | Notes |
+|-----|--------|-------|
+| `prefix Enter` or `prefix [` | Enter copy mode | `Enter` custom |
+| copy-mode `v` / `C-v` | Start selection / rectangle selection | custom vi-style |
+| copy-mode `y` / `Y` | Copy to clipboard / via OSC 52 | |
+| `prefix ]` | Paste buffer | custom `paste -p` |
+| `prefix Y` | Capture mode (fork built-in, pick URL/path/etc.) | |
+
+### Misc
+
+| Key | Action |
+|-----|--------|
+| `prefix r` | Reload config |
+| `prefix ?` | List all keybindings |
+| `prefix :` | tmux command prompt |
+| `prefix o` | Show current options (note: default "next pane" is overridden to show-options) |
+
+---
+
+## Complete Keybinding Reference
+
 ```
 Root mode:
 
