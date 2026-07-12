@@ -112,6 +112,64 @@ ZSH_HIGHLIGHT_STYLES[path]='fg=cyan,underline'
 # To disable highlighting of globbing expressions
 # ZSH_HIGHLIGHT_STYLES[globbing]='none'
 
+# Git line-level addition/deletion stats with a file-based cache.
+# gitstatusd only tracks file counts, not line counts — so we fall back to
+# git diff --numstat (same approach as llms/statusline.sh). The caller uses
+# VCS_STATUS_HAS_STAGED / VCS_STATUS_HAS_UNSTAGED / VCS_STATUS_NUM_UNTRACKED
+# as a fast guard to skip this entirely when the repo is clean.
+GIT_LINE_STATS_CACHE_DIR="/tmp/zsh_git_stats_cache"
+GIT_LINE_STATS_CACHE_TTL=20
+
+function __git_line_stats() {
+  typeset -g _GIT_LINE_ADDED=0
+  typeset -g _GIT_LINE_REMOVED=0
+
+  # Already confirmed by caller, but be defensive
+  local workdir=${1:-$PWD}
+
+  local repo_root
+  repo_root=$(git -C "$workdir" rev-parse --show-toplevel 2>/dev/null) || return 1
+
+  local cache_key=$(echo -n "$repo_root" | md5 -q 2>/dev/null || echo -n "$repo_root" | cksum | cut -d' ' -f1)
+  local cache_file="${GIT_LINE_STATS_CACHE_DIR}/${cache_key}.cache"
+
+  if [[ -f "$cache_file" ]]; then
+    local cache_mtime=$(stat -f %m "$cache_file" 2>/dev/null)
+    if [[ -n $cache_mtime ]] && (( EPOCHSECONDS - cache_mtime < GIT_LINE_STATS_CACHE_TTL )); then
+      _GIT_LINE_ADDED=$(head -1 "$cache_file")
+      _GIT_LINE_REMOVED=$(tail -1 "$cache_file")
+      return 0
+    fi
+  fi
+
+  local staged_added=0 staged_removed=0 unstaged_added=0 unstaged_removed=0
+
+  local staged_stats
+  staged_stats=$(git -C "$repo_root" diff --numstat --cached 2>/dev/null | awk '{a+=$1; d+=$2} END {print a+0, d+0}')
+  staged_added=${staged_stats%% *}
+  staged_removed=${staged_stats##* }
+
+  local unstaged_stats
+  unstaged_stats=$(git -C "$repo_root" diff --numstat 2>/dev/null | awk '{a+=$1; d+=$2} END {print a+0, d+0}')
+  unstaged_added=${unstaged_stats%% *}
+  unstaged_removed=${unstaged_stats##* }
+
+  local untracked_lines=0
+  local untracked_files
+  untracked_files=$(git -C "$repo_root" ls-files --others --exclude-standard 2>/dev/null)
+  if [[ -n $untracked_files ]]; then
+    untracked_lines=$(echo "$untracked_files" | while read -r f; do
+      [[ -f "$repo_root/$f" ]] && wc -l < "$repo_root/$f" 2>/dev/null || echo 0
+    done | awk '{s+=$1} END {print s+0}')
+  fi
+
+  _GIT_LINE_ADDED=$(( staged_added + unstaged_added + untracked_lines ))
+  _GIT_LINE_REMOVED=$(( staged_removed + unstaged_removed ))
+
+  mkdir -p "$GIT_LINE_STATS_CACHE_DIR" 2>/dev/null
+  printf '%d\n%d\n' "$_GIT_LINE_ADDED" "$_GIT_LINE_REMOVED" > "$cache_file"
+}
+
 function gitstatus_prompt_update() {
   setopt localoptions noshwordsplit
   # emulate -L zsh
@@ -171,6 +229,19 @@ function gitstatus_prompt_update() {
   (( VCS_STATUS_NUM_UNTRACKED  )) && p+=" ${untracked}?${VCS_STATUS_NUM_UNTRACKED}"
 
   GITSTATUS_PROMPT="${p}%f"
+
+  # Line-level addition/deletion stats (e.g., " +45 -12").
+  # gitstatusd tracks file counts but not line counts, so we fall back to
+  # git diff --numstat. Use VCS_STATUS_* as a fast guard: clean repo → skip.
+  if (( VCS_STATUS_HAS_STAGED || VCS_STATUS_HAS_UNSTAGED || VCS_STATUS_NUM_UNTRACKED )); then
+    __git_line_stats "$VCS_STATUS_WORKDIR"
+    if (( _GIT_LINE_ADDED > 0 || _GIT_LINE_REMOVED > 0 )); then
+      GITSTATUS_PROMPT+=" "
+      (( _GIT_LINE_ADDED > 0 )) && GITSTATUS_PROMPT+="${limegreen}+${_GIT_LINE_ADDED}"
+      (( _GIT_LINE_ADDED > 0 && _GIT_LINE_REMOVED > 0 )) && GITSTATUS_PROMPT+=" "
+      (( _GIT_LINE_REMOVED > 0 )) && GITSTATUS_PROMPT+="${red}-${_GIT_LINE_REMOVED}"
+    fi
+  fi
 
   # The length of GITSTATUS_PROMPT after removing %f and %F.
   local invisible='%([BSUbfksu]|([FBK]|){*})'
