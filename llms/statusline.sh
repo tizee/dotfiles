@@ -92,10 +92,18 @@ format_tokens() {
     fi
 }
 
-# Format context size (1K = 1000)
+# Format context size (1K = 1000, 1M = 1,000,000)
 format_size() {
     local size=$1
-    if (( size >= 1000 )); then
+    if (( size >= 1000000 )); then
+        local m=$((size / 1000000))
+        local rem=$(( (size % 1000000) / 100000 ))   # first decimal digit
+        if (( rem == 0 )); then
+            echo "${m}M"
+        else
+            echo "${m}.${rem}M"
+        fi
+    elif (( size >= 1000 )); then
         echo "$((size / 1000))K"
     else
         echo "$size"
@@ -107,15 +115,6 @@ size_fmt=$(format_size "$context_size")
 # Round percentage to integer for display
 pct_int=$(printf "%.0f" "$used_pct")
 
-# Build context progress bar (15 chars wide)
-bar_width=15
-filled=$((pct_int * bar_width / 100))
-(( filled > bar_width )) && filled=$bar_width
-empty=$((bar_width - filled))
-bar=""
-for ((i=0; i<filled; i++)); do bar+="█"; done
-for ((i=0; i<empty; i++)); do bar+="░"; done
-
 # Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -123,16 +122,34 @@ BLUE='\033[0;34m'
 YELLOW='\033[0;33m'
 CYAN='\033[0;36m'
 GRAY='\033[0;90m'
+TRACK='\033[0;90m'   # unfilled progress-bar track (dim)
 NC='\033[0m'
 
-# Color the progress bar based on usage
+# Color the filled portion of the bar based on usage
 if (( pct_int < 50 )); then
-    BAR_COLOR="$GRAY"
+    BAR_COLOR="$GREEN"
 elif (( pct_int < 80 )); then
     BAR_COLOR="$YELLOW"
 else
     BAR_COLOR="$RED"
 fi
+
+# Build context progress bar, uv/pip style: heavy line (━) with half-cell (╸)
+# sub-character precision. Compact 10-cell width, filled colored / track dim.
+bar_width=10
+total_halves=$((bar_width * 2))
+filled_halves=$(( (pct_int * total_halves + 50) / 100 ))   # round to nearest half
+(( filled_halves > total_halves )) && filled_halves=$total_halves
+(( filled_halves < 0 )) && filled_halves=0
+bar_full=$(( filled_halves / 2 ))
+bar_half=$(( filled_halves % 2 ))
+bar_empty=$(( bar_width - bar_full - bar_half ))
+bar="${BAR_COLOR}"
+for ((i=0; i<bar_full; i++)); do bar+="━"; done
+(( bar_half )) && bar+="╸"
+bar+="${TRACK}"
+for ((i=0; i<bar_empty; i++)); do bar+="━"; done
+bar+="${NC}"
 
 # Helper function to get color based on percentage
 get_pct_color() {
@@ -616,7 +633,9 @@ _is_git_cache_stale() {
     (( elapsed >= GIT_CACHE_INTERVAL ))
 }
 
-git_info=""
+# Project name lives in the git segment; default to bare project name when
+# outside a git work tree.
+git_info="${BLUE}${dir_name}${NC}"
 if cd "$cwd" 2>/dev/null && git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     # Branch name is always fast (reads .git/HEAD), so always fetch synchronously
     branch=$(git branch --show-current 2>/dev/null || echo "detached")
@@ -660,41 +679,54 @@ if cd "$cwd" 2>/dev/null && git rev-parse --is-inside-work-tree >/dev/null 2>&1;
         fi
 
         # Build git_info from sourced cache variables (may be empty on first call)
-        # Always use the live branch name fetched above
+        # Project name + live branch, vim-style (space separated, no pipe)
         if [ "${total_files:-0}" -gt 0 ] 2>/dev/null; then
-            git_info=" ${GRAY}|${NC} ${YELLOW}${branch}${NC} ${GRAY}(${total_files} files"
+            git_info="${BLUE}${dir_name}${NC} ${YELLOW}${branch}${NC} ${GRAY}(${total_files} files"
             [ "${added:-0}" -gt 0 ] && git_info+=" ${GREEN}+${added}${NC}"
             [ "${removed:-0}" -gt 0 ] && git_info+=" ${RED}-${removed}${NC}"
             git_info+="${GRAY})${NC}"
         else
-            # First call or clean repo -- just show branch
-            git_info=" ${GRAY}|${NC} ${YELLOW}${branch}${NC}"
+            # First call or clean repo -- project name + branch only
+            git_info="${BLUE}${dir_name}${NC} ${YELLOW}${branch}${NC}"
         fi
     fi
 fi
 
-# Context info
-context_info="${BAR_COLOR}${bar}${NC} ${tokens_fmt} / ${size_fmt} (${pct_int}%)"
+# Context info (bar already carries its own colors)
+context_info="${bar} ${GRAY}${tokens_fmt}/${size_fmt} ${pct_int}%${NC}"
 
-# Session identity (FEAT-259)
+# Sandbox mode (full label + full mode value, colored)
+sandbox_mode=$(echo "$input" | jq -r '.sandbox_mode // "off"')
+case "$sandbox_mode" in
+    off)        sbx_color="$GRAY" ;;
+    auto_allow) sbx_color="$YELLOW" ;;
+    regular)    sbx_color="$GREEN" ;;
+    *)          sbx_color="$GRAY" ;;
+esac
+sandbox_info="${GRAY}sandbox:${NC}${sbx_color}${sandbox_mode}${NC}"
+
+# Session identity (FEAT-259) -- show a git-hash-style short prefix
 session_id=$(echo "$input" | jq -r '.session.id // ""')
 session_alias=$(echo "$input" | jq -r '.session.alias // ""')
+session_short="${session_id:0:8}"
 
 session_info=""
 if [ -z "$session_id" ]; then
-    session_info=" ${GRAY}|${NC} ${YELLOW}ephemeral${NC}"
+    session_info="${YELLOW}ephemeral${NC}"
 else
     if [ -n "$session_alias" ]; then
-        session_info=" ${GRAY}|${NC} ${CYAN}${session_alias}${NC} ${GRAY}(${session_id})${NC}"
+        session_info="${CYAN}${session_alias}${NC} ${GRAY}${session_short}${NC}"
     else
-        session_info=" ${GRAY}|${NC} ${GRAY}${session_id}${NC}"
+        session_info="${GRAY}${session_short}${NC}"
     fi
 fi
 
-# Output the status line
-if [ -n "$quota_info" ]; then
-    echo -e "${BLUE}${dir_name}${NC} ${GRAY}|${NC} ${quota_info} ${GRAY}|${NC} ${context_info}${git_info}${session_info}"
-else
-    # No quota info - hide that component
-    echo -e "${BLUE}${dir_name}${NC} ${GRAY}|${NC} ${context_info}${git_info}${session_info}"
-fi
+# Assemble the status line, vim-statusline style:
+# space-separated segments, no pipe separators.
+# Order: session | sandbox | quota | context | git (with project)
+sep="  "
+line="${session_info}${sep}${sandbox_info}"
+[ -n "$quota_info" ] && line+="${sep}${quota_info}"
+line+="${sep}${context_info}"
+[ -n "$git_info" ] && line+="${sep}${git_info}"
+echo -e "$line"
