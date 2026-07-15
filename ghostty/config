@@ -1838,6 +1838,8 @@ vt-kam-allowed = false
 custom-shader = shaders/cursor_tail.glsl
 custom-shader = shaders/ripple_cursor.glsl
 custom-shader = shaders/ripple_rectangle_cursor.glsl
+# custom-shader = shaders/crt_display.glsl
+# custom-shader = shaders/crt_signal.glsl
 # custom-shader = shaders/tek.glsl
 
 # If `true` (default), the focused terminal surface will run an animation
