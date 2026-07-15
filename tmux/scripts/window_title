@@ -1,0 +1,38 @@
+#!/bin/sh
+# window_title — the program launched in the pane (with arguments).
+#
+# Reports the command line of the pane shell's foreground child, e.g.
+# "zhu -m opus", "nvim init.lua". This is the program *you* started in the
+# pane, not the transient sub-processes it may fork internally (a `zhu` that
+# shells out to `sh -c ...` still shows as "zhu"). Falls back to the shell
+# itself when the pane sits idle at a prompt.
+#
+# Usage: window_title <pane_pid>
+
+pid="$1"
+max=60
+
+# Foreground process-group id of the pane's controlling terminal.
+tpgid=$(ps -o tpgid= -p "$pid" 2>/dev/null | tr -d ' ')
+
+# Among the shell's direct children, prefer the one leading the terminal's
+# foreground process group; otherwise keep the most recent child.
+pick=""
+for child in $(pgrep -P "$pid" 2>/dev/null); do
+  pick="$child"
+  cpgid=$(ps -o pgid= -p "$child" 2>/dev/null | tr -d ' ')
+  [ "$cpgid" = "$tpgid" ] && break
+done
+
+# No child -> pane is idle, describe the shell itself.
+target="${pick:-$pid}"
+
+label=$(ps -o command= -p "$target" 2>/dev/null)
+label=${label#-}   # strip the login-shell dash in argv[0] (e.g. "-zsh")
+
+# Truncate long titles with an ellipsis.
+if [ "${#label}" -gt "$max" ]; then
+  printf '%s…' "$(printf '%s' "$label" | cut -c1-"$max")"
+else
+  printf '%s' "$label"
+fi
