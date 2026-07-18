@@ -70,6 +70,7 @@ When multiple agents or tasks operate concurrently on the same worktree:
 - **Read broadly, write narrowly.** You may read any file to understand context, but edits must stay scoped to the task's owned files.
 - **Suspicious parallel changes → report, don't resolve.** If you encounter a git diff, merge conflict, or unexpected file state that suggests another task is modifying the same area, surface it to the user and stop. Do not attempt to merge, resolve, or work around it silently.
 - **No cross-task cleanup.** Formatting, lint fixes, or import organization in files outside your scope are off-limits — the other task owns that territory.
+- **Preserve project-wide automation.** Treat repo-wide formatting, lint, or codegen from CI hooks (e.g. pre-commit, format-on-save) as shared baseline: leave those changes in place and build on top of them. They are normal pipeline output, not another task's territory to revert.
 
 This prevents silent conflicts and keeps each task's diff auditable in isolation.
 
@@ -118,7 +119,7 @@ For simple planning tasks (not requiring long-time analysis, debugging, or compl
 - At the end of each plan, give the user a list of unresolved questions to answer, if any.
 - Write the plan to a file named `plan_<feature_name>.md` in the current working directory.
 
-For complex tasks requiring long-time analysis or debugging, use the plan-with-files skill instead (`.plans/<feature-name>-yymmdd/` structure).
+For complex tasks requiring long-time analysis or debugging, use the plan mode instead (`.plans/<feature-name>-yymmdd/` structure).
 
 ### Shell command execution
 

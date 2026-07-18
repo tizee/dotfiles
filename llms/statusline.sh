@@ -53,7 +53,7 @@ determine_provider() {
         echo "minimax"
     elif [[ "$model_lower" == *"glm"* ]]; then
         echo "glm"
-    elif [[ "$model_lower" == *"kimi"* ]]; then
+    elif [[ "$model_lower" == *"kimi"* ]] || [[ "$model_lower" == *"k3"* ]]; then
         echo "kimi"
     elif [[ "$model_lower" == *"doubao"* ]] || [[ "$model_lower" == *"volcengine"* ]]; then
         echo "doubao"

@@ -18,9 +18,9 @@
       ],
       "ask": []
     },
-    "model": "ds-flash",
-    "background_model": "ds-flash",
-    "compact_model": "inherit",
+    "model": "ds",
+    "background_model": "kimi-code",
+    "compact_model": "ds",
     "subagent_model": "ds",
     "micro_compact": {
       "enabled": false,
@@ -30,10 +30,6 @@
     "permission_mode": "yolo",
     "session": {
       "cleanup_period_days": 9999
-    },
-    "persistent_debug": {
-      "enabled": true,
-      "cleanup_period_days": 1
     },
     "hooks": {
       "PreToolUse": [],
@@ -48,6 +44,7 @@
       "sandbox": {
         "mode": "auto_allow",
         "additional_allowed_write_paths": [
+          "/Users/tizee/.cargo/",
           "~/.local",
           "~/projects/gopath",
           "~/.osay",
@@ -55,9 +52,9 @@
           "~/.yaw/",
           "~/Library/Application Support/obsidian/",
           "~/.cache",
-          "~/Library/Caches/",
+          "/Users/tizee/Library/Caches/go-build",
           "/Users/tizee/Library/Caches",
-          "~/.cargo"
+          "~/.cargo/"
         ]
       }
     },

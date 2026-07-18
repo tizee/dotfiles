@@ -6,10 +6,11 @@ models:
   api_format: openai_responses_websocket
   can_stream: true
   max_tokens: null
-  extra_body: {}
+  extra_body:
+    prompt_cache_retention: 24h
   headers: {}
   aliases: []
-  context_window: 1000000
+  context_window: 272000
   image: true
   thinking_mode: enabled
   effort: max
@@ -36,19 +37,19 @@ models:
   cache_ttl: null
   temperature: null
 - model_id: gpt
-  model_name: gpt-5.6-terra
+  model_name: gpt-5.6-sol
   api_base: wss://api.openai.com/v1
   api_key_name: oai-api
   api_format: openai_responses_websocket
   can_stream: true
-  max_tokens: null
+  max_tokens: 128000
   extra_body: {}
   headers: {}
   aliases: []
-  context_window: 400000
+  context_window: 272000
   image: true
   thinking_mode: enabled
-  effort: max
+  effort: medium
   reserves_output_tokens: false
   transport: auto
   cache_ttl: null
@@ -63,7 +64,7 @@ models:
   extra_body: {}
   headers: {}
   aliases: []
-  context_window: 400000
+  context_window: 272000
   image: true
   thinking_mode: enabled
   effort: high
@@ -81,7 +82,7 @@ models:
   extra_body: {}
   headers: {}
   aliases: []
-  context_window: 400000
+  context_window: 272000
   image: true
   thinking_mode: disabled
   effort: medium
@@ -307,10 +308,10 @@ models:
   transport: auto
   cache_ttl: null
   temperature: null
-- model_id: kimi
-  model_name: kimi-k2.7-code
-  api_base: https://api.moonshot.cn/anthropic
-  api_key_name: kimi
+- model_id: kimi-fast
+  model_name: kimi-for-coding-highspeed
+  api_base: https://api.kimi.com/coding/
+  api_key_name: kimi-for-coding
   api_format: anthropic
   can_stream: true
   max_tokens: null
@@ -318,6 +319,25 @@ models:
   headers: {}
   aliases: []
   context_window: 262144
+  image: true
+  thinking_mode: enabled
+  effort: high
+  reserves_output_tokens: false
+  transport: auto
+  cache_ttl: null
+  temperature: null
+- model_id: kimi
+  model_name: k3
+  api_base: https://api.kimi.com/coding/
+  # api_base: https://api.moonshot.cn/anthropic
+  api_key_name: kimi-for-coding
+  api_format: anthropic
+  can_stream: true
+  max_tokens: null
+  extra_body: {}
+  headers: {}
+  aliases: []
+  context_window: 1000000
   image: true
   thinking_mode: enabled
   effort: high
@@ -501,9 +521,9 @@ models:
       only:
       - google-vertex/global
   headers:
-    X-OpenRouter-Title: ZHU Agent
     X-OpenRouter-Categories: cli-agent
     HTTP-Referer: https://github.com/tizee/zhu
+    X-OpenRouter-Title: ZHU Agent
   aliases: []
   context_window: 1000000
   image: true
@@ -522,9 +542,9 @@ models:
   max_tokens: null
   extra_body: {}
   headers:
-    HTTP-Referer: https://github.com/tizee/zhu
     X-OpenRouter-Title: ZHU Agent
     X-OpenRouter-Categories: cli-agent
+    HTTP-Referer: https://github.com/tizee/zhu
   aliases: []
   context_window: 512000
   image: true
@@ -545,16 +565,52 @@ models:
     provider:
       allow_fallbacks: false
       only:
-          - openai
+      - openai
   headers:
-    X-OpenRouter-Title: ZHU Agent
     X-OpenRouter-Categories: cli-agent
     HTTP-Referer: https://github.com/tizee/zhu
+    X-OpenRouter-Title: ZHU Agent
   aliases: []
-  context_window: 1000000
+  context_window: 256000
   image: true
   thinking_mode: enabled
   effort: max
+  reserves_output_tokens: false
+  transport: auto
+  cache_ttl: null
+  temperature: null
+- model_id: codex-terra
+  model_name: codex/gpt-5.6-terra
+  api_base: http://127.0.0.1:8082/openai/
+  api_key_name: test
+  api_format: openai_responses_websocket
+  can_stream: true
+  max_tokens: null
+  extra_body: {}
+  headers: {}
+  aliases: []
+  context_window: 372000
+  image: true
+  thinking_mode: enabled
+  effort: xhigh
+  reserves_output_tokens: false
+  transport: auto
+  cache_ttl: null
+  temperature: null
+- model_id: codex-sol
+  model_name: codex/gpt-5.6-sol
+  api_base: http://127.0.0.1:8082/openai/
+  api_key_name: test
+  api_format: openai_responses_websocket
+  can_stream: true
+  max_tokens: null
+  extra_body: {}
+  headers: {}
+  aliases: []
+  context_window: 372000
+  image: true
+  thinking_mode: enabled
+  effort: high
   reserves_output_tokens: false
   transport: auto
   cache_ttl: null

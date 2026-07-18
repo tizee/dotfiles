@@ -19,4 +19,5 @@ plugins
 ambient-suggestions
 installation_id
 .codex-global-state.json.bak
-
+mcp-oauth-locks
+attachments
