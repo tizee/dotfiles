@@ -42,11 +42,11 @@ function ytdl() {
     done
 
     # 设置基本命令
-    local cmd=(yt-dlp --no-mtime)
+    local cmd=(yt-dlp --no-mtime --remote-components ejs:github --format-sort vcodec:av1)
 
     # 添加选项
     $use_playlist && cmd+=(--yes-playlist) || cmd+=(--no-playlist)
-    cmd+=(--audio-format best --format 'bestvideo[height=1080]+bestaudio/best[height<=1080]/best')
+    cmd+=(--audio-format best --format 'bestvideo[height>=1080]+bestaudio/best[height>=1080]/best')
     cmd+=(--merge-output-format mp4)
     $use_browser_cookies && cmd+=(--cookies-from-browser $browser)
 
@@ -61,11 +61,11 @@ function ytdl() {
     if [[ $exit_code -ne 0 ]]; then
         echo "Primary format failed, trying fallback with android client..."
 
-        local fallback_cmd=(yt-dlp --no-mtime --extractor-args "youtube:player_client=android")
+        local fallback_cmd=(yt-dlp --no-mtime --remote-components ejs:github --format-sort vcodec:av1)
         $use_playlist && fallback_cmd+=(--yes-playlist) || fallback_cmd+=(--no-playlist)
-        fallback_cmd+=(--format 'best[ext=mp4]/best')
+        fallback_cmd+=(--format 'bestvideo[height>=1080][ext=mp4]+bestaudio[ext=m4a]/best[height>=1080][ext=mp4]/best[ext=mp4]')
         fallback_cmd+=(--merge-output-format mp4)
-        $use_browser_cookies && fallback_cmd+=(--cookies-from-browser $browser)
+        # android client 不支持 cookies, 不传递 --cookies-from-browser
         fallback_cmd+=($VideoUrl)
 
         "${fallback_cmd[@]}" || exit_code=$?

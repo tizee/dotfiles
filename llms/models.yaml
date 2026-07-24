@@ -131,7 +131,7 @@ models:
 - model_id: codex
   model_name: codex/gpt-5.5
   api_base: http://127.0.0.1:8082/openai/
-  api_key_name: cc
+  api_key_name: ai-proxy
   api_format: openai_responses
   can_stream: true
   max_tokens: null
@@ -185,7 +185,7 @@ models:
 - model_id: opus46
   model_name: claude-code/claude-opus-4-6
   api_base: http://127.0.0.1:8082/anthropic/
-  api_key_name: cc
+  api_key_name: ai-proxy
   api_format: anthropic
   can_stream: true
   max_tokens: null
@@ -203,7 +203,7 @@ models:
 - model_id: opus47
   model_name: claude-code/claude-opus-4-7
   api_base: http://127.0.0.1:8082/anthropic/
-  api_key_name: cc
+  api_key_name: ai-proxy
   api_format: anthropic
   can_stream: true
   max_tokens: null
@@ -221,7 +221,7 @@ models:
 - model_id: opus
   model_name: claude-code/claude-opus-4-8
   api_base: http://127.0.0.1:8082/anthropic/
-  api_key_name: cc
+  api_key_name: ai-proxy
   api_format: anthropic
   can_stream: true
   max_tokens: 128000
@@ -239,7 +239,7 @@ models:
 - model_id: fable
   model_name: claude-code/claude-fable-5
   api_base: http://127.0.0.1:8082/anthropic/
-  api_key_name: cc
+  api_key_name: ai-proxy
   api_format: anthropic
   can_stream: true
   max_tokens: 128000
@@ -257,7 +257,7 @@ models:
 - model_id: sonnet
   model_name: claude-code/claude-sonnet-5
   api_base: http://127.0.0.1:8082/anthropic/
-  api_key_name: cc
+  api_key_name: ai-proxy
   api_format: anthropic
   can_stream: true
   max_tokens: null
@@ -275,7 +275,7 @@ models:
 - model_id: haiku
   model_name: claude-code/claude-haiku-4-5
   api_base: http://127.0.0.1:8082/anthropic/
-  api_key_name: cc
+  api_key_name: ai-proxy
   api_format: anthropic
   can_stream: true
   max_tokens: null
@@ -329,7 +329,6 @@ models:
 - model_id: kimi
   model_name: k3
   api_base: https://api.kimi.com/coding/
-  # api_base: https://api.moonshot.cn/anthropic
   api_key_name: kimi-for-coding
   api_format: anthropic
   can_stream: true
@@ -521,9 +520,9 @@ models:
       only:
       - google-vertex/global
   headers:
+    X-OpenRouter-Title: ZHU Agent
     X-OpenRouter-Categories: cli-agent
     HTTP-Referer: https://github.com/tizee/zhu
-    X-OpenRouter-Title: ZHU Agent
   aliases: []
   context_window: 1000000
   image: true
@@ -542,9 +541,9 @@ models:
   max_tokens: null
   extra_body: {}
   headers:
-    X-OpenRouter-Title: ZHU Agent
-    X-OpenRouter-Categories: cli-agent
     HTTP-Referer: https://github.com/tizee/zhu
+    X-OpenRouter-Categories: cli-agent
+    X-OpenRouter-Title: ZHU Agent
   aliases: []
   context_window: 512000
   image: true
@@ -567,9 +566,9 @@ models:
       only:
       - openai
   headers:
-    X-OpenRouter-Categories: cli-agent
     HTTP-Referer: https://github.com/tizee/zhu
     X-OpenRouter-Title: ZHU Agent
+    X-OpenRouter-Categories: cli-agent
   aliases: []
   context_window: 256000
   image: true
@@ -582,7 +581,7 @@ models:
 - model_id: codex-terra
   model_name: codex/gpt-5.6-terra
   api_base: http://127.0.0.1:8082/openai/
-  api_key_name: test
+  api_key_name: ai-proxy
   api_format: openai_responses_websocket
   can_stream: true
   max_tokens: null
@@ -600,7 +599,7 @@ models:
 - model_id: codex-sol
   model_name: codex/gpt-5.6-sol
   api_base: http://127.0.0.1:8082/openai/
-  api_key_name: test
+  api_key_name: ai-proxy
   api_format: openai_responses_websocket
   can_stream: true
   max_tokens: null

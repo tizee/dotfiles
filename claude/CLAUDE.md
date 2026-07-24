@@ -76,7 +76,12 @@ This prevents silent conflicts and keeps each task's diff auditable in isolation
 
 **Own the review yourself.** Reviewing code, judging correctness, and forming conclusions are core reasoning work that stays in your hands — read the code directly and reach your own verdict so the judgment reflects your full context and accountability.
 
-**Delegate only the mechanical parts to subagents.** Subagents fit content extraction and simple, repetitive legwork: gathering file contents, collecting matches across many files, summarizing raw data, or fanning out well-scoped lookups. Let them supply the raw material, then you do the thinking on top of it.
+**Delegate only the mechanical parts to subagents.** Subagents fit simple, repetitive legwork: distilling a large body of files into the few facts that matter, collecting matches across many files, summarizing raw data, or fanning out well-scoped lookups. Let them supply the distilled result, then you do the thinking on top of it.
+
+**A subagent must return less than it read — never a raw dump.** The only reason to fork is to keep bulk tokens out of your own context: the subagent burns its own window reading widely and hands back a compact answer (specific findings, a ranked shortlist, an extracted value, a one-screen summary with `file_path:line_number` anchors). If the task is "read these files and return their contents," do not delegate it — a subagent that returns raw file bodies adds a round-trip and burns tokens for nothing, because you now have to read the same bytes yourself and could have `Read` them directly for less. Concretely:
+- Need the actual contents of specific files? `Read` them yourself.
+- Need to know which files or lines matter across a big tree? That is a legitimate fork — but the return value is the shortlist and the reasoning, not the file bodies.
+- When you write the handoff prompt, name the distilled artifact you expect back and forbid pasting full file contents. If you cannot state what the subagent should return *instead of* the raw material, you do not have a delegation — you have a detour.
 
 **Separate judgment from execution.** A delegation succeeds when every decision requiring global view — what to change, what to keep, and why — is settled and written down before the handoff, leaving the executor pure mechanical labor plus compiler/test-driven local fixes. Assume the executor is a high-agency but lower-capability model: it follows instructions relentlessly and fills any judgment gap with its own guess, so close every gap in the doc. When a task needs mid-flight design decisions, keep it in your own hands and work through it one unit at a time, compiling and testing as you go.
 

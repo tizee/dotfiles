@@ -18,7 +18,7 @@
       ],
       "ask": []
     },
-    "model": "ds",
+    "model": "ds-flash",
     "background_model": "kimi-code",
     "compact_model": "ds",
     "subagent_model": "ds",

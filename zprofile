@@ -514,6 +514,7 @@ if $is_macOS; then
   export OF_ROOT="$HOME/projects/project-creative-art/openFrameworks"
   # python llm cli
   # classic,dots,arrows/blocks/pulse/bouncing/circle/square/triangle/diamond
+  export LLM_GITHOOK_SKIP=1
   export LLM_GITHOOK_SPINNER_STYLE="dots"
   export LLM_PROGRAM="$HOME/.cargo/bin/zhu"
   export LLM_PREPARE_COMMIT_MSG_PROMPT="$HOME/prompts/git/diff-based-commit-prompt.txt"
@@ -546,9 +547,9 @@ if $is_macOS; then
   alias ai="zhu"
   alias aio="zhu -m opus"
   alias aig="zhu -m glm"
+  alias aic="zhu -m codex-sol"
   alias aif="zhu -m fable"
   alias aik="zhu -m kimi"
   alias aid="zhu -m ds"
-  alias ais="zhu -m sonnet"
 fi
 
