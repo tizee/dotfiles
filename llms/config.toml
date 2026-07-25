@@ -1,0 +1,57 @@
+# Every setting has a default — see the full list with: zhu config default
+
+debug = false
+
+[agent]
+model = "ds-flash"
+background_model = "kimi-code"
+subagent_model = "ds"
+compact_model = "ds"
+permission_mode = "yolo"
+user_agent_name = "claude-cli/2.1.190 (external, cli)"
+verify_completion = false
+verification_model = "inherit"
+
+[agent.websearch]
+endpoint = "https://test.8421044.xyz:8443"
+key_file = "~/.config/sift/client.key"
+
+[agent.permissions]
+allow = []
+deny = ["Read(./.env)", "Read(./keys.json)"]
+ask = []
+
+[agent.ui]
+invert_diff_colors = true
+
+[agent.ui.statusline]
+command = "~/.config/llms/statusline.sh"
+update_interval_ms = 300
+
+[agent.auto_compact]
+enabled = true
+threshold = 94
+
+[agent.micro_compact]
+enabled = false
+keep_recent_turns = 6
+threshold = 80
+
+[agent.bash]
+default_timeout_ms = 60000
+
+[agent.bash.sandbox]
+mode = "auto_allow"
+additional_allowed_write_paths = [
+  "/Users/tizee/.cargo/",
+  "~/.local",
+  "~/projects/gopath",
+  "~/.osay",
+  "~/.config",
+  "~/.yaw/",
+  "~/Library/Application Support/obsidian/",
+  "~/.cache",
+  "/Users/tizee/Library/Caches/go-build",
+  "/Users/tizee/Library/Caches",
+  "~/.cargo/",
+]
