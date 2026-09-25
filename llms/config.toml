@@ -3,14 +3,14 @@
 debug = false
 
 [agent]
-model = "ds-flash"
-background_model = "kimi-code"
-subagent_model = "ds"
-compact_model = "ds"
+model = "codex-luna"
+background_model = "ds-flash"
+subagent_model = "ds-flash"
+compact_model = "ds-flash"
 permission_mode = "yolo"
 user_agent_name = "claude-cli/2.1.190 (external, cli)"
 verify_completion = false
-verification_model = "inherit"
+verification_model = "ds-flash"
 
 [agent.websearch]
 endpoint = "https://test.8421044.xyz:8443"
@@ -18,7 +18,7 @@ key_file = "~/.config/sift/client.key"
 
 [agent.permissions]
 allow = []
-deny = ["Read(./.env)", "Read(./keys.json)"]
+deny = ["Read(./.env)", "Read(./keys.json)", "Bash(rm -rf*)"]
 ask = []
 
 [agent.ui]
@@ -30,7 +30,7 @@ update_interval_ms = 300
 
 [agent.auto_compact]
 enabled = true
-threshold = 94
+threshold = 98
 
 [agent.micro_compact]
 enabled = false

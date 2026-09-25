@@ -182,24 +182,6 @@ models:
   transport: auto
   cache_ttl: null
   temperature: null
-- model_id: opus46
-  model_name: claude-code/claude-opus-4-6
-  api_base: http://127.0.0.1:8082/anthropic/
-  api_key_name: ai-proxy
-  api_format: anthropic
-  can_stream: true
-  max_tokens: null
-  extra_body: {}
-  headers: {}
-  aliases: []
-  context_window: 1000000
-  image: true
-  thinking_mode: adaptive
-  effort: null
-  reserves_output_tokens: false
-  transport: auto
-  cache_ttl: null
-  temperature: null
 - model_id: opus47
   model_name: claude-code/claude-opus-4-7
   api_base: http://127.0.0.1:8082/anthropic/
@@ -218,8 +200,26 @@ models:
   transport: auto
   cache_ttl: null
   temperature: null
-- model_id: opus
+- model_id: opus48
   model_name: claude-code/claude-opus-4-8
+  api_base: http://127.0.0.1:8082/anthropic/
+  api_key_name: ai-proxy
+  api_format: anthropic
+  can_stream: true
+  max_tokens: null
+  extra_body: {}
+  headers: {}
+  aliases: []
+  context_window: 1000000
+  image: true
+  thinking_mode: adaptive
+  effort: null
+  reserves_output_tokens: false
+  transport: auto
+  cache_ttl: null
+  temperature: null
+- model_id: opus
+  model_name: claude-code/claude-opus-5-5
   api_base: http://127.0.0.1:8082/anthropic/
   api_key_name: ai-proxy
   api_format: anthropic
@@ -231,7 +231,7 @@ models:
   context_window: 1000000
   image: true
   thinking_mode: adaptive
-  effort: high
+  effort: medium
   reserves_output_tokens: false
   transport: auto
   cache_ttl: null
@@ -332,7 +332,7 @@ models:
   api_key_name: kimi-for-coding
   api_format: anthropic
   can_stream: true
-  max_tokens: null
+  max_tokens: 128000
   extra_body: {}
   headers: {}
   aliases: []
@@ -381,16 +381,16 @@ models:
   cache_ttl: null
   temperature: null
 - model_id: glmc
-  model_name: glm-5.2
+  model_name: glm-5.3
   api_base: https://open.bigmodel.cn/api/anthropic
   api_key_name: glm
   api_format: anthropic
   can_stream: true
-  max_tokens: null
+  max_tokens: 128000
   extra_body: {}
   headers: {}
   aliases: []
-  context_window: 400000
+  context_window: 1000000
   image: false
   thinking_mode: enabled
   effort: max
@@ -520,9 +520,9 @@ models:
       only:
       - google-vertex/global
   headers:
-    X-OpenRouter-Title: ZHU Agent
-    X-OpenRouter-Categories: cli-agent
     HTTP-Referer: https://github.com/tizee/zhu
+    X-OpenRouter-Categories: cli-agent
+    X-OpenRouter-Title: ZHU Agent
   aliases: []
   context_window: 1000000
   image: true
@@ -566,9 +566,9 @@ models:
       only:
       - openai
   headers:
-    HTTP-Referer: https://github.com/tizee/zhu
     X-OpenRouter-Title: ZHU Agent
     X-OpenRouter-Categories: cli-agent
+    HTTP-Referer: https://github.com/tizee/zhu
   aliases: []
   context_window: 256000
   image: true
@@ -606,10 +606,118 @@ models:
   extra_body: {}
   headers: {}
   aliases: []
-  context_window: 372000
+  context_window: 872000
   image: true
   thinking_mode: enabled
   effort: high
+  reserves_output_tokens: false
+  transport: auto
+  cache_ttl: null
+  temperature: null
+- model_id: aiberm-gpt56
+  model_name: gpt-5.6
+  api_base: https://aiberm.com/v1
+  api_key_name: aiberm2
+  api_format: openai_responses
+  can_stream: true
+  max_tokens: null
+  extra_body: {}
+  headers: {}
+  aliases: []
+  context_window: 1000000
+  image: true
+  thinking_mode: enabled
+  effort: high
+  reserves_output_tokens: false
+  transport: auto
+  cache_ttl: null
+  temperature: null
+- model_id: kimi-256k
+  model_name: k3-256k
+  api_base: https://api.kimi.com/coding/
+  api_key_name: kimi-for-coding
+  api_format: anthropic
+  can_stream: true
+  max_tokens: 128000
+  extra_body: {}
+  headers: {}
+  aliases: []
+  context_window: 262144
+  image: true
+  thinking_mode: adaptive
+  effort: high
+  reserves_output_tokens: false
+  transport: auto
+  cache_ttl: null
+  temperature: null
+- model_id: codex-luna
+  model_name: codex/gpt-5.6-luna
+  api_base: http://127.0.0.1:8082/openai/
+  api_key_name: ai-proxy
+  api_format: openai_responses_websocket
+  can_stream: true
+  max_tokens: null
+  extra_body: {}
+  headers: {}
+  aliases: []
+  context_window: 278528
+  image: true
+  thinking_mode: enabled
+  effort: max
+  reserves_output_tokens: false
+  transport: auto
+  cache_ttl: null
+  temperature: null
+- model_id: ox-alpha
+  model_name: stealth/ox-alpha
+  api_base: https://openrouter.ai/api/v1/messages
+  api_key_name: openrouter
+  api_format: anthropic
+  can_stream: true
+  max_tokens: null
+  extra_body: {}
+  headers: {}
+  aliases: []
+  context_window: 1000000
+  image: true
+  thinking_mode: adaptive
+  effort: max
+  reserves_output_tokens: false
+  transport: auto
+  cache_ttl: null
+  temperature: null
+- model_id: codex-astra
+  model_name: codex/gpt-6-astra
+  api_base: http://127.0.0.1:8082/openai/
+  api_key_name: ai-proxy
+  api_format: openai_responses_websocket
+  can_stream: true
+  max_tokens: null
+  extra_body: {}
+  headers: {}
+  aliases: []
+  context_window: 1000000
+  image: true
+  thinking_mode: enabled
+  effort: low
+  reserves_output_tokens: false
+  transport: auto
+  cache_ttl: null
+  temperature: null
+- model_id: codex-sol6
+  model_name: codex/gpt-6-sol
+  api_base: http://127.0.0.1:8082/openai/
+  api_key_name: ai-proxy
+  api_format: openai_responses_websocket
+  can_stream: true
+  max_tokens: null
+  extra_body: {}
+  headers: {}
+  aliases: []
+  context_window: 1000000
+  image: true
+  thinking_mode: enabled
+  effort: low
   reserves_output_tokens: false
   transport: auto
   cache_ttl: null

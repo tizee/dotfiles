@@ -903,7 +903,8 @@ class CodexQuotaProvider(QuotaProvider):
 
         Falls back to TokenManager if auth.json is not found but OAuth tokens exist.
         """
-        codex_dir = Path.home() / ".codex"
+        # codex_dir = Path.home() / ".codex"
+        codex_dir = Path.home() / ".config" / "ai-proxy"
 
         # Read auth token
         auth_file = codex_dir / "auth.json"
@@ -916,12 +917,13 @@ class CodexQuotaProvider(QuotaProvider):
                     return cls(token, account_id, token_manager=token_manager)
             raise Exception(f"Codex auth file not found: {auth_file}")
 
-        auth_data = json.loads(auth_file.read_text())
+        auth_data = json.loads(auth_file.read_text())["openai"]
 
         # Try different formats:
         # 1. {"tokens": {"access_token": "...", "account_id": "..."}}
         # 2. {"access_token": "...", "account_id": "..."}
         # 3. {"access_token": "...", "expires_at": ...}
+        # 4. {"access": "...", "accountId": ...}
 
         access_token = None
         account_id = None
@@ -937,6 +939,12 @@ class CodexQuotaProvider(QuotaProvider):
             access_token = auth_data.get("access_token")
         if not account_id:
             account_id = auth_data.get("account_id")
+
+        # Format 4
+        if not access_token:
+            access_token = auth_data.get("access")
+        if not account_id:
+            account_id = auth_data.get("accountId")
 
         if not access_token:
             raise Exception("No access_token found in Codex auth file")
@@ -1720,7 +1728,7 @@ class DeepSeekQuotaProvider(QuotaProvider):
     @staticmethod
     def _peak_valley_status() -> dict[str, Any]:
         """Compute peak/valley status for current time.
-        
+
         Returns dict with:
           is_peak: whether current time is in peak pricing window
           label: "Peak (2x)" or "Valley (1x)"
@@ -1730,7 +1738,7 @@ class DeepSeekQuotaProvider(QuotaProvider):
         """
         now_utc = datetime.now(timezone.utc)
         now_utc_str = now_utc.strftime("%H:%M")
-        
+
         if now_utc < DeepSeekQuotaProvider.PEAK_PRICING_START:
             return {
                 "is_peak": False,
@@ -1739,14 +1747,14 @@ class DeepSeekQuotaProvider(QuotaProvider):
                 "now_utc_str": now_utc_str,
                 "active_windows": [],
             }
-        
+
         is_peak = DeepSeekQuotaProvider._is_peak_hour(now_utc)
         active_windows = []
         hour = now_utc.hour
         for start, end in DeepSeekQuotaProvider.PEAK_SLOTS_UTC:
             if start <= hour < end:
                 active_windows.append(f"{start:02d}:00-{end:02d}:00")
-        
+
         return {
             "is_peak": is_peak,
             "label": "Peak (2x)" if is_peak else "Valley (1x)",
@@ -2494,7 +2502,7 @@ class TokenManager:
 
 def format_duration(total_seconds: int, target_dt: Optional[datetime] = None) -> str:
     """Format seconds into human-readable duration (e.g., '2d 3h', '5h 30m', '45m').
-    
+
     For durations >= 1 day, includes the target Month-day if target_dt is provided.
     Format: 'Mar 15 in 2d 3h' or just '2d 3h' if no target_dt.
     """
@@ -2520,12 +2528,12 @@ def format_duration(total_seconds: int, target_dt: Optional[datetime] = None) ->
 
 def format_token_count(count: float) -> str:
     """Format token count with K/M suffixes for readability.
-    
+
     >= 1M:  1.23M, 12.35M
     >= 10K: 12.3K, 500K
     >= 1K:  1.23K, 10K
     < 1K:   raw integer (500, 999)
-    
+
     Trailing .0 / .00 is stripped for cleaner display.
     """
     if count >= 1_000_000:
@@ -2587,13 +2595,13 @@ def format_reset_date(resets_at: Optional[str], resets_at_local: Optional[str], 
         if resets_in:
             return f"Resets: {resets_in}"
         return ""
-    
+
     try:
         dt = datetime.fromisoformat(resets_at.replace("Z", "+00:00"))
         local_dt = dt.astimezone(get_local_timezone())
         date_str = local_dt.strftime("%b %d").replace(" 0", " ")
         time_str = resets_at_local or local_dt.strftime("%H:%M")
-        
+
         result = f"Resets: {date_str} @ {time_str}"
         if resets_in:
             result += f" ({resets_in})"
