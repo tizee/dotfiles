@@ -125,7 +125,7 @@ A curated collection of useful command-line tools and utilities for daily develo
 **Supported Tools**:
 - `claude` - Claude Code CLI (requires pnpm)
   - Package: `@anthropic-ai/claude-code`
-  - Install: `pnpm add -g @anthropic-ai/claude-code@latest`
+  - Install: `pnpm add -g --allow-build=@anthropic-ai/claude-code @anthropic-ai/claude-code@latest` (pnpm 11 blocks the postinstall that places the native binary otherwise)
 - `codex` - OpenAI Codex CLI (requires pnpm)
   - Package: `@openai/codex`
   - Install: `pnpm add -g @openai/codex@latest`

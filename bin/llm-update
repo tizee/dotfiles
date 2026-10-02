@@ -8,6 +8,7 @@ import re
 import signal
 import sys
 from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 import subprocess
 import urllib.request
@@ -36,8 +37,11 @@ class Tool:
 
 
 TOOLS = [
+    # pnpm 11 blocks dependency build scripts, and allowBuilds is ignored in the
+    # global config, so approve claude-code's postinstall (which places the
+    # native binary over the bin/claude.exe stub) on every global install.
     Tool("claude(pnpm)", "Claude Code CLI",
-         "pnpm install -g @anthropic-ai/claude-code@latest",
+         "pnpm add -g --allow-build=@anthropic-ai/claude-code @anthropic-ai/claude-code@latest",
          "pnpm", "@anthropic-ai/claude-code", "latest"),
     Tool("codex(pnpm)", "OpenAI Codex CLI",
          "pnpm install -g @openai/codex@latest",
@@ -102,7 +106,7 @@ def check_dependency(dep: str) -> bool:
 
 UPDATE_LOCK = asyncio.Lock()
 # Global state to track tool info and loading status
-TOOL_DATA = []  # List of dicts: {current, latest, has_dep, loading}
+TOOL_DATA = []  # List of dicts: {current, latest, installable, has_dep, loading}
 
 
 async def update_line(index: int, total: int, content: str):
@@ -158,12 +162,19 @@ def format_tool_line_with_state(index: int, spinner: str = None) -> str:
         version_text = f" {Colors.RED}(unknown/network error){Colors.RESET}"
         if data['current']:
             version_text = f" {Colors.DIM}(ver: {data['current']}){Colors.RESET} {Colors.RED}(latest: error){Colors.RESET}"
-    elif data['current'] == data['latest']:
-        status_icon = f"{Colors.GREEN}{BOX['check']}{Colors.RESET}"
-        version_text = f" {Colors.GREEN}{data['current']}{Colors.RESET} {Colors.DIM}(latest: {data['latest']}){Colors.RESET}"
     else:
-        status_icon = f"{Colors.YELLOW}{BOX['arrow']}{Colors.RESET}"
-        version_text = f" {Colors.YELLOW}{data['current']}{Colors.RESET} {Colors.DIM}->{Colors.RESET} {Colors.GREEN}{data['latest']}{Colors.RESET}"
+        current, latest, installable = data['current'], data['latest'], data['installable']
+        # Versions between installable and latest are still in pnpm's minimumReleaseAge cooldown.
+        cooldown = ""
+        if installable != latest and is_newer(latest, current):
+            cooldown = f" {Colors.DIM}(latest: {Colors.RESET}{Colors.YELLOW}{latest}{Colors.RESET}{Colors.DIM}, in cooldown){Colors.RESET}"
+        if installable is None or current == installable or is_newer(current, installable):
+            status_icon = f"{Colors.GREEN}{BOX['check']}{Colors.RESET}"
+            version_text = f" {Colors.GREEN}{current}{Colors.RESET}"
+            version_text += cooldown or f" {Colors.DIM}(latest: {latest}){Colors.RESET}"
+        else:
+            status_icon = f"{Colors.YELLOW}{BOX['arrow']}{Colors.RESET}"
+            version_text = f" {Colors.YELLOW}{current}{Colors.RESET} {Colors.DIM}->{Colors.RESET} {Colors.GREEN}{installable}{Colors.RESET}{cooldown}"
 
     base = f"  {Colors.BOLD}{index}){Colors.RESET} {status_icon} {tool.name:<12} {Colors.GRAY}{tool.desc:<20}{Colors.RESET}{version_text}{status_text}"
     return base
@@ -220,6 +231,47 @@ async def get_current_version(tool: Tool) -> Optional[str]:
     return None
 
 
+STABLE_VERSION = re.compile(r'^\d+\.\d+\.\d+$')
+
+
+def version_key(version: str) -> tuple[int, ...]:
+    """Sort key for plain X.Y.Z versions."""
+    return tuple(int(part) for part in version.split('.'))
+
+
+def is_newer(a: str, b: str) -> bool:
+    """Whether stable version a is strictly newer than b."""
+    if not (STABLE_VERSION.match(a) and STABLE_VERSION.match(b)):
+        return False
+    return version_key(a) > version_key(b)
+
+
+async def get_pnpm_min_release_age() -> timedelta:
+    """pnpm's minimumReleaseAge setting (minutes); zero when unset."""
+    proc = await asyncio.create_subprocess_exec(
+        "pnpm", "config", "get", "minimumReleaseAge",
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.DEVNULL
+    )
+    stdout, _ = await proc.communicate()
+    value = stdout.decode().strip()
+    return timedelta(minutes=int(value)) if value.isdigit() else timedelta()
+
+
+def pick_mature_version(times: dict[str, str], tagged: str, min_age: timedelta) -> Optional[str]:
+    """Newest stable version not above the tagged one that pnpm's minimumReleaseAge allows."""
+    if not min_age:
+        return tagged
+    cutoff = datetime.now(timezone.utc) - min_age
+    mature = [
+        version for version, published in times.items()
+        if STABLE_VERSION.match(version)
+        and version_key(version) <= version_key(tagged)
+        and datetime.fromisoformat(published.replace('Z', '+00:00')) <= cutoff
+    ]
+    return max(mature, key=version_key, default=None)
+
+
 def fetch_pypi_version(pkg: str) -> Optional[str]:
     """Sync fetch from PyPI."""
     try:
@@ -231,8 +283,13 @@ def fetch_pypi_version(pkg: str) -> Optional[str]:
         return None
 
 
-async def get_latest_version(tool: Tool) -> Optional[str]:
-    """Get latest version from registry async."""
+async def get_latest_version(tool: Tool) -> tuple[Optional[str], Optional[str]]:
+    """Get (latest, installable) versions from the registry async.
+
+    installable differs from latest only for pnpm, whose minimumReleaseAge
+    rejects versions that are too new (ERR_PNPM_NO_MATURE_MATCHING_VERSION).
+    """
+    latest = None
     try:
         if tool.dep == "brew":
             # For Homebrew-installed Claude Code, parse output of 'claude update'
@@ -243,32 +300,31 @@ async def get_latest_version(tool: Tool) -> Optional[str]:
             )
             stdout, _ = await proc.communicate()
             output = stdout.decode().strip()
-            # Look for "Update available: x.y.z -> a.b.c"
-            match = re.search(r'Update available: [\d.]+\s*->\s*([\d.]+)', output)
+            # Look for "Update available: x.y.z -> a.b.c", else "Current version: x.y.z"
+            match = (re.search(r'Update available: [\d.]+\s*->\s*([\d.]+)', output)
+                     or re.search(r'Current version: ([\d.]+)', output))
             if match:
-                return match.group(1)
-            # If already up to date, get current version
-            match = re.search(r'Current version: ([\d.]+)', output)
-            if match:
-                return match.group(1)
+                latest = match.group(1)
 
         elif tool.dep == "pnpm":
-            target = f"{tool.pkg}@{tool.tag}" if tool.tag else tool.pkg
             proc = await asyncio.create_subprocess_exec(
-                "pnpm", "view", target, "version",
+                "pnpm", "view", tool.pkg, "time", "dist-tags", "--json",
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.DEVNULL
             )
-            stdout, _ = await proc.communicate()
-            version = stdout.decode().strip()
-            return version if version else None
+            (stdout, _), min_age = await asyncio.gather(
+                proc.communicate(), get_pnpm_min_release_age()
+            )
+            meta = json.loads(stdout.decode())
+            latest = meta["dist-tags"][tool.tag or "latest"]
+            return latest, pick_mature_version(meta["time"], latest, min_age)
 
         elif tool.dep == "uv":
             loop = asyncio.get_event_loop()
-            return await loop.run_in_executor(None, fetch_pypi_version, tool.pkg)
+            latest = await loop.run_in_executor(None, fetch_pypi_version, tool.pkg)
     except Exception:
         pass
-    return None
+    return latest, latest
 
 
 def print_help(width: int):
@@ -282,13 +338,23 @@ def print_help(width: int):
     print()
 
 
-async def run_upgrade_serial(tool: Tool, latest: Optional[str] = None) -> bool:
+async def run_upgrade_serial(tool: Tool, current: Optional[str] = None,
+                             latest: Optional[str] = None,
+                             installable: Optional[str] = None) -> bool:
     """Run upgrade command for a tool and preserve original ANSI styles."""
     cmd = tool.cmd
+    if latest and installable is None:
+        print(f"\n{Colors.DIM}Skipping {tool.name}: no release up to latest {latest} "
+              f"has cleared the cooldown yet{Colors.RESET}")
+        return True
+    if installable and current and is_newer(current, installable):
+        print(f"\n{Colors.DIM}Skipping {tool.name}: installed {current} is newer than "
+              f"latest installable {installable}{Colors.RESET}")
+        return True
     # Pin the exact resolved version to bypass pnpm's stale dist-tag metadata
     # cache, which can silently reinstall the old version on '@latest'.
-    if latest and tool.tag == "latest":
-        cmd = cmd.replace(f"{tool.pkg}@latest", f"{tool.pkg}@{latest}")
+    if installable and tool.tag == "latest":
+        cmd = cmd.replace(f"{tool.pkg}@latest", f"{tool.pkg}@{installable}")
 
     print(f"\n{Colors.DIM}{'─' * 60}{Colors.RESET}")
     print(f"{Colors.BOLD}{BOX['arrow']} Upgrading {Colors.CYAN}{tool.name}{Colors.RESET}")
@@ -347,7 +413,7 @@ async def fetch_tool_info_background(index: int):
         return
 
     # Fetch versions
-    current, latest = await asyncio.gather(
+    current, (latest, installable) = await asyncio.gather(
         get_current_version(tool),
         get_latest_version(tool)
     )
@@ -356,6 +422,7 @@ async def fetch_tool_info_background(index: int):
         'loading': False,
         'current': current,
         'latest': latest,
+        'installable': installable,
         'has_dep': True
     })
 
@@ -373,6 +440,7 @@ async def main_async():
     TOOL_DATA = [{
         'current': None,
         'latest': None,
+        'installable': None,
         'has_dep': True,
         'loading': True
     } for _ in TOOLS]
@@ -447,7 +515,8 @@ async def main_async():
 
     for idx in selected:
         tool = TOOLS[idx - 1]
-        success = await run_upgrade_serial(tool, TOOL_DATA[idx - 1]['latest'])
+        data = TOOL_DATA[idx - 1]
+        success = await run_upgrade_serial(tool, data['current'], data['latest'], data['installable'])
         if success:
             success_list.append(tool.name)
         else:

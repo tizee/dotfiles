@@ -506,6 +506,7 @@ if $is_macOS; then
   export INFOPATH="/opt/homebrew/share/info:${INFOPATH:-}"
   export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
 
+  PATH="$HOME/Android/sdk/platform-tools/:$PATH"
   # zig lang
   export PATH="$HOME/project-zig/zig/build/stage3/bin:$PATH"
   # figlet font
@@ -546,10 +547,14 @@ if $is_macOS; then
 
   alias ai="zhu"
   alias aio="zhu -m opus"
-  alias aig="zhu -m glm"
-  alias aic="zhu -m codex-sol"
   alias aif="zhu -m fable"
-  alias aik="zhu -m kimi"
-  alias aid="zhu -m ds"
+  alias ais="zhu -m sonnet"
+  alias aic="zhu -m codex-sol"
+  alias aid="zhu -m ds-flash"
+  alias aig="zhu -m glm"
 fi
 
+
+# Added by OrbStack: command-line tools and integration
+# This won't be added again if you remove it.
+source ~/.orbstack/shell/init.zsh 2>/dev/null || :

@@ -246,7 +246,6 @@ fi
 export PATH="/Users/tizee/.antigravity/antigravity/bin:$PATH"
 alias ccyl='claude --allow-dangerously-skip-permissions --dangerously-skip-permissions '
 alias playmd='playwrightmd'
-alias cclaude='claude-chill -a 5000 claude'
 
 # defuddle.md - Convert any URL to Markdown with YAML frontmatter
 defmd() {
@@ -269,3 +268,6 @@ alias dotconf="cd ~/.config"
 #   *) export PATH="$PNPM_HOME/bin:$PATH" ;;
 # esac
 # pnpm end
+
+# kimi-code
+export PATH="/Users/tizee/.kimi-code/bin:$PATH"

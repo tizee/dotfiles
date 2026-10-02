@@ -255,7 +255,7 @@ models:
   cache_ttl: null
   temperature: null
 - model_id: sonnet
-  model_name: claude-code/claude-sonnet-5
+  model_name: claude-code/claude-sonnet-5-5
   api_base: http://127.0.0.1:8082/anthropic/
   api_key_name: ai-proxy
   api_format: anthropic
@@ -267,7 +267,7 @@ models:
   context_window: 1000000
   image: true
   thinking_mode: adaptive
-  effort: high
+  effort: medium
   reserves_output_tokens: false
   transport: auto
   cache_ttl: null
@@ -520,9 +520,9 @@ models:
       only:
       - google-vertex/global
   headers:
+    X-OpenRouter-Title: ZHU Agent
     HTTP-Referer: https://github.com/tizee/zhu
     X-OpenRouter-Categories: cli-agent
-    X-OpenRouter-Title: ZHU Agent
   aliases: []
   context_window: 1000000
   image: true
@@ -541,9 +541,9 @@ models:
   max_tokens: null
   extra_body: {}
   headers:
-    HTTP-Referer: https://github.com/tizee/zhu
-    X-OpenRouter-Categories: cli-agent
     X-OpenRouter-Title: ZHU Agent
+    X-OpenRouter-Categories: cli-agent
+    HTTP-Referer: https://github.com/tizee/zhu
   aliases: []
   context_window: 512000
   image: true
@@ -566,9 +566,9 @@ models:
       only:
       - openai
   headers:
-    X-OpenRouter-Title: ZHU Agent
-    X-OpenRouter-Categories: cli-agent
     HTTP-Referer: https://github.com/tizee/zhu
+    X-OpenRouter-Categories: cli-agent
+    X-OpenRouter-Title: ZHU Agent
   aliases: []
   context_window: 256000
   image: true
@@ -596,7 +596,7 @@ models:
   transport: auto
   cache_ttl: null
   temperature: null
-- model_id: codex-sol
+- model_id: codex-sol56
   model_name: codex/gpt-5.6-sol
   api_base: http://127.0.0.1:8082/openai/
   api_key_name: ai-proxy
@@ -704,8 +704,8 @@ models:
   transport: auto
   cache_ttl: null
   temperature: null
-- model_id: codex-sol6
-  model_name: codex/gpt-6-sol
+- model_id: codex-sol
+  model_name: codex/gpt-6.1-sol
   api_base: http://127.0.0.1:8082/openai/
   api_key_name: ai-proxy
   api_format: openai_responses_websocket
