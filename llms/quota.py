@@ -38,6 +38,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from typing import Any, Callable, Optional
+from uuid import uuid4
 from zoneinfo import ZoneInfo
 
 
@@ -284,6 +285,77 @@ class QuotaInfo:
             error_type=data.get("error_type"),
             fetched_at=data.get("fetched_at"),
         )
+
+
+def _credit_expiry(credit: ResetCredit) -> Optional[datetime]:
+    """When the credit runs out, or None when it does not.
+
+    A timestamp this code cannot read counts as "does not run out": such a
+    credit then waits behind every credit that does, instead of being spent
+    first. The Go side of this proxy (provider/codex/resets.go) reads it the
+    same way, and the two must agree on which credit a redeem spends.
+    """
+    if not credit.expires_at:
+        return None
+    try:
+        parsed = datetime.fromisoformat(credit.expires_at.replace("Z", "+00:00"))
+    except (TypeError, ValueError):
+        return None
+    # An offset-less time is as unreadable as a malformed one, since the
+    # comparison below would mix aware and naive datetimes.
+    return parsed if parsed.tzinfo is not None else None
+
+
+def select_credit(credits: list[ResetCredit], selector: str | None) -> ResetCredit:
+    """Pick one reset credit. The caller names one, or the soonest one goes.
+
+    No selector means the available credit that runs out first. A number is a
+    position in the listing, counting from 1, matching what the listing prints.
+    Anything else is a credit id. A credit that never runs out waits behind
+    every credit that does.
+
+    Raises ValueError when nothing matches or the named credit cannot be spent.
+    """
+    selector = (selector or "").strip()
+
+    if not selector:
+        available = [credit for credit in credits if credit.status == "available"]
+        if not available:
+            raise ValueError("the account holds no rate-limit reset to spend")
+
+        def runs_out_first(credit: ResetCredit) -> tuple[int, datetime]:
+            # A credit with no readable expiry sorts after every dated one.
+            expiry = _credit_expiry(credit)
+            return (1, datetime.max.replace(tzinfo=timezone.utc)) if expiry is None else (0, expiry)
+
+        return min(available, key=runs_out_first)
+
+    if selector.isdigit():
+        position = int(selector)
+        if position < 1 or position > len(credits):
+            raise ValueError(f"no credit {position}: the account holds {len(credits)}")
+        credit = credits[position - 1]
+        if credit.status != "available":
+            raise ValueError(f"credit {position} is {credit.status}, not available to spend")
+        return credit
+
+    for credit in credits:
+        if credit.id == selector and credit.status == "available":
+            return credit
+    raise ValueError(f"no available credit with id {selector!r}")
+
+
+def describe_reset_outcome(code: str, windows: int = 0) -> str:
+    """Say what spending a reset did, in the backend's own words."""
+    if code == "reset":
+        return "1 window started again" if windows == 1 else f"{windows} windows started again"
+    if code == "nothing_to_reset":
+        return "nothing to reset - no window has been used, and the reset is kept"
+    if code == "no_credit":
+        return "no reset left on the account"
+    if code == "already_redeemed":
+        return "that reset was already used"
+    return code or "the answer said nothing"
 
 
 # ============================================================================
@@ -873,6 +945,8 @@ class CodexQuotaProvider(QuotaProvider):
     description = "Codex (chatgpt.com)"
     API_URL = "https://chatgpt.com/backend-api/wham/usage"
     RESET_CREDITS_URL = "https://chatgpt.com/backend-api/wham/rate-limit-reset-credits"
+    # Spending a reset is a POST to a sibling of the listing path.
+    CONSUME_URL = RESET_CREDITS_URL + "/consume"
 
     def __init__(self, auth_token: str, account_id: str, token_manager: Optional["TokenManager"] = None):
         super().__init__("")
@@ -970,7 +1044,14 @@ class CodexQuotaProvider(QuotaProvider):
 
         return cls(access_token, account_id, token_manager=token_manager)
 
-    def _curl_request(self, url: str, timeout: int = 30, extra_headers: Optional[list[str]] = None) -> dict:
+    def _curl_request(
+        self,
+        url: str,
+        timeout: int = 30,
+        extra_headers: Optional[list[str]] = None,
+        method: str = "GET",
+        json_body: Optional[dict[str, Any]] = None,
+    ) -> dict:
         """Send request using curl with Bearer auth"""
         headers = [
             "-H",
@@ -985,7 +1066,10 @@ class CodexQuotaProvider(QuotaProvider):
         for header in extra_headers or []:
             headers.extend(["-H", header])
 
-        cmd = ["curl", "-s", "-L", "--http1.1", *headers, "--max-time", str(timeout), url]
+        cmd = ["curl", "-s", "-L", "--http1.1", "-X", method, *headers]
+        if json_body is not None:
+            cmd.extend(["-H", "Content-Type: application/json", "--data-raw", json.dumps(json_body)])
+        cmd.extend(["--max-time", str(timeout), url])
 
         result = subprocess.run(cmd, capture_output=True, text=True)
 
@@ -997,6 +1081,23 @@ class CodexQuotaProvider(QuotaProvider):
             raise Exception(f"API returned HTML: {text[:200]}")
 
         return json.loads(text)
+
+    def consume_reset_credit(self, credit_id: str, redeem_request_id: str | None = None) -> dict:
+        """Spend one rate-limit reset, starting the account's current windows again.
+
+        The credit is always named: left to the backend, it may spend a credit
+        that lasts longer than the one that runs out first. redeem_request_id
+        makes a retry of the same call spend the credit once.
+
+        Returns the backend's answer, e.g. {"code": "reset", "windows_reset": 2}.
+        """
+        if not credit_id:
+            raise ValueError("a credit id is required to spend a reset")
+        body = {
+            "credit_id": credit_id,
+            "redeem_request_id": redeem_request_id or str(uuid4()),
+        }
+        return self._curl_request(self.CONSUME_URL, method="POST", json_body=body)
 
     def _parse_reset_time(self, reset_at: int) -> tuple[Optional[str], Optional[str], Optional[str]]:
         """Parse reset timestamp (Unix) and calculate local time and duration"""
@@ -1088,8 +1189,32 @@ class CodexQuotaProvider(QuotaProvider):
             quota_info.reset_credit_count = sum(
                 1 for credit in quota_info.reset_credits if credit.status == "available"
             )
+    def fetch_reset_credits(self) -> "QuotaInfo":
+        """Read the rate-limit resets the account holds, live.
 
+        Unlike fetch_quota this never succeeds on a partial answer: a redeem
+        decides which credit to spend from this list, so a wrong or stale list
+        would spend the wrong credit. Raises on any failure.
+        """
+        data = self._curl_request(
+            self.RESET_CREDITS_URL,
+            extra_headers=[
+                "OpenAI-Beta: codex-1",
+                "Originator: Codex Desktop",
+            ],
+        )
+        raw_error = data.get("error")
+        if raw_error:
+            message = raw_error.get("message") if isinstance(raw_error, dict) else str(raw_error)
+            raise Exception(message)
 
+        info = QuotaInfo(
+            provider=self.name,
+            fetched_at=datetime.now(timezone.utc).isoformat(),
+            raw_response=data,
+        )
+        self._apply_reset_credits(info, data)
+        return info
 
     def _do_fetch_api(self, quota_info: QuotaInfo) -> None:
         """Core API fetching logic (extracted for retry on auth failure)."""
@@ -1147,18 +1272,9 @@ class CodexQuotaProvider(QuotaProvider):
                 )
 
         try:
-            reset_credit_data = self._curl_request(
-                self.RESET_CREDITS_URL,
-                extra_headers=[
-                    "OpenAI-Beta: codex-1",
-                    "Originator: Codex Desktop",
-                ],
-            )
-            raw_error = reset_credit_data.get("error")
-            if raw_error:
-                message = raw_error.get("message") if isinstance(raw_error, dict) else str(raw_error)
-                raise Exception(message)
-            self._apply_reset_credits(quota_info, reset_credit_data)
+            reset_info = self.fetch_reset_credits()
+            quota_info.reset_credit_count = reset_info.reset_credit_count
+            quota_info.reset_credits = reset_info.reset_credits
         except Exception as e:
             quota_info.reset_credits_error = str(e)
 
@@ -3008,6 +3124,96 @@ class DebounceManager:
 
 
 # ============================================================================
+# Codex Reset Credits
+# ============================================================================
+
+
+def print_reset_credits(holdings: QuotaInfo) -> None:
+    """Show the Codex account's reset credits, numbered for --redeem."""
+    credits = holdings.reset_credits
+    if not credits:
+        print("No rate-limit reset on the Codex account.")
+        return
+
+    available = holdings.reset_credit_count
+    if available is None:
+        available = sum(1 for credit in credits if credit.status == "available")
+    print(f"Codex rate-limit resets ({available} available):")
+
+    width = max(len(credit.id or "") for credit in credits)
+    for position, credit in enumerate(credits, start=1):
+        runs_out = credit.expires_at_local or credit.expires_at or "never"
+        if credit.expires_in:
+            runs_out = f"{runs_out} ({credit.expires_in})"
+        print(f"  {position}. {(credit.id or ''):<{width}}  {credit.status:<10} {runs_out}")
+
+
+def run_codex_resets(args: argparse.Namespace, token_manager: "TokenManager") -> int:
+    """Read or spend the Codex account's rate-limit resets.
+
+    Both paths talk to the account live. They never use the debounce cache,
+    which would name a credit that another run already spent.
+    """
+    if args.debounce > 0:
+        print(
+            "--list-resets and --redeem read the account live; --debounce would answer from a cache",
+            file=sys.stderr,
+        )
+        return 1
+
+    try:
+        provider = CodexQuotaProvider.from_codex_config(token_manager=token_manager)
+    except Exception as e:
+        # The resets belong to the ChatGPT account, which the proxy holds the
+        # sign-in for. Name the way out, not just the missing file.
+        print(f"Codex auth unavailable: {e}", file=sys.stderr)
+        print("Run `ai-proxy login codex` to sign the account in.", file=sys.stderr)
+        return 1
+
+    try:
+        holdings = provider.fetch_reset_credits()
+    except Exception as e:
+        print(f"Could not read Codex rate-limit resets: {e}", file=sys.stderr)
+        return 1
+
+    if args.list_resets:
+        if args.json:
+            print(json.dumps(holdings.to_dict(), indent=2, ensure_ascii=False))
+        else:
+            print_reset_credits(holdings)
+        return 0
+
+    try:
+        credit = select_credit(holdings.reset_credits, args.redeem or None)
+    except ValueError as e:
+        print(e, file=sys.stderr)
+        return 1
+
+    if not args.yes:
+        runs_out = f", runs out {credit.expires_in}" if credit.expires_in else ""
+        print(f"Spend reset {credit.id}{runs_out} on the Codex account?")
+        print("It starts the current windows again and cannot be undone. [y/N] ", end="", flush=True)
+        if sys.stdin.readline().strip().lower() not in ("y", "yes"):
+            print("Nothing spent.", file=sys.stderr)
+            return 1
+
+    try:
+        outcome = provider.consume_reset_credit(credit.id)
+    except Exception as e:
+        print(f"Could not spend the reset: {e}", file=sys.stderr)
+        return 1
+
+    code = outcome.get("code", "")
+    windows = outcome.get("windows_reset") or 0
+    if args.json:
+        print(json.dumps({**outcome, "credit_id": credit.id}, indent=2, ensure_ascii=False))
+    else:
+        print(f"{credit.id}: {describe_reset_outcome(code, windows)}")
+    # Only "reset" spent a credit; the other outcomes left the account alone.
+    return 0 if code == "reset" else 1
+
+
+# ============================================================================
 # CLI Entry Point
 # ============================================================================
 
@@ -3039,6 +3245,20 @@ Environment Variables:
     QUOTA_TIMEZONE    IANA timezone name (e.g. "America/Vancouver")
     MINIMAX_API_KEY   MiniMax API key (if not using cookies)
     NO_COLOR          Disable colored output
+
+Codex Rate-Limit Resets:
+    A Codex account earns resets that each start its current usage windows
+    again. Both commands talk to the account live and need -p codex, plus the
+    Codex sign-in ai-proxy holds (run `ai-proxy login codex` once). Without it
+    there is nothing to read or spend.
+
+        python3 quota.py -p codex --list-resets
+        python3 quota.py -p codex --redeem            # the one that runs out first
+        python3 quota.py -p codex --redeem 2          # position 2 from --list-resets
+        python3 quota.py -p codex --redeem <credit-id>
+
+    --redeem asks before spending. It cannot be undone, and only an outcome
+    of "reset" spent a credit; the others leave the account alone.
 
 OAuth Token Auth (Claude / Codex):
     Use --import-tokens to import OAuth tokens for refresh-based auth.
@@ -3101,6 +3321,26 @@ OAuth Token Auth (Claude / Codex):
         metavar="FILE",
         help="Import OAuth tokens from JSON file (for Claude/Codex token-based auth)"
     )
+    parser.add_argument(
+        "--list-resets",
+        action="store_true",
+        help="List the Codex account's rate-limit resets and exit (needs -p codex and a Codex sign-in)"
+    )
+    parser.add_argument(
+        "--redeem",
+        metavar="SELECTOR",
+        nargs="?",
+        const="",
+        default=None,
+        help="Spend a Codex rate-limit reset (needs -p codex and a Codex sign-in). "
+             "SELECTOR is a 1-based position from --list-resets or a credit id; "
+             "with none, the reset that runs out first is spent"
+    )
+    parser.add_argument(
+        "--yes",
+        action="store_true",
+        help="Do not ask for confirmation before spending a reset"
+    )
 
     args = parser.parse_args()
 
@@ -3128,6 +3368,18 @@ OAuth Token Auth (Claude / Codex):
         except (json.JSONDecodeError, IOError) as e:
             print(f"Failed to import tokens: {e}", file=sys.stderr)
             return 1
+
+    # Handle Codex rate-limit resets (read and spend). These act on the account
+    # itself, so they never share the provider query path below.
+    if args.list_resets or args.redeem is not None:
+        if (args.provider or "").lower() != "codex":
+            print(
+                "--list-resets and --redeem require -p codex: "
+                "rate-limit resets belong to the Codex account",
+                file=sys.stderr,
+            )
+            return 1
+        return run_codex_resets(args, token_manager)
 
     # Initialize debounce manager and cookie manager (always needed for cache clearing)
     dm = DebounceManager(interval_seconds=args.debounce) if args.debounce > 0 else DebounceManager()

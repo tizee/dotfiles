@@ -722,3 +722,4 @@ models:
   transport: auto
   cache_ttl: null
   temperature: null
+  context_remaining_tool: true
