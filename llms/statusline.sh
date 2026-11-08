@@ -498,7 +498,7 @@ if [ -f "$QUOTA_SCRIPT" ]; then
             ds_tokens=$(echo "$quota_json" | jq -r '.sessions.monthly_tokens.used // empty')
             ds_cost=$(echo "$quota_json" | jq -r '.sessions.monthly_cost.used // empty')
             ds_currency=$(echo "$quota_json" | jq -r '.sessions.monthly_cost.currency // "CNY"')
-            ds_is_peak=$(echo "$quota_json" | jq -r '.sessions.monthly_cost.extra.peak_valley_is_peak // false')
+            ds_is_peak=$(echo "$quota_json" | jq -r '.sessions.monthly_cost.extra.peak_valley_is_peak // .sessions.monthly_tokens.extra.peak_valley_is_peak // false')
             ds_month=$(echo "$quota_json" | jq -r '.sessions.monthly_tokens.extra.month // empty')
             ds_year=$(echo "$quota_json" | jq -r '.sessions.monthly_tokens.extra.year // empty')
 

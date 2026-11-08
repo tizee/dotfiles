@@ -24,3 +24,4 @@ osay/config
 codex/packages
 codex/app-server-control
 codex/app-server-daemon
+*.lock

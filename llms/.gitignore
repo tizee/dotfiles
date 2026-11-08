@@ -5,3 +5,5 @@ keys.json
 jarvis.yaml
 extensions
 plugins
+*.lock
+plugin-data

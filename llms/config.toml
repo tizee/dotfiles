@@ -1,14 +1,16 @@
 # Every setting has a default — see the full list with: zhu config default
-
-debug = false
+# For a debug log of one run, start it with `zhu --debug`.
 
 [agent]
 model = "codex-luna"
-background_model = "ds-flash"
+background_model = "ds-flash-nothink"
 subagent_model = "ds-flash"
 compact_model = "ds-flash"
+# Cache-fork summary (FEAT-531): on a warm Anthropic-format session the
+# session model summarizes via its cached prompt; otherwise ds-flash extracts.
+compact_summarizer = "fork"
 permission_mode = "yolo"
-user_agent_name = "claude-cli/2.1.190 (external, cli)"
+user_agent_name = "claude-cli/2.1.302 (external, cli)"
 verify_completion = false
 verification_model = "ds-flash"
 
@@ -31,6 +33,17 @@ update_interval_ms = 300
 [agent.auto_compact]
 enabled = true
 threshold = 98
+
+# Background compaction (FEAT-529): prepare the summary at 80%, swap at threshold.
+[agent.auto_compact.background]
+enabled = true
+arm_percent = 80
+
+# Idle compaction (FEAT-530): only for models with cache_ttl: 1h (Claude).
+[agent.auto_compact.idle]
+enabled = true
+min_tokens = 100000
+fire_fraction = 0.9
 
 [agent.micro_compact]
 enabled = false
@@ -55,3 +68,8 @@ additional_allowed_write_paths = [
   "/Users/tizee/Library/Caches",
   "~/.cargo/",
 ]
+
+# FEAT-541/542: implicit session isolation
+[agent.worktree]
+seed = ["target/debug/deps", "target/debug/.fingerprint", "target/debug/build"]
+auto_land = true

@@ -15,8 +15,10 @@ import tempfile
 import threading
 import unittest
 from contextlib import redirect_stderr, redirect_stdout
+from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from socketserver import TCPServer
+from unittest.mock import patch
 
 import quota
 
@@ -246,6 +248,48 @@ class FetchResetCreditsTests(unittest.TestCase):
         self.assertIn("token expired", str(caught.exception))
 
 
+class FetchQuotaTests(unittest.TestCase):
+    """A reached limit is still a usage window with a known reset time."""
+
+    def test_keeps_both_windows_when_the_limit_is_reached(self) -> None:
+        now = int(datetime.now(timezone.utc).timestamp())
+        usage = {
+            "plan_type": "plus",
+            "rate_limit": {
+                "allowed": False,
+                "limit_reached": True,
+                "primary_window": {
+                    "used_percent": 100,
+                    "limit_window_seconds": 18000,
+                    "reset_after_seconds": 1984,
+                    "reset_at": now + 1984,
+                },
+                "secondary_window": {
+                    "used_percent": 16,
+                    "limit_window_seconds": 604800,
+                    "reset_after_seconds": 544189,
+                    "reset_at": now + 544189,
+                },
+            },
+            "rate_limit_reset_credits": {"available_count": 0},
+        }
+        credits = {"credits": [], "available_count": 0}
+        provider = quota.CodexQuotaProvider("tok-abc", "acc-123")
+
+        def answer(url: str, **_kwargs: object) -> dict:
+            return usage if url == provider.API_URL else credits
+
+        with patch.object(provider, "_curl_request", side_effect=answer):
+            info = provider.fetch_quota()
+
+        self.assertIsNone(info.error)
+        sessions = info.to_dict()["sessions"]
+        self.assertEqual(sessions["current"]["used_percent"], 100)
+        self.assertEqual(sessions["weekly"]["used_percent"], 16)
+        self.assertTrue(sessions["current"]["resets_in"])
+        self.assertTrue(sessions["weekly"]["resets_in"])
+
+
 class ResetListingTests(unittest.TestCase):
     """What a person reads to choose a slot."""
 
@@ -326,6 +370,68 @@ class CommandlineTests(unittest.TestCase):
         code, out, err = self.run_quota("--help")
         self.assertEqual(code, 0)
         self.assertIn("login codex", (out + err).lower(), "the help must state the prerequisite")
+
+
+class DeepSeekPeakPricingTests(unittest.TestCase):
+    """Peak pricing follows the published UTC hours, weekdays, and CN holidays."""
+
+    @staticmethod
+    def at(year: int, month: int, day: int, hour: int, minute: int = 0) -> datetime:
+        return datetime(year, month, day, hour, minute, tzinfo=timezone.utc)
+
+    def test_weekday_peak_windows(self) -> None:
+        # 2026-10-16 is a Friday.
+        self.assertTrue(quota.DeepSeekQuotaProvider._is_peak_hour(self.at(2026, 10, 16, 1, 0)))
+        self.assertTrue(quota.DeepSeekQuotaProvider._is_peak_hour(self.at(2026, 10, 16, 3, 59)))
+        self.assertTrue(quota.DeepSeekQuotaProvider._is_peak_hour(self.at(2026, 10, 16, 6, 0)))
+        self.assertTrue(quota.DeepSeekQuotaProvider._is_peak_hour(self.at(2026, 10, 16, 9, 59)))
+
+    def test_window_boundaries_are_off_peak(self) -> None:
+        self.assertFalse(quota.DeepSeekQuotaProvider._is_peak_hour(self.at(2026, 10, 16, 4, 0)))
+        self.assertFalse(quota.DeepSeekQuotaProvider._is_peak_hour(self.at(2026, 10, 16, 5, 59)))
+        self.assertFalse(quota.DeepSeekQuotaProvider._is_peak_hour(self.at(2026, 10, 16, 10, 0)))
+
+    def test_weekends_are_off_peak_all_day(self) -> None:
+        # 2026-10-17 is a Saturday, 2026-10-18 a Sunday.
+        for hour in (0, 2, 7, 9, 12, 23):
+            self.assertFalse(quota.DeepSeekQuotaProvider._is_peak_hour(self.at(2026, 10, 17, hour)))
+            self.assertFalse(quota.DeepSeekQuotaProvider._is_peak_hour(self.at(2026, 10, 18, hour)))
+
+    def test_chinese_public_holidays_are_off_peak(self) -> None:
+        # National Day (Thursday) and Spring Festival (Monday), inside peak windows.
+        self.assertFalse(quota.DeepSeekQuotaProvider._is_peak_hour(self.at(2026, 10, 1, 7, 0)))
+        self.assertFalse(quota.DeepSeekQuotaProvider._is_peak_hour(self.at(2026, 2, 16, 2, 0)))
+
+    def test_refresh_replaces_the_cached_flag(self) -> None:
+        info = quota.QuotaInfo(provider="deepseek")
+        info.sessions["monthly_cost"] = quota.SessionQuota(
+            extra={"peak_valley_is_peak": False, "peak_valley_label": "Valley (1x)"}
+        )
+        status = {
+            "is_peak": True,
+            "label": "Peak (2x)",
+            "now_utc_str": "07:00",
+            "active_windows": ["06:00-10:00"],
+            "note": "test",
+        }
+
+        with patch.object(quota.DeepSeekQuotaProvider, "_peak_valley_status", return_value=status):
+            quota.refresh_peak_valley(info)
+
+        extra = info.sessions["monthly_cost"].extra
+        self.assertTrue(extra["peak_valley_is_peak"])
+        self.assertEqual(extra["peak_valley_label"], "Peak (2x)")
+        self.assertEqual(extra["peak_valley_windows"], ["06:00-10:00"])
+
+    def test_refresh_leaves_other_providers_alone(self) -> None:
+        info = quota.QuotaInfo(provider="claude")
+        info.sessions["current"] = quota.SessionQuota(
+            extra={"peak_valley_is_peak": "untouched"}
+        )
+
+        quota.refresh_peak_valley(info)
+
+        self.assertEqual(info.sessions["current"].extra["peak_valley_is_peak"], "untouched")
 
 
 if __name__ == "__main__":

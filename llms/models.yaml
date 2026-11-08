@@ -147,7 +147,7 @@ models:
   cache_ttl: null
   temperature: null
 - model_id: ds-flash
-  model_name: deepseek-v4-flash
+  model_name: deepseek-flash
   api_base: https://api.deepseek.com/anthropic
   api_key_name: deepseek
   api_format: anthropic
@@ -157,15 +157,33 @@ models:
   headers: {}
   aliases: []
   context_window: 1000000
-  image: false
+  image: true
   thinking_mode: enabled
   effort: max
   reserves_output_tokens: false
   transport: auto
   cache_ttl: null
   temperature: null
+- model_id: ds-flash-nothink
+  model_name: deepseek-flash
+  api_base: https://api.deepseek.com/anthropic
+  api_key_name: deepseek
+  api_format: anthropic
+  can_stream: true
+  max_tokens: null
+  extra_body: {}
+  headers: {}
+  aliases: []
+  context_window: 1000000
+  image: true
+  thinking_mode: disabled
+  effort: null
+  reserves_output_tokens: false
+  transport: auto
+  cache_ttl: null
+  temperature: null
 - model_id: ds
-  model_name: deepseek-v4-pro
+  model_name: deepseek-pro
   api_base: https://api.deepseek.com/anthropic
   api_key_name: deepseek
   api_format: anthropic
@@ -198,7 +216,7 @@ models:
   effort: null
   reserves_output_tokens: false
   transport: auto
-  cache_ttl: null
+  cache_ttl: 1h
   temperature: null
 - model_id: opus48
   model_name: claude-code/claude-opus-4-8
@@ -216,7 +234,7 @@ models:
   effort: null
   reserves_output_tokens: false
   transport: auto
-  cache_ttl: null
+  cache_ttl: 1h
   temperature: null
 - model_id: opus
   model_name: claude-code/claude-opus-5-5
@@ -234,7 +252,7 @@ models:
   effort: medium
   reserves_output_tokens: false
   transport: auto
-  cache_ttl: null
+  cache_ttl: 1h
   temperature: null
 - model_id: fable
   model_name: claude-code/claude-fable-5
@@ -252,7 +270,7 @@ models:
   effort: medium
   reserves_output_tokens: false
   transport: auto
-  cache_ttl: null
+  cache_ttl: 1h
   temperature: null
 - model_id: sonnet
   model_name: claude-code/claude-sonnet-5-5
@@ -270,10 +288,10 @@ models:
   effort: medium
   reserves_output_tokens: false
   transport: auto
-  cache_ttl: null
+  cache_ttl: 1h
   temperature: null
 - model_id: haiku
-  model_name: claude-code/claude-haiku-4-5
+  model_name: claude-code/claude-haiku-5-5
   api_base: http://127.0.0.1:8082/anthropic/
   api_key_name: ai-proxy
   api_format: anthropic
@@ -288,7 +306,7 @@ models:
   effort: null
   reserves_output_tokens: false
   transport: auto
-  cache_ttl: null
+  cache_ttl: 1h
   temperature: null
 - model_id: kimi-code
   model_name: kimi-for-coding
@@ -487,7 +505,7 @@ models:
   effort: medium
   reserves_output_tokens: false
   transport: auto
-  cache_ttl: null
+  cache_ttl: 1h
   temperature: null
 - model_id: fable-ab
   model_name: anthropic/claude-fable-5
@@ -505,7 +523,7 @@ models:
   effort: medium
   reserves_output_tokens: false
   transport: auto
-  cache_ttl: null
+  cache_ttl: 1h
   temperature: null
 - model_id: fable-or
   model_name: anthropic/claude-fable-5
@@ -520,9 +538,9 @@ models:
       only:
       - google-vertex/global
   headers:
-    X-OpenRouter-Title: ZHU Agent
-    HTTP-Referer: https://github.com/tizee/zhu
     X-OpenRouter-Categories: cli-agent
+    HTTP-Referer: https://github.com/tizee/zhu
+    X-OpenRouter-Title: ZHU Agent
   aliases: []
   context_window: 1000000
   image: true
@@ -530,7 +548,7 @@ models:
   effort: high
   reserves_output_tokens: false
   transport: auto
-  cache_ttl: null
+  cache_ttl: 1h
   temperature: null
 - model_id: grok
   model_name: x-ai/grok-4.5
@@ -541,9 +559,9 @@ models:
   max_tokens: null
   extra_body: {}
   headers:
-    X-OpenRouter-Title: ZHU Agent
     X-OpenRouter-Categories: cli-agent
     HTTP-Referer: https://github.com/tizee/zhu
+    X-OpenRouter-Title: ZHU Agent
   aliases: []
   context_window: 512000
   image: true
@@ -566,9 +584,9 @@ models:
       only:
       - openai
   headers:
-    HTTP-Referer: https://github.com/tizee/zhu
-    X-OpenRouter-Categories: cli-agent
     X-OpenRouter-Title: ZHU Agent
+    X-OpenRouter-Categories: cli-agent
+    HTTP-Referer: https://github.com/tizee/zhu
   aliases: []
   context_window: 256000
   image: true
@@ -723,3 +741,43 @@ models:
   cache_ttl: null
   temperature: null
   context_remaining_tool: true
+- model_id: siliconflow-ds-flash
+  model_name: deepseek-ai/DeepSeek-V4.1-Flash
+  api_base: https://api.siliconflow.cn/
+  api_key_name: siliconflow
+  api_format: anthropic
+  can_stream: true
+  max_tokens: null
+  extra_body: {}
+  headers: {}
+  aliases: []
+  context_window: 1000000
+  image: true
+  thinking_mode: enabled
+  effort: max
+  reserves_output_tokens: false
+  transport: auto
+  cache_ttl: null
+  temperature: null
+  # BUG-450: SiliconFlow bills an image nested in tool_result as text.
+  hoist_tool_result_images: true
+- model_id: doubao-ds-flash
+  model_name: deepseek-v4-1-flash-261017
+  api_base: https://ark.cn-beijing.volces.com/api/compatible
+  api_key_name: doubao
+  api_format: anthropic
+  can_stream: true
+  max_tokens: null
+  extra_body: {}
+  headers: {}
+  aliases: []
+  context_window: 1000000
+  image: true
+  thinking_mode: enabled
+  effort: max
+  reserves_output_tokens: false
+  transport: auto
+  cache_ttl: null
+  temperature: null
+  # BUG-450: SiliconFlow bills an image nested in tool_result as text.
+  # hoist_tool_result_images: true

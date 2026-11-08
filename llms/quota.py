@@ -35,7 +35,7 @@ import sys
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime, timezone, timedelta
+from datetime import date, datetime, timezone, timedelta
 from pathlib import Path
 from typing import Any, Callable, Optional
 from uuid import uuid4
@@ -1237,7 +1237,7 @@ class CodexQuotaProvider(QuotaProvider):
 
             # Primary window (session limit)
             primary = rate_limit.get("primary_window", {})
-            if primary and not rate_limit.get("limit_reached", False):
+            if primary:
                 used_percent = primary.get("used_percent")
                 reset_at = primary.get("reset_at", 0)
                 resets_at, resets_at_local, resets_in = self._parse_reset_time(reset_at)
@@ -1255,7 +1255,7 @@ class CodexQuotaProvider(QuotaProvider):
 
             # Secondary window (weekly)
             secondary = rate_limit.get("secondary_window")
-            if secondary and not rate_limit.get("limit_reached", False):
+            if secondary:
                 used_percent = secondary.get("used_percent")
                 reset_at = secondary.get("reset_at", 0)
                 resets_at, resets_at_local, resets_in = self._parse_reset_time(reset_at)
@@ -1694,13 +1694,27 @@ class DeepSeekQuotaProvider(QuotaProvider):
     LS_KEY = "userToken"
     LS_ORIGIN = "https+++platform.deepseek.com"
 
-    # Peak-valley pricing (starts mid-July 2026)
-    PEAK_PRICING_START = datetime(2026, 7, 15, 0, 0, 0, tzinfo=timezone.utc)
-    # Peak hours in UTC: 01:00-04:00 and 06:00-10:00
+    # Peak-valley pricing took effect at 16:00 UTC on 2026-08-16
+    # (00:00 Beijing time on 2026-08-17). Pricing was flat before that.
+    PEAK_PRICING_START = datetime(2026, 8, 16, 16, 0, 0, tzinfo=timezone.utc)
+    # Peak hours in UTC: 01:00-04:00 and 06:00-10:00, Monday-Friday only.
     PEAK_SLOTS_UTC = [
         (1, 4),   # 01:00-04:00 UTC
         (6, 10),  # 06:00-10:00 UTC
     ]
+
+    # Chinese public holidays from the State Council 2026 schedule.
+    # Peak pricing does not apply on these dates; weekends are always off-peak.
+    # Extend this table when the 2027 schedule is published.
+    CN_PUBLIC_HOLIDAYS = frozenset({
+        date(2026, 1, 1), date(2026, 1, 2), date(2026, 1, 3),
+        *[date(2026, 2, day) for day in range(15, 24)],
+        *[date(2026, 4, day) for day in range(4, 7)],
+        *[date(2026, 5, day) for day in range(1, 6)],
+        *[date(2026, 6, day) for day in range(19, 22)],
+        *[date(2026, 9, day) for day in range(25, 28)],
+        *[date(2026, 10, day) for day in range(1, 8)],
+    })
 
     def __init__(self, cookie_header: str):
         super().__init__(cookie_header)
@@ -1834,12 +1848,20 @@ class DeepSeekQuotaProvider(QuotaProvider):
 
     @staticmethod
     def _is_peak_hour(now_utc: datetime) -> bool:
-        """Check if current UTC time falls in peak pricing window."""
+        """Check if current UTC time falls in a peak pricing window.
+
+        Peak pricing applies Monday through Friday, excluding Chinese public
+        holidays. Weekends and holidays are off-peak all day.
+        """
+        if now_utc.weekday() >= 5:
+            return False
+        if now_utc.date() in DeepSeekQuotaProvider.CN_PUBLIC_HOLIDAYS:
+            return False
         hour = now_utc.hour
-        for start, end in DeepSeekQuotaProvider.PEAK_SLOTS_UTC:
-            if start <= hour < end:
-                return True
-        return False
+        return any(
+            start <= hour < end
+            for start, end in DeepSeekQuotaProvider.PEAK_SLOTS_UTC
+        )
 
     @staticmethod
     def _peak_valley_status() -> dict[str, Any]:
@@ -1859,7 +1881,7 @@ class DeepSeekQuotaProvider(QuotaProvider):
             return {
                 "is_peak": False,
                 "label": "Flat (pre-peak/valley)",
-                "note": "Peak/valley pricing starts ~Jul 15, 2026",
+                "note": "Peak/valley pricing started 2026-08-16 16:00 UTC",
                 "now_utc_str": now_utc_str,
                 "active_windows": [],
             }
@@ -1874,7 +1896,11 @@ class DeepSeekQuotaProvider(QuotaProvider):
         return {
             "is_peak": is_peak,
             "label": "Peak (2x)" if is_peak else "Valley (1x)",
-            "note": f"Peak hours UTC: 01:00-04:00, 06:00-10:00 (UTC+8: 09:00-12:00, 14:00-18:00)",
+            "note": (
+                "Peak hours: Mon-Fri 01:00-04:00, 06:00-10:00 UTC "
+                "(UTC+8: 09:00-12:00, 14:00-18:00); "
+                "weekends and Chinese holidays are off-peak"
+            ),
             "now_utc_str": now_utc_str,
             "active_windows": active_windows,
         }
@@ -2117,6 +2143,29 @@ class DeepSeekQuotaProvider(QuotaProvider):
                 quota_info.error_type = "client"
 
         return quota_info
+
+
+def refresh_peak_valley(quota_info: QuotaInfo) -> None:
+    """Recompute DeepSeek's peak/valley flag for the current clock.
+
+    The flag is cached with the quota response. Refreshing it before output
+    keeps the PEAK marker correct across window boundaries when --debounce
+    serves data that was fetched up to ten minutes ago.
+    """
+    if quota_info.provider != "deepseek":
+        return
+
+    status = DeepSeekQuotaProvider._peak_valley_status()
+    fields = {
+        "peak_valley_label": status["label"],
+        "peak_valley_is_peak": status["is_peak"],
+        "peak_valley_now_utc": status["now_utc_str"],
+        "peak_valley_windows": status["active_windows"],
+        "peak_valley_note": status["note"],
+    }
+    for session in quota_info.sessions.values():
+        if session.extra and "peak_valley_is_peak" in session.extra:
+            session.extra.update(fields)
 
 
 # ============================================================================
@@ -3535,6 +3584,10 @@ OAuth Token Auth (Claude / Codex):
                     pass  # Keep original error if retry also fails
 
             results.append(quota_info)
+
+    # Recompute clock-derived fields that may come from a stale cache.
+    for quota_info in results:
+        refresh_peak_valley(quota_info)
 
     # Output results
     if args.json:
