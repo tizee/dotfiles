@@ -2,17 +2,17 @@
 # For a debug log of one run, start it with `zhu --debug`.
 
 [agent]
-model = "codex-luna"
+model = "opencode-ds-flash"
 background_model = "ds-flash-nothink"
-subagent_model = "ds-flash"
-compact_model = "ds-flash"
+subagent_model = "opencode-ds-flash"
+compact_model = "opencode-ds-flash"
 # Cache-fork summary (FEAT-531): on a warm Anthropic-format session the
 # session model summarizes via its cached prompt; otherwise ds-flash extracts.
 compact_summarizer = "fork"
 permission_mode = "yolo"
 user_agent_name = "claude-cli/2.1.302 (external, cli)"
 verify_completion = false
-verification_model = "ds-flash"
+verification_model = "opencode-ds-flash"
 
 [agent.websearch]
 endpoint = "https://test.8421044.xyz:8443"
@@ -20,7 +20,7 @@ key_file = "~/.config/sift/client.key"
 
 [agent.permissions]
 allow = []
-deny = ["Read(./.env)", "Read(./keys.json)", "Bash(rm -rf*)"]
+deny = ["Read(./.env)", "Read(./keys.json)", "Bash(rm -rf /*)", "Bash(rm -rf ~*)", "Bash(git clean -*)", "Bash(find * -delete*)"]
 ask = []
 
 [agent.ui]
@@ -52,6 +52,10 @@ threshold = 80
 
 [agent.bash]
 default_timeout_ms = 60000
+# LLM-facing shell output budget in characters (FEAT-630). The model may ask
+# for more per call with `max_output_chars`, up to max_output_length.
+default_output_length = 10000
+max_output_length = 50000
 
 [agent.bash.sandbox]
 mode = "auto_allow"
@@ -73,3 +77,10 @@ additional_allowed_write_paths = [
 [agent.worktree]
 seed = ["target/debug/deps", "target/debug/.fingerprint", "target/debug/build"]
 auto_land = true
+
+# Remote access (FEAT-548/590): the session host dials out to this blind relay
+# so a paired remote client can drive it. The relay token lives in
+# ~/.llms/remote/relay_token (never keys.json; `zhu remote token` rotates it).
+# Defaults: daemon = true, restore_sessions = true, idle_unload_minutes = 30.
+[agent.remote.relay]
+url = "https://zhu-relay.pobomp.workers.dev"

@@ -33,6 +33,8 @@ import sqlite3
 import subprocess
 import sys
 import time
+import urllib.error
+import urllib.request
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import date, datetime, timezone, timedelta
@@ -2145,6 +2147,152 @@ class DeepSeekQuotaProvider(QuotaProvider):
         return quota_info
 
 
+# ============================================================================
+# OpenCode Go Provider Implementation
+# ============================================================================
+
+
+class OpenCodeAPIError(Exception):
+    """The OpenCode usage endpoint answered with an error."""
+
+
+class OpenCodeQuotaProvider(QuotaProvider):
+    """OpenCode Go subscription quota provider.
+
+    Reads the Console API key named "opencode" from keys.json beside this
+    script. Go usage has three windows: rolling (5-hour), weekly, and monthly.
+    The key alone identifies the workspace, so no workspace ID header is needed.
+    """
+
+    name = "opencode"
+    description = "OpenCode Go (opencode.ai)"
+    API_URL = "https://opencode.ai/zen/go/v1/usage"
+    KEY_NAME = "opencode"
+    KEYS_ENV = "QUOTA_KEYS_FILE"
+
+    def __init__(self, api_key: str):
+        super().__init__("")
+        self.api_key = api_key
+
+    @classmethod
+    def from_keys_file(cls, keys_file: Optional[Path] = None) -> "OpenCodeQuotaProvider":
+        """Create a provider from the keys.json entry named "opencode"."""
+        path = keys_file or Path(
+            os.environ.get(cls.KEYS_ENV, Path(__file__).resolve().with_name("keys.json"))
+        )
+        try:
+            keys = json.loads(path.read_text())
+        except (OSError, json.JSONDecodeError) as e:
+            raise Exception(f"cannot read keys file {path}: {e}")
+        key = keys.get(cls.KEY_NAME) if isinstance(keys, dict) else None
+        if not isinstance(key, str) or not key.strip():
+            raise Exception(f"API key {cls.KEY_NAME!r} not found in {path}")
+        return cls(key.strip())
+
+    def get_api_endpoints(self) -> list[str]:
+        return [self.API_URL]
+
+    def _request(self, timeout: int = 30) -> dict[str, Any]:
+        request = urllib.request.Request(
+            self.API_URL,
+            headers={
+                "Authorization": f"Bearer {self.api_key}",
+                "Accept": "application/json",
+                "User-Agent": "llms-quota/1.0",
+            },
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=timeout) as response:
+                body = response.read().decode("utf-8")
+        except urllib.error.HTTPError as e:
+            if e.code == 401:
+                raise OpenCodeAPIError("OpenCode API key is invalid or expired") from e
+            if e.code == 403:
+                raise OpenCodeAPIError("OpenCode Go subscription not found for this API key") from e
+            raise OpenCodeAPIError(f"OpenCode usage API returned HTTP {e.code}") from e
+        try:
+            return json.loads(body)
+        except json.JSONDecodeError as e:
+            raise OpenCodeAPIError("OpenCode usage API returned invalid JSON") from e
+
+    def _parse_reset(
+        self, value: Any
+    ) -> tuple[Optional[str], Optional[str], Optional[str]]:
+        if not isinstance(value, str) or not value:
+            return None, None, None
+        try:
+            dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            resets_at = dt.isoformat()
+            local_dt = dt.astimezone(get_local_timezone())
+            resets_at_local = local_dt.strftime("%H:%M")
+            resets_in = format_duration(
+                int((dt - datetime.now(timezone.utc)).total_seconds()), local_dt
+            )
+            return resets_at, resets_at_local, resets_in
+        except (TypeError, ValueError):
+            return None, None, None
+
+    def _session(self, meter: Any) -> Optional[SessionQuota]:
+        if not isinstance(meter, dict) or meter.get("percent") is None:
+            return None
+        try:
+            used_percent = float(meter["percent"])
+        except (TypeError, ValueError):
+            return None
+        resets_at, resets_at_local, resets_in = self._parse_reset(meter.get("resetsAt"))
+        status = meter.get("status")
+        return SessionQuota(
+            used_percent=used_percent,
+            remaining_percent=max(0.0, 100.0 - used_percent),
+            resets_at=resets_at,
+            resets_at_local=resets_at_local,
+            resets_in=resets_in,
+            extra={"status": status} if status else {},
+        )
+
+    def fetch_quota(self) -> QuotaInfo:
+        quota_info = QuotaInfo(
+            provider=self.name,
+            plan_type="go",
+            fetched_at=datetime.now(timezone.utc).isoformat(),
+        )
+
+        try:
+            data = self._request()
+        except (urllib.error.URLError, TimeoutError) as e:
+            reason = getattr(e, "reason", str(e))
+            quota_info.error = f"OpenCode usage API request failed: {reason}"
+            quota_info.error_type = "client"
+            return quota_info
+        except OpenCodeAPIError as e:
+            quota_info.error = str(e)
+            quota_info.error_type = "server"
+            return quota_info
+
+        quota_info.raw_response = data
+        usage = data.get("usage") if isinstance(data, dict) else None
+        if not isinstance(usage, dict):
+            quota_info.error = "OpenCode usage API response has no usage object"
+            quota_info.error_type = "server"
+            return quota_info
+
+        for field, session_key in (
+            ("rolling", "current"),
+            ("weekly", "weekly"),
+            ("monthly", "monthly"),
+        ):
+            session = self._session(usage.get(field))
+            if session is not None:
+                quota_info.sessions[session_key] = session
+
+        if not quota_info.sessions:
+            quota_info.error = "OpenCode usage API response has no usage windows"
+            quota_info.error_type = "server"
+        return quota_info
+
+
 def refresh_peak_valley(quota_info: QuotaInfo) -> None:
     """Recompute DeepSeek's peak/valley flag for the current clock.
 
@@ -2185,7 +2333,7 @@ class ProviderRegistry:
         return provider_class
 
     # Providers that resolve their own credentials (no Firefox cookies)
-    TOKEN_BASED = {"codex", "deepseek"}
+    TOKEN_BASED = {"codex", "deepseek", "opencode"}
 
     @classmethod
     def get(cls, name: str, cookie_header: str,
@@ -2202,6 +2350,11 @@ class ProviderRegistry:
                     return CodexQuotaProvider.from_codex_config(
                         token_manager=token_manager
                     )
+                except Exception:
+                    return None
+            if name == "opencode":
+                try:
+                    return OpenCodeQuotaProvider.from_keys_file()
                 except Exception:
                     return None
             # Claude gets token_manager injected; it decides OAuth vs cookie
@@ -2229,6 +2382,7 @@ ProviderRegistry.register(KimiQuotaProvider)
 ProviderRegistry.register(CodexQuotaProvider)
 ProviderRegistry.register(DoubaoQuotaProvider)
 ProviderRegistry.register(DeepSeekQuotaProvider)
+ProviderRegistry.register(OpenCodeQuotaProvider)
 
 
 # ============================================================================

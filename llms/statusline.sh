@@ -7,7 +7,8 @@
 # in the background. This keeps statusline rendering fast even when
 # called at short fixed intervals.
 #
-# Supports multiple providers: Claude (sonnet/opus), MiniMax, GLM
+# Supports multiple providers: Claude (sonnet/opus), MiniMax, GLM, Kimi,
+# Codex, DeepSeek, OpenCode Go
 #
 # Setup:
 #   1. Copy to ~/.config/llms/statusline.sh
@@ -36,6 +37,7 @@ dir_name=$(basename "$cwd")
 # Extract model information to determine provider
 model_name=$(echo "$input" | jq -r '.model.model_name // ""')
 model_display=$(echo "$input" | jq -r '.model.display_name // ""')
+model_id=$(echo "$input" | jq -r '.model.model_id // .model.display_name // ""')
 
 # Determine provider based on model name
 # Claude: sonnet, opus, or claude models
@@ -43,11 +45,16 @@ model_display=$(echo "$input" | jq -r '.model.display_name // ""')
 # GLM: glm models
 # Kimi: kimi models
 # Codex: codex, gpt, o1, o3 models
+# OpenCode Go: model IDs that start with opencode-
 determine_provider() {
-    local model="$1"
-    local model_lower=$(echo "$model" | tr '[:upper:]' '[:lower:]')
+    local model_id="$1"
+    local model_name="$2"
+    local id_lower=$(echo "$model_id" | tr '[:upper:]' '[:lower:]')
+    local model_lower=$(echo "$model_name" | tr '[:upper:]' '[:lower:]')
 
-    if [[ "$model_lower" == *"claude"* ]] || [[ "$model_lower" == *"sonnet"* ]] || [[ "$model_lower" == *"opus"* ]]; then
+    if [[ "$id_lower" == opencode-* ]]; then
+        echo "opencode"
+    elif [[ "$model_lower" == *"claude"* ]] || [[ "$model_lower" == *"sonnet"* ]] || [[ "$model_lower" == *"opus"* ]]; then
         echo "claude"
     elif [[ "$model_lower" == *"minimax"* ]]; then
         echo "minimax"
@@ -66,7 +73,7 @@ determine_provider() {
     fi
 }
 
-provider=$(determine_provider "$model_name")
+provider=$(determine_provider "$model_id" "$model_name")
 # Unified debounce interval for all providers (seconds)
 QUOTA_DEBOUNCE=600  # 10 minutes
 
@@ -486,6 +493,64 @@ if [ -f "$QUOTA_SCRIPT" ]; then
                     if [ -n "$week_day" ]; then
                         quota_info+=" ${MONTHLY_COLOR}M:${monthly_pct_int}%${NC} ${GRAY}${week_day} @${monthly_resets_at_local}"
                         # Add remaining time if available (e.g., "in 2d 3h")
+                        if [ -n "$monthly_resets_in" ] && [ "$monthly_resets_in" != "null" ]; then
+                            quota_info+=" (in ${monthly_resets_in})"
+                        fi
+                        quota_info+="${NC}"
+                    fi
+                fi
+            fi
+        elif [ "$provider" = "opencode" ]; then
+            # OpenCode Go: rolling (5-hour), weekly, monthly
+            current_pct=$(echo "$quota_json" | jq -r '.sessions.current.used_percent // empty')
+            if [ -n "$current_pct" ] && [ "$current_pct" != "null" ]; then
+                quota_pct=$(printf "%.0f" "$current_pct")
+                QUOTA_COLOR=$(get_pct_color "$quota_pct")
+                resets_in=$(echo "$quota_json" | jq -r '.sessions.current.resets_in // empty')
+                resets_at_local=$(echo "$quota_json" | jq -r '.sessions.current.resets_at_local // empty')
+                quota_info="${QUOTA_COLOR}Go:${quota_pct}%${NC}"
+                if [ -n "$resets_in" ]; then
+                    quota_info+=" ${GRAY}${resets_in}${NC}"
+                fi
+                if [ -n "$resets_at_local" ]; then
+                    quota_info+=" ${GRAY}@${resets_at_local}${NC}"
+                fi
+            else
+                quota_info=""
+            fi
+
+            # Weekly quota
+            weekly_pct=$(echo "$quota_json" | jq -r '.sessions.weekly.used_percent // empty')
+            if [ -n "$weekly_pct" ] && [ "$weekly_pct" != "null" ]; then
+                weekly_pct_int=$(printf "%.0f" "$weekly_pct")
+                WEEKLY_COLOR=$(get_pct_color "$weekly_pct_int")
+                weekly_resets_at=$(echo "$quota_json" | jq -r '.sessions.weekly.resets_at // empty')
+                weekly_resets_at_local=$(echo "$quota_json" | jq -r '.sessions.weekly.resets_at_local // empty')
+                weekly_resets_in=$(echo "$quota_json" | jq -r '.sessions.weekly.resets_in // empty')
+                if [ -n "$weekly_resets_at" ] && [ -n "$weekly_resets_at_local" ]; then
+                    week_day=$(get_day_of_week "$weekly_resets_at")
+                    if [ -n "$week_day" ]; then
+                        quota_info+=" ${WEEKLY_COLOR}W:${weekly_pct_int}%${NC} ${GRAY}${week_day} @${weekly_resets_at_local}"
+                        if [ -n "$weekly_resets_in" ] && [ "$weekly_resets_in" != "null" ]; then
+                            quota_info+=" (in ${weekly_resets_in})"
+                        fi
+                        quota_info+="${NC}"
+                    fi
+                fi
+            fi
+
+            # Monthly quota
+            monthly_pct=$(echo "$quota_json" | jq -r '.sessions.monthly.used_percent // empty')
+            if [ -n "$monthly_pct" ] && [ "$monthly_pct" != "null" ]; then
+                monthly_pct_int=$(printf "%.0f" "$monthly_pct")
+                MONTHLY_COLOR=$(get_pct_color "$monthly_pct_int")
+                monthly_resets_at=$(echo "$quota_json" | jq -r '.sessions.monthly.resets_at // empty')
+                monthly_resets_at_local=$(echo "$quota_json" | jq -r '.sessions.monthly.resets_at_local // empty')
+                monthly_resets_in=$(echo "$quota_json" | jq -r '.sessions.monthly.resets_in // empty')
+                if [ -n "$monthly_resets_at" ] && [ -n "$monthly_resets_at_local" ]; then
+                    month_day=$(get_day_of_week "$monthly_resets_at")
+                    if [ -n "$month_day" ]; then
+                        quota_info+=" ${MONTHLY_COLOR}M:${monthly_pct_int}%${NC} ${GRAY}${month_day} @${monthly_resets_at_local}"
                         if [ -n "$monthly_resets_in" ] && [ "$monthly_resets_in" != "null" ]; then
                             quota_info+=" (in ${monthly_resets_in})"
                         fi

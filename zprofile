@@ -30,7 +30,7 @@ esac
 # homebrew
 # gfw
 if $is_Linux; then BREW_TYPE="linuxbrew" ;else BREW_TYPE="homebrew"; fi
-export HOMEBREW_BREW_GIT_REMOTE="https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/brew.git"
+# HOMEBREW_BREW_GIT_REMOTE: unset on purpose, use the official https://github.com/Homebrew/brew (TUNA's git mirror queues under load)
 # Since brew 4.0, homebrew fetch package infos via remote API for better user experience.
 # see https://mirrors.tuna.tsinghua.edu.cn/help/homebrew/
 export HOMEBREW_API_DOMAIN="https://mirrors.tuna.tsinghua.edu.cn/homebrew-bottles/api"
@@ -526,6 +526,9 @@ if $is_macOS; then
   # export XRAY_LOCATION_CONFDIR="$HOME/.config/xray/conf"
   export HTTP_PROXY=http://127.0.0.1:1080
   export HTTPS_PROXY=http://127.0.0.1:1080
+  # Keep loopback traffic (ai-proxy on :8082, local dev servers) off the proxy.
+  export NO_PROXY=127.0.0.1,localhost,::1
+  export DOTNET_ROOT="/opt/homebrew/opt/dotnet/libexec"
 
   # SMART SUGGESTION - Privacy-focused configuration
   export SMART_SUGGESTION_KEY='^o'

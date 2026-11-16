@@ -255,6 +255,42 @@ models:
   cache_ttl: 1h
   temperature: null
 - model_id: fable
+  model_name: claude-code/claude-fable-5-2
+  api_base: http://127.0.0.1:8082/anthropic/
+  api_key_name: ai-proxy
+  api_format: anthropic
+  can_stream: true
+  max_tokens: 128000
+  extra_body: {}
+  headers: {}
+  aliases: []
+  context_window: 1000000
+  image: true
+  thinking_mode: adaptive
+  effort: medium
+  reserves_output_tokens: false
+  transport: auto
+  cache_ttl: 1h
+  temperature: null
+- model_id: fable51
+  model_name: claude-code/claude-fable-5-1
+  api_base: http://127.0.0.1:8082/anthropic/
+  api_key_name: ai-proxy
+  api_format: anthropic
+  can_stream: true
+  max_tokens: 128000
+  extra_body: {}
+  headers: {}
+  aliases: []
+  context_window: 1000000
+  image: true
+  thinking_mode: adaptive
+  effort: medium
+  reserves_output_tokens: false
+  transport: auto
+  cache_ttl: 1h
+  temperature: null
+- model_id: fable5
   model_name: claude-code/claude-fable-5
   api_base: http://127.0.0.1:8082/anthropic/
   api_key_name: ai-proxy
@@ -538,9 +574,9 @@ models:
       only:
       - google-vertex/global
   headers:
-    X-OpenRouter-Categories: cli-agent
     HTTP-Referer: https://github.com/tizee/zhu
     X-OpenRouter-Title: ZHU Agent
+    X-OpenRouter-Categories: cli-agent
   aliases: []
   context_window: 1000000
   image: true
@@ -559,8 +595,8 @@ models:
   max_tokens: null
   extra_body: {}
   headers:
-    X-OpenRouter-Categories: cli-agent
     HTTP-Referer: https://github.com/tizee/zhu
+    X-OpenRouter-Categories: cli-agent
     X-OpenRouter-Title: ZHU Agent
   aliases: []
   context_window: 512000
@@ -584,9 +620,9 @@ models:
       only:
       - openai
   headers:
-    X-OpenRouter-Title: ZHU Agent
     X-OpenRouter-Categories: cli-agent
     HTTP-Referer: https://github.com/tizee/zhu
+    X-OpenRouter-Title: ZHU Agent
   aliases: []
   context_window: 256000
   image: true
@@ -759,12 +795,29 @@ models:
   transport: auto
   cache_ttl: null
   temperature: null
-  # BUG-450: SiliconFlow bills an image nested in tool_result as text.
   hoist_tool_result_images: true
 - model_id: doubao-ds-flash
   model_name: deepseek-v4-1-flash-261017
   api_base: https://ark.cn-beijing.volces.com/api/compatible
   api_key_name: doubao
+  api_format: anthropic
+  can_stream: true
+  max_tokens: null
+  extra_body: {}
+  headers: {}
+  aliases: []
+  context_window: 800000
+  image: true
+  thinking_mode: enabled
+  effort: max
+  reserves_output_tokens: false
+  transport: auto
+  cache_ttl: null
+  temperature: null
+- model_id: opencode-ds-flash
+  model_name: deepseek-v4.1-flash
+  api_base: https://opencode.ai/inference/go
+  api_key_name: opencode
   api_format: anthropic
   can_stream: true
   max_tokens: null
@@ -779,5 +832,3 @@ models:
   transport: auto
   cache_ttl: null
   temperature: null
-  # BUG-450: SiliconFlow bills an image nested in tool_result as text.
-  # hoist_tool_result_images: true
