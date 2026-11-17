@@ -18,6 +18,7 @@
 #
 # Output format:
 #   myapp | Q:7% 2h 34m | ████████░░░░░░░ 12.5K / 200K (6%) | main (3 files +45 -12)
+#   An isolated session adds a `wt:<slot>` badge after the branch.
 
 # Path to the quota checker script (same directory as this script)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -30,9 +31,19 @@ GIT_CACHE_INTERVAL=10  # seconds between git refreshes
 # Read JSON input from stdin
 input=$(cat)
 
-# Extract information from JSON
+# Extract information from JSON.
+# cwd is the session cwd: the worktree root when zhu isolates the session.
+# worktree is null for a shared session; target_dir names the main checkout.
 cwd=$(echo "$input" | jq -r '.cwd')
-dir_name=$(basename "$cwd")
+worktree_path=""
+worktree_branch=""
+worktree_target_dir=""
+IFS=$'\t' read -r worktree_path worktree_branch worktree_target_dir < <(
+    echo "$input" | jq -r '[.worktree.path // "", .worktree.branch // "", .worktree.target_dir // ""] | @tsv'
+)
+git_cwd="${worktree_path:-$cwd}"
+project_dir="${worktree_target_dir:-$cwd}"
+dir_name=$(basename "$project_dir")
 
 # Extract model information to determine provider
 model_name=$(echo "$input" | jq -r '.model.model_name // ""')
@@ -128,6 +139,7 @@ GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 YELLOW='\033[0;33m'
 CYAN='\033[0;36m'
+MAGENTA='\033[0;35m'
 GRAY='\033[0;90m'
 TRACK='\033[0;90m'   # unfilled progress-bar track (dim)
 NC='\033[0m'
@@ -634,7 +646,7 @@ needs_git_refresh=false
 
 _git_cache_key() {
     local repo_root
-    repo_root=$(cd "$cwd" 2>/dev/null && git rev-parse --show-toplevel 2>/dev/null) || return 1
+    repo_root=$(cd "$git_cwd" 2>/dev/null && git rev-parse --show-toplevel 2>/dev/null) || return 1
     # Use a hash of the repo path as filename to avoid collisions
     echo "$repo_root" | md5sum 2>/dev/null | cut -d' ' -f1 || echo "$repo_root" | md5 2>/dev/null | cut -d' ' -f1
 }
@@ -712,11 +724,22 @@ _is_git_cache_stale() {
 }
 
 # Project name lives in the git segment; default to bare project name when
-# outside a git work tree.
+# outside a git work tree. A zhu-isolated session names its worktree in the
+# statusline JSON; no git probing is needed to detect it.
+worktree_info=""
+if [ -n "$worktree_path" ]; then
+    worktree_info="${MAGENTA}wt:$(basename "$worktree_path")${NC}"
+elif [ -n "$worktree_branch" ]; then
+    worktree_info="${MAGENTA}wt${NC}"
+fi
+
 git_info="${BLUE}${dir_name}${NC}"
-if cd "$cwd" 2>/dev/null && git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    # Branch name is always fast (reads .git/HEAD), so always fetch synchronously
-    branch=$(git branch --show-current 2>/dev/null || echo "detached")
+[ -n "$worktree_info" ] && git_info+=" ${worktree_info}"
+if cd "$git_cwd" 2>/dev/null && git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    # Branch name is always fast (reads .git/HEAD), so always fetch synchronously.
+    # Fall back to the worktree binding when HEAD is detached.
+    branch=$(git branch --show-current 2>/dev/null)
+    [ -n "$branch" ] || branch="${worktree_branch:-detached}"
 
     cache_key=$(_git_cache_key)
     if [ -n "$cache_key" ]; then
@@ -727,7 +750,8 @@ if cd "$cwd" 2>/dev/null && git rev-parse --is-inside-work-tree >/dev/null 2>&1;
             # Cache is stale or missing
             if [ ! -f "$git_cache_file" ]; then
                 # First call: collect synchronously so we have data immediately
-                _collect_git_info "$cwd" "$git_cache_file"
+                _collect_git_info "$git_cwd" "$git_cache_file"
+                _read_git_cache "$git_cache_file"
             else
                 # Cache exists but stale: read stale data, refresh in background
                 _read_git_cache "$git_cache_file"
@@ -749,7 +773,7 @@ if cd "$cwd" 2>/dev/null && git rev-parse --is-inside-work-tree >/dev/null 2>&1;
             fi
             (
                 if mkdir "$git_cache_lock" 2>/dev/null; then
-                    _collect_git_info "$cwd" "$git_cache_file"
+                    _collect_git_info "$git_cwd" "$git_cache_file"
                     rmdir "$git_cache_lock" 2>/dev/null
                 fi
             ) &
@@ -758,14 +782,13 @@ if cd "$cwd" 2>/dev/null && git rev-parse --is-inside-work-tree >/dev/null 2>&1;
 
         # Build git_info from sourced cache variables (may be empty on first call)
         # Project name + live branch, vim-style (space separated, no pipe)
+        git_info="${BLUE}${dir_name}${NC} ${YELLOW}${branch}${NC}"
+        [ -n "$worktree_info" ] && git_info+=" ${worktree_info}"
         if [ "${total_files:-0}" -gt 0 ] 2>/dev/null; then
-            git_info="${BLUE}${dir_name}${NC} ${YELLOW}${branch}${NC} ${GRAY}(${total_files} files"
+            git_info+=" ${GRAY}(${total_files} files"
             [ "${added:-0}" -gt 0 ] && git_info+=" ${GREEN}+${added}${NC}"
             [ "${removed:-0}" -gt 0 ] && git_info+=" ${RED}-${removed}${NC}"
             git_info+="${GRAY})${NC}"
-        else
-            # First call or clean repo -- project name + branch only
-            git_info="${BLUE}${dir_name}${NC} ${YELLOW}${branch}${NC}"
         fi
     fi
 fi
