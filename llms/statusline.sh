@@ -558,6 +558,19 @@ if [ -f "$QUOTA_SCRIPT" ]; then
                     fi
                 fi
             fi
+            # Peak / off-peak pricing indicator. OpenCode Go bills DeepSeek
+            # V4.1 Flash on the same published clock as the direct API.
+            # Do not use `//` here: it would treat a real `false` as absent.
+            opencode_is_peak=$(echo "$quota_json" | jq -r '
+                [.sessions.current.extra.peak_valley_is_peak,
+                 .sessions.weekly.extra.peak_valley_is_peak,
+                 .sessions.monthly.extra.peak_valley_is_peak]
+                | map(select(. != null)) | first')
+            if [ -n "$quota_info" ] && [ "$opencode_is_peak" = "true" ]; then
+                quota_info+=" ${RED}PEAK${NC}"
+            elif [ -n "$quota_info" ] && [ "$opencode_is_peak" = "false" ]; then
+                quota_info+=" ${GREEN}OFF-PEAK${NC}"
+            fi
         elif [ "$provider" = "deepseek" ]; then
             # DeepSeek: monthly tokens + cost + peak/valley pricing indicator
             ds_tokens=$(echo "$quota_json" | jq -r '.sessions.monthly_tokens.used // empty')

@@ -310,6 +310,9 @@ if $is_macOS; then
   ## mac sdk related
   #alias sdkroot='xcrun --sdk macosx --show-sdk-path'
 
+  export JAVA_HOME=$(/usr/libexec/java_home -v 17)
+  PATH="$JAVA_HOME/bin:$PATH"
+
   #alias java8='export JAVA_HOME=$JAVA_8_HOME'
   ## alias java9='export JAVA_HOME=$JAVA_9_HOME'
   #alias java10='export JAVA_HOME=$JAVA_10_HOME'
@@ -323,6 +326,7 @@ if $is_macOS; then
   #export JAVA_8_HOME="/Library/Java/JavaVirtualMachines/openjdk-8.jdk/Contents/Home"
   ## export JAVA_9_HOME=$(/usr/libexec/java_home -v9)
   #export JAVA_10_HOME=$(/usr/libexec/java_home -v10)
+  #export JAVA_HOME=$JAVA_10_HOME
   #export JAVA_11_HOME=$(/usr/libexec/java_home -v11)
   #export JAVA_18_HOME=$(/usr/libexec/java_home -v18)
   ## export JAVA_12_HOME=$(/usr/libexec/java_home -v12)
@@ -330,8 +334,6 @@ if $is_macOS; then
   ## export JAVA_14_HOME=$(/usr/libexec/java_home -v14)
   ## export JAVA_15_HOME=$(/usr/libexec/java_home -v15)
   ## PATH="/usr/local/opt/openjdk@8/bin:$PATH"
-  #export JAVA_HOME=$JAVA_10_HOME
-  ## PATH="$JAVA_HOME/bin:$PATH"
   ## export CLASS_PATH=$JAVA_HOME/lib
   ## export CLASSPATH=$JAVA_HOME/lib
 

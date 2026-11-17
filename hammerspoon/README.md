@@ -25,7 +25,7 @@
 
 ## Key Features
 
-### Quick Actions (`Ctrl+T`)
+### Quick Actions (`Ctrl+\`)
 - `q` - Quick Navigation (window hints)
 - `p` - Paste as Plain Text
 - `a` - Show App Info

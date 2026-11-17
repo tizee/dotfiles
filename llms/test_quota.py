@@ -415,13 +415,62 @@ class DeepSeekPeakPricingTests(unittest.TestCase):
             "note": "test",
         }
 
-        with patch.object(quota.DeepSeekQuotaProvider, "_peak_valley_status", return_value=status):
+        with patch.object(quota.PeakValleyPricing, "status", return_value=status):
             quota.refresh_peak_valley(info)
 
         extra = info.sessions["monthly_cost"].extra
         self.assertTrue(extra["peak_valley_is_peak"])
         self.assertEqual(extra["peak_valley_label"], "Peak (2x)")
         self.assertEqual(extra["peak_valley_windows"], ["06:00-10:00"])
+
+    def test_refresh_updates_opencode_sessions(self) -> None:
+        info = quota.QuotaInfo(provider="opencode")
+        info.sessions["current"] = quota.SessionQuota(
+            extra={"peak_valley_is_peak": False, "peak_valley_label": "Valley (1x)"}
+        )
+        status = {
+            "is_peak": True,
+            "label": "Peak (2x)",
+            "now_utc_str": "07:00",
+            "active_windows": ["06:00-10:00"],
+            "note": "test",
+        }
+
+        with patch.object(quota.PeakValleyPricing, "status", return_value=status):
+            quota.refresh_peak_valley(info)
+
+        extra = info.sessions["current"].extra
+        self.assertTrue(extra["peak_valley_is_peak"])
+        self.assertEqual(extra["peak_valley_label"], "Peak (2x)")
+        self.assertEqual(extra["peak_valley_windows"], ["06:00-10:00"])
+
+    def test_opencode_fetch_marks_the_first_session(self) -> None:
+        provider = quota.OpenCodeQuotaProvider("key")
+        payload = {
+            "usage": {
+                "rolling": {"percent": 10, "resetsAt": "2026-11-16T12:00:00Z"},
+                "weekly": {"percent": 20},
+                "monthly": {"percent": 30},
+            }
+        }
+        status = {
+            "is_peak": True,
+            "label": "Peak (2x)",
+            "now_utc_str": "07:00",
+            "active_windows": ["06:00-10:00"],
+            "note": "test",
+        }
+
+        with patch.object(provider, "_request", return_value=payload), \
+             patch.object(quota.PeakValleyPricing, "status", return_value=status):
+            info = provider.fetch_quota()
+
+        self.assertIsNone(info.error)
+        extra = info.sessions["current"].extra
+        self.assertTrue(extra["peak_valley_is_peak"])
+        self.assertEqual(extra["peak_valley_label"], "Peak (2x)")
+        self.assertEqual(extra["peak_valley_windows"], ["06:00-10:00"])
+        self.assertNotIn("peak_valley_label", info.sessions["weekly"].extra)
 
     def test_refresh_leaves_other_providers_alone(self) -> None:
         info = quota.QuotaInfo(provider="claude")

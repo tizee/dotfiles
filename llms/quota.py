@@ -1679,22 +1679,16 @@ class DoubaoQuotaProvider(QuotaProvider):
 
 
 # ============================================================================
-# DeepSeek Provider Implementation
+# Shared Peak/Valley Pricing Schedule
 # ============================================================================
 
 
-class DeepSeekQuotaProvider(QuotaProvider):
-    """DeepSeek Platform quota provider (Bearer token from Firefox localStorage)"""
+class PeakValleyPricing:
+    """DeepSeek's peak/valley clock, shared by direct and OpenCode Go routes.
 
-    name = "deepseek"
-    description = "DeepSeek Platform (platform.deepseek.com)"
-    BASE_URL = "https://platform.deepseek.com/api/v0"
-    AMOUNT_URL = f"{BASE_URL}/usage/amount"
-    COST_URL = f"{BASE_URL}/usage/cost"
-
-    # Origin for Firefox localStorage (used to locate the sqlite db)
-    LS_KEY = "userToken"
-    LS_ORIGIN = "https+++platform.deepseek.com"
+    OpenCode Go bills DeepSeek V4.1 Flash at the same published peak/off-peak
+    rates, so both providers must answer the clock the same way.
+    """
 
     # Peak-valley pricing took effect at 16:00 UTC on 2026-08-16
     # (00:00 Beijing time on 2026-08-17). Pricing was flat before that.
@@ -1717,6 +1711,86 @@ class DeepSeekQuotaProvider(QuotaProvider):
         *[date(2026, 9, day) for day in range(25, 28)],
         *[date(2026, 10, day) for day in range(1, 8)],
     })
+
+    @classmethod
+    def is_peak(cls, now_utc: datetime) -> bool:
+        """Check if current UTC time falls in a peak pricing window.
+
+        Peak pricing applies Monday through Friday, excluding Chinese public
+        holidays. Weekends and holidays are off-peak all day.
+        """
+        if now_utc.weekday() >= 5:
+            return False
+        if now_utc.date() in cls.CN_PUBLIC_HOLIDAYS:
+            return False
+        hour = now_utc.hour
+        return any(start <= hour < end for start, end in cls.PEAK_SLOTS_UTC)
+
+    @classmethod
+    def status(cls) -> dict[str, Any]:
+        """Compute peak/valley status for current time.
+
+        Returns dict with:
+          is_peak: whether current time is in peak pricing window
+          label: "Peak (2x)" or "Valley (1x)"
+          note: human-readable explanation for display
+          now_utc_str: current UTC time like "07:30"
+          active_windows: list of active peak windows (e.g. ["06:00-10:00"])
+        """
+        now_utc = datetime.now(timezone.utc)
+        now_utc_str = now_utc.strftime("%H:%M")
+
+        if now_utc < cls.PEAK_PRICING_START:
+            return {
+                "is_peak": False,
+                "label": "Flat (pre-peak/valley)",
+                "note": "Peak/valley pricing started 2026-08-16 16:00 UTC",
+                "now_utc_str": now_utc_str,
+                "active_windows": [],
+            }
+
+        is_peak = cls.is_peak(now_utc)
+        active_windows = [
+            f"{start:02d}:00-{end:02d}:00"
+            for start, end in cls.PEAK_SLOTS_UTC
+            if start <= now_utc.hour < end
+        ]
+
+        return {
+            "is_peak": is_peak,
+            "label": "Peak (2x)" if is_peak else "Valley (1x)",
+            "note": (
+                "Peak hours: Mon-Fri 01:00-04:00, 06:00-10:00 UTC "
+                "(UTC+8: 09:00-12:00, 14:00-18:00); "
+                "weekends and Chinese holidays are off-peak"
+            ),
+            "now_utc_str": now_utc_str,
+            "active_windows": active_windows,
+        }
+
+
+# ============================================================================
+# DeepSeek Provider Implementation
+# ============================================================================
+
+
+class DeepSeekQuotaProvider(QuotaProvider):
+    """DeepSeek Platform quota provider (Bearer token from Firefox localStorage)"""
+
+    name = "deepseek"
+    description = "DeepSeek Platform (platform.deepseek.com)"
+    BASE_URL = "https://platform.deepseek.com/api/v0"
+    AMOUNT_URL = f"{BASE_URL}/usage/amount"
+    COST_URL = f"{BASE_URL}/usage/cost"
+
+    # Origin for Firefox localStorage (used to locate the sqlite db)
+    LS_KEY = "userToken"
+    LS_ORIGIN = "https+++platform.deepseek.com"
+
+    # Kept as aliases for callers that still reach through this provider.
+    PEAK_PRICING_START = PeakValleyPricing.PEAK_PRICING_START
+    PEAK_SLOTS_UTC = PeakValleyPricing.PEAK_SLOTS_UTC
+    CN_PUBLIC_HOLIDAYS = PeakValleyPricing.CN_PUBLIC_HOLIDAYS
 
     def __init__(self, cookie_header: str):
         super().__init__(cookie_header)
@@ -1850,62 +1924,13 @@ class DeepSeekQuotaProvider(QuotaProvider):
 
     @staticmethod
     def _is_peak_hour(now_utc: datetime) -> bool:
-        """Check if current UTC time falls in a peak pricing window.
-
-        Peak pricing applies Monday through Friday, excluding Chinese public
-        holidays. Weekends and holidays are off-peak all day.
-        """
-        if now_utc.weekday() >= 5:
-            return False
-        if now_utc.date() in DeepSeekQuotaProvider.CN_PUBLIC_HOLIDAYS:
-            return False
-        hour = now_utc.hour
-        return any(
-            start <= hour < end
-            for start, end in DeepSeekQuotaProvider.PEAK_SLOTS_UTC
-        )
+        """Backward-compatible entry point for the shared schedule."""
+        return PeakValleyPricing.is_peak(now_utc)
 
     @staticmethod
     def _peak_valley_status() -> dict[str, Any]:
-        """Compute peak/valley status for current time.
-
-        Returns dict with:
-          is_peak: whether current time is in peak pricing window
-          label: "Peak (2x)" or "Valley (1x)"
-          note: human-readable explanation for display
-          now_utc_str: current UTC time like "07:30"
-          active_windows: list of active peak windows (e.g. ["06:00-10:00"])
-        """
-        now_utc = datetime.now(timezone.utc)
-        now_utc_str = now_utc.strftime("%H:%M")
-
-        if now_utc < DeepSeekQuotaProvider.PEAK_PRICING_START:
-            return {
-                "is_peak": False,
-                "label": "Flat (pre-peak/valley)",
-                "note": "Peak/valley pricing started 2026-08-16 16:00 UTC",
-                "now_utc_str": now_utc_str,
-                "active_windows": [],
-            }
-
-        is_peak = DeepSeekQuotaProvider._is_peak_hour(now_utc)
-        active_windows = []
-        hour = now_utc.hour
-        for start, end in DeepSeekQuotaProvider.PEAK_SLOTS_UTC:
-            if start <= hour < end:
-                active_windows.append(f"{start:02d}:00-{end:02d}:00")
-
-        return {
-            "is_peak": is_peak,
-            "label": "Peak (2x)" if is_peak else "Valley (1x)",
-            "note": (
-                "Peak hours: Mon-Fri 01:00-04:00, 06:00-10:00 UTC "
-                "(UTC+8: 09:00-12:00, 14:00-18:00); "
-                "weekends and Chinese holidays are off-peak"
-            ),
-            "now_utc_str": now_utc_str,
-            "active_windows": active_windows,
-        }
+        """Backward-compatible entry point for the shared schedule."""
+        return PeakValleyPricing.status()
 
     def _curl_request(self, url: str, timeout: int = 30) -> dict:
         """Send GET request with Bearer token + cookies."""
@@ -2278,6 +2303,7 @@ class OpenCodeQuotaProvider(QuotaProvider):
             quota_info.error_type = "server"
             return quota_info
 
+        first_session: Optional[SessionQuota] = None
         for field, session_key in (
             ("rolling", "current"),
             ("weekly", "weekly"),
@@ -2286,6 +2312,21 @@ class OpenCodeQuotaProvider(QuotaProvider):
             session = self._session(usage.get(field))
             if session is not None:
                 quota_info.sessions[session_key] = session
+                if first_session is None:
+                    first_session = session
+
+        # OpenCode Go bills DeepSeek V4.1 Flash on DeepSeek's peak/valley
+        # clock. Attach the flag to one session so the statusline and the
+        # detailed report have a single place to read it from.
+        if first_session is not None:
+            peak = PeakValleyPricing.status()
+            first_session.extra.update({
+                "peak_valley_label": peak["label"],
+                "peak_valley_is_peak": peak["is_peak"],
+                "peak_valley_now_utc": peak["now_utc_str"],
+                "peak_valley_windows": peak["active_windows"],
+                "peak_valley_note": peak["note"],
+            })
 
         if not quota_info.sessions:
             quota_info.error = "OpenCode usage API response has no usage windows"
@@ -2294,16 +2335,17 @@ class OpenCodeQuotaProvider(QuotaProvider):
 
 
 def refresh_peak_valley(quota_info: QuotaInfo) -> None:
-    """Recompute DeepSeek's peak/valley flag for the current clock.
+    """Recompute the peak/valley flag for providers billed on that clock.
 
-    The flag is cached with the quota response. Refreshing it before output
-    keeps the PEAK marker correct across window boundaries when --debounce
-    serves data that was fetched up to ten minutes ago.
+    DeepSeek's direct API and OpenCode Go's DeepSeek route share the same
+    published schedule. The flag is cached with the quota response. Refreshing
+    it before output keeps the PEAK marker correct across window boundaries
+    when --debounce serves data that was fetched up to ten minutes ago.
     """
-    if quota_info.provider != "deepseek":
+    if quota_info.provider not in {"deepseek", "opencode"}:
         return
 
-    status = DeepSeekQuotaProvider._peak_valley_status()
+    status = PeakValleyPricing.status()
     fields = {
         "peak_valley_label": status["label"],
         "peak_valley_is_peak": status["is_peak"],
@@ -2311,9 +2353,19 @@ def refresh_peak_valley(quota_info: QuotaInfo) -> None:
         "peak_valley_windows": status["active_windows"],
         "peak_valley_note": status["note"],
     }
-    for session in quota_info.sessions.values():
-        if session.extra and "peak_valley_is_peak" in session.extra:
-            session.extra.update(fields)
+    targets = [
+        session
+        for session in quota_info.sessions.values()
+        if session.extra and "peak_valley_is_peak" in session.extra
+    ]
+    # A cache written before this field existed still gets the marker on the
+    # first run after the upgrade, instead of waiting for the TTL to expire.
+    if quota_info.provider == "opencode" and not targets:
+        first = next(iter(quota_info.sessions.values()), None)
+        if first is not None:
+            targets = [first]
+    for session in targets:
+        session.extra.update(fields)
 
 
 # ============================================================================
@@ -3084,7 +3136,7 @@ def format_rich(quota_info: QuotaInfo, no_color: bool = False) -> str:
                     mcp_items.append(f"{model_code}: {usage}")
                 lines.append(f"   Services: {', '.join(mcp_items)}")
 
-        # Show peak-valley pricing status for DeepSeek sessions
+        # Show peak-valley pricing status for providers billed on that clock.
         if session.extra and "peak_valley_label" in session.extra:
             pv_label = session.extra["peak_valley_label"]
             pv_is_peak = session.extra.get("peak_valley_is_peak", False)

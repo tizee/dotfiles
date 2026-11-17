@@ -72,6 +72,7 @@ additional_allowed_write_paths = [
   "/Users/tizee/Library/Caches",
   "~/.cargo/",
 ]
+additional_excluded_commands = ["java", "javac", "jar", "jshell", "jdb", "mvn", "./mvnw", "gradle", "./gradlew"]
 
 # FEAT-541/542: implicit session isolation
 [agent.worktree]
